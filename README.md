@@ -113,7 +113,7 @@ bitstream format in the [database](database) directory.
 
 # Current Focus
 
-FIXME(@tinyfgpa): Put details here.
+The current focus is understanding the ECP5 programmable logic cells (PLC) and connectivity between the cells.
 
 The aim is to eventually document all parts in the Lattice ECP5 series FPGAs
 but we can not do this alone, **we need your help**!
