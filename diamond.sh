@@ -81,11 +81,11 @@ rm -rf "$2.tmp"
 mkdir -p "$2.tmp"
 cp "$2.v" "$2.tmp/input.v"
 if test -f "$2.sdc"; then cp "$2.sdc" "$2.tmp/input.sdc"; fi
-if test -f "$2.ldf"; then cp "$2.ldf" "$2.tmp/input.ldf"; fi
+if test -f "$2.lpf"; then cp "$2.lpf" "$2.tmp/input.lpf"; fi
 cd "$2.tmp"
 
 touch input.sdc
-touch input.ldf
+touch input.lpf
 
 cat > impl_lse.prj << EOT
 #device
@@ -119,20 +119,19 @@ cat > impl_lse.prj << EOT
 -use_io_reg auto
 -ver "input.v"
 
--lpf 1
 -p "$PWD"
 -ngd "synth_impl.ngd"
-
+-lpf 1
 EOT
 
 # run LSE synthesis
 "$fpgabindir"/synthesis -f "impl_lse.prj"
 
 # map design
-"$fpgabindir"/map -a $LSE_ARCH -p $DEVICE -t $PACKAGE synth_impl.ngd -o map_impl.ncd input.lpf
+"$fpgabindir"/map -a $LSE_ARCH -p $DEVICE -t $PACKAGE synth_impl.ngd -o map_impl.ncd  -lpf synth_impl.lpf -lpf input.lpf
 
 # place and route design
-"$fpgabindir"/par map_impl.ncd par_impl.ncd
+"$fpgabindir"/par map_impl.ncd par_impl.ncd synth_impl.prf
 
 # make bitmap
 "$fpgabindir"/bitgen par_impl.ncd output.bit
