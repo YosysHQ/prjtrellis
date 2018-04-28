@@ -3,6 +3,7 @@ Database and Database Path Management
 """
 import os
 from os import path
+import json
 
 def get_trellis_root():
     """Return the absolute path to the Project Trellis repo root"""
@@ -37,3 +38,11 @@ def get_db_subdir(family = None, device = None, package = None):
             os.mkdir(subdir)
     return subdir
 
+
+def get_tilegrid(family, device):
+    """
+    Return the deserialised tilegrid for a family, device
+    """
+    tgjson = path.join(get_db_subdir(family, device), "tilegrid.json")
+    with open(tgjson, "r") as f:
+        return json.load(f)
