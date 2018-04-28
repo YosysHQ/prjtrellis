@@ -139,6 +139,9 @@ EOT
 # dump bitmap
 "$fpgabindir"/bstool -d output.bit > output.dump
 
+# run test on bitmap (for tilemap)
+"$fpgabindir"/bstool -t output.bit > output.test
+
 # convert ngd to ncl
 "$FOUNDRY"/userware/unix/bin/lin64/ncd2ncl par_impl.ncd output.ncl
 

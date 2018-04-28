@@ -2,4 +2,5 @@ ecpunpack
 *.bit
 *.dump
 *.out
-
+work_*/
+*.tmp/
