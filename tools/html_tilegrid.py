@@ -72,8 +72,12 @@ def main(argv):
 
     f = args.outfile
     print(
-        "<html><head><title>{} Tiles</title></head><body><table style='font-size: 8pt; border: 2px solid black; text-align: center'>".format(
-            args.device), file=f)
+        """<html>
+            <head><title>{} Tiles</title></head>
+            <body>
+            <h1>{} Tilegrid</h1>
+            <table style='font-size: 8pt; border: 2px solid black; text-align: center'>
+        """.format(args.device, args.device), file=f)
     for trow in tiles:
         print("<tr style='height: 100px'>", file=f)
         for tloc in trow:
