@@ -4,6 +4,8 @@ Database and Database Path Management
 import os
 from os import path
 import json
+import subprocess
+
 
 def get_trellis_root():
     """Return the absolute path to the Project Trellis repo root"""
@@ -46,3 +48,7 @@ def get_tilegrid(family, device):
     tgjson = path.join(get_db_subdir(family, device), "tilegrid.json")
     with open(tgjson, "r") as f:
         return json.load(f)
+
+
+def get_db_commit():
+    return subprocess.getoutput('git -C "{}" rev-parse HEAD'.format(get_db_root()))
