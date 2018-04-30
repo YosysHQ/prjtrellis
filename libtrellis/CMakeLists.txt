@@ -3,4 +3,5 @@ project(libtrellis)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_library(trellis SHARED include/Bitstream.hpp src/Bitstream.cpp)
+include_directories(include/)
+add_library(trellis SHARED include/Bitstream.hpp src/Bitstream.cpp include/Chip.hpp include/CRAM.hpp)
