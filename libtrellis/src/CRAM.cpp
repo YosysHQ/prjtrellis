@@ -1,6 +1,7 @@
 #include "CRAM.hpp"
 #include <cassert>
 
+namespace Trellis {
 char &CRAMView::bit(int frame, int bit) {
     assert(frame < frame_count);
     assert(bit < bit_count);
@@ -28,3 +29,8 @@ char &CRAM::bit(int frame, int bit) {
 int CRAM::frames() const { return int(data->size()); }
 
 int CRAM::bits() const { return int(data->at(0).size()); }
+
+CRAMView CRAM::make_view(int frame_offset, int bit_offset, int frame_count, int bit_count) {
+    return CRAMView(data, frame_offset, bit_offset, frame_count, bit_count);
+}
+}
