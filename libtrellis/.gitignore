@@ -1,0 +1,17 @@
+cmake-build-*/
+Makefile
+cmake_install.cmake
+compile_commands.json
+*.o
+CMakeFiles
+CMakeScripts
+CTestTestfile.cmake
+CMakeCache.txt
+Testing
+*.bit
+*.bin
+*.dump
+*.so
+*.dll
+*.a
+*.cbp
