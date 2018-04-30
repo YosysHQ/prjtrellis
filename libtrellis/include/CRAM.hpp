@@ -6,14 +6,16 @@
 #include <vector>
 
 using namespace std;
-
+namespace Trellis {
 // This represents a view into the configuration memory, typically used to represent a tile
 class CRAMView {
 public:
     // Access a bit inside the CRAM view by frame and bit offset within the view
     char &bit(int frame, int bit);
+
     // Return the number of frames inside the view
     int frames() const;
+
     // Return the number of bits inside the view
     int bits() const;
 
@@ -25,7 +27,9 @@ private:
     int bit_offset;
     int frame_count;
     int bit_count;
+
     friend class CRAM;
+
     shared_ptr<vector<vector<char>>> cram_data;
 };
 
@@ -35,18 +39,23 @@ class CRAM {
 public:
     // Construct empty CRAM given size
     CRAM(int frames, int bits);
+
     // Access a bit in the CRAM given frame and bit offset
     char &bit(int frame, int bit);
+
     // Return number of frames in CRAM
     int frames() const;
+
     // Return number of bits per frame in CRAM
     int bits() const;
+
     // Make a view to the CRAM given frame and bit offset; and frames and bits per frame in the view
     CRAMView make_view(int frame_offset, int bit_offset, int frame_count, int bit_count);
+
 private:
     // Using a shared_ptr so views are not invalidated even if the CRAM itself is deleted
     // A vector of type char is used as the optimisations in vector<bool> are not worth the loss of bool& etc
     shared_ptr<vector<vector<char>>> data;
 };
-
+}
 #endif //LIBTRELLIS_CRAM_HPP
