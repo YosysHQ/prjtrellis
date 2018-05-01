@@ -20,12 +20,6 @@ struct SiteInfo {
     int col;
 };
 
-// Reference to a bit location
-struct TileBit {
-    size_t row;
-    size_t bit;
-};
-
 // Basic information about a tile
 struct TileInfo {
     string name;
@@ -41,6 +35,16 @@ struct TileInfo {
         assert(regex_search(name, m, tile_row_col_re));
         return make_pair(stoi(m.str(1)), stoi(m.str(2)));
     };
+};
+
+class Chip;
+// Represents an actual tile
+class Tile {
+public:
+    Tile(TileInfo info, Chip &parent);
+    TileInfo info;
+    CRAMView cram;
+    // TODO: actual Tile config access (arcs, attrs, etc) once fuzzing has progressed
 };
 
 }
