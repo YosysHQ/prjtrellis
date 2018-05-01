@@ -15,6 +15,7 @@ namespace Trellis {
 // Basic information about a chip that may be needed elsewhere
 struct ChipInfo {
     string name;
+    string family;
     uint32_t idcode;
     int num_frames;
     int bits_per_frame;
