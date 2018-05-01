@@ -33,7 +33,7 @@ public:
     explicit Chip(uint32_t idcode);
 
     // Basic information about a chip
-    const ChipInfo info;
+    ChipInfo info;
 
     // The chip's configuration memory
     CRAM cram;
@@ -47,6 +47,9 @@ public:
 
     // Map tile name to a tile reference
     map<string, shared_ptr<Tile>> tiles;
+
+    // Miscellaneous information
+    uint32_t usercode = 0x0;
 };
 }
 
