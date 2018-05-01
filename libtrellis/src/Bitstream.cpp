@@ -1,14 +1,19 @@
 #include "Bitstream.hpp"
 #include "Chip.hpp"
+#include "Util.hpp"
 #include <sstream>
 #include <cstring>
 #include <algorithm>
 #include <iterator>
+#include <iostream>
+#include <boost/optional.hpp>
+#include <iomanip>
 
 namespace Trellis {
 
 static const uint16_t CRC16_POLY = 0x8005;
 static const uint16_t CRC16_INIT = 0x0000;
+
 // The BitstreamReader class stores state (including CRC16) whilst reading
 // the bitstream
 class BitstreamReader {
@@ -58,6 +63,15 @@ public:
         for (size_t i = 0; i < count; i++) get_byte();
     }
 
+    // Read a big endian uint32 from the bitstream
+    uint32_t get_uint32() {
+        uint8_t tmp[4];
+        get_bytes(tmp, 4);
+        return (tmp[0] << 24UL) | (tmp[1] << 16UL) | (tmp[2] << 8UL) | (tmp[3]);
+    }
+
+    // Search for a preamble, setting bitstream position to be after the preamble
+    // Returns true on success, false on failure
     bool find_preamble(const vector<uint8_t> &preamble) {
         auto found = search(iter, data.end(), preamble.begin(), preamble.end());
         if (found == data.end())
@@ -68,11 +82,12 @@ public:
 
     uint16_t finalise_crc16() {
         // item b) "push out" the last 16 bits
-        int i, bit_flag;
+        int i;
+        bool bit_flag;
         for (i = 0; i < 16; ++i) {
-            bit_flag = crc16 >> 15;
+            bit_flag = bool(crc16 >> 15);
             crc16 <<= 1;
-            if(bit_flag)
+            if (bit_flag)
                 crc16 ^= CRC16_POLY;
         }
 
@@ -83,6 +98,12 @@ public:
         crc16 = CRC16_INIT;
     }
 
+    // Get the offset into the bitstream
+    size_t get_offset() {
+        return size_t(distance(data.begin(), iter));
+    }
+
+    // Check the calculated CRC16 against an actual CRC16, expected in the next 2 bytes
     void check_crc16() {
         uint8_t crc_bytes[2];
         uint16_t actual_crc = finalise_crc16();
@@ -91,7 +112,7 @@ public:
         if (actual_crc != exp_crc) {
             ostringstream err;
             err << "crc fail, calculated 0x" << hex << actual_crc << " but expecting 0x" << exp_crc;
-            throw BitstreamParseError(err.str(), distance(data.begin(), iter));
+            throw BitstreamParseError(err.str(), get_offset());
         }
     }
 
@@ -127,8 +148,95 @@ Bitstream Bitstream::read_bit(istream &in) {
     return Bitstream(bytes, meta);
 }
 
+// TODO: replace these macros with something more flexible
+#define BITSTREAM_DEBUG(x) if (verbosity >= VerbosityLevel::DEBUG) cerr << "bitstream: " << x << endl
+#define BITSTREAM_NOTE(x) if (verbosity >= VerbosityLevel::NOTE) cerr << "bitstream: " << x << endl
+#define BITSTREAM_FATAL(x, pos) { ostringstream ss; ss << x; throw BitstreamParseError(ss.str(), pos); }
+
+static const vector<uint8_t> preamble = {0xFF, 0xFF, 0xBD, 0xB3};
+
 Chip Bitstream::deserialise_chip() {
-    // TODO
+    BitstreamReader rd(data);
+    boost::optional<Chip> chip;
+    bool found_preamble = rd.find_preamble(preamble);
+    if (!found_preamble)
+        throw BitstreamParseError("preamble not found in bitstream");
+    while (!rd.is_end()) {
+        uint8_t cmd = rd.get_byte();
+        switch ((BitstreamCommand) cmd) {
+            case BitstreamCommand::LSC_RESET_CRC:
+                BITSTREAM_DEBUG("reset crc");
+                rd.skip_bytes(3);
+                rd.reset_crc16();
+                break;
+            case BitstreamCommand::VERIFY_ID: {
+                rd.skip_bytes(3);
+                uint32_t id = rd.get_uint32();
+                BITSTREAM_NOTE("device ID: 0x" << hex << setw(8) << setfill('0') << id);
+                chip = boost::make_optional(Chip(id));
+            }
+                break;
+            case BitstreamCommand::LSC_PROG_CNTRL0: {
+                rd.skip_bytes(3);
+                uint32_t cfg = rd.get_uint32();
+                BITSTREAM_DEBUG("set control reg 0 to 0x" << hex << setw(8) << setfill('0') << cfg);
+            }
+                break;
+            case BitstreamCommand::ISC_PROGRAM_DONE:
+                rd.skip_bytes(3);
+                BITSTREAM_NOTE("program DONE");
+                break;
+            case BitstreamCommand::ISC_PROGRAM_SECURITY:
+                rd.skip_bytes(3);
+                BITSTREAM_NOTE("program SECURITY");
+                break;
+            case BitstreamCommand::ISC_PROGRAM_USERCODE: {
+                bool check_crc = (rd.get_byte() & 0x80) != 0;
+                rd.skip_bytes(2);
+                uint32_t uc = rd.get_uint32();
+                BITSTREAM_NOTE("set USERCODE to 0x" << hex << setw(8) << setfill('0') << uc);
+                chip->usercode = uc;
+                if (check_crc)
+                    rd.check_crc16();
+            }
+                break;
+            case BitstreamCommand::LSC_INIT_ADDRESS: {
+                // This is the main bitstream payload
+                if (!chip)
+                    throw BitstreamParseError("start of bitstream data before chip was identified", rd.get_offset());
+                uint8_t params[3];
+                rd.get_bytes(params, 3);
+                size_t dummy_bytes = (params[0] & 0x0FU);
+                size_t frame_count = (params[1] << 8U) | params[2];
+                std::cerr << "reading " << std::dec << frame_count << " config frames (with " << std::dec << dummy_bytes
+                          << " dummy bytes)" << std::endl;
+                size_t bytes_per_frame = (chip->info.bits_per_frame + chip->info.pad_bits_after_frame +
+                                          chip->info.pad_bits_before_frame) / 8U;
+                unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
+                for (size_t i = 0; i < frame_count; i++) {
+                    rd.get_bytes(frame_bytes.get(), bytes_per_frame);
+                    for (size_t j = 0; j < chip->info.bits_per_frame; j++) {
+                        size_t ofs = j + chip->info.pad_bits_after_frame;
+                        chip->cram.bit((chip->info.num_frames - 1) - i, j) = (char) (
+                                (frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] >> (ofs % 8)) & 0x01);
+                    }
+                    rd.check_crc16();
+                    rd.skip_bytes(dummy_bytes);
+                }
+                rd.reset_crc16();
+            }
+                break;
+            case BitstreamCommand::DUMMY:
+                break;
+            default: BITSTREAM_FATAL("unsupported command 0x" << hex << setw(2) << setfill('0') << cmd,
+                                     rd.get_offset());
+        }
+    }
+    if (chip) {
+        return *chip;
+    } else {
+        throw BitstreamParseError("failed to parse bitstream, no valid payload found");
+    }
 }
 
 
@@ -136,7 +244,7 @@ void Bitstream::write_bit(ostream &out) {
     // Write metadata header
     out.put(0xFF);
     out.put(0x00);
-    for (auto str : metadata) {
+    for (const auto &str : metadata) {
         out << str;
         out.put(0x00);
     }
