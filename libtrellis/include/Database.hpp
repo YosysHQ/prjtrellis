@@ -36,10 +36,10 @@ struct ChipInfo;
 // Obtain basic information about a device
 ChipInfo get_chip_info(const DeviceLocator &part);
 
-// Obtain the tilemap for a part
+// Obtain the tilegrid for a part
 struct TileInfo;
 
-vector<TileInfo> get_device_tilemap(const DeviceLocator &part);
+vector<TileInfo> get_device_tilegrid(const DeviceLocator &part);
 };
 
 
