@@ -33,6 +33,9 @@ public:
     // Construct a chip by looking up device ID
     explicit Chip(uint32_t idcode);
 
+    // Construct a chip from a ChipInfo
+    explicit Chip(const ChipInfo &info);
+
     // Basic information about a chip
     ChipInfo info;
 
