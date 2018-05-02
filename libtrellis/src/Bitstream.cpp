@@ -8,6 +8,7 @@
 #include <iostream>
 #include <boost/optional.hpp>
 #include <iomanip>
+#include <fstream>
 
 namespace Trellis {
 
@@ -255,6 +256,13 @@ void Bitstream::write_bit(ostream &out) {
 
 void Bitstream::write_bin(ostream &out) {
     copy(data.begin(), data.end(), ostream_iterator<uint8_t>(out));
+}
+
+Bitstream Bitstream::read_bit_py(string file) {
+    ifstream inf(file);
+    if (!inf)
+        throw runtime_error("failed to open input file " + file);
+    return read_bit(inf);
 }
 
 BitstreamParseError::BitstreamParseError(const string &desc) : desc(desc), offset(-1), runtime_error(desc.c_str()) {};

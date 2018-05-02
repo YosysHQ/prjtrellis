@@ -30,12 +30,17 @@ enum class BitstreamCommand : uint8_t {
 
 class Chip;
 
+
 // This represents a low level bitstream, as nothing more than an
 // array of bytes and helper functions for common tasks
 class Bitstream {
 public:
     // Read a Lattice .bit file (metadata + bitstream)
+    // Note that string variants take a filename, for ease of Python binding
     static Bitstream read_bit(istream &in);
+
+    // Python variant of the above, takes filename instead of istream
+    static Bitstream read_bit_py(string file);
 
     // Serialise a Chip back to a bitstream
     static Bitstream serialise_chip(Chip &chip);
@@ -49,11 +54,11 @@ public:
     // Write a Lattice .bin file (bitstream only, for flash prog.)
     void write_bin(ostream &out);
 
-private:
     // Raw bitstream data
     vector<uint8_t> data;
     // Lattice BIT file metadata
     vector<string> metadata;
+private:
 
     // Private constructor
     Bitstream(const vector<uint8_t> &data, const vector<string> &metadata);
