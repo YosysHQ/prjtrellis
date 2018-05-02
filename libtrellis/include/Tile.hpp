@@ -18,6 +18,10 @@ struct SiteInfo {
     string type;
     int row;
     int col;
+    // Needed for Python binding
+    bool operator==(const SiteInfo &b) const {
+        return (this->row == b.row) && (this->col == b.col) && (this->type == b.type);
+    }
 };
 
 // Basic information about a tile

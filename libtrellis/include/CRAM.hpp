@@ -12,6 +12,9 @@ class CRAMView {
 public:
     // Access a bit inside the CRAM view by frame and bit offset within the view
     char &bit(int frame, int bit);
+    // Primarily for Python use
+    bool get_bit(int frame, int biti);
+    void set_bit(int frame, int biti, bool value);
 
     // Return the number of frames inside the view
     int frames() const;
@@ -42,6 +45,9 @@ public:
 
     // Access a bit in the CRAM given frame and bit offset
     char &bit(int frame, int bit);
+    // Primarily for Python use
+    bool get_bit(int frame, int biti);
+    void set_bit(int frame, int biti, bool value);
 
     // Return number of frames in CRAM
     int frames() const;
