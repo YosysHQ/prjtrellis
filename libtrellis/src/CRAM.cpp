@@ -12,6 +12,14 @@ int CRAMView::frames() const { return frame_count; }
 
 int CRAMView::bits() const { return bit_count; }
 
+bool CRAMView::get_bit(int frame, int biti) {
+    return bool(bit(frame, biti));
+}
+
+void CRAMView::set_bit(int frame, int biti, bool value) {
+    bit(frame, biti) = value;
+}
+
 CRAMView::CRAMView(shared_ptr<vector<vector<char>>> data, int frame_offset, int bit_offset, int frame_count,
                    int bit_count)
         : cram_data(data), frame_offset(frame_offset), bit_offset(bit_offset), frame_count(frame_count),
@@ -24,6 +32,14 @@ CRAM::CRAM(int frames, int bits) {
 
 char &CRAM::bit(int frame, int bit) {
     return data->at(frame).at(bit);
+}
+
+bool CRAM::get_bit(int frame, int biti) {
+    return bool(bit(frame, biti));
+}
+
+void CRAM::set_bit(int frame, int biti, bool value) {
+    bit(frame, biti) = value;
 }
 
 int CRAM::frames() const { return int(data->size()); }
