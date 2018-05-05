@@ -17,8 +17,7 @@ using namespace boost::python;
 using namespace Trellis;
 
 
-void translate_bspe(const BitstreamParseError & e)
-{
+void translate_bspe(const BitstreamParseError &e) {
     // Use the Python 'C' API to set up an exception object
     PyErr_SetString(PyExc_ValueError, e.what());
 }
@@ -82,11 +81,17 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("usercode", &Chip::usercode);
 
     // From CRAM.cpp
+    class_<ChangedBit>("ChangedBit")
+            .def_readonly("frame", &ChangedBit::frame)
+            .def_readonly("bit", &ChangedBit::bit)
+            .def_readonly("delta", &ChangedBit::delta);
+
     class_<CRAMView>("CRAMView", no_init)
             .def("bit", &CRAMView::get_bit)
             .def("set_bit", &CRAMView::set_bit)
             .def("bits", &CRAMView::bits)
-            .def("frames", &CRAMView::frames);
+            .def("frames", &CRAMView::frames)
+            .def(self - self);
 
     class_<CRAM>("CRAM", init<int, int>())
             .def("bit", &CRAM::get_bit)
@@ -94,6 +99,9 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("bits", &CRAM::bits)
             .def("frames", &CRAM::frames)
             .def("make_view", &CRAM::make_view);
+
+    class_<CRAMDelta>("CRAMDelta")
+            .def(vector_indexing_suite<CRAMDelta>());
 
     // From Tile.cpp
     class_<vector<SiteInfo>>("SiteInfoVector")
