@@ -7,12 +7,18 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <stdexcept>
+#include <mutex>
+
 
 namespace pt = boost::property_tree;
 
 namespace Trellis {
 static string db_root = "";
 static pt::ptree devices_info;
+
+// Cache Tilegrid data, to save time parsing it again
+static map<string, pt::ptree> tilegrid_cache;
+static mutex tilegrid_cache_mutex;
 
 void load_database(string root) {
     db_root = root;
@@ -73,23 +79,31 @@ vector<TileInfo> get_device_tilegrid(const DeviceLocator &part) {
     vector<TileInfo> tilesInfo;
     assert(db_root != "");
     string tilegrid_path = db_root + "/" + part.family + "/" + part.device + "/tilegrid.json";
-    pt::ptree tg;
-    pt::read_json(tilegrid_path, tg);
-    for (const pt::ptree::value_type &tile : tg) {
-        TileInfo ti;
-        ti.name = tile.first;
-        ti.num_frames = size_t(tile.second.get<int>("cols"));
-        ti.bits_per_frame = size_t(tile.second.get<int>("rows"));
-        ti.bit_offset = size_t(tile.second.get<int>("start_bit"));
-        ti.frame_offset = size_t(tile.second.get<int>("start_frame"));
-        for (const pt::ptree::value_type &site : tile.second.get_child("sites")) {
-            SiteInfo si;
-            si.type = site.second.get<string>("name");
-            si.col = site.second.get<int>("pos_col");
-            si.row = site.second.get<int>("pos_row");
-            ti.sites.push_back(si);
+    {
+        lock_guard<mutex> lock(tilegrid_cache_mutex);
+        if (tilegrid_cache.find(part.device) == tilegrid_cache.end()) {
+            pt::ptree tg_parsed;
+            pt::read_json(tilegrid_path, tg_parsed);
+            tilegrid_cache[part.device] = tg_parsed;
         }
-        tilesInfo.push_back(ti);
+        const pt::ptree &tg = tilegrid_cache[part.device];
+
+        for (const pt::ptree::value_type &tile : tg) {
+            TileInfo ti;
+            ti.name = tile.first;
+            ti.num_frames = size_t(tile.second.get<int>("cols"));
+            ti.bits_per_frame = size_t(tile.second.get<int>("rows"));
+            ti.bit_offset = size_t(tile.second.get<int>("start_bit"));
+            ti.frame_offset = size_t(tile.second.get<int>("start_frame"));
+            for (const pt::ptree::value_type &site : tile.second.get_child("sites")) {
+                SiteInfo si;
+                si.type = site.second.get<string>("name");
+                si.col = site.second.get<int>("pos_col");
+                si.row = site.second.get<int>("pos_row");
+                ti.sites.push_back(si);
+            }
+            tilesInfo.push_back(ti);
+        }
     }
     return tilesInfo;
 }
