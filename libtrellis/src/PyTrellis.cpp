@@ -65,10 +65,10 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readonly("pad_bits_after_frame", &ChipInfo::pad_bits_after_frame);
 
     class_<map<string, shared_ptr<Tile>>>("TileMap")
-            .def(map_indexing_suite<map<string, shared_ptr<Tile>>>());
+            .def(map_indexing_suite<map<string, shared_ptr<Tile>>, true>());
 
     class_<vector<shared_ptr<Tile>>>("TileVector")
-            .def(vector_indexing_suite<vector<shared_ptr<Tile>>>());
+            .def(vector_indexing_suite<vector<shared_ptr<Tile>>, true>());
 
     class_<Chip>("Chip", init<string>())
             .def(init<uint32_t>())
@@ -114,7 +114,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readonly("sites", &TileInfo::sites)
             .def("get_row_col", &TileInfo::get_row_col);
 
-    class_<Tile>("Tile", no_init)
+    class_<Tile, shared_ptr<Tile>>("Tile", no_init)
             .def_readonly("info", &Tile::info)
             .def_readwrite("cram", &Tile::cram);
 

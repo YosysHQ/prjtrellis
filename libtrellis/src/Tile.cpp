@@ -6,4 +6,5 @@ Tile::Tile(Trellis::TileInfo info, Trellis::Chip &parent) : info(info), cram(par
                                                                                                    info.bit_offset,
                                                                                                    info.num_frames,
                                                                                                    info.bits_per_frame)) {};
+
 }
