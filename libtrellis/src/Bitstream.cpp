@@ -45,7 +45,9 @@ public:
 
     // Return a single byte and update CRC
     inline uint8_t get_byte() {
+        assert(iter < data.end());
         uint8_t val = *(iter++);
+        //cerr << hex << setw(2) << int(val) << endl;
         update_crc16(val);
         return val;
     }
@@ -62,6 +64,18 @@ public:
     // Skip over bytes while updating CRC
     void skip_bytes(size_t count) {
         for (size_t i = 0; i < count; i++) get_byte();
+    }
+
+    // Skip over a possible-dummy command section of N bytes, updating CRC only if command is not 0xFF
+    uint8_t skip_possible_dummy(int size) {
+        uint8_t cmd = *(iter++);
+        if (cmd == 0xFF) {
+            iter += (size-1);
+        } else {
+            update_crc16(cmd);
+            skip_bytes(size-1);
+        }
+        return cmd;
     }
 
     // Read a big endian uint32 from the bitstream
@@ -109,12 +123,14 @@ public:
         uint8_t crc_bytes[2];
         uint16_t actual_crc = finalise_crc16();
         get_bytes(crc_bytes, 2);
+       // cerr << hex << int(crc_bytes[0]) << " " << int(crc_bytes[1]) << endl;
         uint16_t exp_crc = (crc_bytes[0] << 8) | crc_bytes[1];
         if (actual_crc != exp_crc) {
             ostringstream err;
             err << "crc fail, calculated 0x" << hex << actual_crc << " but expecting 0x" << exp_crc;
             throw BitstreamParseError(err.str(), get_offset());
         }
+        reset_crc16();
     }
 
     bool is_end() {
@@ -144,8 +160,11 @@ Bitstream Bitstream::read_bit(istream &in) {
             temp += char(c);
         }
     }
-    copy(istream_iterator<uint8_t>(in), istream_iterator<uint8_t>(),
-         back_inserter(bytes));
+    in.seekg(0, in.end);
+    size_t length = in.tellg();
+    in.seekg(0, in.beg);
+    bytes.resize(length);
+    in.read(reinterpret_cast<char*>(&(bytes[0])), length);
     return Bitstream(bytes, meta);
 }
 
@@ -157,6 +176,7 @@ Bitstream Bitstream::read_bit(istream &in) {
 static const vector<uint8_t> preamble = {0xFF, 0xFF, 0xBD, 0xB3};
 
 Chip Bitstream::deserialise_chip() {
+    cerr << "bitstream size: " << data.size() * 8 << " bits" << endl;
     BitstreamReader rd(data);
     boost::optional<Chip> chip;
     bool found_preamble = rd.find_preamble(preamble);
@@ -201,16 +221,23 @@ Chip Bitstream::deserialise_chip() {
                     rd.check_crc16();
             }
                 break;
-            case BitstreamCommand::LSC_INIT_ADDRESS: {
+            case BitstreamCommand::LSC_INIT_ADDRESS:
+                rd.skip_bytes(3);
+                BITSTREAM_DEBUG("init address");
+                break;
+            case BitstreamCommand::LSC_PROG_INCR_RTI: {
                 // This is the main bitstream payload
                 if (!chip)
                     throw BitstreamParseError("start of bitstream data before chip was identified", rd.get_offset());
                 uint8_t params[3];
                 rd.get_bytes(params, 3);
+                BITSTREAM_DEBUG("settings: " << hex << setw(2) << int(params[0]) << " " << int(params[1]) << " "
+                                             << int(params[2]));
                 size_t dummy_bytes = (params[0] & 0x0FU);
                 size_t frame_count = (params[1] << 8U) | params[2];
-                std::cerr << "reading " << std::dec << frame_count << " config frames (with " << std::dec << dummy_bytes
-                          << " dummy bytes)" << std::endl;
+                BITSTREAM_NOTE(
+                        "reading " << std::dec << frame_count << " config frames (with " << std::dec << dummy_bytes
+                                   << " dummy bytes)");
                 size_t bytes_per_frame = (chip->info.bits_per_frame + chip->info.pad_bits_after_frame +
                                           chip->info.pad_bits_before_frame) / 8U;
                 unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
@@ -224,12 +251,15 @@ Chip Bitstream::deserialise_chip() {
                     rd.check_crc16();
                     rd.skip_bytes(dummy_bytes);
                 }
-                rd.reset_crc16();
+                // Post-bitstream space for SECURITY and SED
+                // TODO: process SECURITY and SED
+                rd.skip_possible_dummy(4);
+                rd.skip_possible_dummy(8);
             }
                 break;
             case BitstreamCommand::DUMMY:
                 break;
-            default: BITSTREAM_FATAL("unsupported command 0x" << hex << setw(2) << setfill('0') << cmd,
+            default: BITSTREAM_FATAL("unsupported command 0x" << hex << setw(2) << setfill('0') << int(cmd),
                                      rd.get_offset());
         }
     }
@@ -259,7 +289,7 @@ void Bitstream::write_bin(ostream &out) {
 }
 
 Bitstream Bitstream::read_bit_py(string file) {
-    ifstream inf(file);
+    ifstream inf(file, ios::binary);
     if (!inf)
         throw runtime_error("failed to open input file " + file);
     return read_bit(inf);
@@ -275,7 +305,7 @@ const char *BitstreamParseError::what() const noexcept {
     ss << "Bitstream Parse Error: ";
     ss << desc;
     if (offset != -1)
-        ss << "[at 0x" << hex << offset << "]";
+        ss << " [at 0x" << hex << offset << "]";
     return strdup(ss.str().c_str());
 }
 

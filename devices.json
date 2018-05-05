@@ -6,7 +6,7 @@
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
                 "idcode": "0x41111043",
                 "frames": 7562,
-                "bits_per_frame": 846,
+                "bits_per_frame": 592,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
                 "fuzz": 1
@@ -33,7 +33,7 @@
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
                 "idcode": "0x01111043",
                 "frames": 7562,
-                "bits_per_frame": 846,
+                "bits_per_frame": 592,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
                 "fuzz": 0
