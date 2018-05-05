@@ -5,14 +5,24 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 #include <boost/python.hpp>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/suite/indexing/map_indexing_suite.hpp>
+#include <boost/python/exception_translator.hpp>
 
 using namespace boost::python;
 using namespace Trellis;
+
+
+void translate_bspe(const BitstreamParseError & e)
+{
+    // Use the Python 'C' API to set up an exception object
+    PyErr_SetString(PyExc_ValueError, e.what());
+}
+
 
 BOOST_PYTHON_MODULE (pytrellis) {
     // Common Types
@@ -27,6 +37,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("second", &std::pair<int, int>::second);
 
     // From Bitstream.cpp
+    register_exception_translator<BitstreamParseError>(&translate_bspe);
     class_<Bitstream>("Bitstream", no_init)
             .def("read_bit", &Bitstream::read_bit_py)
             .staticmethod("read_bit")

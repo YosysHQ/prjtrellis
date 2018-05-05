@@ -82,7 +82,7 @@ vector<TileInfo> get_device_tilegrid(const DeviceLocator &part) {
         ti.bits_per_frame = size_t(tile.second.get<int>("rows"));
         ti.bit_offset = size_t(tile.second.get<int>("start_bit"));
         ti.frame_offset = size_t(tile.second.get<int>("start_frame"));
-        for (const pt::ptree::value_type &site : tg.get_child("sites")) {
+        for (const pt::ptree::value_type &site : tile.second.get_child("sites")) {
             SiteInfo si;
             si.type = site.second.get<string>("name");
             si.col = site.second.get<int>("pos_col");

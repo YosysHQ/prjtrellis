@@ -1,5 +1,5 @@
 #include "Util.hpp"
 
 namespace Trellis {
-VerbosityLevel verbosity = VerbosityLevel::ERROR;
+VerbosityLevel verbosity = VerbosityLevel::DEBUG;
 }
