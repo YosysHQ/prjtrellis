@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <vector>
 #include <map>
+#include <iostream>
 
 using namespace std;
 
@@ -47,6 +48,10 @@ struct TileConfig {
     vector<ConfigWord> cwords;
     vector<ConfigEnum> cenums;
 };
+
+ostream &operator<<(ostream &out, const TileConfig &tc);
+
+istream &operator>>(istream &in, TileConfig &ce);
 
 }
 

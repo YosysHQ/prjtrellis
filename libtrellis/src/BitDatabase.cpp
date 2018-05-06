@@ -1,6 +1,11 @@
 #include "BitDatabase.hpp"
 #include "CRAM.hpp"
 #include <algorithm>
+#include <boost/thread/shared_lock_guard.hpp>
+#include <boost/range/algorithm/copy.hpp>
+#include <boost/range/adaptors.hpp>
+
+#include <TileConfig.hpp>
 
 namespace Trellis {
 ConfigBit cbit_from_str(const string &s) {
@@ -45,6 +50,7 @@ ostream &operator<<(ostream &out, const BitGroup &bits) {
         out << to_string(bit);
         first = true;
     }
+    return out;
 }
 
 boost::optional<string> MuxBits::get_driver(const CRAMView &tile) const {
@@ -72,6 +78,8 @@ ostream &operator<<(ostream &out, const MuxBits &mux) {
     for (const auto &arc : mux.arcs) {
         out << arc.source << " " << arc.bits << endl;
     }
+    out << endl;
+    return out;
 }
 
 boost::optional<vector<bool>> WordSettingBits::get_value(const CRAMView &tile) const {
@@ -100,6 +108,8 @@ ostream &operator<<(ostream &out, const WordSettingBits &ws) {
     for (const auto &bit : ws.bits) {
         out << bit << endl;
     }
+    out << endl;
+    return out;
 }
 
 boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile) const {
@@ -128,6 +138,95 @@ ostream &operator<<(ostream &out, const EnumSettingBits &es) {
     for (const auto &opt : es.options) {
         out << opt.first << " " << opt.second << endl;
     }
+    out << endl;
+    return out;
+}
+
+TileBitDatabase::TileBitDatabase(const string &filename) : filename(filename) {
+    load();
+}
+
+void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile) const {
+    boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+    for (auto arc : cfg.carcs)
+        muxes.at(arc.from).set_driver(tile, arc.to);
+    set<string> found_words, found_enums;
+    for (auto cw : cfg.cwords) {
+        words.at(cw.name).set_value(tile, cw.value);
+        found_words.insert(cw.name);
+    }
+    for (auto ce : cfg.cenums) {
+        enums.at(ce.name).set_value(tile, ce.value);
+        found_enums.insert(ce.name);
+    }
+    // Apply default values if not overriden in cfg
+    for (auto w : words)
+        if (found_words.find(w.first) == found_words.end())
+            w.second.set_value(tile, w.second.defval);
+    for (auto e : enums)
+        if (found_enums.find(e.first) == found_enums.end())
+            if (e.second.defval)
+                e.second.set_value(tile, *e.second.defval);
+}
+
+TileConfig TileBitDatabase::tile_cram_to_config(const CRAMView &tile) const {
+    boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+    TileConfig cfg;
+    for (auto mux : muxes) {
+        auto sink = mux.second.get_driver(tile);
+        if (sink)
+            cfg.carcs.push_back(ConfigArc{mux.first, *sink});
+    }
+    for (auto cw : words) {
+        auto val = cw.second.get_value(tile);
+        if (val)
+            cfg.cwords.push_back(ConfigWord{cw.first, *val});
+    }
+    for (auto ce : enums) {
+        auto val = ce.second.get_value(tile);
+        if (val)
+            cfg.cenums.push_back(ConfigEnum{ce.first, *val});
+    }
+}
+
+void TileBitDatabase::load() {
+    // TODO
+}
+
+set<string> TileBitDatabase::get_sinks() const {
+    boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+    set<string> result;
+    boost::copy(muxes | boost::adaptors::map_keys, inserter(result, result.end()));
+    return result;
+}
+
+MuxBits TileBitDatabase::get_mux_data_for_sink(const string &sink) const {
+    boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+    return muxes.at(sink);
+}
+
+set<string> TileBitDatabase::get_settings_words() const {
+    boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+    set<string> result;
+    boost::copy(words | boost::adaptors::map_keys, inserter(result, result.end()));
+    return result;
+}
+
+WordSettingBits TileBitDatabase::get_data_for_setword(const string &name) const {
+    boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+    return words.at(name);
+}
+
+set<string> TileBitDatabase::get_settings_enums() const {
+    boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+    set<string> result;
+    boost::copy(enums | boost::adaptors::map_keys, inserter(result, result.end()));
+    return result;
+}
+
+EnumSettingBits TileBitDatabase::get_data_for_enum(const string &name) const {
+    boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+    return enums.at(name);
 }
 
 }
