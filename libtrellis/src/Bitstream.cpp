@@ -57,6 +57,7 @@ public:
     // Write a single byte and update CRC
     inline void write_byte(uint8_t b) {
         data.push_back(b);
+        update_crc16(b);
     }
 
     // Copy multiple bytes into an OutputIterator and update CRC
@@ -72,7 +73,7 @@ public:
     template<typename T>
     void write_bytes(T in, size_t count) {
         for (size_t i = 0; i < count; i++)
-            data.push_back(*(in++));
+            write_byte(*(in++));
     }
 
     // Skip over bytes while updating CRC
@@ -318,6 +319,10 @@ Chip Bitstream::deserialise_chip() {
 
 Bitstream Bitstream::serialise_chip(const Chip &chip) {
     BitstreamReadWriter wr;
+    // Preamble
+    wr.write_bytes(preamble.begin(), preamble.size());
+    // Padding
+    wr.insert_dummy(4);
     // Reset CRC
     wr.write_byte(uint8_t(BitstreamCommand::LSC_RESET_CRC));
     wr.insert_zeros(3);
@@ -364,6 +369,8 @@ Bitstream Bitstream::serialise_chip(const Chip &chip) {
     // Program DONE
     wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_DONE));
     wr.insert_zeros(3);
+    // Trailing padding
+    wr.insert_dummy(4);
     return Bitstream(wr.get(), chip.metadata);
 }
 
