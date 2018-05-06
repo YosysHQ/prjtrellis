@@ -11,7 +11,7 @@ exit 1
 fi
 
 SCRIPT_DIR=$(dirname "$0")
-LIBTRELLIS_DIR="${SCRIPT_DIR}/libtrellis"
+LIBTRELLIS_DIR="${SCRIPT_DIR}/libtrellis:${SCRIPT_DIR}/util:${SCRIPT_DIR}/util/common"
 export PYTHONPATH="${LIBTRELLIS_DIR}:${PYTHONPATH}"
 
 USER_ENV="${SCRIPT_DIR}/user_environment.sh"
