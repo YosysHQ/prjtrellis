@@ -62,10 +62,10 @@ public:
     CRAM(int frames, int bits);
 
     // Access a bit in the CRAM given frame and bit offset
-    char &bit(int frame, int bit);
+    char &bit(int frame, int bit) const;
 
     // Primarily for Python use
-    bool get_bit(int frame, int biti);
+    bool get_bit(int frame, int biti) const;
 
     void set_bit(int frame, int biti, bool value);
 
