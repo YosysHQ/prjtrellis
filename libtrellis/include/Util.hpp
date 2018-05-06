@@ -30,6 +30,17 @@ inline string to_string(const vector<bool> &bv) {
     return os.str();
 }
 
+inline istream& operator>>(istream &in, vector<bool> &bv) {
+    bv.clear();
+    string s;
+    in >> s;
+    for (auto c : boost::adaptors::reverse(s)) {
+        assert((c == '0') || (c == '1'));
+        bv.push_back((c == '1'));
+    }
+    return in;
+}
+
 }
 #define fmt(x) (static_cast<const std::ostringstream&>(std::ostringstream() << x).str())
 

@@ -105,12 +105,12 @@ class TileConfig;
 
 class TileBitDatabase {
 public:
-    TileBitDatabase(const string &filename);
+    explicit TileBitDatabase(const string &filename);
     // Access functions
 
     // Convert TileConfigs to and from actual Tile CRAM
-    void config_to_tile_cram(const TileConfig &cfg, CRAMView &tile);
-    TileConfig tile_cram_to_config(const CRAMView &tile);
+    void config_to_tile_cram(const TileConfig &cfg, CRAMView &tile) const;
+    TileConfig tile_cram_to_config(const CRAMView &tile) const;
 
 
     // All these functions are designed to be thread safe during fuzzing and database modification
@@ -131,11 +131,13 @@ public:
     // Save the bit database to file
     void save();
 private:
-    boost::shared_mutex db_mutex;
+    mutable boost::shared_mutex db_mutex;
     atomic<bool> dirty{false};
     map<string, MuxBits> muxes;
     map<string, WordSettingBits> words;
     map<string, EnumSettingBits> enums;
+    string filename;
+    void load();
 };
 }
 
