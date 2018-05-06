@@ -41,13 +41,13 @@ struct BitGroup {
     vector<ConfigBit> bits;
 
     // Return true if the BitGroup is set in a tile
-    bool match(const CRAMView &tile);
+    bool match(const CRAMView &tile) const;
 };
+
+ostream &operator<<(ostream &out, const BitGroup &bits);
 
 // An arc is a configurable connection between two nodes, defined within a mux
 struct Arc {
-    Arc(const std::string &source, const std::string &sink, const BitGroup &bits);
-
     string source;
     string sink;
     BitGroup bits;
@@ -55,16 +55,15 @@ struct Arc {
 
 // A mux specifies all the possible source node arcs driving a sink node
 struct Mux {
-    Mux(string sink);
-
-    Mux(string sink, const vector<Arc> &arcs);
-
     string sink;
     vector<Arc> arcs;
 
     // Work out which connection inside the mux, if any, is made inside a tile
-    boost::optional<string> get_driver(const CRAMView &tile);
+    boost::optional<string> get_driver(const CRAMView &tile) const;
 };
+
+ostream &operator<<(ostream &out, const Mux &mux);
+
 
 // There are three types of non-routing config setting in the database
 // word  : a multibit setting, such as LUT initialisation
@@ -73,19 +72,22 @@ struct Mux {
 
 struct WordSetting {
     string name;
-    vector<ConfigBit> bits;
+    vector<BitGroup> bits;
     vector<bool> defval;
 
-    boost::optional<vector<bool>> get_value(const CRAMView &tile);
+    boost::optional<vector<bool>> get_value(const CRAMView &tile) const;
 };
+
+ostream &operator<<(ostream &out, const WordSetting &ws);
 
 struct EnumSetting {
     string name;
-    map<string, ConfigBit> options;
-    string defval;
-
-    boost::optional<string> get_value(const CRAMView &tile);
+    map<string, BitGroup> options;
+    boost::optional<string> defval;
+    boost::optional<string> get_value(const CRAMView &tile) const;
 };
+
+ostream &operator<<(ostream &out, const EnumSetting &es);
 
 }
 

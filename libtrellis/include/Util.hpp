@@ -23,8 +23,6 @@ inline string uint32_to_hexstr(uint32_t val) {
     return os.str();
 }
 
-}
-
 inline string to_string(const vector<bool> &bv) {
     ostringstream os;
     for(auto bit : boost::adaptors::reverse(bv))
@@ -32,6 +30,7 @@ inline string to_string(const vector<bool> &bv) {
     return os.str();
 }
 
+}
 #define fmt(x) (static_cast<const std::ostringstream&>(std::ostringstream() << x).str())
 
 #endif //LIBTRELLIS_UTIL_HPP
