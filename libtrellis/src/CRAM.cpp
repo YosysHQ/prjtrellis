@@ -44,11 +44,11 @@ CRAM::CRAM(int frames, int bits) {
     data->resize(frames, vector<char>(bits));
 }
 
-char &CRAM::bit(int frame, int bit) {
+char &CRAM::bit(int frame, int bit) const {
     return data->at(frame).at(bit);
 }
 
-bool CRAM::get_bit(int frame, int biti) {
+bool CRAM::get_bit(int frame, int biti) const {
     return bool(bit(frame, biti));
 }
 

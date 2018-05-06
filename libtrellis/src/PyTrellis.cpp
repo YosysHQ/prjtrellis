@@ -40,6 +40,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
     class_<Bitstream>("Bitstream", no_init)
             .def("read_bit", &Bitstream::read_bit_py)
             .staticmethod("read_bit")
+            .staticmethod("serialise_chip")
             .def_readwrite("metadata", &Bitstream::metadata)
             .def_readwrite("data", &Bitstream::data)
             .def("deserialise_chip", &Bitstream::deserialise_chip);
@@ -78,7 +79,8 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readonly("info", &Chip::info)
             .def_readwrite("cram", &Chip::cram)
             .def_readwrite("tiles", &Chip::tiles)
-            .def_readwrite("usercode", &Chip::usercode);
+            .def_readwrite("usercode", &Chip::usercode)
+            .def_readwrite("metadata", &Chip::metadata);
 
     // From CRAM.cpp
     class_<ChangedBit>("ChangedBit")
