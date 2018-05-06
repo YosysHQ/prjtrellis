@@ -5,7 +5,8 @@
 #include <sstream>
 #include <iomanip>
 #include <cstdint>
-
+#include <vector>
+#include <boost/range/adaptor/reversed.hpp>
 using namespace std;
 
 namespace Trellis {
@@ -23,5 +24,14 @@ inline string uint32_to_hexstr(uint32_t val) {
 }
 
 }
+
+inline string to_string(const vector<bool> &bv) {
+    ostringstream os;
+    for(auto bit : boost::adaptors::reverse(bv))
+        os << (bit ? '1' : '0');
+    return os.str();
+}
+
+#define fmt(x) (static_cast<const std::ostringstream&>(std::ostringstream() << x).str())
 
 #endif //LIBTRELLIS_UTIL_HPP
