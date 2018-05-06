@@ -43,13 +43,17 @@ public:
     static Bitstream read_bit_py(string file);
 
     // Serialise a Chip back to a bitstream
-    static Bitstream serialise_chip(Chip &chip);
+    static Bitstream serialise_chip(const Chip &chip);
 
     // Deserialise a bitstream to a Chip
     Chip deserialise_chip();
 
     // Write a Lattice .bit file (metadata + bitstream)
     void write_bit(ostream &out);
+
+    // Python variant of the above, takes filename instead of ostream
+    void write_bit_py(string file);
+
 
     // Write a Lattice .bin file (bitstream only, for flash prog.)
     void write_bin(ostream &out);

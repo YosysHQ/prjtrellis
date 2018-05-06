@@ -15,14 +15,16 @@ namespace Trellis {
 static const uint16_t CRC16_POLY = 0x8005;
 static const uint16_t CRC16_INIT = 0x0000;
 
-// The BitstreamReader class stores state (including CRC16) whilst reading
+// The BitstreamReadWriter class stores state (including CRC16) whilst reading
 // the bitstream
-class BitstreamReader {
+class BitstreamReadWriter {
 public:
-    BitstreamReader(const vector<uint8_t> &data) : data(data), iter(data.begin()) {};
+    BitstreamReadWriter() : data(), iter(data.begin()) {};
 
-    const vector<uint8_t> &data;
-    vector<uint8_t>::const_iterator iter;
+    BitstreamReadWriter(const vector<uint8_t> &data) : data(data), iter(this->data.begin()) {};
+
+    vector<uint8_t> data;
+    vector<uint8_t>::iterator iter;
 
     uint16_t crc16 = CRC16_INIT;
 
@@ -52,6 +54,12 @@ public:
         return val;
     }
 
+    // Write a single byte and update CRC
+    inline void write_byte(uint8_t b) {
+        data.push_back(b);
+        update_crc16(b);
+    }
+
     // Copy multiple bytes into an OutputIterator and update CRC
     template<typename T>
     void get_bytes(T out, size_t count) {
@@ -61,21 +69,39 @@ public:
         }
     }
 
+    // Write multiple bytes from an InputIterator and update CRC
+    template<typename T>
+    void write_bytes(T in, size_t count) {
+        for (size_t i = 0; i < count; i++)
+            write_byte(*(in++));
+    }
+
     // Skip over bytes while updating CRC
     void skip_bytes(size_t count) {
         for (size_t i = 0; i < count; i++) get_byte();
+    }
+
+    // Insert zeros while updating CRC
+    void insert_zeros(size_t count) {
+        for (size_t i = 0; i < count; i++) write_byte(0x00);
     }
 
     // Skip over a possible-dummy command section of N bytes, updating CRC only if command is not 0xFF
     uint8_t skip_possible_dummy(int size) {
         uint8_t cmd = *(iter++);
         if (cmd == 0xFF) {
-            iter += (size-1);
+            iter += (size - 1);
         } else {
             update_crc16(cmd);
-            skip_bytes(size-1);
+            skip_bytes(size - 1);
         }
         return cmd;
+    }
+
+    // Insert dummy bytes into the bitstream, without updating CRC
+    void insert_dummy(size_t count) {
+        for (size_t i = 0; i < count; i++)
+            data.push_back(0xFF);
     }
 
     // Read a big endian uint32 from the bitstream
@@ -83,6 +109,14 @@ public:
         uint8_t tmp[4];
         get_bytes(tmp, 4);
         return (tmp[0] << 24UL) | (tmp[1] << 16UL) | (tmp[2] << 8UL) | (tmp[3]);
+    }
+
+    // Write a big endian uint32_t into the bitstream
+    void write_uint32(uint32_t val) {
+        write_byte(uint8_t((val >> 24UL) & 0xFF));
+        write_byte(uint8_t((val >> 16UL) & 0xFF));
+        write_byte(uint8_t((val >> 8UL) & 0xFF));
+        write_byte(uint8_t(val & 0xFF));
     }
 
     // Search for a preamble, setting bitstream position to be after the preamble
@@ -123,7 +157,7 @@ public:
         uint8_t crc_bytes[2];
         uint16_t actual_crc = finalise_crc16();
         get_bytes(crc_bytes, 2);
-       // cerr << hex << int(crc_bytes[0]) << " " << int(crc_bytes[1]) << endl;
+        // cerr << hex << int(crc_bytes[0]) << " " << int(crc_bytes[1]) << endl;
         uint16_t exp_crc = (crc_bytes[0] << 8) | crc_bytes[1];
         if (actual_crc != exp_crc) {
             ostringstream err;
@@ -133,9 +167,21 @@ public:
         reset_crc16();
     }
 
+    // Insert the calculated CRC16 into the bitstream, and then reset it
+    void insert_crc16() {
+        uint16_t actual_crc = finalise_crc16();
+        write_byte(uint8_t((actual_crc >> 8) & 0xFF));
+        write_byte(uint8_t((actual_crc) & 0xFF));
+        reset_crc16();
+    }
+
     bool is_end() {
         return (iter >= data.end());
     }
+
+    const vector<uint8_t> &get() {
+        return data;
+    };
 };
 
 Bitstream::Bitstream(const vector<uint8_t> &data, const vector<string> &metadata) : data(data), metadata(metadata) {}
@@ -164,7 +210,7 @@ Bitstream Bitstream::read_bit(istream &in) {
     size_t length = in.tellg();
     in.seekg(0, in.beg);
     bytes.resize(length);
-    in.read(reinterpret_cast<char*>(&(bytes[0])), length);
+    in.read(reinterpret_cast<char *>(&(bytes[0])), length);
     return Bitstream(bytes, meta);
 }
 
@@ -177,7 +223,7 @@ static const vector<uint8_t> preamble = {0xFF, 0xFF, 0xBD, 0xB3};
 
 Chip Bitstream::deserialise_chip() {
     cerr << "bitstream size: " << data.size() * 8 << " bits" << endl;
-    BitstreamReader rd(data);
+    BitstreamReadWriter rd(data);
     boost::optional<Chip> chip;
     bool found_preamble = rd.find_preamble(preamble);
     if (!found_preamble)
@@ -195,6 +241,7 @@ Chip Bitstream::deserialise_chip() {
                 uint32_t id = rd.get_uint32();
                 BITSTREAM_NOTE("device ID: 0x" << hex << setw(8) << setfill('0') << id);
                 chip = boost::make_optional(Chip(id));
+                chip->metadata = metadata;
             }
                 break;
             case BitstreamCommand::LSC_PROG_CNTRL0: {
@@ -270,6 +317,62 @@ Chip Bitstream::deserialise_chip() {
     }
 }
 
+Bitstream Bitstream::serialise_chip(const Chip &chip) {
+    BitstreamReadWriter wr;
+    // Preamble
+    wr.write_bytes(preamble.begin(), preamble.size());
+    // Padding
+    wr.insert_dummy(4);
+    // Reset CRC
+    wr.write_byte(uint8_t(BitstreamCommand::LSC_RESET_CRC));
+    wr.insert_zeros(3);
+    wr.reset_crc16();
+    // Verify ID
+    wr.write_byte(uint8_t(BitstreamCommand::VERIFY_ID));
+    wr.insert_zeros(3);
+    wr.write_uint32(chip.info.idcode);
+    // Set control reg 0 to 0x40000000
+    wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_CNTRL0));
+    wr.insert_zeros(3);
+    wr.write_uint32(0x40000000);
+    // Init address
+    wr.write_byte(uint8_t(BitstreamCommand::LSC_INIT_ADDRESS));
+    wr.insert_zeros(3);
+    // Bitstream data
+    wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_INCR_RTI));
+    wr.write_byte(0x91); //CRC check, 1 dummy byte
+    uint16_t frames = uint16_t(chip.info.num_frames);
+    wr.write_byte(uint8_t((frames >> 8) & 0xFF));
+    wr.write_byte(uint8_t(frames & 0xFF));
+    size_t bytes_per_frame = (chip.info.bits_per_frame + chip.info.pad_bits_after_frame +
+                              chip.info.pad_bits_before_frame) / 8U;
+    unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
+    for (size_t i = 0; i < frames; i++) {
+        fill(frame_bytes.get(), frame_bytes.get() + bytes_per_frame, 0x00);
+        for (size_t j = 0; j < chip.info.bits_per_frame; j++) {
+            size_t ofs = j + chip.info.pad_bits_after_frame;
+            frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] |=
+                    (chip.cram.bit((chip.info.num_frames - 1) - i, j) & 0x01) << (ofs % 8);
+        }
+        wr.write_bytes(frame_bytes.get(), bytes_per_frame);
+        wr.insert_crc16();
+        wr.write_byte(0xFF);
+    }
+    // Post-bitstream space for SECURITY and SED (not used here)
+    wr.insert_dummy(12);
+    // Program Usercode
+    wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_USERCODE));
+    wr.write_byte(0x80);
+    wr.insert_zeros(2);
+    wr.write_uint32(chip.usercode);
+    wr.insert_crc16();
+    // Program DONE
+    wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_DONE));
+    wr.insert_zeros(3);
+    // Trailing padding
+    wr.insert_dummy(4);
+    return Bitstream(wr.get(), chip.metadata);
+}
 
 void Bitstream::write_bit(ostream &out) {
     // Write metadata header
@@ -281,11 +384,11 @@ void Bitstream::write_bit(ostream &out) {
     }
     out.put(0xFF);
     // Dump raw bitstream
-    write_bin(out);
+    out.write(reinterpret_cast<const char *>(&(data[0])), data.size());
 }
 
 void Bitstream::write_bin(ostream &out) {
-    copy(data.begin(), data.end(), ostream_iterator<uint8_t>(out));
+    out.write(reinterpret_cast<const char *>(&(data[0])), data.size());
 }
 
 Bitstream Bitstream::read_bit_py(string file) {
@@ -293,6 +396,13 @@ Bitstream Bitstream::read_bit_py(string file) {
     if (!inf)
         throw runtime_error("failed to open input file " + file);
     return read_bit(inf);
+}
+
+void Bitstream::write_bit_py(string file) {
+    ofstream ouf(file, ios::binary);
+    if (!ouf)
+        throw runtime_error("failed to open output file " + file);
+    write_bit(ouf);
 }
 
 BitstreamParseError::BitstreamParseError(const string &desc) : desc(desc), offset(-1), runtime_error(desc.c_str()) {};

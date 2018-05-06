@@ -8,7 +8,10 @@ from os import path
 import shutil
 
 import extract_tilegrid
-from common import database, devices, diamond
+import diamond
+import database
+import devices
+
 
 def main():
     shutil.rmtree("work_tilegrid", ignore_errors=True)

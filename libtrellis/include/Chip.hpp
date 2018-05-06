@@ -54,6 +54,7 @@ public:
 
     // Miscellaneous information
     uint32_t usercode = 0x0;
+    vector<string> metadata;
 };
 }
 
