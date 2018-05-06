@@ -4,7 +4,7 @@ Convert the tile grid for a given family and device to HTML format
 """
 import sys, re
 import argparse
-from common import database
+import database
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('family', type=str,

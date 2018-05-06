@@ -1,0 +1,9 @@
+*_out.ncl
+*.bit
+*.dump
+*.test
+*.incd
+*.bin
+*.tmp/
+work/
+*_out.txt

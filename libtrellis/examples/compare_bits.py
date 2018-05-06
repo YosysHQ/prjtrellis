@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-This simple example used PyTrellis to compare logic tile bits, of tile R2C2 in a bitstream
+This simple example uses PyTrellis to compare logic tile bits, of tile R2C2 in a bitstream
 """
 import pytrellis
 

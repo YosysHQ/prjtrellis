@@ -6,11 +6,12 @@ Usage:
 html_all.py <output_folder>
 """
 
-import os, sys, subprocess, time
+import os, sys, time
 from os import path
 from string import Template
 import argparse
-from common import devices, database
+import database
+import devices
 import html_tilegrid
 
 trellis_docs_index = """
