@@ -3,7 +3,7 @@ Python wrapper for `diamond.sh`
 """
 from os import path
 import subprocess
-from common import database
+import database
 
 
 def run(device, source):
