@@ -29,7 +29,17 @@ export LD_LIBRARY_PATH="${bindir}:${fpgabindir}"
 export LM_LICENSE_FILE="${diamonddir}/license/license.dat"
 
 set -ex
-set -- "$1" ${2%.v}
+if [[ $2 == *.ncl ]]
+then
+USE_NCL=1
+else
+USE_NCL=
+fi
+
+V_SUB=${2%.v}
+NCL_SUB=${V_SUB%.ncl}
+
+set -- "$1" $NCL_SUB
 
 PART=$1
 
@@ -79,14 +89,23 @@ esac
 (
 rm -rf "$2.tmp"
 mkdir -p "$2.tmp"
+if [ -n "$USE_NCL" ]; then
+cp "$2.ncl" "$2.tmp/input.ncl"
+else
 cp "$2.v" "$2.tmp/input.v"
+fi
+
 if test -f "$2.sdc"; then cp "$2.sdc" "$2.tmp/input.sdc"; fi
 if test -f "$2.lpf"; then cp "$2.lpf" "$2.tmp/input.lpf"; fi
+if test -f "$2.prf"; then cp "$2.prf" "$2.tmp/input.prf"; fi
 cd "$2.tmp"
 
 touch input.sdc
 touch input.lpf
 
+if [ -n "$USE_NCL" ]; then
+"$FOUNDRY"/userware/unix/bin/lin64/ncl2ncd input.ncl -drc -o par_impl.ncd
+else
 cat > impl_lse.prj << EOT
 #device
 -a "$LSE_ARCH"
@@ -133,12 +152,15 @@ EOT
 # place and route design
 "$fpgabindir"/par map_impl.ncd par_impl.ncd synth_impl.prf
 
+fi
+
 # make bitmap
-"$fpgabindir"/bitgen par_impl.ncd output.bit
+"$fpgabindir"/bitgen -d par_impl.ncd output.bit
 
 # dump bitmap
 "$fpgabindir"/bstool -d output.bit > output.dump
 
+if [ -z "$USE_NCL" ]; then
 # run test on bitmap (for tilemap)
 "$fpgabindir"/bstool -t output.bit > output.test
 
@@ -147,12 +169,14 @@ EOT
 
 # run incdelay
 "$fpgabindir"/incdelay -d par_impl.ncd > output.incd
-
+fi
 
 export LD_LIBRARY_PATH=""
 )
 
 cp "$2.tmp"/output.bit "$2.bit"
 cp "$2.tmp"/output.dump "$2.dump"
-cp "$2.tmp"/output.ncl "$2.ncl"
+if [ -z "$USE_NCL" ]; then
+cp "$2.tmp"/output.ncl "$2_out.ncl"
 cp "$2.tmp"/output.incd "$2.incd"
+fi
