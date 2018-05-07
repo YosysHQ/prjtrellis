@@ -51,8 +51,10 @@ struct BitGroup {
     // Clear the BitGroup in a tile
     void clear_group(CRAMView &tile) const;
 };
-
+// Write BitGroup to output
 ostream &operator<<(ostream &out, const BitGroup &bits);
+// Read a BitGroup from input (until end of line)
+istream &operator>>(istream &out, BitGroup &bits);
 
 // An arc is a configurable connection between two nodes, defined within a mux
 struct ArcData {
@@ -71,9 +73,10 @@ struct MuxBits {
     void set_driver(CRAMView &tile, const string &driver) const;
 
 };
-
+// Write mux database entry to output
 ostream &operator<<(ostream &out, const MuxBits &mux);
-
+// Read mux database entry (excluding .mux token) from input
+istream &operator>>(istream &in, MuxBits &mux);
 
 // There are three types of non-routing config setting in the database
 // word  : a multibit setting, such as LUT initialisation
@@ -89,7 +92,10 @@ struct WordSettingBits {
     void set_value(CRAMView &tile, const vector<bool> &value) const;
 };
 
+// Write config word setting bits to output
 ostream &operator<<(ostream &out, const WordSettingBits &ws);
+// Read config word database entry (excluding .config token) from input
+istream &operator>>(istream &out, WordSettingBits &ws);
 
 struct EnumSettingBits {
     string name;
@@ -99,7 +105,10 @@ struct EnumSettingBits {
     void set_value(CRAMView &tile, const string &value) const;
 };
 
+// Write config enum bits to output
 ostream &operator<<(ostream &out, const EnumSettingBits &es);
+// Read config enum bits database entry (excluding .config_enum token) from input
+istream &operator>>(istream &out, EnumSettingBits &es);
 
 class TileConfig;
 
