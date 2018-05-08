@@ -20,3 +20,14 @@ to develop a free and open Verilog to bitstream toolchain for these devices.
    architecture/bitstream_format
    architecture/glossary
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Database Development Process
+
+   db_dev_process/overview
+
+.. toctree::
+   :maxdepth: 1
+   :caption: libtrellis Documenation
+
+   libtrellis/overview
