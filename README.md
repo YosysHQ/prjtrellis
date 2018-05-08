@@ -8,9 +8,9 @@ bit-stream format of Lattice ECP5 series FPGAs.
 More documentation can be found published on
 [prjtrellis ReadTheDocs site](http://prjtrellis.readthedocs.io/en/latest/) -
 this includes;
- * FIXME(@tinyfpga): Make these documents.
  * [Highlevel Bitstream Architecture](http://prjtrellis.readthedocs.io/en/latest/architecture/overview.html)
  * [Overview of DB Development Process](http://prjrellis.readthedocs.io/en/latest/db_dev_process/overview.html)
+ * [libtrellis Documentation](http://prjrellis.readthedocs.io/en/latest/libtrellis/overview.html)
 
 This follows follows the lead of
 [Project X-Ray](https://github.com/SymbiFlow/prjxray) - which is documenting
@@ -18,9 +18,12 @@ the bitstream format for the Xilinx Series 7 devices.
 
 # Quickstart Guide
 
-Install XXXXX
-    FIXME(@tinyfpga): Put instructions here.
-
+Install the dependencies:
+ - Lattice Diamond 3.10
+ - Python 3.5 or later
+ - A modern C++14 compiler (g++ or Clang recommended)
+ - Boost
+ 
 Pull submodules:
 
     git submodule update --init --recursive
@@ -33,15 +36,19 @@ Get a head start by downloading current database:
     # - git if you want to use the git protocol
     ./download-latest-db.sh
 
-Always make sure to set the environment for the device you are working on before
-running any other commands:
+For a generic environment:
 
-    source database/XXXXXX/settings.sh
+    source environment.sh
+  
+TODO: device specific environments, like X-ray
 
-Creating HTML documentation:
+Build libtrellis:
 
-    cd htmlgen
-    python3 htmlgen.py
+    cd libtrellis
+    cmake .
+    make
+
+Once fuzzers are written, the below will also work:
 
 (Re-)creating the database:
 
@@ -55,7 +62,7 @@ Creating HTML documentation:
 
 # Process
 
-The documentation is done through a "black box" process were XXXXX is asked to
+The documentation is done through a "black box" process were Diamond is asked to
 generate a large number of designs which then used to create bitstreams. The
 resulting bit streams are then cross correlated to discover what different bits
 do.
@@ -103,8 +110,13 @@ only be used inside this repository.
 
 ### [Third Party](third_party)
 
-Third party contains code not developed as part of Project X-Ray.
+Third party contains code not developed as part of Project Trellis.
 
+### [libtrellis](libtrellis)
+
+libtrellis is a library for manipulating ECP5 bitstreams, tiles and the Project
+Trellis databases. It is written with C++, with Python bindings exposed using
+Boost::Python so that fuzzers and utilities can be written in Python.
 
 # Database
 
@@ -121,7 +133,13 @@ but we can not do this alone, **we need your help**!
 
 ## TODO List
 
- - [ ] Write a TODO list
+ - [ ] Write fuzzing framework for configuration bit and routing fuzzing
+ - [ ] Fuzz logic tile init and config bits
+ - [ ] Fuzz logic tile routing
+ - [ ] Fuzz other routing tiles (CIBs)
+ - [ ] Fuzz IO tiles
+ - [ ] Fuzz global clock tiles
+ - [ ] Fuzz other function tiles (EBR, DSP, SERDES, etc)
 
 
 # Contributing
@@ -136,7 +154,7 @@ All contributions should be sent as
 
 ### License
 
-All code in the Project X-Ray repository is licensed under the very permissive
+All code in the Project Trellis repository is licensed under the very permissive
 [ISC Licence](COPYING). A copy can be found in the [`COPYING`](COPYING) file.
 
 All new contributions must also be released under this license.
