@@ -90,6 +90,10 @@ Glossary
     hardware logic elements on the :term:`FPGA`, and then routing the signals
     between the placed elements. 
 
+  Quadrant
+    The ECP5 FPGAs are arranged into four quadrants for the purpose of global signal
+    distribution, upper left (UL), upper right (UR), lower left (LL) and lower right (LR).
+
   Routing fabric
     The :term:`wires <wire>` and programmable interconnects (:term:`arcs <arc>`)
     connecting the logic blocks in an :term:`FPGA`.
