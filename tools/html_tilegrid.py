@@ -81,7 +81,7 @@ def main(argv):
     for trow in tiles:
         print("<tr style='height: 100px'>", file=f)
         for tloc in trow:
-            print("<td style='height: 100%; border: 2px solid black; min-height: 100px'>", file=f)
+            print("<td style='border: 2px solid black; height: 100px'>", file=f)
             for tile in tloc:
                 print(
                     "<div style='height: {}%; background-color: {}'><em>{}</em><br/><strong>{}</strong></div>".format(
