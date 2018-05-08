@@ -33,6 +33,7 @@ inline string to_string(ConfigBit b) {
     if (b.inv) ss << "!";
     ss << "F" << b.frame;
     ss << "B" << b.bit;
+    return ss.str();
 }
 
 // Read a configuration bit from a string
@@ -111,10 +112,10 @@ ostream &operator<<(ostream &out, const EnumSettingBits &es);
 istream &operator>>(istream &out, EnumSettingBits &es);
 
 class TileConfig;
+struct TileLocator;
 
 class TileBitDatabase {
 public:
-    explicit TileBitDatabase(const string &filename);
     // Access functions
 
     // Convert TileConfigs to and from actual Tile CRAM
@@ -139,7 +140,12 @@ public:
 
     // Save the bit database to file
     void save();
+
+    // Function to obtain the singleton BitDatabase for a given tile
+    friend shared_ptr<TileBitDatabase> get_tile_bitdata(const TileLocator &tile);
 private:
+    explicit TileBitDatabase(const string &filename);
+
     mutable boost::shared_mutex db_mutex;
     atomic<bool> dirty{false};
     map<string, MuxBits> muxes;

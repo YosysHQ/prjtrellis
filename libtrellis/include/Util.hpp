@@ -94,4 +94,6 @@ inline bool skip_check_eof(istream &in) {
 }
 #define fmt(x) (static_cast<const std::ostringstream&>(std::ostringstream() << x).str())
 
+#define UNUSED(x) (void)(x)
+
 #endif //LIBTRELLIS_UTIL_HPP

@@ -170,7 +170,7 @@ boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile) const {
     } else {
         return boost::optional<string>(found->first);
     }
-};
+}
 
 void EnumSettingBits::set_value(Trellis::CRAMView &tile, const string &value) const {
     auto grp = options.at(value);
@@ -253,6 +253,7 @@ TileConfig TileBitDatabase::tile_cram_to_config(const CRAMView &tile) const {
         if (val)
             cfg.cenums.push_back(ConfigEnum{ce.first, *val});
     }
+    return cfg;
 }
 
 void TileBitDatabase::load() {

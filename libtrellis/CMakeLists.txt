@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(libtrellis)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_FLAGS "-Wall -pedantic -Wextra -Werror")
 find_package(PythonInterp)
 find_package(PythonLibs)
 find_package(Boost REQUIRED COMPONENTS python3 filesystem thread)

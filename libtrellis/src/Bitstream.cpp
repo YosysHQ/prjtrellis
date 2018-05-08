@@ -290,7 +290,7 @@ Chip Bitstream::deserialise_chip() {
                 unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
                 for (size_t i = 0; i < frame_count; i++) {
                     rd.get_bytes(frame_bytes.get(), bytes_per_frame);
-                    for (size_t j = 0; j < chip->info.bits_per_frame; j++) {
+                    for (int j = 0; j < chip->info.bits_per_frame; j++) {
                         size_t ofs = j + chip->info.pad_bits_after_frame;
                         chip->cram.bit((chip->info.num_frames - 1) - i, j) = (char) (
                                 (frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] >> (ofs % 8)) & 0x01);
@@ -349,7 +349,7 @@ Bitstream Bitstream::serialise_chip(const Chip &chip) {
     unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
     for (size_t i = 0; i < frames; i++) {
         fill(frame_bytes.get(), frame_bytes.get() + bytes_per_frame, 0x00);
-        for (size_t j = 0; j < chip.info.bits_per_frame; j++) {
+        for (int j = 0; j < chip.info.bits_per_frame; j++) {
             size_t ofs = j + chip.info.pad_bits_after_frame;
             frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] |=
                     (chip.cram.bit((chip.info.num_frames - 1) - i, j) & 0x01) << (ofs % 8);
@@ -376,13 +376,13 @@ Bitstream Bitstream::serialise_chip(const Chip &chip) {
 
 void Bitstream::write_bit(ostream &out) {
     // Write metadata header
-    out.put(0xFF);
+    out.put(char(0xFF));
     out.put(0x00);
     for (const auto &str : metadata) {
         out << str;
         out.put(0x00);
     }
-    out.put(0xFF);
+    out.put(char(0xFF));
     // Dump raw bitstream
     out.write(reinterpret_cast<const char *>(&(data[0])), data.size());
 }
@@ -405,10 +405,10 @@ void Bitstream::write_bit_py(string file) {
     write_bit(ouf);
 }
 
-BitstreamParseError::BitstreamParseError(const string &desc) : desc(desc), offset(-1), runtime_error(desc.c_str()) {};
+BitstreamParseError::BitstreamParseError(const string &desc) : runtime_error(desc.c_str()), desc(desc), offset(-1) {}
 
-BitstreamParseError::BitstreamParseError(const string &desc, size_t offset) : desc(desc), offset(int(offset)),
-                                                                              runtime_error(desc.c_str()) {};
+BitstreamParseError::BitstreamParseError(const string &desc, size_t offset) : runtime_error(desc.c_str()), desc(desc),
+                                                                              offset(int(offset)) {}
 
 const char *BitstreamParseError::what() const noexcept {
     ostringstream ss;

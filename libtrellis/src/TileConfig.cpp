@@ -39,21 +39,20 @@ istream &operator>>(istream &in, ConfigEnum &ce) {
 }
 
 ostream &operator<<(ostream &out, const TileConfig &tc) {
-    for (auto arc : tc.carcs)
+    for (const auto &arc : tc.carcs)
         out << arc;
-    for (auto cword : tc.cwords)
+    for (const auto &cword : tc.cwords)
         out << cword;
-    for (auto cenum : tc.cenums)
+    for (const auto &cenum : tc.cenums)
         out << cenum;
+    return out;
 }
 
 istream &operator>>(istream &in, TileConfig &tc) {
     tc.carcs.clear();
     tc.cwords.clear();
     tc.cenums.clear();
-    in >> ws;
-    int c = in.peek();
-    while (c != EOF && c != '.') {
+    while (!skip_check_eor(in)) {
         string type;
         in >> type;
         if (type == "arc:") {
@@ -71,9 +70,8 @@ istream &operator>>(istream &in, TileConfig &tc) {
         } else {
             throw runtime_error("unexpected token " + type + " while reading config text");
         }
-        c = in.peek();
     }
     return in;
 }
 
-};
+}
