@@ -22,8 +22,8 @@ void CRAMView::set_bit(int frame, int biti, bool value) {
 
 CRAMView::CRAMView(shared_ptr<vector<vector<char>>> data, int frame_offset, int bit_offset, int frame_count,
                    int bit_count)
-        : cram_data(data), frame_offset(frame_offset), bit_offset(bit_offset), frame_count(frame_count),
-          bit_count(bit_count) {};
+        : frame_offset(frame_offset), bit_offset(bit_offset), frame_count(frame_count),
+          bit_count(bit_count), cram_data(data) {}
 
 CRAMDelta operator-(const CRAMView &a, const CRAMView &b) {
     if ((a.bits() != b.bits()) || (a.frames() != b.frames()))

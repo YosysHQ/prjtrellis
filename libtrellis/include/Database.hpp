@@ -4,7 +4,8 @@
 #include <string>
 #include <cstdint>
 #include <vector>
-
+#include <unordered_map>
+#include <memory>
 using namespace std;
 
 namespace Trellis {
@@ -25,6 +26,10 @@ struct TileLocator {
     string tiletype;
 };
 
+inline bool operator==(const TileLocator &a, const TileLocator &b) {
+    return (a.family == b.family) && (a.device == b.device) && (a.tiletype == b.tiletype);
+}
+
 // Search the device list by part name
 DeviceLocator find_device_by_name(string name);
 
@@ -40,7 +45,24 @@ ChipInfo get_chip_info(const DeviceLocator &part);
 struct TileInfo;
 
 vector<TileInfo> get_device_tilegrid(const DeviceLocator &part);
+
+// Obtain the BitDatabase for a device/tile combination
+// BitDatabases are a singleton
+class TileBitDatabase;
+shared_ptr<TileBitDatabase> get_tile_bitdata(const TileLocator &tile);
+
+}
+
+// Hash function for TileLocator
+namespace std {
+template<> struct hash<Trellis::TileLocator> {
+public:
+    inline size_t operator()(const Trellis::TileLocator &tile) const {
+        hash<string> hash_fn;
+        return hash_fn(tile.family) + hash_fn(tile.device) + hash_fn(tile.tiletype);
+    }
 };
 
+}
 
 #endif //LIBTRELLIS_DATABASE_HPP
