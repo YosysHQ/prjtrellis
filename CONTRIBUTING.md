@@ -1,4 +1,4 @@
-# Contributing to Project X-Ray
+# Contributing to Project Trellis
 
 There are a couple of guidelines when contributing to Project Trellis which are
 listed here.
@@ -10,7 +10,7 @@ All contributions should be sent as
 
 ### License
 
-All code in the Project X-Ray repository is licensed under the very permissive
+All code in the Project Trellis repository is licensed under the very permissive
 [ISC Licence](COPYING). A copy can be found in the [`COPYING`](COPYING) file.
 
 All new contributions must also be released under this license.
