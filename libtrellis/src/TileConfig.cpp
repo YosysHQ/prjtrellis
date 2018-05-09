@@ -1,5 +1,6 @@
 #include "TileConfig.hpp"
 #include "Util.hpp"
+#include "BitDatabase.hpp"
 #include <algorithm>
 
 using namespace std;
@@ -38,6 +39,21 @@ istream &operator>>(istream &in, ConfigEnum &ce) {
     return in;
 }
 
+ostream &operator<<(ostream &out, const ConfigUnknown &cu) {
+    out << "unknown: " << to_string(ConfigBit{cu.frame, cu.bit, false}) << endl;
+    return out;
+}
+
+istream &operator>>(istream &in, ConfigUnknown &cu) {
+    string s;
+    in >> s;
+    ConfigBit c = cbit_from_str(s);
+    cu.frame = c.frame;
+    cu.bit = c.bit;
+    assert(!c.inv);
+    return in;
+}
+
 ostream &operator<<(ostream &out, const TileConfig &tc) {
     for (const auto &arc : tc.carcs)
         out << arc;
@@ -45,6 +61,8 @@ ostream &operator<<(ostream &out, const TileConfig &tc) {
         out << cword;
     for (const auto &cenum : tc.cenums)
         out << cenum;
+    for (const auto &cunk : tc.cunknowns)
+        out << cunk;
     return out;
 }
 
@@ -67,6 +85,10 @@ istream &operator>>(istream &in, TileConfig &tc) {
             ConfigEnum e;
             in >> e;
             tc.cenums.push_back(e);
+        } else if (type == "unknown:") {
+            ConfigUnknown u;
+            in >> u;
+            tc.cunknowns.push_back(u);
         } else {
             throw runtime_error("unexpected token " + type + " while reading config text");
         }
