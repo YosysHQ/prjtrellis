@@ -8,8 +8,8 @@ pytrellis.load_database("../../../prjtrellis-db")
 chip_and = pytrellis.Bitstream.read_bit("../../minitests/ncl/lut.bit").deserialise_chip()
 chip_or = pytrellis.Bitstream.read_bit("../../minitests/ncl/lut_or.bit").deserialise_chip()
 
-tile_and = chip_and.tiles["R2C2"]
-tile_or = chip_or.tiles["R2C2"]
+tile_and = chip_and.tiles["R2C2:PLC2"]
+tile_or = chip_or.tiles["R2C2:PLC2"]
 delta = tile_or.cram - tile_and.cram
 bit_offset = tile_and.info.bit_offset
 frame_offset = tile_or.info.frame_offset
