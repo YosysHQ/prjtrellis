@@ -7,7 +7,7 @@ import pytrellis
 pytrellis.load_database("../../../prjtrellis-db")
 bs = pytrellis.Bitstream.read_bit("../../minitests/ncl/lut.bit")
 chip = bs.deserialise_chip()
-tile = chip.tiles["R2C2"]
+tile = chip.tiles["R2C2:PLC2"]
 tile_bits = tile.cram
 bit_offset = tile.info.bit_offset
 frame_offset = tile.info.frame_offset

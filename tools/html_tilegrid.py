@@ -65,7 +65,8 @@ def main(argv):
             row.append([])
         tiles.append(row)
 
-    for name, data in sorted(tilegrid.items()):
+    for identifier, data in sorted(tilegrid.items()):
+        name = identifier.split(":")[0]
         row, col = get_rc(name)
         colour = get_colour(data["type"])
         tiles[row][col].append((name, data["type"], colour))
@@ -79,9 +80,13 @@ def main(argv):
             <table style='font-size: 8pt; border: 2px solid black; text-align: center'>
         """.format(args.device, args.device), file=f)
     for trow in tiles:
-        print("<tr style='height: 100px'>", file=f)
+        print("<tr>", file=f)
+        row_max_height = 0
         for tloc in trow:
-            print("<td style='border: 2px solid black; height: 100px'>", file=f)
+            row_max_height = max(row_max_height, len(tloc))
+        row_height = max(75, 30 * row_max_height)
+        for tloc in trow:
+            print("<td style='border: 2px solid black; height: {}px'>".format(row_height), file=f)
             for tile in tloc:
                 print(
                     "<div style='height: {}%; background-color: {}'><em>{}</em><br/><strong>{}</strong></div>".format(

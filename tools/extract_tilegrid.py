@@ -19,7 +19,7 @@ import sys, re
 import json, argparse
 
 tile_re = re.compile(
-    r'^Tile\s+([A-Z0-9a-z_/]+)\s+\((\d+), (\d+)\)\s+bitmap offset\s+\((\d+), (\d+)\)\s+\<([A-Z0-9a-z_/]+)>\s+$')
+    r'^Tile\s+([A-Z0-9a-z_/]+)\s+\((\d+), (\d+)\)\s+bitmap offset\s+\((\d+), (\d+)\)\s+\<([A-Z0-9a-z_/]+)>\s*$')
 
 site_re = re.compile(
     r'^\s+([A-Z0-9_]+) \((-?\d+), (-?\d+)\)')
@@ -46,7 +46,9 @@ def main(argv):
                 "cols": int(tile_m.group(3)),
                 "sites": []
             }
-            tiles[name] = current_tile
+            identifier = name + ":" + tile_m.group(1)
+            assert identifier not in tiles
+            tiles[identifier] = current_tile
         else:
             site_m = site_re.match(line)
             if site_m and current_tile is not None:
