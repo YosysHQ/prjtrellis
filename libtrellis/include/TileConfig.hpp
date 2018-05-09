@@ -43,10 +43,21 @@ ostream &operator<<(ostream &out, const ConfigEnum &ce);
 
 istream &operator>>(istream &in, ConfigEnum &ce);
 
+// An unknown bit, specified by positition only
+struct ConfigUnknown {
+    int frame, bit;
+};
+
+ostream &operator<<(ostream &out, const ConfigUnknown &tc);
+
+istream &operator>>(istream &in, ConfigUnknown &ce);
+
 struct TileConfig {
     vector<ConfigArc> carcs;
     vector<ConfigWord> cwords;
     vector<ConfigEnum> cenums;
+    vector<ConfigUnknown> cunknowns;
+
 };
 
 ostream &operator<<(ostream &out, const TileConfig &tc);
