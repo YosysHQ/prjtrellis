@@ -351,6 +351,7 @@ Bitstream Bitstream::serialise_chip(const Chip &chip) {
         fill(frame_bytes.get(), frame_bytes.get() + bytes_per_frame, 0x00);
         for (int j = 0; j < chip.info.bits_per_frame; j++) {
             size_t ofs = j + chip.info.pad_bits_after_frame;
+            assert(((bytes_per_frame - 1) - (ofs / 8)) < bytes_per_frame);
             frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] |=
                     (chip.cram.bit((chip.info.num_frames - 1) - i, j) & 0x01) << (ofs % 8);
         }
