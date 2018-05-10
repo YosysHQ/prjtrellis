@@ -39,6 +39,13 @@ struct TileInfo {
         assert(regex_search(name, m, tile_row_col_re));
         return make_pair(stoi(m.str(1)), stoi(m.str(2)));
     };
+
+    // Get the Lattice name
+    // Tiles are identified internally as "lattice_name:type"
+    // This is because the Lattice name is NOT unique, and we need tiles to have a unique identifier
+    inline string get_lattice_name() const {
+        return name.substr(0, name.find(':'));
+    }
 };
 
 class Chip;

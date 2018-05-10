@@ -46,6 +46,12 @@ void BitGroup::clear_group(Trellis::CRAMView &tile) const {
         tile.bit(bit.frame, bit.bit) = bit.inv;
 }
 
+void BitGroup::add_coverage(Trellis::BitSet &known_bits) const {
+    copy_if(bits.begin(), bits.end(), inserter(known_bits, known_bits.end()), [](ConfigBit b) {
+        return !b.inv;
+    });
+}
+
 ostream &operator<<(ostream &out, const BitGroup &bits) {
     bool first = false;
     for (auto bit : bits.bits) {
@@ -67,14 +73,17 @@ istream &operator>>(istream &in, BitGroup &bits) {
     return in;
 }
 
-boost::optional<string> MuxBits::get_driver(const CRAMView &tile) const {
+boost::optional<string> MuxBits::get_driver(const CRAMView &tile, boost::optional<BitSet &> coverage) const {
     auto drv = find_if(arcs.begin(), arcs.end(), [tile](const ArcData &a) {
         return a.bits.match(tile);
     });
-    if (drv == arcs.end())
+    if (drv == arcs.end()) {
         return boost::optional<string>();
-    else
+    } else {
+        if (coverage)
+            drv->bits.add_coverage(*coverage);
         return boost::optional<string>(drv->source);
+    }
 }
 
 void MuxBits::set_driver(Trellis::CRAMView &tile, const string &driver) const {
@@ -109,10 +118,14 @@ istream &operator>>(istream &in, MuxBits &mux) {
     return in;
 }
 
-boost::optional<vector<bool>> WordSettingBits::get_value(const CRAMView &tile) const {
+boost::optional<vector<bool>>
+WordSettingBits::get_value(const CRAMView &tile, boost::optional<BitSet &> coverage) const {
     vector<bool> val;
-    transform(bits.begin(), bits.end(), back_inserter(val), [tile](const BitGroup &b) {
-        return b.match(tile);
+    transform(bits.begin(), bits.end(), back_inserter(val), [tile, coverage](const BitGroup &b) {
+        bool m = b.match(tile);
+        if (coverage)
+            b.add_coverage(*coverage);
+        return m;
     });
     if (val == defval)
         return boost::optional<vector<bool>>();
@@ -159,16 +172,20 @@ istream &operator>>(istream &in, WordSettingBits &ws) {
     return in;
 }
 
-boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile) const {
+boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile, boost::optional<BitSet &> coverage) const {
     auto found = find_if(options.begin(), options.end(), [tile](const pair<string, BitGroup> &kv) {
         return kv.second.match(tile);
     });
     if (found == options.end()) {
         return boost::optional<string>();
-    } else if (defval && *defval == found->first) {
-        return boost::optional<string>();
     } else {
-        return boost::optional<string>(found->first);
+        if (coverage)
+            found->second.add_coverage(*coverage);
+        if (defval && *defval == found->first) {
+            return boost::optional<string>();
+        } else {
+            return boost::optional<string>(found->first);
+        }
     }
 }
 
@@ -225,6 +242,9 @@ void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile)
         enums.at(ce.name).set_value(tile, ce.value);
         found_enums.insert(ce.name);
     }
+    for (auto unk : cfg.cunknowns) {
+        tile.bit(unk.frame, unk.bit) = 1;
+    }
     // Apply default values if not overriden in cfg
     for (auto w : words)
         if (found_words.find(w.first) == found_words.end())
@@ -238,21 +258,29 @@ void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile)
 TileConfig TileBitDatabase::tile_cram_to_config(const CRAMView &tile) const {
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     TileConfig cfg;
+    BitSet coverage;
     for (auto mux : muxes) {
-        auto sink = mux.second.get_driver(tile);
+        auto sink = mux.second.get_driver(tile, coverage);
         if (sink)
             cfg.carcs.push_back(ConfigArc{mux.first, *sink});
     }
     for (auto cw : words) {
-        auto val = cw.second.get_value(tile);
+        auto val = cw.second.get_value(tile, coverage);
         if (val)
             cfg.cwords.push_back(ConfigWord{cw.first, *val});
     }
     for (auto ce : enums) {
-        auto val = ce.second.get_value(tile);
+        auto val = ce.second.get_value(tile, coverage);
         if (val)
             cfg.cenums.push_back(ConfigEnum{ce.first, *val});
     }
+    for (int f = 0; f < tile.frames(); f++) {
+        for (int b = 0; b < tile.bits(); b++) {
+            if (tile.bit(f, b) && (coverage.find(ConfigBit{f, b, false}) == coverage.end())) {
+                cfg.cunknowns.push_back(ConfigUnknown{f, b});
+            }
+        }
+    };
     return cfg;
 }
 
