@@ -133,14 +133,6 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("cram", &Tile::cram);
 
     // From Database.cpp
-    class_<DeviceLocator>("DeviceLocator")
-            .def_readwrite("family", &DeviceLocator::family)
-            .def_readwrite("device", &DeviceLocator::device);
-    class_<TileLocator>("TileLocator")
-            .def_readwrite("family", &TileLocator::family)
-            .def_readwrite("device", &TileLocator::device)
-            .def_readwrite("tiletype", &TileLocator::tiletype);
-
     def("load_database", load_database);
     def("find_device_by_name", find_device_by_name);
     def("find_device_by_idcode", find_device_by_idcode);
