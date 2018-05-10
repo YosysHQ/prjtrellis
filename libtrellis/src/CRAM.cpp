@@ -12,7 +12,7 @@ int CRAMView::frames() const { return frame_count; }
 
 int CRAMView::bits() const { return bit_count; }
 
-bool CRAMView::get_bit(int frame, int biti) {
+bool CRAMView::get_bit(int frame, int biti) const {
     return bool(bit(frame, biti));
 }
 

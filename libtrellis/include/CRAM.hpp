@@ -26,7 +26,7 @@ public:
     char &bit(int frame, int bit) const;
 
     // Primarily for Python use
-    bool get_bit(int frame, int biti);
+    bool get_bit(int frame, int biti) const;
 
     void set_bit(int frame, int biti, bool value);
 

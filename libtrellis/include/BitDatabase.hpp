@@ -10,6 +10,7 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <atomic>
 #include <set>
+#include <unordered_set>
 #include "Util.hpp"
 
 using namespace std;
@@ -25,7 +26,28 @@ struct ConfigBit {
     int frame;
     int bit;
     bool inv = false;
+
+    inline bool operator==(const ConfigBit &other) const {
+        return (frame == other.frame) && (bit == other.bit) && (inv == other.inv);
+    }
 };
+}
+
+namespace std {
+// Hash function for ConfigBit
+template<>
+struct hash<Trellis::ConfigBit> {
+public:
+    inline size_t operator()(const Trellis::ConfigBit &bit) const {
+        hash<int> hash_i_fn;
+        hash<bool> hash_b_fn;
+        return hash_i_fn(bit.frame) + hash_i_fn(bit.bit) + hash_b_fn(bit.inv);
+    }
+};
+}
+
+namespace Trellis {
+typedef unordered_set<ConfigBit> BitSet;
 
 // Write a configuration bit to string
 inline string to_string(ConfigBit b) {
@@ -47,13 +69,20 @@ struct BitGroup {
 
     // Return true if the BitGroup is set in a tile
     bool match(const CRAMView &tile) const;
+
+    // Update a coverage set with the bitgroup
+    void add_coverage(BitSet &known_bits) const;
+
     // Set the BitGroup in a tile
     void set_group(CRAMView &tile) const;
+
     // Clear the BitGroup in a tile
     void clear_group(CRAMView &tile) const;
 };
+
 // Write BitGroup to output
 ostream &operator<<(ostream &out, const BitGroup &bits);
+
 // Read a BitGroup from input (until end of line)
 istream &operator>>(istream &out, BitGroup &bits);
 
@@ -70,12 +99,16 @@ struct MuxBits {
     vector<ArcData> arcs;
 
     // Work out which connection inside the mux, if any, is made inside a tile
-    boost::optional<string> get_driver(const CRAMView &tile) const;
+    boost::optional<string>
+    get_driver(const CRAMView &tile, boost::optional<BitSet &> coverage = boost::optional<BitSet &>()) const;
+
     void set_driver(CRAMView &tile, const string &driver) const;
 
 };
+
 // Write mux database entry to output
 ostream &operator<<(ostream &out, const MuxBits &mux);
+
 // Read mux database entry (excluding .mux token) from input
 istream &operator>>(istream &in, MuxBits &mux);
 
@@ -89,12 +122,15 @@ struct WordSettingBits {
     vector<BitGroup> bits;
     vector<bool> defval;
 
-    boost::optional<vector<bool>> get_value(const CRAMView &tile) const;
+    boost::optional<vector<bool>>
+    get_value(const CRAMView &tile, boost::optional<BitSet &> coverage = boost::optional<BitSet &>()) const;
+
     void set_value(CRAMView &tile, const vector<bool> &value) const;
 };
 
 // Write config word setting bits to output
 ostream &operator<<(ostream &out, const WordSettingBits &ws);
+
 // Read config word database entry (excluding .config token) from input
 istream &operator>>(istream &out, WordSettingBits &ws);
 
@@ -102,12 +138,16 @@ struct EnumSettingBits {
     string name;
     map<string, BitGroup> options;
     boost::optional<string> defval;
-    boost::optional<string> get_value(const CRAMView &tile) const;
+
+    boost::optional<string>
+    get_value(const CRAMView &tile, boost::optional<BitSet &> coverage = boost::optional<BitSet &>()) const;
+
     void set_value(CRAMView &tile, const string &value) const;
 };
 
 // Write config enum bits to output
 ostream &operator<<(ostream &out, const EnumSettingBits &es);
+
 // Read config enum bits database entry (excluding .config_enum token) from input
 istream &operator>>(istream &out, EnumSettingBits &es);
 
@@ -120,22 +160,29 @@ public:
 
     // Convert TileConfigs to and from actual Tile CRAM
     void config_to_tile_cram(const TileConfig &cfg, CRAMView &tile) const;
-    TileConfig tile_cram_to_config(const CRAMView &tile) const;
 
+    TileConfig tile_cram_to_config(const CRAMView &tile) const;
 
     // All these functions are designed to be thread safe during fuzzing and database modification
     // Maybe we should have faster unsafe versions too, as that will be the majority of the use cases?
     set<string> get_sinks() const;
+
     MuxBits get_mux_data_for_sink(const string &sink) const;
+
     set<string> get_settings_words() const;
+
     WordSettingBits get_data_for_setword(const string &name) const;
+
     set<string> get_settings_enums() const;
+
     EnumSettingBits get_data_for_enum(const string &name) const;
     // TODO: function to get routing graph of tile
 
     // Add relevant items to the database
     void add_mux(const MuxBits &mux);
+
     void add_setting_word(const WordSettingBits &wsb);
+
     void add_setting_enum(const EnumSettingBits &esb);
 
     // Save the bit database to file
@@ -143,6 +190,7 @@ public:
 
     // Function to obtain the singleton BitDatabase for a given tile
     friend shared_ptr<TileBitDatabase> get_tile_bitdata(const TileLocator &tile);
+
 private:
     explicit TileBitDatabase(const string &filename);
 
@@ -152,8 +200,10 @@ private:
     map<string, WordSettingBits> words;
     map<string, EnumSettingBits> enums;
     string filename;
+
     void load();
 };
+
 }
 
 #endif //LIBTRELLIS_BITDATABASE_HPP
