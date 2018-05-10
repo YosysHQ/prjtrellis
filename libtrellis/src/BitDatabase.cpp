@@ -330,10 +330,10 @@ void TileBitDatabase::save() {
         out << senum.second << endl;
 }
 
-set<string> TileBitDatabase::get_sinks() const {
+vector<string> TileBitDatabase::get_sinks() const {
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
-    set<string> result;
-    boost::copy(muxes | boost::adaptors::map_keys, inserter(result, result.end()));
+    vector<string> result;
+    boost::copy(muxes | boost::adaptors::map_keys, back_inserter(result));
     return result;
 }
 
@@ -342,10 +342,10 @@ MuxBits TileBitDatabase::get_mux_data_for_sink(const string &sink) const {
     return muxes.at(sink);
 }
 
-set<string> TileBitDatabase::get_settings_words() const {
+vector<string> TileBitDatabase::get_settings_words() const {
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
-    set<string> result;
-    boost::copy(words | boost::adaptors::map_keys, inserter(result, result.end()));
+    vector<string> result;
+    boost::copy(words | boost::adaptors::map_keys, back_inserter(result));
     return result;
 }
 
@@ -354,16 +354,31 @@ WordSettingBits TileBitDatabase::get_data_for_setword(const string &name) const 
     return words.at(name);
 }
 
-set<string> TileBitDatabase::get_settings_enums() const {
+vector<string> TileBitDatabase::get_settings_enums() const {
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
-    set<string> result;
-    boost::copy(enums | boost::adaptors::map_keys, inserter(result, result.end()));
+    vector<string> result;
+    boost::copy(enums | boost::adaptors::map_keys, back_inserter(result));
     return result;
 }
 
 EnumSettingBits TileBitDatabase::get_data_for_enum(const string &name) const {
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     return enums.at(name);
+}
+
+void TileBitDatabase::add_mux(const MuxBits &mux) {
+    boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+    muxes[mux.sink] = mux;
+}
+
+void TileBitDatabase::add_setting_word(const WordSettingBits &wsb) {
+    boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+    words[wsb.name] = wsb;
+}
+
+void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb) {
+    boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+    enums[esb.name] = esb;
 }
 
 }
