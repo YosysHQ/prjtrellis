@@ -111,7 +111,7 @@ ostream &operator<<(ostream &out, const EnumSettingBits &es);
 // Read config enum bits database entry (excluding .config_enum token) from input
 istream &operator>>(istream &out, EnumSettingBits &es);
 
-class TileConfig;
+struct TileConfig;
 struct TileLocator;
 
 class TileBitDatabase {
