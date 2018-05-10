@@ -2,6 +2,8 @@
 #include "Chip.hpp"
 #include "Database.hpp"
 #include "Tile.hpp"
+#include "BitDatabase.hpp"
+#include "TileConfig.hpp"
 
 #include <vector>
 #include <string>
@@ -131,9 +133,109 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("cram", &Tile::cram);
 
     // From Database.cpp
+    class_<DeviceLocator>("DeviceLocator")
+            .def_readwrite("family", &DeviceLocator::family)
+            .def_readwrite("device", &DeviceLocator::device);
+    class_<TileLocator>("TileLocator")
+            .def_readwrite("family", &TileLocator::family)
+            .def_readwrite("device", &TileLocator::device)
+            .def_readwrite("tiletype", &TileLocator::tiletype);
+
     def("load_database", load_database);
     def("find_device_by_name", find_device_by_name);
     def("find_device_by_idcode", find_device_by_idcode);
     def("get_chip_info", get_chip_info);
     def("get_device_tilegrid", get_device_tilegrid);
+    def("get_tile_bitdata", get_tile_bitdata);
+
+    // From BitDatabase.cpp
+    class_<ConfigBit>("ConfigBit")
+            .def_readwrite("frame", &ConfigBit::frame)
+            .def_readwrite("bit", &ConfigBit::bit)
+            .def_readwrite("inv", &ConfigBit::inv);
+
+    def("cbit_from_str", cbit_from_str);
+    class_<vector<ConfigBit>>("ConfigBitVector")
+            .def(vector_indexing_suite<vector<ConfigBit>>());
+
+    class_<BitGroup>("BitGroup")
+            .def_readwrite("bits", &BitGroup::bits)
+            .def("match", &BitGroup::match)
+            .def("add_coverage", &BitGroup::add_coverage)
+            .def("set_group", &BitGroup::set_group)
+            .def("clear_group", &BitGroup::clear_group);
+
+    class_<ArcData>("ArcData")
+            .def_readwrite("source", &ArcData::source)
+            .def_readwrite("sink", &ArcData::sink)
+            .def_readwrite("bits", &ArcData::bits);
+
+    class_<vector<ArcData>>("ArcDataVector")
+            .def(vector_indexing_suite<vector<ArcData>>());
+
+    class_<MuxBits>("MuxBits")
+            .def_readwrite("sink", &MuxBits::sink)
+            .def_readwrite("arcs", &MuxBits::arcs)
+            .def("get_driver", &MuxBits::get_driver)
+            .def("set_driver", &MuxBits::set_driver);
+
+    class_<WordSettingBits>("WordSettingBits")
+            .def_readwrite("name", &WordSettingBits::name)
+            .def_readwrite("bits", &WordSettingBits::bits)
+            .def_readwrite("defval", &WordSettingBits::defval)
+            .def("get_value", &WordSettingBits::get_value)
+            .def("set_value", &WordSettingBits::set_value);
+
+    class_<map<string, BitGroup>>("BitGroupMap")
+            .def(map_indexing_suite<map<string, BitGroup>>());
+
+    class_<EnumSettingBits>("EnumSettingBits")
+            .def_readwrite("name", &EnumSettingBits::name)
+            .def_readwrite("options", &EnumSettingBits::options)
+            .def_readwrite("defval", &EnumSettingBits::defval)
+            .def("get_value", &EnumSettingBits::get_value)
+            .def("set_value", &EnumSettingBits::set_value);
+
+    class_<shared_ptr<TileBitDatabase>>("TileBitDatabase", no_init)
+            .def("config_to_tile_cram", &TileBitDatabase::config_to_tile_cram)
+            .def("tile_cram_to_config", &TileBitDatabase::tile_cram_to_config)
+            .def("get_sinks", &TileBitDatabase::get_sinks)
+            .def("get_mux_data_for_sink", &TileBitDatabase::get_mux_data_for_sink)
+            .def("get_settings_words", &TileBitDatabase::get_settings_words)
+            .def("get_data_for_setword", &TileBitDatabase::get_data_for_setword)
+            .def("get_settings_enums", &TileBitDatabase::get_settings_enums)
+            .def("get_data_for_enum", &TileBitDatabase::get_data_for_enum)
+            .def("add_mux", &TileBitDatabase::add_mux)
+            .def("add_setting_word", &TileBitDatabase::add_setting_word)
+            .def("add_setting_enum", &TileBitDatabase::add_setting_enum)
+            .def("save", &TileBitDatabase::save);
+
+    // From TileConfig.hpp
+    class_<ConfigArc>("ConfigArc")
+            .def_readwrite("from", &ConfigArc::from)
+            .def_readwrite("to", &ConfigArc::to);
+    class_<ConfigWord>("ConfigWord")
+            .def_readwrite("name", &ConfigWord::name)
+            .def_readwrite("value", &ConfigWord::value);
+    class_<ConfigEnum>("ConfigEnum")
+            .def_readwrite("name", &ConfigEnum::name)
+            .def_readwrite("value", &ConfigEnum::value);
+    class_<ConfigUnknown>("ConfigUnknown")
+            .def_readwrite("frame", &ConfigUnknown::frame)
+            .def_readwrite("bit", &ConfigUnknown::bit);
+
+    class_<vector<ConfigArc>>("ConfigArcVector")
+            .def(vector_indexing_suite<vector<ConfigArc>>());
+    class_<vector<ConfigWord>>("ConfigWordVector")
+            .def(vector_indexing_suite<vector<ConfigWord>>());
+    class_<vector<ConfigEnum>>("ConfigEnumVector")
+            .def(vector_indexing_suite<vector<ConfigEnum>>());
+    class_<vector<ConfigUnknown>>("ConfigUnknownVector")
+            .def(vector_indexing_suite<vector<ConfigUnknown>>());
+
+    class_<TileConfig>("TileConfig")
+            .def_readwrite("carcs", &TileConfig::carcs)
+            .def_readwrite("cwords", &TileConfig::cwords)
+            .def_readwrite("cenums", &TileConfig::cenums)
+            .def_readwrite("cunknowns", &TileConfig::cunknowns);
 }

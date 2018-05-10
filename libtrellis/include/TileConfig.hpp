@@ -17,6 +17,9 @@ namespace Trellis {
 struct ConfigArc {
     string from;
     string to;
+    inline bool operator==(const ConfigArc &other) const {
+        return other.from == from && other.to == to;
+    }
 };
 
 ostream &operator<<(ostream &out, const ConfigArc &arc);
@@ -27,6 +30,9 @@ istream &operator>>(istream &in, ConfigArc &arc);
 struct ConfigWord {
     string name;
     vector<bool> value;
+    inline bool operator==(const ConfigWord &other) const {
+        return other.name == name && other.value == value;
+    }
 };
 
 ostream &operator<<(ostream &out, const ConfigWord &cw);
@@ -37,15 +43,21 @@ istream &operator>>(istream &in, ConfigWord &cw);
 struct ConfigEnum {
     string name;
     string value;
+    inline bool operator==(const ConfigEnum &other) const {
+        return other.name == name && other.value == value;
+    }
 };
 
 ostream &operator<<(ostream &out, const ConfigEnum &ce);
 
 istream &operator>>(istream &in, ConfigEnum &ce);
 
-// An unknown bit, specified by positition only
+// An unknown bit, specified by position only
 struct ConfigUnknown {
     int frame, bit;
+    inline bool operator==(const ConfigUnknown &other) const {
+        return other.frame == frame && other.bit == bit;
+    }
 };
 
 ostream &operator<<(ostream &out, const ConfigUnknown &tc);

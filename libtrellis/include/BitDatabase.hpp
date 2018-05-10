@@ -78,6 +78,10 @@ struct BitGroup {
 
     // Clear the BitGroup in a tile
     void clear_group(CRAMView &tile) const;
+
+    inline bool operator==(const BitGroup &other) const {
+        return bits == other.bits;
+    }
 };
 
 // Write BitGroup to output
@@ -91,6 +95,10 @@ struct ArcData {
     string source;
     string sink;
     BitGroup bits;
+
+    inline bool operator==(const ArcData &other) const {
+        return (source == other.source) && (sink == other.sink) && (bits == other.bits);
+    }
 };
 
 // A mux specifies all the possible source node arcs driving a sink node
@@ -102,8 +110,12 @@ struct MuxBits {
     boost::optional<string>
     get_driver(const CRAMView &tile, boost::optional<BitSet &> coverage = boost::optional<BitSet &>()) const;
 
+    // Set the driver to a given value inside the tile
     void set_driver(CRAMView &tile, const string &driver) const;
 
+    inline bool operator==(const MuxBits &other) const {
+        return (sink == other.sink) && (arcs == other.arcs);
+    }
 };
 
 // Write mux database entry to output
@@ -122,10 +134,16 @@ struct WordSettingBits {
     vector<BitGroup> bits;
     vector<bool> defval;
 
+    // Return the word value in a tile, returning empty if equal to the default
     boost::optional<vector<bool>>
     get_value(const CRAMView &tile, boost::optional<BitSet &> coverage = boost::optional<BitSet &>()) const;
 
+    // Set the word value in a tile
     void set_value(CRAMView &tile, const vector<bool> &value) const;
+
+    inline bool operator==(const WordSettingBits &other) const {
+        return (name == other.name) && (bits == other.bits) && (defval == other.defval);
+    }
 };
 
 // Write config word setting bits to output
@@ -139,10 +157,16 @@ struct EnumSettingBits {
     map<string, BitGroup> options;
     boost::optional<string> defval;
 
+    // Get the value of the enumeration, returning empty if not set or set to default, if default is non-empty
     boost::optional<string>
     get_value(const CRAMView &tile, boost::optional<BitSet &> coverage = boost::optional<BitSet &>()) const;
 
+    // Set the value of the enumeration in a tile
     void set_value(CRAMView &tile, const string &value) const;
+
+    inline bool operator==(const EnumSettingBits &other) const {
+        return (name == other.name) && (options == other.options) && (defval == other.defval);
+    }
 };
 
 // Write config enum bits to output
@@ -165,15 +189,15 @@ public:
 
     // All these functions are designed to be thread safe during fuzzing and database modification
     // Maybe we should have faster unsafe versions too, as that will be the majority of the use cases?
-    set<string> get_sinks() const;
+    vector<string> get_sinks() const;
 
     MuxBits get_mux_data_for_sink(const string &sink) const;
 
-    set<string> get_settings_words() const;
+    vector<string> get_settings_words() const;
 
     WordSettingBits get_data_for_setword(const string &name) const;
 
-    set<string> get_settings_enums() const;
+    vector<string> get_settings_enums() const;
 
     EnumSettingBits get_data_for_enum(const string &name) const;
     // TODO: function to get routing graph of tile
