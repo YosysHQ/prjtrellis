@@ -120,7 +120,7 @@ shared_ptr<TileBitDatabase> get_tile_bitdata(const TileLocator &tile) {
     lock_guard <mutex> bitdb_store_lg(bitdb_store_mutex);
     if (bitdb_store.find(tile) == bitdb_store.end()) {
         assert(!db_root.empty());
-        string bitdb_path = db_root + "/" + tile.family + "/" + tile.device + "/" + tile.tiletype + "/bits.db";
+        string bitdb_path = db_root + "/" + tile.family + "/tiledata/" + tile.tiletype + "/bits.db";
         shared_ptr <TileBitDatabase> bitdb{new TileBitDatabase(bitdb_path)};
         bitdb_store[tile] = bitdb;
         return bitdb;

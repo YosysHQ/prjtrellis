@@ -21,6 +21,8 @@ struct DeviceLocator {
 
 // Locator for a given tile type (formed of family, device and tile type)
 struct TileLocator {
+    inline TileLocator() {};
+    inline TileLocator(string f, string d, string t) : family(f), device(d), tiletype(t) {};
     string family;
     string device;
     string tiletype;
