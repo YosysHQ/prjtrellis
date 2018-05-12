@@ -2,7 +2,7 @@
 
 # Header
 contrib = ["""\
-# Contributing to Project X-Ray
+# Contributing to Project Trellis
 """]
 
 # Extract the "Contributing" section from README.md

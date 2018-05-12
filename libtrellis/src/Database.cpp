@@ -2,6 +2,7 @@
 #include "Chip.hpp"
 #include "Tile.hpp"
 #include "Util.hpp"
+#include "BitDatabase.hpp"
 #include <iostream>
 #include <boost/optional.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -40,7 +41,10 @@ boost::optional<DeviceLocator> find_device_generic(T f) {
 }
 
 DeviceLocator find_device_by_name(string name) {
-    auto found = find_device_generic([name](const string &n, const pt::ptree &p) -> bool { return n == name; });
+    auto found = find_device_generic([name](const string &n, const pt::ptree &p) -> bool {
+        UNUSED(p);
+        return n == name;
+    });
     if (!found)
         throw runtime_error("no device in database with name " + name);
     return *found;
@@ -54,6 +58,7 @@ uint32_t parse_uint32(string str) {
 
 DeviceLocator find_device_by_idcode(uint32_t idcode) {
     auto found = find_device_generic([idcode](const string &n, const pt::ptree &p) -> bool {
+        UNUSED(n);
         return parse_uint32(p.get<string>("idcode")) == idcode;
     });
     if (!found)
@@ -76,11 +81,11 @@ ChipInfo get_chip_info(const DeviceLocator &part) {
 }
 
 vector<TileInfo> get_device_tilegrid(const DeviceLocator &part) {
-    vector<TileInfo> tilesInfo;
+    vector <TileInfo> tilesInfo;
     assert(db_root != "");
     string tilegrid_path = db_root + "/" + part.family + "/" + part.device + "/tilegrid.json";
     {
-        lock_guard<mutex> lock(tilegrid_cache_mutex);
+        lock_guard <mutex> lock(tilegrid_cache_mutex);
         if (tilegrid_cache.find(part.device) == tilegrid_cache.end()) {
             pt::ptree tg_parsed;
             pt::read_json(tilegrid_path, tg_parsed);
@@ -108,5 +113,20 @@ vector<TileInfo> get_device_tilegrid(const DeviceLocator &part) {
     return tilesInfo;
 }
 
+static unordered_map<TileLocator, shared_ptr<TileBitDatabase>> bitdb_store;
+static mutex bitdb_store_mutex;
+
+shared_ptr<TileBitDatabase> get_tile_bitdata(const TileLocator &tile) {
+    lock_guard <mutex> bitdb_store_lg(bitdb_store_mutex);
+    if (bitdb_store.find(tile) == bitdb_store.end()) {
+        assert(!db_root.empty());
+        string bitdb_path = db_root + "/" + tile.family + "/tiledata/" + tile.tiletype + "/bits.db";
+        shared_ptr <TileBitDatabase> bitdb{new TileBitDatabase(bitdb_path)};
+        bitdb_store[tile] = bitdb;
+        return bitdb;
+    } else {
+        return bitdb_store.at(tile);
+    }
+}
 
 }
