@@ -15,10 +15,10 @@ namespace Trellis {
 
 // A connection in a tile
 struct ConfigArc {
-    string from;
-    string to;
+    string sink;
+    string source;
     inline bool operator==(const ConfigArc &other) const {
-        return other.from == from && other.to == to;
+        return other.source == source && other.sink == sink;
     }
 };
 

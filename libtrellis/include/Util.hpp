@@ -45,7 +45,7 @@ inline istream &operator>>(istream &in, vector<bool> &bv) {
 // Skip whitespace, optionally including newlines
 inline void skip_blank(istream &in, bool nl = false) {
     int c = in.peek();
-    while ((c == ' ' || c == '\t' || c == EOF) || (nl && (c == '\n' || c == '\r'))) {
+    while (in && ((c == ' ' || c == '\t' || c == EOF) || (nl && (c == '\n' || c == '\r')))) {
         in.get();
         c = in.peek();
     }
@@ -68,7 +68,7 @@ inline bool skip_check_eol(istream &in) {
 // Skip past blank lines and comments
 inline void skip(istream &in) {
     skip_blank(in, true);
-    while (in.peek() == '#') {
+    while (in && (in.peek() == '#')) {
         // Skip comment line
         in.get();
         while (!skip_check_eol(in));

@@ -7,13 +7,13 @@ using namespace std;
 
 namespace Trellis {
 ostream &operator<<(ostream &out, const ConfigArc &arc) {
-    out << "arc: " << arc.to << arc.from << endl;
+    out << "arc: " << arc.sink << arc.source << endl;
     return out;
 }
 
 istream &operator>>(istream &in, ConfigArc &arc) {
-    in >> arc.to;
-    in >> arc.from;
+    in >> arc.sink;
+    in >> arc.source;
     return in;
 }
 
