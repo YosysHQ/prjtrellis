@@ -53,7 +53,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("family", &DeviceLocator::family)
             .def_readwrite("device", &DeviceLocator::device);
 
-    class_<TileLocator>("TileLocator")
+    class_<TileLocator>("TileLocator", init<string, string, string>())
             .def_readwrite("family", &TileLocator::family)
             .def_readwrite("device", &TileLocator::device)
             .def_readwrite("tiletype", &TileLocator::tiletype);

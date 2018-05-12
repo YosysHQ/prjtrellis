@@ -1,3 +1,12 @@
 {
+  "TEST_R0C0:TESTTILE": {
+    "cols": 20,
+    "rows": 10,
+    "sites": [
 
+    ],
+    "start_bit": 15,
+    "start_frame": 10,
+    "type": "TESTTILE"
+  }
 }
