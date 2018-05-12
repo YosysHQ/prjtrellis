@@ -71,7 +71,7 @@ struct BitGroup {
     bool match(const CRAMView &tile) const;
 
     // Update a coverage set with the bitgroup
-    void add_coverage(BitSet &known_bits) const;
+    void add_coverage(BitSet &known_bits, bool value = true) const;
 
     // Set the BitGroup in a tile
     void set_group(CRAMView &tile) const;
@@ -215,6 +215,8 @@ public:
     // Function to obtain the singleton BitDatabase for a given tile
     friend shared_ptr<TileBitDatabase> get_tile_bitdata(const TileLocator &tile);
 
+    // This should not be used, but is required for PyTrellis
+    TileBitDatabase(const TileBitDatabase &other);
 private:
     explicit TileBitDatabase(const string &filename);
 

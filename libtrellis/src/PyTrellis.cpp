@@ -33,6 +33,9 @@ BOOST_PYTHON_MODULE (pytrellis) {
     class_<vector<uint8_t>>("ByteVector")
             .def(vector_indexing_suite<vector<uint8_t>>());
 
+    class_<vector<bool>>("BoolVector")
+            .def(vector_indexing_suite<vector<bool>>());
+
     class_<std::pair<int, int> >("IntPair")
             .def_readwrite("first", &std::pair<int, int>::first)
             .def_readwrite("second", &std::pair<int, int>::second);
@@ -188,7 +191,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("get_value", &EnumSettingBits::get_value)
             .def("set_value", &EnumSettingBits::set_value);
 
-    class_<shared_ptr<TileBitDatabase>>("TileBitDatabase", no_init)
+    class_<TileBitDatabase, shared_ptr<TileBitDatabase>>("TileBitDatabase", no_init)
             .def("config_to_tile_cram", &TileBitDatabase::config_to_tile_cram)
             .def("tile_cram_to_config", &TileBitDatabase::tile_cram_to_config)
             .def("get_sinks", &TileBitDatabase::get_sinks)
@@ -204,8 +207,8 @@ BOOST_PYTHON_MODULE (pytrellis) {
 
     // From TileConfig.hpp
     class_<ConfigArc>("ConfigArc")
-            .def_readwrite("from", &ConfigArc::from)
-            .def_readwrite("to", &ConfigArc::to);
+            .def_readwrite("source", &ConfigArc::source)
+            .def_readwrite("sink", &ConfigArc::sink);
     class_<ConfigWord>("ConfigWord")
             .def_readwrite("name", &ConfigWord::name)
             .def_readwrite("value", &ConfigWord::value);

@@ -46,10 +46,11 @@ void BitGroup::clear_group(Trellis::CRAMView &tile) const {
         tile.bit(bit.frame, bit.bit) = bit.inv;
 }
 
-void BitGroup::add_coverage(Trellis::BitSet &known_bits) const {
-    copy_if(bits.begin(), bits.end(), inserter(known_bits, known_bits.end()), [](ConfigBit b) {
-        return !b.inv;
-    });
+void BitGroup::add_coverage(Trellis::BitSet &known_bits, bool value) const {
+    for (const auto &b : bits) {
+        if (b.inv != value)
+            known_bits.insert(ConfigBit{b.frame, b.bit});
+    }
 }
 
 ostream &operator<<(ostream &out, const BitGroup &bits) {
@@ -124,7 +125,7 @@ WordSettingBits::get_value(const CRAMView &tile, boost::optional<BitSet &> cover
     transform(bits.begin(), bits.end(), back_inserter(val), [tile, coverage](const BitGroup &b) {
         bool m = b.match(tile);
         if (coverage)
-            b.add_coverage(*coverage);
+            b.add_coverage(*coverage, m);
         return m;
     });
     if (val == defval)
@@ -232,7 +233,7 @@ TileBitDatabase::TileBitDatabase(const string &filename) : filename(filename) {
 void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile) const {
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     for (auto arc : cfg.carcs)
-        muxes.at(arc.from).set_driver(tile, arc.to);
+        muxes.at(arc.sink).set_driver(tile, arc.source);
     set<string> found_words, found_enums;
     for (auto cw : cfg.cwords) {
         words.at(cw.name).set_value(tile, cw.value);
@@ -379,6 +380,12 @@ void TileBitDatabase::add_setting_word(const WordSettingBits &wsb) {
 void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
     enums[esb.name] = esb;
+}
+
+TileBitDatabase::TileBitDatabase(const TileBitDatabase &other) {
+    UNUSED(other);
+    assert(false);
+    terminate();
 }
 
 }
