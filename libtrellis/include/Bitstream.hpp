@@ -81,6 +81,6 @@ private:
     string desc;
     int offset;
 };
-};
+}
 
 #endif //LIBTRELLIS_BITSTREAM_H

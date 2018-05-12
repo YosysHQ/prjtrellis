@@ -6,5 +6,6 @@ experiments: ["experiments"]
 docs: ["docs", "*.md", "COPYING"]
 infra: [".travis", ".travis.yml", ".github", "Docker*", ".gcloud*", ".style.yapf", "vagrant", "cloudbuild.*", "download-latest-db.sh"]
 tools: ["tools", "utils", "htmlgen"]
+libtrellis: ["libtrellis"]
 
 third-party: ["third_party", ".gitmodules"]

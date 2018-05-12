@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 3.10)
 project(libtrellis)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_FLAGS "-Wall -pedantic -Wextra -Werror")
 find_package(PythonInterp)
 find_package(PythonLibs)
-find_package(Boost REQUIRED COMPONENTS python3 filesystem)
+find_package(Boost REQUIRED COMPONENTS python3 filesystem thread)
 include_directories(include/ ${Boost_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS})
 
 aux_source_directory(include/ INCLUDE_FILES)

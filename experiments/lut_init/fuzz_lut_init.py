@@ -33,7 +33,7 @@ def run_get_bits(init_bits):
     diamond.run(device, "work/lut_init.ncl")
     bs = pytrellis.Bitstream.read_bit("work/lut_init.bit")
     chip = bs.deserialise_chip()
-    tile = chip.tiles["R2C2"]
+    tile = chip.tiles["R2C2:PLC2"]
     return tile.cram
 
 
