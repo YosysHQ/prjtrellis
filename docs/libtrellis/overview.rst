@@ -42,3 +42,30 @@ This represents the actual configuration of a tile, in terms of arcs (programmab
 LUT initialisation) and config enums (such as IO type). It is the result of decoding the tile CRAM content using the bit
 database, and can be converted to a FASM-like format.
 
+The contents of ``TileConfig`` are ``ConfigArc`` for connections, ``ConfigWord`` for non-routing configuration words
+(which also includes single config bits), ``ConfigEnum`` for enum configurations with multiple textual values, and
+``ConfigUnknown`` for unknown bits not found in the database, which are simply stored as a frame, bit reference.
+
+The contents of a tile's configuration RAM can be converted to and from a ``TileConfig`` by using the ``tile_cram_to_config``
+and ``config_to_tile_cram`` methods on the ``TileBitDatabase`` instance for the tile.
+
+TileBitDatabase
+----------------
+There will always be only one ``TileBitDatabase`` for each tile type, which is enforced by requiring calling the
+function ``get_tile_bitdata`` (in ``Database.cpp``) to obtain a ``shared_ptr`` to the ``TileBitDatabase``.
+
+The ``TileBitDatabase`` stored the function of all bits in the tile, in terms of the following constructs:
+
+ - Muxes (``MuxBits``) specify a list of arcs that can drive a given node. Each arc (``ArcData``) contains
+   specifies source, sink and the list of bits that enable it as a ``BitGroup``.
+ - Config words (``WordSettingBits``) specify non-routing configuration settings that are arranged as one or more bits.
+   Each config bit has an associated list of bits that enable it. This would be used both for single-bit settings
+   and configuration such as LUT initialisation and PLL dividers.
+ - Config enums (``EnumSettingBits``) specify non-routing configuration settings that have a set of possible textual
+   values, used for either modes/types (i.e. IO type) or occasionally "special" muxes not part of general routing. These
+   are specified as a map between possible values and the bits that enable those values.
+
+``TileBitDatabase`` instances can be modified during runtime, in a thread-safe way, to enable parallel fuzzing. They can
+be saved back to disk using the ``save`` method.
+
+They can also be used to convert between tile CRAM data and higher level tile config, as described above.
