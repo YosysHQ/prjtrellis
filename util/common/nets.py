@@ -108,8 +108,44 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
         else:
             assert False
     if vm:
-        # TODO
-        pass
+        if vm.group(1) == "01" and tile_pos[0] == chip_size[0] - 1:
+            # V01N000 --> y-1, V01N0001
+            assert vm.group(4) == "00"
+            return "V01{}{}01".format(vm.group(2), vm.group(3)), (wire_pos[0] - 1, wire_pos[1])
+        elif vm.group(1) == "02":
+            if tile_pos[0] == 1:
+                # V02S0002 --> y-1, V02S0001
+                # V02N0000 --> y-1, V02N0001
+                if vm.group(2) == "S" and wire_pos[0] == 1 and vm.group(4) == "02":
+                    return "V02S{}01".format(hm.group(3)), (wire_pos[0] - 1, wire_pos[1])
+                elif vm.group(2) == "N" and wire_pos[0] == 1 and vm.group(4) == "00":
+                    return "V02N{}01".format(vm.group(3)), (wire_pos[0] - 1, wire_pos[1])
+            elif tile_pos[0] == (chip_size[0] - 1):
+                # V02S0000 --> y+1, V02S0001
+                # V02N0002 --> y+1, V02N00001
+                if vm.group(2) == "S" and wire_pos[0] == (chip_size[0] - 1) and vm.group(4) == "00":
+                    return "V02S{}01".format(vm.group(3)), (wire_pos[0] + 1, wire_pos[1])
+                elif vm.group(2) == "N" and wire_pos[0] == (chip_size[0] - 1) and vm.group(4) == "02":
+                    return "V02N{}01".format(vm.group(3)), (wire_pos[0] + 1, wire_pos[1])
+        elif vm.group(1) == "06":
+            if tile_pos[0] <= 5:
+                # y-2, V06N0302 --> y-3, H06W0303
+                # y-2, V06S0004 --> y-3, V06S0003
+                # y-1, V06N0301 --> y-3, V06N0303
+                # y-1, V06S0005 --> y-3, V06S0003
+                if vm.group(2) == "N":
+                    return "V06N{}03".format(vm.group(3)), (wire_pos[0] - (3 - int(vm.group(4))), wire_pos[1])
+                elif vm.group(2) == "S":
+                    return "B06S{}03".format(vm.group(3)), (wire_pos[0] - (int(vm.group(4)) - 3), wire_pos[1])
+            if tile_pos[0] >= (chip_size[0] - 5):
+                # y+2, V06N0304 --> y+3, V06N0303
+                # y+2, V06S0302 --> x+3, V06S0303
+                if vm.group(2) == "N":
+                    return "V06N{}03".format(vm.group(3)), (wire_pos[0] + (int(vm.group(4)) - 3), wire_pos[1])
+                elif vm.group(2) == "S":
+                    return "V06S{}03".format(vm.group(3)), (wire_pos[0] + (3 - int(vm.group(4))), wire_pos[1])
+        else:
+            assert False
     return netname, wire_pos
 
 
