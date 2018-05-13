@@ -88,6 +88,29 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
                     return "H02E{}01".format(hm.group(3)), (wire_pos[0], wire_pos[1] + 1)
                 elif hm.group(2) == "W" and wire_pos[1] == (chip_size[1] - 1) and hm.group(4) == "02":
                     return "H02W{}01".format(hm.group(3)), (wire_pos[0], wire_pos[1] + 1)
+        elif hm.group(1) == "06":
+            if tile_pos[1] <= 5:
+                # x-2, H06W0302 --> x-3, H06W0303
+                # x-2, H06E0004 --> x-3, H06E0003
+                # x-1, H06W0301 --> x-3, H06W0303
+                # x-1, H06E0305 --> x-3, H06E0303
+                if hm.group(2) == "W":
+                    return "H06W{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] - (3 - int(hm.group(4))))
+                elif hm.group(2) == "E":
+                    return "H06W{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] - (int(hm.group(4)) - 3))
+            if tile_pos[1] >= (chip_size[1] - 5):
+                # x+2, H06W0304 --> x+3, H06W0303
+                # x+2, H06E0302 --> x+3, H06E0303
+                if hm.group(2) == "W":
+                    return "H06W{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] + (int(hm.group(4)) - 3))
+                elif hm.group(2) == "E":
+                    return "H06W{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] + (3 - int(hm.group(4))))
+        else:
+            assert False
+    if vm:
+        # TODO
+        pass
+    return netname, wire_pos
 
 
 def normalise_name(chip_size, tile, wire):
