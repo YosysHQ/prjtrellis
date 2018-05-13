@@ -49,7 +49,48 @@ def is_cib(wire):
                 cib_control_re.match(wire))
 
 
-def normalise_name(tile, wire):
+h_wire_regex = re.compile(r'H(\d{2})([EW])(\d{2})(\d{2})')
+v_wire_regex = re.compile(r'V(\d{2})([NS])(\d{2})(\d{2})')
+
+def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
+    """
+    At the edges of the device, canonical wire names do not follow normal naming conventions, as they
+    would mean the nominal position of the wire would be outside the bounds of the chip. Before we add routing to the
+    database, we must however normalise these names to what they would be if not near the edges, otherwise there is a
+    risk of database conflicts, having multiple names for the same wire.
+
+    chip_size: chip size as tuple (max_row, max_col)
+    tile_pos: tile position as tuple (r, c)
+    wire_pos: wire nominal position as tuple (r, c)
+    netname: wire name without position prefix
+
+    Returns a tuple (netname, wire_pos)
+    """
+    hm = h_wire_regex.match(netname)
+    vm = v_wire_regex.match(netname)
+    if hm:
+        if hm.group(1) == "01" and tile_pos[1] == chip_size[1] - 1:
+            # H01xyy00 --> x+1, H01xyy01
+            assert hm.group(4) == "00"
+            return "H01{}{}01".format(hm.group(2), hm.group(3)), (wire_pos[0], wire_pos[1] + 1)
+        elif hm.group(1) == "02":
+            if tile_pos[1] == 1:
+                # H02E0002 --> x-1, H02E0001
+                # H02W0000 --> x-1, H02W00001
+                if hm.group(2) == "E" and wire_pos[1] == 1 and hm.group(4) == "02":
+                    return "H02E{}01".format(hm.group(3)), (wire_pos[0], wire_pos[1] - 1)
+                elif hm.group(2) == "W" and wire_pos[1] == 1 and hm.group(4) == "00":
+                    return "H02W{}01".format(hm.group(3)), (wire_pos[0], wire_pos[1] - 1)
+            elif tile_pos[1] == (chip_size[1] - 1):
+                # H02E0000 --> x+1, H02E0001
+                # H02W0002 --> x+1, H02W00001
+                if hm.group(2) == "E" and wire_pos[1] == (chip_size[1] - 1) and hm.group(4) == "00":
+                    return "H02E{}01".format(hm.group(3)), (wire_pos[0], wire_pos[1] + 1)
+                elif hm.group(2) == "W" and wire_pos[1] == (chip_size[1] - 1) and hm.group(4) == "02":
+                    return "H02W{}01".format(hm.group(3)), (wire_pos[0], wire_pos[1] + 1)
+
+
+def normalise_name(chip_size, tile, wire):
     """
     Wire name normalisation for tile wires and fuzzing
     All net names that we have access too are canonical, global names
@@ -71,6 +112,12 @@ def normalise_name(tile, wire):
 
     TODO: this is more complicated at the edges of the device, where irregular names are used to keep the row and column
     of the nominal position in bounds. Extra logic will be needed to catch and regularise these cases.
+
+    chip_size: chip size as tuple (max_row, max_col)
+    tile: name of the relevant tile
+    wire: full Lattice name of the wire
+
+    Returns the normalised netname
     """
     upos = wire.index("_")
     prefix = wire[:upos]
@@ -90,9 +137,9 @@ def normalise_name(tile, wire):
         return netname
     else:
         prefix = ""
-        if prefix_pos[0] > tile_pos[0]:
+        if prefix_pos[0] < tile_pos[0]:
             prefix += "N{}".format(prefix_pos[0] - tile_pos[0])
-        elif prefix_pos[0] < tile_pos[0]:
+        elif prefix_pos[0] > tile_pos[0]:
             prefix += "S{}".format(tile_pos[0] - prefix_pos[0])
         if prefix_pos[1] > tile_pos[1]:
             prefix += "E{}".format(prefix_pos[1] - tile_pos[1])
