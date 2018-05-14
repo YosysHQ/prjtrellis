@@ -63,9 +63,9 @@ BOOST_PYTHON_MODULE (pytrellis) {
 
     // From Chip.cpp
     class_<ChipInfo>("ChipInfo")
-            .def_readonly("name", &ChipInfo::name)
-            .def_readonly("family", &ChipInfo::family)
-            .def_readonly("idcode", &ChipInfo::idcode)
+            .def_readwrite("name", &ChipInfo::name)
+            .def_readwrite("family", &ChipInfo::family)
+            .def_readwrite("idcode", &ChipInfo::idcode)
             .def_readonly("num_frames", &ChipInfo::num_frames)
             .def_readonly("bits_per_frame", &ChipInfo::bits_per_frame)
             .def_readonly("pad_bits_before_frame", &ChipInfo::pad_bits_before_frame)
