@@ -7,7 +7,7 @@ using namespace std;
 
 namespace Trellis {
 ostream &operator<<(ostream &out, const ConfigArc &arc) {
-    out << "arc: " << arc.sink << arc.source << endl;
+    out << "arc: " << arc.sink << " " << arc.source << endl;
     return out;
 }
 

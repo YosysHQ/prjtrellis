@@ -226,6 +226,17 @@ istream &operator>>(istream &in, EnumSettingBits &es) {
     return in;
 }
 
+ostream &operator<<(ostream &out, const FixedConnection &es) {
+    out << ".fixed_conn " << es.sink << " " << es.source << endl;
+    return out;
+}
+
+istream &operator>>(istream &in, FixedConnection &es) {
+    in >> es.sink >> es.source;
+    return in;
+}
+
+
 TileBitDatabase::TileBitDatabase(const string &filename) : filename(filename) {
     load();
 }
@@ -309,6 +320,10 @@ void TileBitDatabase::load() {
             EnumSettingBits ce;
             in >> ce;
             enums[ce.name] = ce;
+        } else if (token == ".fixed_conn") {
+            FixedConnection c;
+            in >> c;
+            fixed_conns.push_back(c);
         } else {
             throw runtime_error("unexpected token " + token + " while parsing database file " + filename);
         }
@@ -329,6 +344,9 @@ void TileBitDatabase::save() {
         out << word.second << endl;
     for (auto senum : enums)
         out << senum.second << endl;
+    out << endl << "# Fixed Connections" << endl;
+    for (auto conn : fixed_conns)
+        out << conn << endl;
 }
 
 vector<string> TileBitDatabase::get_sinks() const {
@@ -367,6 +385,11 @@ EnumSettingBits TileBitDatabase::get_data_for_enum(const string &name) const {
     return enums.at(name);
 }
 
+vector<FixedConnection> TileBitDatabase::get_fixed_conns() const {
+    boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+    return fixed_conns;
+}
+
 void TileBitDatabase::add_mux(const MuxBits &mux) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
     muxes[mux.sink] = mux;
@@ -380,6 +403,11 @@ void TileBitDatabase::add_setting_word(const WordSettingBits &wsb) {
 void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
     enums[esb.name] = esb;
+}
+
+void TileBitDatabase::add_fixed_conn(const Trellis::FixedConnection &conn) {
+    boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+    fixed_conns.push_back(conn);
 }
 
 TileBitDatabase::TileBitDatabase(const TileBitDatabase &other) {
