@@ -175,6 +175,22 @@ ostream &operator<<(ostream &out, const EnumSettingBits &es);
 // Read config enum bits database entry (excluding .config_enum token) from input
 istream &operator>>(istream &out, EnumSettingBits &es);
 
+// A fixed connection inside a tile
+struct FixedConnection {
+    string source;
+    string sink;
+    inline bool operator==(const FixedConnection &other) const {
+        return (source == other.source) && (sink == other.sink);
+    }
+};
+
+// Write fixed connection to output
+ostream &operator<<(ostream &out, const FixedConnection &es);
+
+// Read fixed connection from input
+istream &operator>>(istream &out, FixedConnection &es);
+
+
 struct TileConfig;
 struct TileLocator;
 
@@ -200,6 +216,8 @@ public:
     vector<string> get_settings_enums() const;
 
     EnumSettingBits get_data_for_enum(const string &name) const;
+
+    vector<FixedConnection> get_fixed_conns() const;
     // TODO: function to get routing graph of tile
 
     // Add relevant items to the database
@@ -209,6 +227,7 @@ public:
 
     void add_setting_enum(const EnumSettingBits &esb);
 
+    void add_fixed_conn(const FixedConnection &conn);
     // Save the bit database to file
     void save();
 
@@ -225,6 +244,7 @@ private:
     map<string, MuxBits> muxes;
     map<string, WordSettingBits> words;
     map<string, EnumSettingBits> enums;
+    vector<FixedConnection> fixed_conns;
     string filename;
 
     void load();
