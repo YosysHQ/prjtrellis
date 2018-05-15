@@ -41,4 +41,14 @@ vector<shared_ptr<Tile>> Chip::get_tiles_by_type(string type) {
     return result;
 }
 
+ChipDelta operator-(const Chip &a, const Chip &b) {
+    ChipDelta delta;
+    for (const auto &tile : a.tiles) {
+        CRAMDelta cd = tile.second->cram - b.tiles.at(tile.first)->cram;
+        if (!cd.empty())
+            delta[tile.first] = cd;
+    }
+    return delta;
+}
+
 }
