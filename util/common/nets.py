@@ -9,6 +9,8 @@ global_spine_tap_re = re.compile(r'R\d+C\d+_[HV]P[TLBR]X(\d){2}00')
 global_cmux_out_re = re.compile(r'R\d+C\d+_[UL][LR]PCLK\d+')
 # CMUX inputs
 global_cmux_in_re = re.compile(r'R\d+C\d+_[HV]PF[NESW](\d){2}00')
+# Clock pins
+clock_pin_re = re.compile(r'R\d+C\d+_J?PCLK[TBLR]\d+')
 # PLL outputs
 pll_out_re = re.compile(r'R\d+C\d+_J?[UL][LR][QC]PLL\dCLKO[PS]\d?')
 # CIB clock inputs
@@ -26,6 +28,7 @@ def is_global(wire):
     return bool(global_spine_tap_re.match(wire) or
                 global_cmux_out_re.match(wire) or
                 global_cmux_in_re.match(wire) or
+                clock_pin_re.match(wire) or
                 pll_out_re.match(wire) or
                 cib_clk_re.match(wire) or
                 osc_clk_re.match(wire) or
@@ -136,7 +139,7 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
                 if vm.group(2) == "N":
                     return "V06N{}03".format(vm.group(3)), (wire_pos[0] - (3 - int(vm.group(4))), wire_pos[1])
                 elif vm.group(2) == "S":
-                    return "B06S{}03".format(vm.group(3)), (wire_pos[0] - (int(vm.group(4)) - 3), wire_pos[1])
+                    return "V06S{}03".format(vm.group(3)), (wire_pos[0] - (int(vm.group(4)) - 3), wire_pos[1])
             if tile_pos[0] >= (chip_size[0] - 5):
                 # y+2, V06N0304 --> y+3, V06N0303
                 # y+2, V06S0302 --> x+3, V06S0303
@@ -192,16 +195,47 @@ def normalise_name(chip_size, tile, wire):
             assert False, "bad TAP_DRIVE netname"
     elif is_global(wire):
         return "G_" + netname
-    elif tile_pos == prefix_pos:
+    netname, prefix_pos = handle_edge_name(chip_size, tile_pos, prefix_pos, netname)
+    if tile_pos == prefix_pos:
         return netname
     else:
         prefix = ""
         if prefix_pos[0] < tile_pos[0]:
-            prefix += "N{}".format(prefix_pos[0] - tile_pos[0])
+            prefix += "N{}".format(tile_pos[0] - prefix_pos[0])
         elif prefix_pos[0] > tile_pos[0]:
-            prefix += "S{}".format(tile_pos[0] - prefix_pos[0])
+            prefix += "S{}".format(prefix_pos[0] - tile_pos[0])
         if prefix_pos[1] > tile_pos[1]:
             prefix += "E{}".format(prefix_pos[1] - tile_pos[1])
         elif prefix_pos[1] < tile_pos[1]:
             prefix += "W{}".format(tile_pos[1] - prefix_pos[1])
         return prefix + "_" + netname
+
+
+def main():
+    assert is_global("R2C7_HPBX0100")
+    assert is_global("R24C12_VPTX0700")
+    assert is_global("R22C40_HPRX0300")
+    assert is_global("R34C67_ULPCLK7")
+    assert not is_global("R22C67_H06E0003")
+    assert is_global("R24C67_VPFS0800")
+    assert is_global("R1C67_JPCLKT01")
+
+    assert is_cib("R47C61_Q4")
+    assert is_cib("R47C58_H06W0003")
+    assert is_cib("R47C61_CLK0")
+
+    assert normalise_name((95, 126), "R48C26", "R48C26_B1") == "B1"
+    assert normalise_name((95, 126), "R48C26", "R48C26_HPBX0600") == "G_HPBX0600"
+    assert normalise_name((95, 126), "R48C26", "R48C25_H02E0001") == "W1_H02E0001"
+    assert normalise_name((95, 126), "R48C1", "R48C1_H02E0002") == "W1_H02E0001"
+    assert normalise_name((95, 126), "R82C90", "R79C90_V06S0003") == "N3_V06S0003"
+    assert normalise_name((95, 126), "R5C95", "R3C95_V06S0004") == "N3_V06S0003"
+    assert normalise_name((95, 126), "R1C95", "R1C95_V06S0006") == "N3_V06S0003"
+    assert normalise_name((95, 126), "R3C95", "R2C95_V06S0005") == "N3_V06S0003"
+    assert normalise_name((95, 126), "R82C95", "R85C95_V06N0303") == "S3_V06N0303"
+    assert normalise_name((95, 126), "R90C95", "R92C95_V06N0304") == "S3_V06N0303"
+    assert normalise_name((95, 126), "R93C95", "R94C95_V06N0305") == "S3_V06N0303"
+
+
+if __name__ == "__main__":
+    main()
