@@ -392,16 +392,70 @@ vector<FixedConnection> TileBitDatabase::get_fixed_conns() const {
 
 void TileBitDatabase::add_mux(const MuxBits &mux) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
-    muxes[mux.sink] = mux;
+    if (muxes.find(mux.sink) != muxes.end()) {
+        MuxBits &curr = muxes.at(mux.sink);
+        for (const auto &arc : mux.arcs) {
+            auto found = find_if(curr.arcs.begin(), curr.arcs.end(), [arc](const ArcData &other) {
+                return (arc.source == other.source);
+            });
+            if (found == curr.arcs.end()) {
+                curr.arcs.push_back(arc);
+            } else {
+                if (found->bits == arc.bits) {
+                    // In DB already, no-op
+                } else {
+                    throw DatabaseConflictError(fmt("database conflict: arc " << arc.source << " -> " << arc.sink <<
+                                                                              " already in DB, but config bits " <<
+                                                                              arc.bits
+                                                                              << " don't match existing DB bits " <<
+                                                                              found->bits));
+                }
+            }
+        }
+    } else {
+        muxes[mux.sink] = mux;
+    }
 }
 
 void TileBitDatabase::add_setting_word(const WordSettingBits &wsb) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
-    words[wsb.name] = wsb;
+    if (words.find(wsb.name) != words.end()) {
+        WordSettingBits &curr = words.at(wsb.name);
+        if (curr.bits.size() != wsb.bits.size()) {
+            throw DatabaseConflictError(fmt("word " << curr.name << " already exists in DB, but new size "
+                                                    << wsb.bits.size() << " does not match existing size "
+                                                    << curr.bits.size()));
+        }
+        for (size_t i = 0; i < curr.bits.size(); i++) {
+            if (!(curr.bits.at(i) == wsb.bits.at(i))) {
+                throw DatabaseConflictError(fmt("bit " << wsb.name << "[" << i << "] already in DB, but config bits "
+                                                       << wsb.bits.at(i) << " don't match existing DB bits "
+                                                       << curr.bits.at(i)));
+            }
+        }
+    } else {
+        words[wsb.name] = wsb;
+    }
 }
 
 void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+    if (enums.find(esb.name) != enums.end()) {
+        EnumSettingBits &curr = enums.at(esb.name);
+        for (const auto &opt : esb.options) {
+            if (curr.options.find(opt.first) == curr.options.end()) {
+                curr.options[opt.first] = opt.second;
+            } else {
+                if (curr.options.at(opt.first) == opt.second) {
+                    // No-op
+                } else {
+                    throw DatabaseConflictError(fmt("option " << opt.first << " of " << esb.name << " already in DB, but config bits "
+                                                           << opt.second << " don't match existing DB bits "
+                                                           << curr.options.at(opt.first)));
+                }
+            }
+        }
+    }
     enums[esb.name] = esb;
 }
 
@@ -415,5 +469,8 @@ TileBitDatabase::TileBitDatabase(const TileBitDatabase &other) {
     assert(false);
     terminate();
 }
+
+DatabaseConflictError::DatabaseConflictError(const string &desc) : runtime_error(desc) {}
+
 
 }

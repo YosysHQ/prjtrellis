@@ -89,7 +89,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("usercode", &Chip::usercode)
             .def_readwrite("metadata", &Chip::metadata)
             .def(self - self);
-    
+
     class_<ChipDelta>("ChipDelta")
             .def(map_indexing_suite<ChipDelta>());
 
