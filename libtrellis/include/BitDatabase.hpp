@@ -250,6 +250,12 @@ private:
     void load();
 };
 
+// Represents a conflict while adding something to the database
+class DatabaseConflictError : runtime_error {
+public:
+    explicit DatabaseConflictError(const string &desc);
+};
+
 }
 
 #endif //LIBTRELLIS_BITDATABASE_HPP
