@@ -10,9 +10,11 @@ echo Calling it as a standalone script will have no effect.
 exit 1
 fi
 
-SCRIPT_DIR=$(dirname "$0")
-LIBTRELLIS_DIR="${SCRIPT_DIR}/libtrellis:${SCRIPT_DIR}/util:${SCRIPT_DIR}/util/common"
-export PYTHONPATH="${LIBTRELLIS_DIR}:${PYTHONPATH}"
+SCRIPT_PATH=$(readlink -f "${BASH_SOURCE:-$0}")
+SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
+LIBTRELLIS_DIR="${SCRIPT_DIR}/libtrellis"
+PYTHONLIBS_DIR="${SCRIPT_DIR}/util:${SCRIPT_DIR}/util/common:${SCRIPT_DIR}/util/fuzz"
+export PYTHONPATH="${LIBTRELLIS_DIR}:${PYTHONLIBS_DIR}:${PYTHONPATH}"
 
 USER_ENV="${SCRIPT_DIR}/user_environment.sh"
 

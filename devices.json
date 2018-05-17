@@ -16,8 +16,8 @@
                 "idcode": "0x41112043",
                 "frames": 9470,
                 "bits_per_frame": 846,
-                "pad_bits_after_frame": 2,
-                "pad_bits_before_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 2,
                 "fuzz": 1
             },
             "LFE5U-85F": {
@@ -43,13 +43,40 @@
                 "idcode": "0x01112043",
                 "frames": 9470,
                 "bits_per_frame": 846,
-                "pad_bits_after_frame": 2,
-                "pad_bits_before_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 2,
                 "fuzz": 0
             },
             "LFE5UM-85F": {
                 "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
                 "idcode": "0x01113043",
+                "frames": 13294,
+                "bits_per_frame": 1136,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "fuzz": 0
+            },
+            "LFE5UM5G-25F": {
+                "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
+                "idcode": "0x81111043",
+                "frames": 7562,
+                "bits_per_frame": 592,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "fuzz": 0
+            },
+            "LFE5UM5G-45F": {
+                "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
+                "idcode": "0x81112043",
+                "frames": 9470,
+                "bits_per_frame": 846,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 2,
+                "fuzz": 0
+            },
+            "LFE5UM5G-85F": {
+                "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
+                "idcode": "0x81113043",
                 "frames": 13294,
                 "bits_per_frame": 1136,
                 "pad_bits_after_frame": 0,

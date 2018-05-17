@@ -50,5 +50,14 @@ def get_tilegrid(family, device):
         return json.load(f)
 
 
+def get_devices():
+    """
+    Return the deserialised content of devices.json
+    """
+    djson = path.join(get_db_root(), "devices.json")
+    with open(djson, "r") as f:
+        return json.load(f)
+
+
 def get_db_commit():
     return subprocess.getoutput('git -C "{}" rev-parse HEAD'.format(get_db_root()))

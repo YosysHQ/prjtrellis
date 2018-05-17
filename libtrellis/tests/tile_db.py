@@ -3,6 +3,10 @@ import pytrellis
 
 pytrellis.load_database("./testdata")
 c = pytrellis.Chip("testdev")
+
+assert c.get_max_row() == 0
+assert c.get_max_col() == 0
+
 bits = {
     (0, 0),
     (0, 3),

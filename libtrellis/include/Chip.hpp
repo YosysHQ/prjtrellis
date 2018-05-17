@@ -25,6 +25,10 @@ struct ChipInfo {
 
 class Tile;
 
+// A difference between two Chips
+// A list of pairs mapping between tile identifier (name:type) and tile difference
+typedef map<string, CRAMDelta> ChipDelta;
+
 class Chip {
 public:
     // Construct a chip by looking up part name
@@ -55,7 +59,13 @@ public:
     // Miscellaneous information
     uint32_t usercode = 0x0;
     vector<string> metadata;
+
+    // Get max row and column
+    int get_max_row();
+    int get_max_col();
 };
+
+ChipDelta operator-(const Chip &a, const Chip &b);
 }
 
 #endif //LIBTRELLIS_CHIP_HPP
