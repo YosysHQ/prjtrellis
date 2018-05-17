@@ -112,7 +112,6 @@ ostream &operator<<(ostream &out, const MuxBits &mux) {
     for (const auto &arc : mux.arcs) {
         out << arc.source << " " << arc.bits << endl;
     }
-    out << endl;
     return out;
 }
 
@@ -159,7 +158,6 @@ ostream &operator<<(ostream &out, const WordSettingBits &ws) {
     for (const auto &bit : ws.bits) {
         out << bit << endl;
     }
-    out << endl;
     return out;
 }
 
@@ -213,7 +211,6 @@ ostream &operator<<(ostream &out, const EnumSettingBits &es) {
     for (const auto &opt : es.options) {
         out << opt.first << " " << opt.second << endl;
     }
-    out << endl;
     return out;
 }
 
