@@ -248,6 +248,12 @@ istream &operator>>(istream &in, FixedConnection &es) {
 
 
 TileBitDatabase::TileBitDatabase(const string &filename) : filename(filename) {
+#ifdef FUZZ_SAFETY_CHECK
+    ip_db_lock = boost::interprocess::file_lock(filename.c_str());
+    bool lck = ip_db_lock.try_lock();
+    if (!lck)
+        throw runtime_error("database file " + filename + " is locked");
+#endif
     load();
 }
 
@@ -357,6 +363,7 @@ void TileBitDatabase::save() {
     out << endl << "# Fixed Connections" << endl;
     for (auto conn : fixed_conns)
         out << conn << endl;
+    dirty = false;
 }
 
 vector<string> TileBitDatabase::get_sinks() const {
@@ -400,35 +407,37 @@ vector<FixedConnection> TileBitDatabase::get_fixed_conns() const {
     return fixed_conns;
 }
 
-void TileBitDatabase::add_mux(const MuxBits &mux) {
+void TileBitDatabase::add_mux_arc(const ArcData &arc) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
-    if (muxes.find(mux.sink) != muxes.end()) {
-        MuxBits &curr = muxes.at(mux.sink);
-        for (const auto &arc : mux.arcs) {
-            auto found = find_if(curr.arcs.begin(), curr.arcs.end(), [arc](const ArcData &other) {
-                return (arc.source == other.source);
-            });
-            if (found == curr.arcs.end()) {
-                curr.arcs.push_back(arc);
-            } else {
-                if (found->bits == arc.bits) {
-                    // In DB already, no-op
-                } else {
-                    throw DatabaseConflictError(fmt("database conflict: arc " << arc.source << " -> " << arc.sink <<
-                                                                              " already in DB, but config bits " <<
-                                                                              arc.bits
-                                                                              << " don't match existing DB bits " <<
-                                                                              found->bits));
-                }
-            }
-        }
-    } else {
+    dirty = true;
+    if (muxes.find(arc.sink) == muxes.end()) {
+        MuxBits mux;
+        mux.sink = arc.sink;
         muxes[mux.sink] = mux;
     }
+    MuxBits &curr = muxes.at(arc.sink);
+    auto found = find_if(curr.arcs.begin(), curr.arcs.end(), [arc](const ArcData &other) {
+        return (arc.source == other.source);
+    });
+    if (found == curr.arcs.end()) {
+        curr.arcs.push_back(arc);
+    } else {
+        if (found->bits == arc.bits) {
+            // In DB already, no-op
+        } else {
+            throw DatabaseConflictError(fmt("database conflict: arc " << arc.source << " -> " << arc.sink <<
+                                                                      " already in DB, but config bits " <<
+                                                                      arc.bits
+                                                                      << " don't match existing DB bits " <<
+                                                                      found->bits));
+        }
+    }
+
 }
 
 void TileBitDatabase::add_setting_word(const WordSettingBits &wsb) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+    dirty = true;
     if (words.find(wsb.name) != words.end()) {
         WordSettingBits &curr = words.at(wsb.name);
         if (curr.bits.size() != wsb.bits.size()) {
@@ -450,6 +459,7 @@ void TileBitDatabase::add_setting_word(const WordSettingBits &wsb) {
 
 void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+    dirty = true;
     if (enums.find(esb.name) != enums.end()) {
         EnumSettingBits &curr = enums.at(esb.name);
         for (const auto &opt : esb.options) {
@@ -484,5 +494,12 @@ TileBitDatabase::TileBitDatabase(const TileBitDatabase &other) {
 
 DatabaseConflictError::DatabaseConflictError(const string &desc) : runtime_error(desc) {}
 
+TileBitDatabase::~TileBitDatabase() {
+    if (dirty)
+        save();
+#ifdef FUZZ_SAFETY_CHECK
+    ip_db_lock.unlock();
+#endif
+}
 
 }

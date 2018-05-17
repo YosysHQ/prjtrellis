@@ -16,4 +16,20 @@ def parallel_foreach(items, func):
         jobs = int(os.environ["TRELLIS_JOBS"])
     else:
         jobs = 4
-    Parallel(n_jobs=jobs)(delayed(func)(i) for i in items)
+    Parallel(n_jobs=jobs, backend="threading")(delayed(func)(i) for i in items)
+
+def journal_foreach(items, func):
+    """
+    Run a function over a list of items, keeping a journal of which items have been visited. If the script is
+    interrupted, it will return where it stopped if the list of items have not changed.
+
+    If an exception occurs during an item, that exception will be logged in the journal also.
+
+    Items must have an unambiguous string conversion, and should normally be string keys, that can be saved in the
+    journal.
+
+    The journal is called "fuzz.journal" in the current working directory. At present, this implementation is not thread
+    safe.
+    """
+    # TODO
+    pass

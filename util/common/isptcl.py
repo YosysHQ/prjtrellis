@@ -73,33 +73,41 @@ def get_wires_at_position(desfiles, position):
     return wires
 
 
-def get_arcs_on_wire(desfiles, wire, drivers_only = False):
+def get_arcs_on_wires(desfiles, wires, drivers_only = False):
     """
-    Use ispTcl to get a list of arcs sinking or sourcing a given wire
+    Use ispTcl to get a list of arcs sinking or sourcing a list of wires
 
     desfiles: a tuple (ncdfile, prffile)
-    wire: canonical name of the wire
+    wires: list of canonical names of the wire
     drivers_only: only include arcs driving the wire in the output
 
-    Returns a list of arc tuples
-    (source, sink)
+    Returns a map between wire name and a list of arc tuples (source, sink)
     """
-    command = ["dev_list_arcs -to {} -num 100000".format(wire)]
+    command = []
+    for wire in wires:
+        command += ["dev_list_arcs -to {} -num 100000".format(wire), 'puts "-*-*-*-*-*-"']
     result = run_ncd_prf(desfiles, command)
+    arcmap = {}
     arcs = []
+    wire_idx = 0
     for line in result.split('\n'):
         sline = line.strip()
         if sline == "":
-            continue
-        splitline = re.split('\s+', sline)
-        assert len(splitline) >= 3
-        if splitline[1].strip() == "-->":
-            arcs.append((splitline[0].strip(), splitline[1].strip()))
-        elif splitline[1].strip() == "<--" and not drivers_only:
-            arcs.append((splitline[1].strip(), splitline[0].strip()))
+            pass
+        elif "-*-*-*-*-*-" in sline:
+            arcmap[wire_idx] = arcs
+            wire_idx += 1
+            arcs = []
         else:
-            assert False, "invalid output from Tcl command `dev_list_arcs`"
-    return arcs
+            splitline = re.split('\s+', sline)
+            assert len(splitline) >= 3
+            if splitline[1].strip() == "-->":
+                arcs.append((splitline[0].strip(), splitline[1].strip()))
+            elif splitline[1].strip() == "<--" and not drivers_only:
+                arcs.append((splitline[1].strip(), splitline[0].strip()))
+            else:
+                assert False, "invalid output from Tcl command `dev_list_arcs`"
+    return arcmap
 
 
 def main():

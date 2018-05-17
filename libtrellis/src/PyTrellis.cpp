@@ -215,7 +215,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("get_settings_enums", &TileBitDatabase::get_settings_enums)
             .def("get_data_for_enum", &TileBitDatabase::get_data_for_enum)
             .def("get_fixed_conns", &TileBitDatabase::get_fixed_conns)
-            .def("add_mux", &TileBitDatabase::add_mux)
+            .def("add_mux_arc", &TileBitDatabase::add_mux_arc)
             .def("add_setting_word", &TileBitDatabase::add_setting_word)
             .def("add_setting_enum", &TileBitDatabase::add_setting_enum)
             .def("add_fixed_conn", &TileBitDatabase::add_fixed_conn)

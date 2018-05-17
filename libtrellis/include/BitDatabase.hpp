@@ -13,6 +13,10 @@
 #include <unordered_set>
 #include "Util.hpp"
 
+#ifdef FUZZ_SAFETY_CHECK
+#include <boost/interprocess/sync/file_lock.hpp>
+#endif
+
 using namespace std;
 namespace Trellis {
 /*
@@ -62,7 +66,7 @@ inline string to_string(ConfigBit b) {
 ConfigBit cbit_from_str(const string &s);
 
 class CRAMView;
-class ChangedBit;
+struct ChangedBit;
 typedef vector<ChangedBit> CRAMDelta;
 
 // A BitGroup is a list of configuration bits that correspond to a given setting
@@ -230,7 +234,7 @@ public:
     // TODO: function to get routing graph of tile
 
     // Add relevant items to the database
-    void add_mux(const MuxBits &mux);
+    void add_mux_arc(const ArcData &arc);
 
     void add_setting_word(const WordSettingBits &wsb);
 
@@ -247,6 +251,7 @@ public:
     // This should not be used, but is required for PyTrellis
     TileBitDatabase(const TileBitDatabase &other);
 
+    ~TileBitDatabase();
 private:
     explicit TileBitDatabase(const string &filename);
 
@@ -259,6 +264,10 @@ private:
     string filename;
 
     void load();
+
+#ifdef FUZZ_SAFETY_CHECK
+    boost::interprocess::file_lock ip_db_lock;
+#endif
 };
 
 // Represents a conflict while adding something to the database
