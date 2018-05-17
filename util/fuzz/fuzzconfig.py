@@ -58,7 +58,7 @@ class FuzzConfig:
                 ouf.write(Template(inf.read()).substitute(**subst))
         diamond.run(self.device, nclfile)
         if self.ncd_specimen is None:
-            self.ncd_specimen = path.join(self.workdir, prefix + "design.tmp", prefix + "design.ncd")
+            self.ncd_specimen = path.join(self.workdir, prefix + "design.tmp", "par_impl.ncd")
         return path.join(self.workdir, prefix + "design.bit")
 
     @property
@@ -67,5 +67,5 @@ class FuzzConfig:
         A (ncd, prf) file tuple for Tcl. build_design must have been run at least once prior to accessing this property
         """
         assert self.ncd_specimen is not None
-        prf = self.ncd_specimen.replace(".prf", ".ncd")
+        prf = self.ncd_specimen.replace("par_impl.ncd", "synth_impl.prf")
         return self.ncd_specimen, prf

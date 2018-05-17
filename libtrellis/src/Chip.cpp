@@ -42,16 +42,16 @@ vector<shared_ptr<Tile>> Chip::get_tiles_by_type(string type) {
 }
 
 int Chip::get_max_row() {
-    return max(tiles.begin(), tiles.end(),
-               [](decltype(tiles)::iterator a, decltype(tiles)::iterator b) {
-                   return a->second->info.get_row_col().first < b->second->info.get_row_col().first;
+    return max_element(tiles.begin(), tiles.end(),
+               [](const decltype(tiles)::value_type &a, const decltype(tiles)::value_type &b) {
+                   return a.second->info.get_row_col().first < b.second->info.get_row_col().first;
                })->second->info.get_row_col().first;
 }
 
 int Chip::get_max_col() {
-    return max(tiles.begin(), tiles.end(),
-               [](decltype(tiles)::iterator a, decltype(tiles)::iterator b) {
-                   return a->second->info.get_row_col().second < b->second->info.get_row_col().second;
+    return max_element(tiles.begin(), tiles.end(),
+               [](const decltype(tiles)::value_type &a, const decltype(tiles)::value_type &b) {
+                   return a.second->info.get_row_col().second < b.second->info.get_row_col().second;
                })->second->info.get_row_col().second;
 }
 
