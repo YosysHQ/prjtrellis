@@ -72,10 +72,11 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
     hm = h_wire_regex.match(netname)
     vm = v_wire_regex.match(netname)
     if hm:
-        if hm.group(1) == "01" and tile_pos[1] == chip_size[1] - 1:
-            # H01xyy00 --> x+1, H01xyy01
-            assert hm.group(4) == "00"
-            return "H01{}{}01".format(hm.group(2), hm.group(3)), (wire_pos[0], wire_pos[1] + 1)
+        if hm.group(1) == "01":
+            if tile_pos[1] == chip_size[1] - 1:
+                # H01xyy00 --> x+1, H01xyy01
+                assert hm.group(4) == "00"
+                return "H01{}{}01".format(hm.group(2), hm.group(3)), (wire_pos[0], wire_pos[1] + 1)
         elif hm.group(1) == "02":
             if tile_pos[1] == 1:
                 # H02E0002 --> x-1, H02E0001
@@ -111,10 +112,11 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
         else:
             assert False
     if vm:
-        if vm.group(1) == "01" and tile_pos[0] == chip_size[0] - 1:
-            # V01N000 --> y-1, V01N0001
-            assert vm.group(4) == "00"
-            return "V01{}{}01".format(vm.group(2), vm.group(3)), (wire_pos[0] - 1, wire_pos[1])
+        if vm.group(1) == "01":
+            if tile_pos[0] == chip_size[0] - 1:
+                # V01N000 --> y-1, V01N0001
+                assert vm.group(4) == "00"
+                return "V01{}{}01".format(vm.group(2), vm.group(3)), (wire_pos[0] - 1, wire_pos[1])
         elif vm.group(1) == "02":
             if tile_pos[0] == 1:
                 # V02S0002 --> y-1, V02S0001
