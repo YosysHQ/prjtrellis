@@ -158,6 +158,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def(vector_indexing_suite<vector<ConfigBit>>());
 
     class_<BitGroup>("BitGroup")
+            .def(init<const CRAMDelta &>())
             .def_readwrite("bits", &BitGroup::bits)
             .def("match", &BitGroup::match)
             .def("add_coverage", &BitGroup::add_coverage)

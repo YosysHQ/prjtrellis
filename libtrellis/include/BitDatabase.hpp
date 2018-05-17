@@ -62,9 +62,17 @@ inline string to_string(ConfigBit b) {
 ConfigBit cbit_from_str(const string &s);
 
 class CRAMView;
+class ChangedBit;
+typedef vector<ChangedBit> CRAMDelta;
 
 // A BitGroup is a list of configuration bits that correspond to a given setting
 struct BitGroup {
+    // Create an empty BitGroup
+    BitGroup();
+    // Create a BitGroup from a delta.
+    // Delta should be calculated as (with feature) - (without feature)
+    explicit BitGroup(const CRAMDelta &delta);
+
     vector<ConfigBit> bits;
 
     // Return true if the BitGroup is set in a tile
@@ -179,6 +187,7 @@ istream &operator>>(istream &out, EnumSettingBits &es);
 struct FixedConnection {
     string source;
     string sink;
+
     inline bool operator==(const FixedConnection &other) const {
         return (source == other.source) && (sink == other.sink);
     }
@@ -228,6 +237,7 @@ public:
     void add_setting_enum(const EnumSettingBits &esb);
 
     void add_fixed_conn(const FixedConnection &conn);
+
     // Save the bit database to file
     void save();
 
@@ -236,6 +246,7 @@ public:
 
     // This should not be used, but is required for PyTrellis
     TileBitDatabase(const TileBitDatabase &other);
+
 private:
     explicit TileBitDatabase(const string &filename);
 
