@@ -30,6 +30,16 @@ ConfigBit cbit_from_str(const string &s) {
     return b;
 }
 
+BitGroup::BitGroup() {}
+
+BitGroup::BitGroup(const CRAMDelta &delta) {
+    for (const auto &bit: delta) {
+        if (bit.delta != 0)
+            bits.push_back(ConfigBit{bit.frame, bit.bit, (bit.delta < 0)});
+    }
+}
+
+
 bool BitGroup::match(const CRAMView &tile) const {
     return all_of(bits.begin(), bits.end(), [tile](const ConfigBit &b) {
         return tile.bit(b.frame, b.bit) != b.inv;
@@ -449,9 +459,10 @@ void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb) {
                 if (curr.options.at(opt.first) == opt.second) {
                     // No-op
                 } else {
-                    throw DatabaseConflictError(fmt("option " << opt.first << " of " << esb.name << " already in DB, but config bits "
-                                                           << opt.second << " don't match existing DB bits "
-                                                           << curr.options.at(opt.first)));
+                    throw DatabaseConflictError(
+                            fmt("option " << opt.first << " of " << esb.name << " already in DB, but config bits "
+                                          << opt.second << " don't match existing DB bits "
+                                          << curr.options.at(opt.first)));
                 }
             }
         }
@@ -461,7 +472,8 @@ void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb) {
 
 void TileBitDatabase::add_fixed_conn(const Trellis::FixedConnection &conn) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
-    fixed_conns.push_back(conn);
+    if (find(fixed_conns.begin(), fixed_conns.end(), conn) == fixed_conns.end())
+        fixed_conns.push_back(conn);
 }
 
 TileBitDatabase::TileBitDatabase(const TileBitDatabase &other) {
