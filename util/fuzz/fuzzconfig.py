@@ -8,14 +8,16 @@ import diamond
 
 
 class FuzzConfig:
-    def __init__(self, job, device, tiles, ncl):
+    def __init__(self, job, family, device, tiles, ncl):
         """
         :param job: user-friendly job name, used for folder naming etc
+        :param family: Target family name
         :param device: Target device name
         :param tiles: List of tiles to consider during fuzzing
         :param ncl: Minimal NCL file to use as a base for interconnect fuzzing
         """
         self.job = job
+        self.family = family
         self.device = device
         self.tiles = tiles
         self.ncl = ncl

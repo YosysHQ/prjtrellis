@@ -41,7 +41,7 @@ general_routing_re = re.compile('R\d+C\d+_[VH]\d{2}[NESWTLBR]\d{4}')
 # CIB signals
 cib_signal_re = re.compile('R\d+C\d+_J?[ABCDFMQ]\d')
 # CIB clock/control signals
-cib_control_re = re.compile('R\d+C\d+_J?(CLK|LSR)\d')
+cib_control_re = re.compile('R\d+C\d+_J?(CLK|LSR|CEN)\d')
 
 
 def is_cib(wire):
