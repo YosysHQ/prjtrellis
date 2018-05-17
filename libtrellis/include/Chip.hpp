@@ -59,6 +59,10 @@ public:
     // Miscellaneous information
     uint32_t usercode = 0x0;
     vector<string> metadata;
+
+    // Get max row and column
+    int get_max_row();
+    int get_max_col();
 };
 
 ChipDelta operator-(const Chip &a, const Chip &b);
