@@ -38,8 +38,9 @@ def fuzz_interconnect(config,
     :param netname_filter_union: if True, arcs will be included if either net passes netname_predicate, if False both
     nets much pass the predicate.
     """
-    nets = isptcl.get_wires_at_position(config.ncd_prf, location)
-    fuzz_interconnect_with_netnames(config, nets, netname_predicate, arc_predicate, False, netname_filter_union)
+    netdata = isptcl.get_wires_at_position(config.ncd_prf, location)
+    netnames = [x[0] for x in netdata]
+    fuzz_interconnect_with_netnames(config, netnames, netname_predicate, arc_predicate, False, netname_filter_union)
 
 
 def fuzz_interconnect_with_netnames(

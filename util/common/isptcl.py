@@ -44,10 +44,20 @@ def run_ncd_prf(desfiles, commands):
     Returns the output from IspTcl, excluding header and pleasantry
     """
     run_cmds = [
-        "des_read_ncd {}".format(desfiles[0]),
-        "des_read_prf {}".format(desfiles[1])
+        "des_read_ncd {}".format(path.abspath(desfiles[0])),
+        "des_read_prf {}".format(path.abspath(desfiles[1]))
     ] + commands
-    return run(run_cmds)
+    result = run(run_cmds)
+    # Remove output of des_read_x
+    is_header = True
+    output = ""
+    for line in result.split('\n'):
+        if line.startswith("Reading preference file"):
+            is_header = False
+        elif not is_header:
+            output += line
+            output += "\n"
+    return output
 
 
 def get_wires_at_position(desfiles, position):
@@ -73,7 +83,7 @@ def get_wires_at_position(desfiles, position):
     return wires
 
 
-def get_arcs_on_wires(desfiles, wires, drivers_only = False):
+def get_arcs_on_wires(desfiles, wires, drivers_only=False):
     """
     Use ispTcl to get a list of arcs sinking or sourcing a list of wires
 
@@ -83,30 +93,36 @@ def get_arcs_on_wires(desfiles, wires, drivers_only = False):
 
     Returns a map between wire name and a list of arc tuples (source, sink)
     """
-    command = []
-    for wire in wires:
-        command += ["dev_list_arcs -to {} -num 100000".format(wire), 'puts "-*-*-*-*-*-"']
-    result = run_ncd_prf(desfiles, command)
     arcmap = {}
-    arcs = []
     wire_idx = 0
-    for line in result.split('\n'):
-        sline = line.strip()
-        if sline == "":
-            pass
-        elif "-*-*-*-*-*-" in sline:
-            arcmap[wire_idx] = arcs
-            wire_idx += 1
-            arcs = []
-        else:
-            splitline = re.split('\s+', sline)
-            assert len(splitline) >= 3
-            if splitline[1].strip() == "-->":
-                arcs.append((splitline[0].strip(), splitline[1].strip()))
-            elif splitline[1].strip() == "<--" and not drivers_only:
-                arcs.append((splitline[1].strip(), splitline[0].strip()))
+
+    # We can only process a limited number of nodes at a time, due to a memory leak in the Tcl API :facepalm:
+    for i in range(0, len(wires), 10):
+        subwires = wires[i:i+10]
+        command = []
+        for wire in subwires:
+            command += ["dev_list_arc_by_node_name -to {} -num 100000".format(wire), 'prj_list']
+        result = run_ncd_prf(desfiles, command)
+        arcs = []
+        for line in result.split('\n'):
+            sline = line.strip()
+            if sline == "":
+                pass
+            elif sline.startswith("MyIspProject"):
+                arcmap[wires[wire_idx]] = list(arcs)
+                wire_idx += 1
+                arcs = []
             else:
-                assert False, "invalid output from Tcl command `dev_list_arcs`"
+                splitline = re.split('\s+', sline)
+                assert len(splitline) >= 3
+                if splitline[1].strip() == "-->":
+                    arcs.append((splitline[0].strip(), splitline[2].strip()))
+                elif splitline[1].strip() == "<--":
+                    if not drivers_only:
+                        arcs.append((splitline[2].strip(), splitline[0].strip()))
+                else:
+                    print (splitline)
+                    assert False, "invalid output from Tcl command `dev_list_arcs`"
     return arcmap
 
 

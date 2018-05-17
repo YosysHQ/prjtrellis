@@ -2,7 +2,6 @@
 General Utilities for Fuzzing
 """
 
-from joblib import Parallel, delayed
 import os
 
 
@@ -16,7 +15,10 @@ def parallel_foreach(items, func):
         jobs = int(os.environ["TRELLIS_JOBS"])
     else:
         jobs = 4
-    Parallel(n_jobs=jobs, backend="threading")(delayed(func)(i) for i in items)
+    # TODO: actually make this parallel
+    for i in items:
+        func(i)
+
 
 def journal_foreach(items, func):
     """

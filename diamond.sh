@@ -105,6 +105,7 @@ touch input.lpf
 
 if [ -n "$USE_NCL" ]; then
 "$FOUNDRY"/userware/unix/bin/lin64/ncl2ncd input.ncl -drc -o par_impl.ncd
+touch synth_impl.prf
 else
 cat > impl_lse.prj << EOT
 #device
