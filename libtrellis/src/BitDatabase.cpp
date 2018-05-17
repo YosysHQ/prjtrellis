@@ -64,12 +64,12 @@ void BitGroup::add_coverage(Trellis::BitSet &known_bits, bool value) const {
 }
 
 ostream &operator<<(ostream &out, const BitGroup &bits) {
-    bool first = false;
+    bool first = true;
     for (auto bit : bits.bits) {
         if (!first)
             out << " ";
         out << to_string(bit);
-        first = true;
+        first = false;
     }
     return out;
 }
