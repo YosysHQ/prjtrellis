@@ -63,9 +63,9 @@ BOOST_PYTHON_MODULE (pytrellis) {
 
     // From Chip.cpp
     class_<ChipInfo>("ChipInfo")
-            .def_readonly("name", &ChipInfo::name)
-            .def_readonly("family", &ChipInfo::family)
-            .def_readonly("idcode", &ChipInfo::idcode)
+            .def_readwrite("name", &ChipInfo::name)
+            .def_readwrite("family", &ChipInfo::family)
+            .def_readwrite("idcode", &ChipInfo::idcode)
             .def_readonly("num_frames", &ChipInfo::num_frames)
             .def_readonly("bits_per_frame", &ChipInfo::bits_per_frame)
             .def_readonly("pad_bits_before_frame", &ChipInfo::pad_bits_before_frame)
@@ -83,11 +83,17 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("get_tile_by_name", &Chip::get_tile_by_name)
             .def("get_tiles_by_position", &Chip::get_tiles_by_position)
             .def("get_tiles_by_type", &Chip::get_tiles_by_type)
+            .def("get_max_row", &Chip::get_max_row)
+            .def("get_max_col", &Chip::get_max_col)
             .def_readonly("info", &Chip::info)
             .def_readwrite("cram", &Chip::cram)
             .def_readwrite("tiles", &Chip::tiles)
             .def_readwrite("usercode", &Chip::usercode)
-            .def_readwrite("metadata", &Chip::metadata);
+            .def_readwrite("metadata", &Chip::metadata)
+            .def(self - self);
+
+    class_<ChipDelta>("ChipDelta")
+            .def(map_indexing_suite<ChipDelta>());
 
     // From CRAM.cpp
     class_<ChangedBit>("ChangedBit")
@@ -154,6 +160,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def(vector_indexing_suite<vector<ConfigBit>>());
 
     class_<BitGroup>("BitGroup")
+            .def(init<const CRAMDelta &>())
             .def_readwrite("bits", &BitGroup::bits)
             .def("match", &BitGroup::match)
             .def("add_coverage", &BitGroup::add_coverage)
@@ -191,6 +198,13 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("get_value", &EnumSettingBits::get_value)
             .def("set_value", &EnumSettingBits::set_value);
 
+    class_<FixedConnection>("FixedConnection")
+            .def_readwrite("source", &FixedConnection::source)
+            .def_readwrite("sink", &FixedConnection::sink);
+
+    class_<vector<FixedConnection>>("FixedConnectionVector")
+            .def(vector_indexing_suite<vector<FixedConnection>>());
+
     class_<TileBitDatabase, shared_ptr<TileBitDatabase>>("TileBitDatabase", no_init)
             .def("config_to_tile_cram", &TileBitDatabase::config_to_tile_cram)
             .def("tile_cram_to_config", &TileBitDatabase::tile_cram_to_config)
@@ -200,9 +214,11 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("get_data_for_setword", &TileBitDatabase::get_data_for_setword)
             .def("get_settings_enums", &TileBitDatabase::get_settings_enums)
             .def("get_data_for_enum", &TileBitDatabase::get_data_for_enum)
-            .def("add_mux", &TileBitDatabase::add_mux)
+            .def("get_fixed_conns", &TileBitDatabase::get_fixed_conns)
+            .def("add_mux_arc", &TileBitDatabase::add_mux_arc)
             .def("add_setting_word", &TileBitDatabase::add_setting_word)
             .def("add_setting_enum", &TileBitDatabase::add_setting_enum)
+            .def("add_fixed_conn", &TileBitDatabase::add_fixed_conn)
             .def("save", &TileBitDatabase::save);
 
     // From TileConfig.hpp

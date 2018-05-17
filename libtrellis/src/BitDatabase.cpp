@@ -30,6 +30,16 @@ ConfigBit cbit_from_str(const string &s) {
     return b;
 }
 
+BitGroup::BitGroup() {}
+
+BitGroup::BitGroup(const CRAMDelta &delta) {
+    for (const auto &bit: delta) {
+        if (bit.delta != 0)
+            bits.push_back(ConfigBit{bit.frame, bit.bit, (bit.delta < 0)});
+    }
+}
+
+
 bool BitGroup::match(const CRAMView &tile) const {
     return all_of(bits.begin(), bits.end(), [tile](const ConfigBit &b) {
         return tile.bit(b.frame, b.bit) != b.inv;
@@ -54,12 +64,12 @@ void BitGroup::add_coverage(Trellis::BitSet &known_bits, bool value) const {
 }
 
 ostream &operator<<(ostream &out, const BitGroup &bits) {
-    bool first = false;
+    bool first = true;
     for (auto bit : bits.bits) {
         if (!first)
             out << " ";
         out << to_string(bit);
-        first = true;
+        first = false;
     }
     return out;
 }
@@ -102,7 +112,6 @@ ostream &operator<<(ostream &out, const MuxBits &mux) {
     for (const auto &arc : mux.arcs) {
         out << arc.source << " " << arc.bits << endl;
     }
-    out << endl;
     return out;
 }
 
@@ -149,7 +158,6 @@ ostream &operator<<(ostream &out, const WordSettingBits &ws) {
     for (const auto &bit : ws.bits) {
         out << bit << endl;
     }
-    out << endl;
     return out;
 }
 
@@ -203,7 +211,6 @@ ostream &operator<<(ostream &out, const EnumSettingBits &es) {
     for (const auto &opt : es.options) {
         out << opt.first << " " << opt.second << endl;
     }
-    out << endl;
     return out;
 }
 
@@ -226,7 +233,24 @@ istream &operator>>(istream &in, EnumSettingBits &es) {
     return in;
 }
 
+ostream &operator<<(ostream &out, const FixedConnection &es) {
+    out << ".fixed_conn " << es.sink << " " << es.source << endl;
+    return out;
+}
+
+istream &operator>>(istream &in, FixedConnection &es) {
+    in >> es.sink >> es.source;
+    return in;
+}
+
+
 TileBitDatabase::TileBitDatabase(const string &filename) : filename(filename) {
+#ifdef FUZZ_SAFETY_CHECK
+    ip_db_lock = boost::interprocess::file_lock(filename.c_str());
+    bool lck = ip_db_lock.try_lock();
+    if (!lck)
+        throw runtime_error("database file " + filename + " is locked");
+#endif
     load();
 }
 
@@ -309,6 +333,10 @@ void TileBitDatabase::load() {
             EnumSettingBits ce;
             in >> ce;
             enums[ce.name] = ce;
+        } else if (token == ".fixed_conn") {
+            FixedConnection c;
+            in >> c;
+            fixed_conns.push_back(c);
         } else {
             throw runtime_error("unexpected token " + token + " while parsing database file " + filename);
         }
@@ -329,6 +357,10 @@ void TileBitDatabase::save() {
         out << word.second << endl;
     for (auto senum : enums)
         out << senum.second << endl;
+    out << endl << "# Fixed Connections" << endl;
+    for (auto conn : fixed_conns)
+        out << conn << endl;
+    dirty = false;
 }
 
 vector<string> TileBitDatabase::get_sinks() const {
@@ -367,25 +399,104 @@ EnumSettingBits TileBitDatabase::get_data_for_enum(const string &name) const {
     return enums.at(name);
 }
 
-void TileBitDatabase::add_mux(const MuxBits &mux) {
+vector<FixedConnection> TileBitDatabase::get_fixed_conns() const {
+    boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+    return fixed_conns;
+}
+
+void TileBitDatabase::add_mux_arc(const ArcData &arc) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
-    muxes[mux.sink] = mux;
+    dirty = true;
+    if (muxes.find(arc.sink) == muxes.end()) {
+        MuxBits mux;
+        mux.sink = arc.sink;
+        muxes[mux.sink] = mux;
+    }
+    MuxBits &curr = muxes.at(arc.sink);
+    auto found = find_if(curr.arcs.begin(), curr.arcs.end(), [arc](const ArcData &other) {
+        return (arc.source == other.source);
+    });
+    if (found == curr.arcs.end()) {
+        curr.arcs.push_back(arc);
+    } else {
+        if (found->bits == arc.bits) {
+            // In DB already, no-op
+        } else {
+            throw DatabaseConflictError(fmt("database conflict: arc " << arc.source << " -> " << arc.sink <<
+                                                                      " already in DB, but config bits " <<
+                                                                      arc.bits
+                                                                      << " don't match existing DB bits " <<
+                                                                      found->bits));
+        }
+    }
+
 }
 
 void TileBitDatabase::add_setting_word(const WordSettingBits &wsb) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
-    words[wsb.name] = wsb;
+    dirty = true;
+    if (words.find(wsb.name) != words.end()) {
+        WordSettingBits &curr = words.at(wsb.name);
+        if (curr.bits.size() != wsb.bits.size()) {
+            throw DatabaseConflictError(fmt("word " << curr.name << " already exists in DB, but new size "
+                                                    << wsb.bits.size() << " does not match existing size "
+                                                    << curr.bits.size()));
+        }
+        for (size_t i = 0; i < curr.bits.size(); i++) {
+            if (!(curr.bits.at(i) == wsb.bits.at(i))) {
+                throw DatabaseConflictError(fmt("bit " << wsb.name << "[" << i << "] already in DB, but config bits "
+                                                       << wsb.bits.at(i) << " don't match existing DB bits "
+                                                       << curr.bits.at(i)));
+            }
+        }
+    } else {
+        words[wsb.name] = wsb;
+    }
 }
 
 void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+    dirty = true;
+    if (enums.find(esb.name) != enums.end()) {
+        EnumSettingBits &curr = enums.at(esb.name);
+        for (const auto &opt : esb.options) {
+            if (curr.options.find(opt.first) == curr.options.end()) {
+                curr.options[opt.first] = opt.second;
+            } else {
+                if (curr.options.at(opt.first) == opt.second) {
+                    // No-op
+                } else {
+                    throw DatabaseConflictError(
+                            fmt("option " << opt.first << " of " << esb.name << " already in DB, but config bits "
+                                          << opt.second << " don't match existing DB bits "
+                                          << curr.options.at(opt.first)));
+                }
+            }
+        }
+    }
     enums[esb.name] = esb;
+}
+
+void TileBitDatabase::add_fixed_conn(const Trellis::FixedConnection &conn) {
+    boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+    if (find(fixed_conns.begin(), fixed_conns.end(), conn) == fixed_conns.end())
+        fixed_conns.push_back(conn);
 }
 
 TileBitDatabase::TileBitDatabase(const TileBitDatabase &other) {
     UNUSED(other);
     assert(false);
     terminate();
+}
+
+DatabaseConflictError::DatabaseConflictError(const string &desc) : runtime_error(desc) {}
+
+TileBitDatabase::~TileBitDatabase() {
+    if (dirty)
+        save();
+#ifdef FUZZ_SAFETY_CHECK
+    ip_db_lock.unlock();
+#endif
 }
 
 }

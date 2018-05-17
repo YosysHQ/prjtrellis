@@ -45,7 +45,7 @@ inline istream &operator>>(istream &in, vector<bool> &bv) {
 // Skip whitespace, optionally including newlines
 inline void skip_blank(istream &in, bool nl = false) {
     int c = in.peek();
-    while (in && ((c == ' ' || c == '\t' || c == EOF) || (nl && (c == '\n' || c == '\r')))) {
+    while (in && (((c == ' ') || (c == '\t')) || (nl && ((c == '\n') || (c == '\r'))))) {
         in.get();
         c = in.peek();
     }
@@ -53,12 +53,17 @@ inline void skip_blank(istream &in, bool nl = false) {
 // Return true if end of line (or file)
 inline bool skip_check_eol(istream &in) {
     skip_blank(in, false);
+    if (!in)
+        return false;
     int c = in.peek();
     // Comments count as end of line
     if (c == '#') {
         in.get();
-        while (!skip_check_eol(in))
+        c = in.peek();
+        while (in && c != EOF && c != '\n') {
             in.get();
+            c = in.peek();
+        }
         return true;
     }
     return (c == EOF || c == '\n');
@@ -70,8 +75,7 @@ inline void skip(istream &in) {
     skip_blank(in, true);
     while (in && (in.peek() == '#')) {
         // Skip comment line
-        in.get();
-        while (!skip_check_eol(in));
+        skip_check_eol(in);
         skip_blank(in, true);
     }
 }

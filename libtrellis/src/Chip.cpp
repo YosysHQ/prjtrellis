@@ -41,4 +41,28 @@ vector<shared_ptr<Tile>> Chip::get_tiles_by_type(string type) {
     return result;
 }
 
+int Chip::get_max_row() {
+    return max_element(tiles.begin(), tiles.end(),
+               [](const decltype(tiles)::value_type &a, const decltype(tiles)::value_type &b) {
+                   return a.second->info.get_row_col().first < b.second->info.get_row_col().first;
+               })->second->info.get_row_col().first;
+}
+
+int Chip::get_max_col() {
+    return max_element(tiles.begin(), tiles.end(),
+               [](const decltype(tiles)::value_type &a, const decltype(tiles)::value_type &b) {
+                   return a.second->info.get_row_col().second < b.second->info.get_row_col().second;
+               })->second->info.get_row_col().second;
+}
+
+ChipDelta operator-(const Chip &a, const Chip &b) {
+    ChipDelta delta;
+    for (const auto &tile : a.tiles) {
+        CRAMDelta cd = tile.second->cram - b.tiles.at(tile.first)->cram;
+        if (!cd.empty())
+            delta[tile.first] = cd;
+    }
+    return delta;
+}
+
 }
