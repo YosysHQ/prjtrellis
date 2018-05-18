@@ -86,7 +86,7 @@ def get_bit_info(frame, bit):
     if (frame, bit) in bitmap:
         group = bitmap[(frame, bit)]
         if group.startswith("mux"):
-            label = "R"
+            label = group.split("_")[-1][0]
             colour = "#FF8888"
         elif group.startswith("emum") or group.startswith("word"):
             label = "C"
