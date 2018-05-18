@@ -53,13 +53,16 @@ class FuzzConfig:
         if "route" not in subst:
             subst["route"] = ""
         nclfile = path.join(self.workdir, prefix + "design.ncl")
+        bitfile = path.join(self.workdir, prefix + "design.bit")
+        if path.exists(bitfile):
+            os.remove(bitfile)
         with open(ncl_template, "r") as inf:
             with open(nclfile, "w") as ouf:
                 ouf.write(Template(inf.read()).substitute(**subst))
         diamond.run(self.device, nclfile)
         if self.ncd_specimen is None:
             self.ncd_specimen = path.join(self.workdir, prefix + "design.tmp", "par_impl.ncd")
-        return path.join(self.workdir, prefix + "design.bit")
+        return bitfile
 
     @property
     def ncd_prf(self):

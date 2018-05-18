@@ -3,7 +3,7 @@ General Utilities for Fuzzing
 """
 
 import os
-
+from threading import Thread, RLock
 
 def parallel_foreach(items, func):
     """
@@ -15,9 +15,23 @@ def parallel_foreach(items, func):
         jobs = int(os.environ["TRELLIS_JOBS"])
     else:
         jobs = 4
-    # TODO: actually make this parallel
-    for i in items:
-        func(i)
+    items_queue = list(items)
+    items_lock = RLock()
+
+    def runner():
+        while True:
+            with items_lock:
+                if len(items_queue) == 0:
+                    return
+                item = items_queue[0]
+                items_queue.pop(0)
+            func(item)
+
+    threads = [Thread(target=runner) for i in range(jobs)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
 
 
 def journal_foreach(items, func):
