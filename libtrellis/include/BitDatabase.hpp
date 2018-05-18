@@ -271,7 +271,7 @@ private:
 };
 
 // Represents a conflict while adding something to the database
-class DatabaseConflictError : runtime_error {
+class DatabaseConflictError : public runtime_error {
 public:
     explicit DatabaseConflictError(const string &desc);
 };
