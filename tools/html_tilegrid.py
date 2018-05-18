@@ -89,8 +89,8 @@ def main(argv):
             print("<td style='border: 2px solid black; height: {}px'>".format(row_height), file=f)
             for tile in tloc:
                 print(
-                    "<div style='height: {}%; background-color: {}'><em>{}</em><br/><strong>{}</strong></div>".format(
-                        100 / len(tloc), tile[2], tile[0], tile[1]), file=f)
+                    "<div style='height: {}%; background-color: {}'><em>{}</em><br/><strong><a href='../tilehtml/{}.html' style='color: black'>{}</a></strong></div>".format(
+                        100 / len(tloc), tile[2], tile[0], tile[1], tile[1]), file=f)
             print("</td>", file=f)
         print("</tr>", file=f)
     print("</table></body></html>", file=f)
