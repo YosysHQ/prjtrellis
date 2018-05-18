@@ -78,7 +78,7 @@ def fixed_conns_html(db, f):
     trstyle = ""
     for conn in conns:
         trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
-        print('<tr><td style="padding-left: 10px; padding-right: 10px" {}>{}</td><td style="padding-left: 10px; padding-right: 10px">{}</td></tr>'.format(trstyle, conn.source, conn.sink), file=f)
+        print('<tr {}><td style="padding-left: 10px; padding-right: 10px">{}</td><td style="padding-left: 10px; padding-right: 10px">{}</td></tr>'.format(trstyle, conn.source, conn.sink), file=f)
     print('</table>', file=f)
 
 
