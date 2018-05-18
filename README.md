@@ -20,7 +20,7 @@ the bitstream format for the Xilinx Series 7 devices.
 
 Install the dependencies:
  - Lattice Diamond 3.10
- - Python 3.5 or later
+ - Python 3.5 or later, including development libraries (`python3-dev` on Ubuntu)
  - A modern C++14 compiler (g++ or Clang recommended)
  - Boost
  
@@ -47,18 +47,14 @@ Build libtrellis:
     cd libtrellis
     cmake .
     make
+    cd tests/
+    ./run_all.sh
 
-Once fuzzers are written, the below will also work:
 
-(Re-)creating the database:
+(Re-)creating parts of the database, for example LUT interconnect:
 
-    cd fuzzers
-    make -j$(nproc)
-
-(Re-)creating parts of the database, for example LUT init bits:
-
-    cd fuzzers/010-lutinit
-    make -j$(nproc) run
+    cd fuzzers/001-plc2_routing
+    TRELLIS_JOBS=`nproc` python3 fuzzer.py
 
 # Process
 
@@ -133,9 +129,9 @@ but we can not do this alone, **we need your help**!
 
 ## TODO List
 
- - [ ] Write fuzzing framework for configuration bit and routing fuzzing
+ - [X] Write fuzzing framework for configuration bit and routing fuzzing
  - [ ] Fuzz logic tile init and config bits
- - [ ] Fuzz logic tile routing
+ - [X] Fuzz logic tile routing
  - [ ] Fuzz other routing tiles (CIBs)
  - [ ] Fuzz IO tiles
  - [ ] Fuzz global clock tiles
