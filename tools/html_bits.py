@@ -40,19 +40,27 @@ def mux_html(mux, f):
     for bit in bitlist:
         print('<th style="padding-left: 10px; padding-right: 10px">F{}B{}</th>'.format(bit[0], bit[1]), file=f)
     print('</tr>', file=f)
+    truthtable = []
     for arc in mux.arcs:
-        print('<tr><td>{}</td>'.format(arc.source), file=f)
+        ttrow = []
         for blb in bitlist:
-            print('<td style="text-align: center">', file=f)
             found = False
             for ab in arc.bits.bits:
                 if ab.frame == blb[0] and ab.bit == blb[1]:
-                    print('0' if ab.inv else '1', file=f)
+                    ttrow.append('0' if ab.inv else '1')
                     found = True
                     break
             if not found:
-                print("-", file=f)
-            print('</td>', file=f)
+                ttrow.append("-")
+        truthtable.append((arc, ttrow))
+    trstyle = ""
+    for (arc, ttrow) in sorted(truthtable, key=lambda x: "".join(reversed(x[1])).replace("-", "0")):
+        trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
+        print('<tr {}><td>{}</td>'.format(trstyle, arc.source), file=f)
+        for bit in ttrow:
+            print('<td style="text-align: center">{}</td>'.format(bit), file=f)
+        print('</td>', file=f)
+
     print('</table>', file=f)
 
 
@@ -67,8 +75,10 @@ def fixed_conns_html(db, f):
     print("<h3>Fixed Connections</h3>", file=f)
     print('<table class="fconn"><tr><th>Source</th><th>Sink</th></tr>', file=f)
     conns = db.get_fixed_conns()
+    trstyle = ""
     for conn in conns:
-        print('<tr><td style="padding-left: 10px; padding-right: 10px">{}</td><td style="padding-left: 10px; padding-right: 10px">{}</td></tr>'.format(conn.source, conn.sink), file=f)
+        trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
+        print('<tr><td style="padding-left: 10px; padding-right: 10px" {}>{}</td><td style="padding-left: 10px; padding-right: 10px">{}</td></tr>'.format(trstyle, conn.source, conn.sink), file=f)
     print('</table>', file=f)
 
 
