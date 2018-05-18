@@ -22,6 +22,5 @@ def main():
                                    netname_predicate=nn_filter,
                                    netname_filter_union=True)
 
-
 if __name__ == "__main__":
     main()

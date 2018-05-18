@@ -24,6 +24,11 @@ void translate_bspe(const BitstreamParseError &e) {
     PyErr_SetString(PyExc_ValueError, e.what());
 }
 
+void translate_dbce(const DatabaseConflictError &e) {
+    // Use the Python 'C' API to set up an exception object
+    PyErr_SetString(PyExc_ValueError, e.what());
+}
+
 
 BOOST_PYTHON_MODULE (pytrellis) {
     // Common Types
@@ -150,6 +155,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
     def("get_tile_bitdata", get_tile_bitdata);
 
     // From BitDatabase.cpp
+    register_exception_translator<DatabaseConflictError>(&translate_dbce);
     class_<ConfigBit>("ConfigBit")
             .def_readwrite("frame", &ConfigBit::frame)
             .def_readwrite("bit", &ConfigBit::bit)
