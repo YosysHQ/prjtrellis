@@ -35,7 +35,7 @@ BitGroup::BitGroup() {}
 BitGroup::BitGroup(const CRAMDelta &delta) {
     for (const auto &bit: delta) {
         if (bit.delta != 0)
-            bits.push_back(ConfigBit{bit.frame, bit.bit, (bit.delta < 0)});
+            bits.insert(ConfigBit{bit.frame, bit.bit, (bit.delta < 0)});
     }
 }
 
@@ -79,7 +79,7 @@ istream &operator>>(istream &in, BitGroup &bits) {
     while (!skip_check_eol(in)) {
         string s;
         in >> s;
-        bits.bits.push_back(cbit_from_str(s));
+        bits.bits.insert(cbit_from_str(s));
     }
     return in;
 }
@@ -180,6 +180,25 @@ istream &operator>>(istream &in, WordSettingBits &ws) {
     }
     return in;
 }
+
+void EnumSettingBits::set_defval(string val) {
+    defval = val;
+}
+
+
+string EnumSettingBits::get_defval() const {
+    if (defval)
+        return *defval;
+    else
+        return "";
+}
+
+vector<string> EnumSettingBits::get_options() const {
+    vector<string> result;
+    boost::copy(options | boost::adaptors::map_keys, back_inserter(result));
+    return result;
+}
+
 
 boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile, boost::optional<BitSet &> coverage) const {
     auto found = find_if(options.begin(), options.end(), [tile](const pair<string, BitGroup> &kv) {

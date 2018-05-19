@@ -14,6 +14,7 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/suite/indexing/map_indexing_suite.hpp>
 #include <boost/python/exception_translator.hpp>
+#include "set_indexing_suite.h"
 
 using namespace boost::python;
 using namespace Trellis;
@@ -164,6 +165,8 @@ BOOST_PYTHON_MODULE (pytrellis) {
     def("cbit_from_str", cbit_from_str);
     class_<vector<ConfigBit>>("ConfigBitVector")
             .def(vector_indexing_suite<vector<ConfigBit>>());
+    class_<set<ConfigBit>>("ConfigBitSet")
+            .def(bond::python::set_indexing_suite<set<ConfigBit>>());
 
     class_<BitGroup>("BitGroup")
             .def(init<const CRAMDelta &>())
@@ -172,6 +175,9 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("add_coverage", &BitGroup::add_coverage)
             .def("set_group", &BitGroup::set_group)
             .def("clear_group", &BitGroup::clear_group);
+
+    class_<vector<BitGroup>>("BitGroupVector")
+            .def(vector_indexing_suite<vector<BitGroup>>());
 
     class_<ArcData>("ArcData")
             .def_readwrite("source", &ArcData::source)
@@ -200,7 +206,8 @@ BOOST_PYTHON_MODULE (pytrellis) {
     class_<EnumSettingBits>("EnumSettingBits")
             .def_readwrite("name", &EnumSettingBits::name)
             .def_readwrite("options", &EnumSettingBits::options)
-            .def_readwrite("defval", &EnumSettingBits::defval)
+            .def("get_options", &EnumSettingBits::get_options)
+            .add_property("defval", &EnumSettingBits::get_defval, &EnumSettingBits::set_defval)
             .def("get_value", &EnumSettingBits::get_value)
             .def("set_value", &EnumSettingBits::set_value);
 
