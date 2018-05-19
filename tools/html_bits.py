@@ -64,12 +64,34 @@ def mux_html(mux, f):
     print('</table>', file=f)
 
 
+def setword_html(word, f):
+    print('<h3 id="word_{}">Configuration {} {}</h3>'.format(word.name, "bit" if len(word.bits) == 1 else "word",
+                                                             word.name), file=f)
+    print('<p>Default value: {}\'b{}</p>'.format(len(word.defval),
+                                                 "".join(reversed(["1" if _ else "0" for _ in word.defval]))), file=f)
+    print('<table class="setword">', file=f)
+    trstyle = ""
+    for idx in range(len(word.bits)):
+        cbits = " ".join(["{}F{}B{}".format("!" if b.inv else "", b.frame, b.bit) for b in word.bits[idx].bits])
+        trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
+        print(
+            '<tr {}><td style="padding-left: 10px; padding-right: 10px">{}[{}]</td><td style="padding-left: 10px; padding-right: 10px">{}</td></tr>'.format(
+                trstyle, word.name, idx, cbits), file=f)
+    print('</table>', file=f)
+
+
 def muxes_html(db, f):
     sinks = db.get_sinks()
     for sink in sorted(sinks):
         mux = db.get_mux_data_for_sink(sink)
         mux_html(mux, f)
 
+
+def setwords_html(db, f):
+    words = db.get_settings_words()
+    for name in sorted(words):
+        word = db.get_data_for_setword(name)
+        setword_html(word, f)
 
 def fixed_conns_html(db, f):
     print("<h3>Fixed Connections</h3>", file=f)
@@ -78,7 +100,9 @@ def fixed_conns_html(db, f):
     trstyle = ""
     for conn in conns:
         trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
-        print('<tr {}><td style="padding-left: 10px; padding-right: 10px">{}</td><td style="padding-left: 10px; padding-right: 10px">{}</td></tr>'.format(trstyle, conn.source, conn.sink), file=f)
+        print(
+            '<tr {}><td style="padding-left: 10px; padding-right: 10px">{}</td><td style="padding-left: 10px; padding-right: 10px">{}</td></tr>'.format(
+                trstyle, conn.source, conn.sink), file=f)
     print('</table>', file=f)
 
 
@@ -168,15 +192,17 @@ def main(argv):
     """.format(args.tile), file=f)
     pytrellis.load_database("../database")
     tdb = pytrellis.get_tile_bitdata(
-            pytrellis.TileLocator(args.family, args.device, args.tile))
+        pytrellis.TileLocator(args.family, args.device, args.tile))
     ch = pytrellis.Chip(args.device)
     ti = ch.get_tiles_by_type(args.tile)[0].info
     find_bits(tdb)
     bit_grid_html(ti, f)
     muxes_html(tdb, f)
-    # TODO: enums, words
+    setwords_html(tdb, f)
+    # TODO: enums
     fixed_conns_html(tdb, f)
     print("""</body></html>""", file=f)
+
 
 if __name__ == "__main__":
     main(sys.argv)
