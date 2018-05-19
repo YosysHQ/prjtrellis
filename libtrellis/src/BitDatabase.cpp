@@ -35,7 +35,7 @@ BitGroup::BitGroup() {}
 BitGroup::BitGroup(const CRAMDelta &delta) {
     for (const auto &bit: delta) {
         if (bit.delta != 0)
-            bits.push_back(ConfigBit{bit.frame, bit.bit, (bit.delta < 0)});
+            bits.insert(ConfigBit{bit.frame, bit.bit, (bit.delta < 0)});
     }
 }
 
@@ -79,7 +79,7 @@ istream &operator>>(istream &in, BitGroup &bits) {
     while (!skip_check_eol(in)) {
         string s;
         in >> s;
-        bits.bits.push_back(cbit_from_str(s));
+        bits.bits.insert(cbit_from_str(s));
     }
     return in;
 }

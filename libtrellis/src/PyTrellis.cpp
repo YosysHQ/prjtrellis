@@ -14,6 +14,7 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/suite/indexing/map_indexing_suite.hpp>
 #include <boost/python/exception_translator.hpp>
+#include "set_indexing_suite.h"
 
 using namespace boost::python;
 using namespace Trellis;
@@ -164,6 +165,8 @@ BOOST_PYTHON_MODULE (pytrellis) {
     def("cbit_from_str", cbit_from_str);
     class_<vector<ConfigBit>>("ConfigBitVector")
             .def(vector_indexing_suite<vector<ConfigBit>>());
+    class_<set<ConfigBit>>("ConfigBitSet")
+            .def(bond::python::set_indexing_suite<set<ConfigBit>>());
 
     class_<BitGroup>("BitGroup")
             .def(init<const CRAMDelta &>())

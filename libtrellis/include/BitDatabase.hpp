@@ -35,6 +35,10 @@ struct ConfigBit {
         return (frame == other.frame) && (bit == other.bit) && (inv == other.inv);
     }
 };
+
+inline bool operator<(const ConfigBit &a, const ConfigBit &b) {
+    return (a.frame < b.frame) || (a.bit < b.bit) || (a.inv < b.inv);
+}
 }
 
 namespace std {
@@ -77,7 +81,7 @@ struct BitGroup {
     // Delta should be calculated as (with feature) - (without feature)
     explicit BitGroup(const CRAMDelta &delta);
 
-    vector<ConfigBit> bits;
+    set<ConfigBit> bits;
 
     // Return true if the BitGroup is set in a tile
     bool match(const CRAMView &tile) const;
