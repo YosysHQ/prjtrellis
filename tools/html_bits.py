@@ -5,28 +5,37 @@
 import pytrellis
 import argparse
 import sys
+import re
 
 
 def find_bits(db):
     cwords = db.get_settings_words()
     for cword in cwords:
         wd = db.get_data_for_setword(cword)
-        for bits in wd.bits:
-            for bit in bits.bits:
+        for i in range(len(wd.bits)):
+            for bit in wd.bits[i].bits:
                 bitmap[bit.frame, bit.bit] = "word_" + str(cword)
+                if (bit.frame, bit.bit) not in labels:
+                    labels[bit.frame, bit.bit] = set()
+                labels[bit.frame, bit.bit].add("{}[{}]".format(cword, i))
     cenums = db.get_settings_enums()
     for cenum in cenums:
         ed = db.get_data_for_enum(cenum)
         for opt in ed.get_options():
             for bit in ed.options[opt].bits:
                 bitmap[bit.frame, bit.bit] = "enum_" + str(cenum)
+                if (bit.frame, bit.bit) not in labels:
+                    labels[bit.frame, bit.bit] = set()
+                labels[bit.frame, bit.bit].add(cenum)
     sinks = db.get_sinks()
     for sink in sinks:
         mux = db.get_mux_data_for_sink(sink)
         for arc in mux.arcs:
             for bit in arc.bits.bits:
                 bitmap[bit.frame, bit.bit] = "mux_" + str(sink)
-
+                if (bit.frame, bit.bit) not in labels:
+                    labels[bit.frame, bit.bit] = set()
+                labels[bit.frame, bit.bit].add(sink)
 
 def mux_html(mux, f):
     bitset = set()
@@ -158,7 +167,7 @@ def get_bit_info(frame, bit):
             label = group.split("_")[-1][0]
             colour = "#FF8888"
         elif group.startswith("enum") or group.startswith("word"):
-            label = "C"
+            label = re.split("[_.]", group)[-1][0]
             colour = "#88FF88"
         else:
             label = "?"
@@ -175,10 +184,14 @@ def bit_grid_html(tileinfo, f):
         for frame in range(tileinfo.num_frames):
             group, label, colour = get_bit_info(frame, bit)
             print("<td style='height: 100%; border: 2px solid black;'>", file=f)
-            print("""<a href='#{}' title='F{}B{}' style='text-decoration: none; color: #000000'>
+            title = "F{}B{}".format(frame, bit)
+            if (frame, bit) in labels:
+                for lab in sorted(labels[frame, bit]):
+                    title += "&#13;&#10;" + lab
+            print("""<a href='#{}' title='{}' style='text-decoration: none; color: #000000'>
                     <div id='f{}b{}' style='height: 100%; background-color: {}; width: 12px' class='grp_{}'
                     onmouseover='mov(event);' onmouseout='mou(event);'>{}</div></a></td>""".format(
-                group, frame, bit, frame, bit, colour, group, label), file=f)
+                group, title, frame, bit, colour, group, label), file=f)
         print("</tr>", file=f)
     print("</table>", file=f)
 
@@ -195,9 +208,9 @@ parser.add_argument('outfile', type=argparse.FileType('w'),
 
 
 def main(argv):
-    global bitmap
+    global bitmap, labels
     bitmap = dict(dict())
-
+    labels = dict(dict())
     args = parser.parse_args(argv[1:])
     f = args.outfile
     print(
