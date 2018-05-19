@@ -26,6 +26,9 @@ struct SiteInfo {
 
 // Basic information about a tile
 struct TileInfo {
+    string family;
+    string device;
+
     string name;
     string type;
     size_t num_frames;
@@ -46,6 +49,8 @@ struct TileInfo {
     inline string get_lattice_name() const {
         return name.substr(0, name.find(':'));
     }
+
+
 };
 
 class Chip;
@@ -55,7 +60,9 @@ public:
     Tile(TileInfo info, Chip &parent);
     TileInfo info;
     CRAMView cram;
-    // TODO: actual Tile config access (arcs, attrs, etc) once fuzzing has progressed
+
+    // Dump the tile textual config as a string
+    string dump_config() const;
 };
 
 }
