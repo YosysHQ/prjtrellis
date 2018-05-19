@@ -181,6 +181,19 @@ istream &operator>>(istream &in, WordSettingBits &ws) {
     return in;
 }
 
+void EnumSettingBits::set_defval(string val) {
+    defval = val;
+}
+
+
+string EnumSettingBits::get_defval() const {
+    if (defval)
+        return *defval;
+    else
+        return "";
+}
+
+
 boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile, boost::optional<BitSet &> coverage) const {
     auto found = find_if(options.begin(), options.end(), [tile](const pair<string, BitGroup> &kv) {
         return kv.second.match(tile);

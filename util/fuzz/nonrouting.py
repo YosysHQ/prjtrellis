@@ -53,3 +53,59 @@ def fuzz_word_setting(config, name, length, get_ncl_substs, empty_bitfile = None
         if not is_empty[t]:
             tile_dbs[t].add_setting_word(wsb[t])
             tile_dbs[t].save()
+
+
+def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile = None):
+    """
+    Fuzz a setting with multiple possible values
+
+    :param config: FuzzConfig instance containing target device and tile of interest
+    :param name: name of the setting to store in the database
+    :param values: list of values taken by the enum
+    :param get_ncl_substs: a callback function, that is first called with an array of bits to create a design with that setting
+    :param empty_bitfile: a path to a bit file without the parameter included, optional, which is used to determine the
+    default value
+    """
+    prefix = "thread{}_".format(threading.get_ident())
+    tile_dbs = {tile: pytrellis.get_tile_bitdata(
+        pytrellis.TileLocator(config.family, config.device, tiles.type_from_fullname(tile))) for tile in
+        config.tiles}
+    if empty_bitfile is not None:
+        none_chip = pytrellis.Bitstream.read_bit(empty_bitfile).deserialise_chip()
+    else:
+        none_chip = None
+
+    changed_bits = set()
+    chips = {}
+    tiles_changed = set()
+    for val in values:
+        bit_bitf = config.build_design(config.ncl, get_ncl_substs(val), prefix)
+        bit_chip = pytrellis.Bitstream.read_bit(bit_bitf).deserialise_chip()
+        for prev in chips.values():
+            diff = bit_chip - prev
+            for tile in config.tiles:
+                if tile in diff:
+                    tiles_changed.add(tile)
+                    for bit in diff[tile]:
+                        changed_bits.add((tile, bit.frame, bit.bit))
+        chips[val] = bit_chip
+
+    for tile in tiles_changed:
+        esb = pytrellis.EnumSettingBits()
+        esb.name = name
+        for val in values:
+            bg = pytrellis.BitGroup()
+            for (btile, bframe, bbit) in changed_bits:
+                if btile == tile:
+                    state = chips[val].tiles[tile].cram.bit(bframe, bbit)
+                    cb = pytrellis.ConfigBit()
+                    cb.frame = bframe
+                    cb.bit = bbit
+                    cb.inv = (state == 0)
+                    bg.bits.append(cb)
+            esb.options[val] = bg
+            if none_chip is not None and bg.match(none_chip.tiles[tile].cram):
+                esb.defval = val
+        tile_dbs[tile].add_setting_enum(esb)
+        tile_dbs[tile].save()
+
