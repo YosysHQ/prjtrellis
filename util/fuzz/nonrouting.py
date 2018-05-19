@@ -55,7 +55,7 @@ def fuzz_word_setting(config, name, length, get_ncl_substs, empty_bitfile = None
             tile_dbs[t].save()
 
 
-def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile = None):
+def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile = None, include_zeros = True):
     """
     Fuzz a setting with multiple possible values
 
@@ -65,6 +65,8 @@ def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile = None
     :param get_ncl_substs: a callback function, that is first called with an array of bits to create a design with that setting
     :param empty_bitfile: a path to a bit file without the parameter included, optional, which is used to determine the
     default value
+    :param include_zeros: if set, bits set to zero are not included in db. Needed for settings such as CEMUX which share
+    bits with routing muxes to prevent conflicts.
     """
     prefix = "thread{}_".format(threading.get_ident())
     tile_dbs = {tile: pytrellis.get_tile_bitdata(
@@ -98,6 +100,8 @@ def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile = None
             for (btile, bframe, bbit) in changed_bits:
                 if btile == tile:
                     state = chips[val].tiles[tile].cram.bit(bframe, bbit)
+                    if state == 0 and not include_zeros:
+                        continue
                     cb = pytrellis.ConfigBit()
                     cb.frame = bframe
                     cb.bit = bbit
