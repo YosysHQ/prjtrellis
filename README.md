@@ -18,15 +18,24 @@ the bitstream format for the Xilinx Series 7 devices.
 
 # Quickstart Guide
 
+Currently Project Trellis is tested on Arch Linux and Ubuntu 17.10.
+
 Install the dependencies:
  - Lattice Diamond 3.10
  - Python 3.5 or later, including development libraries (`python3-dev` on Ubuntu)
  - A modern C++14 compiler (g++ or Clang recommended)
- - Boost
+ - CMake 3.8 or later
+ - Boost including boost-python
  
 Pull submodules:
 
     git submodule update --init --recursive
+
+For a generic environment:
+
+    source environment.sh
+
+Optionally, modify `user_environment.sh` and rerun the above command if needed.
 
 Get a head start by downloading current database:
 
@@ -36,13 +45,11 @@ Get a head start by downloading current database:
     # - git if you want to use the git protocol
     ./download-latest-db.sh
 
-For a generic environment:
+Alternatively, if you want to start from scratch:
 
-    source environment.sh
-  
-TODO: device specific environments, like X-ray
+    ./create-empty-db.sh
 
-Build libtrellis:
+Build and test libtrellis:
 
     cd libtrellis
     cmake .
