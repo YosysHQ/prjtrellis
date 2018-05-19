@@ -145,7 +145,8 @@ BOOST_PYTHON_MODULE (pytrellis) {
 
     class_<Tile, shared_ptr<Tile>>("Tile", no_init)
             .def_readonly("info", &Tile::info)
-            .def_readwrite("cram", &Tile::cram);
+            .def_readwrite("cram", &Tile::cram)
+            .def("dump_config", &Tile::dump_config);
 
     // From Database.cpp
     def("load_database", load_database);
