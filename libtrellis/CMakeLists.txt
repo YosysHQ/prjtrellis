@@ -1,12 +1,38 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.8)
 project(libtrellis)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-Wall -pedantic -Wextra -Werror")
 set(CMAKE_DEFIN)
-find_package(PythonInterp)
-find_package(PythonLibs)
-find_package(Boost REQUIRED COMPONENTS python3 filesystem thread)
+set(boost_libs filesystem thread)
+find_package(PythonInterp 3.5 REQUIRED)
+find_package(PythonLibs 3.5 REQUIRED)
+
+find_package(Boost REQUIRED COMPONENTS ${boost_libs})
+
+set(version ${PYTHONLIBS_VERSION_STRING})
+
+STRING( REGEX REPLACE "[^0-9]" "" boost_py_version ${version} )
+find_package(Boost COMPONENTS "python-py${boost_py_version}" ${boost_libs})
+set(Boost_PYTHON_FOUND ${Boost_PYTHON-PY${boost_py_version}_FOUND})
+
+while(NOT "${version}" STREQUAL "" AND NOT Boost_PYTHON_FOUND)
+    STRING( REGEX REPLACE "([0-9.]+).[0-9]+" "\\1" version ${version} )
+
+    STRING( REGEX REPLACE "[^0-9]" "" boost_py_version ${version} )
+    find_package(Boost COMPONENTS "python-py${boost_py_version}" ${boost_libs})
+    set(Boost_PYTHON_FOUND ${Boost_PYTHON-PY${boost_py_version}_FOUND})
+
+    STRING( REGEX MATCHALL "([0-9.]+).[0-9]+" has_more_version ${version} )
+    if("${has_more_version}" STREQUAL "")
+        break()
+    endif()
+endwhile()
+
+if(NOT Boost_PYTHON_FOUND)
+    find_package(Boost COMPONENTS python3 ${boost_libs})
+endif()
+
 include_directories(include/ ${Boost_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS})
 
 aux_source_directory(include/ INCLUDE_FILES)

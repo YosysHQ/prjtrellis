@@ -12,7 +12,7 @@ fail=0
 mkdir -p ${DIR}/work
 
 for f in ${DIR}/*.py; do
-    python $f
+    python3 $f
     RC="$?"
     let total++
     if [[ "$RC" -eq 0 ]]; then
