@@ -85,15 +85,20 @@ istream &operator>>(istream &in, BitGroup &bits) {
 }
 
 boost::optional<string> MuxBits::get_driver(const CRAMView &tile, boost::optional<BitSet &> coverage) const {
-    auto drv = find_if(arcs.begin(), arcs.end(), [tile](const ArcData &a) {
-        return a.bits.match(tile);
-    });
-    if (drv == arcs.end()) {
+    boost::optional<const ArcData&> bestmatch;
+    size_t bestbits = 0;
+    for (const auto &arc : arcs) {
+        if (arc.bits.match(tile) && arc.bits.bits.size() >= bestbits) {
+            bestmatch = arc;
+            bestbits = arc.bits.bits.size();
+        }
+    }
+    if (!bestmatch) {
         return boost::optional<string>();
     } else {
         if (coverage)
-            drv->bits.add_coverage(*coverage);
-        return boost::optional<string>(drv->source);
+            bestmatch->bits.add_coverage(*coverage);
+        return boost::optional<string>(bestmatch->source);
     }
 }
 
@@ -201,18 +206,23 @@ vector<string> EnumSettingBits::get_options() const {
 
 
 boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile, boost::optional<BitSet &> coverage) const {
-    auto found = find_if(options.begin(), options.end(), [tile](const pair<string, BitGroup> &kv) {
-        return kv.second.match(tile);
-    });
-    if (found == options.end()) {
+    boost::optional<const pair<const string, BitGroup> &> bestmatch;
+    size_t bestbits = 0;
+    for (const auto &opt : options) {
+        if (opt.second.match(tile) && opt.second.bits.size() >= bestbits) {
+            bestmatch = opt;
+            bestbits = opt.second.bits.size();
+        }
+    }
+    if (!bestmatch) {
         return boost::optional<string>();
     } else {
         if (coverage)
-            found->second.add_coverage(*coverage);
-        if (defval && *defval == found->first) {
+            bestmatch->second.add_coverage(*coverage);
+        if (defval && *defval == bestmatch->first) {
             return boost::optional<string>();
         } else {
-            return boost::optional<string>(found->first);
+            return boost::optional<string>(bestmatch->first);
         }
     }
 }
