@@ -106,7 +106,7 @@ def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile = None
                     cb.frame = bframe
                     cb.bit = bbit
                     cb.inv = (state == 0)
-                    bg.bits.append(cb)
+                    bg.bits.add(cb)
             esb.options[val] = bg
             if none_chip is not None and bg.match(none_chip.tiles[tile].cram):
                 esb.defval = val

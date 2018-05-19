@@ -193,6 +193,12 @@ string EnumSettingBits::get_defval() const {
         return "";
 }
 
+vector<string> EnumSettingBits::get_options() const {
+    vector<string> result;
+    boost::copy(options | boost::adaptors::map_keys, back_inserter(result));
+    return result;
+}
+
 
 boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile, boost::optional<BitSet &> coverage) const {
     auto found = find_if(options.begin(), options.end(), [tile](const pair<string, BitGroup> &kv) {

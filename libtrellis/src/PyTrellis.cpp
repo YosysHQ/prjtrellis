@@ -206,6 +206,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
     class_<EnumSettingBits>("EnumSettingBits")
             .def_readwrite("name", &EnumSettingBits::name)
             .def_readwrite("options", &EnumSettingBits::options)
+            .def("get_options", &EnumSettingBits::get_options)
             .add_property("defval", &EnumSettingBits::get_defval, &EnumSettingBits::set_defval)
             .def("get_value", &EnumSettingBits::get_value)
             .def("set_value", &EnumSettingBits::set_value);
