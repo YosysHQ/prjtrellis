@@ -173,6 +173,9 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("set_group", &BitGroup::set_group)
             .def("clear_group", &BitGroup::clear_group);
 
+    class_<vector<BitGroup>>("BitGroupVector")
+            .def(vector_indexing_suite<vector<BitGroup>>());
+
     class_<ArcData>("ArcData")
             .def_readwrite("source", &ArcData::source)
             .def_readwrite("sink", &ArcData::sink)
