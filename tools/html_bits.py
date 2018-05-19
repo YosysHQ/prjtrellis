@@ -5,28 +5,37 @@
 import pytrellis
 import argparse
 import sys
+import re
 
 
 def find_bits(db):
     cwords = db.get_settings_words()
     for cword in cwords:
         wd = db.get_data_for_setword(cword)
-        for bits in wd.bits:
-            for bit in bits.bits:
+        for i in range(len(wd.bits)):
+            for bit in wd.bits[i].bits:
                 bitmap[bit.frame, bit.bit] = "word_" + str(cword)
+                if (bit.frame, bit.bit) not in labels:
+                    labels[bit.frame, bit.bit] = set()
+                labels[bit.frame, bit.bit].add("{}[{}]".format(cword, i))
     cenums = db.get_settings_enums()
     for cenum in cenums:
         ed = db.get_data_for_enum(cenum)
-        for opt, bits in sorted(ed.options):
-            for bit in bits.bits:
+        for opt in ed.get_options():
+            for bit in ed.options[opt].bits:
                 bitmap[bit.frame, bit.bit] = "enum_" + str(cenum)
+                if (bit.frame, bit.bit) not in labels:
+                    labels[bit.frame, bit.bit] = set()
+                labels[bit.frame, bit.bit].add(cenum)
     sinks = db.get_sinks()
     for sink in sinks:
         mux = db.get_mux_data_for_sink(sink)
         for arc in mux.arcs:
             for bit in arc.bits.bits:
                 bitmap[bit.frame, bit.bit] = "mux_" + str(sink)
-
+                if (bit.frame, bit.bit) not in labels:
+                    labels[bit.frame, bit.bit] = set()
+                labels[bit.frame, bit.bit].add(sink)
 
 def mux_html(mux, f):
     bitset = set()
@@ -64,11 +73,78 @@ def mux_html(mux, f):
     print('</table>', file=f)
 
 
+def setword_html(word, f):
+    print('<h3 id="word_{}">Configuration {} {}</h3>'.format(word.name, "bit" if len(word.bits) == 1 else "word",
+                                                             word.name), file=f)
+    print('<p>Default value: {}\'b{}</p>'.format(len(word.defval),
+                                                 "".join(reversed(["1" if _ else "0" for _ in word.defval]))), file=f)
+    print('<table class="setword">', file=f)
+    trstyle = ""
+    for idx in range(len(word.bits)):
+        cbits = " ".join(["{}F{}B{}".format("!" if b.inv else "", b.frame, b.bit) for b in word.bits[idx].bits])
+        trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
+        print(
+            '<tr {}><td style="padding-left: 10px; padding-right: 10px">{}[{}]</td><td style="padding-left: 10px; padding-right: 10px">{}</td></tr>'.format(
+                trstyle, word.name, idx, cbits), file=f)
+    print('</table>', file=f)
+
+
+def setenum_html(enum, f):
+    print('<h3 id="enum_{}">Configuration Setting {}</h3>'.format(enum.name, enum.name), file=f)
+    if enum.defval != "":
+        print('<p>Default value: {}</p>'.format(enum.defval), file=f)
+    bitset = set()
+    for opt in enum.get_options():
+        for bit in enum.options[opt].bits:
+            bitset.add((bit.frame, bit.bit))
+
+    bitlist = list(sorted(bitset))
+    print('<table class="setenum"><tr><th>Value</th>', file=f)
+    for bit in bitlist:
+        print('<th style="padding-left: 10px; padding-right: 10px">F{}B{}</th>'.format(bit[0], bit[1]), file=f)
+    print("</tr>", file=f)
+    truthtable = []
+    for opt in enum.get_options():
+        ttrow = []
+        for blb in bitlist:
+            found = False
+            for ab in enum.options[opt].bits:
+                if ab.frame == blb[0] and ab.bit == blb[1]:
+                    ttrow.append('0' if ab.inv else '1')
+                    found = True
+                    break
+            if not found:
+                ttrow.append("-")
+        truthtable.append((opt, ttrow))
+    trstyle = ""
+    for (opt, ttrow) in sorted(truthtable, key=lambda x: "".join(reversed(x[1])).replace("-", "0")):
+        trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
+        print('<tr {}><td>{}</td>'.format(trstyle, opt), file=f)
+        for bit in ttrow:
+            print('<td style="text-align: center">{}</td>'.format(bit), file=f)
+        print('</td>', file=f)
+    print('</table>', file=f)
+
+
 def muxes_html(db, f):
     sinks = db.get_sinks()
     for sink in sorted(sinks):
         mux = db.get_mux_data_for_sink(sink)
         mux_html(mux, f)
+
+
+def setwords_html(db, f):
+    words = db.get_settings_words()
+    for name in sorted(words):
+        word = db.get_data_for_setword(name)
+        setword_html(word, f)
+
+
+def setenums_html(db, f):
+    enums = db.get_settings_enums()
+    for name in sorted(enums):
+        enum = db.get_data_for_enum(name)
+        setenum_html(enum, f)
 
 
 def fixed_conns_html(db, f):
@@ -78,7 +154,9 @@ def fixed_conns_html(db, f):
     trstyle = ""
     for conn in conns:
         trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
-        print('<tr {}><td style="padding-left: 10px; padding-right: 10px">{}</td><td style="padding-left: 10px; padding-right: 10px">{}</td></tr>'.format(trstyle, conn.source, conn.sink), file=f)
+        print(
+            '<tr {}><td style="padding-left: 10px; padding-right: 10px">{}</td><td style="padding-left: 10px; padding-right: 10px">{}</td></tr>'.format(
+                trstyle, conn.source, conn.sink), file=f)
     print('</table>', file=f)
 
 
@@ -88,8 +166,8 @@ def get_bit_info(frame, bit):
         if group.startswith("mux"):
             label = group.split("_")[-1][0]
             colour = "#FF8888"
-        elif group.startswith("emum") or group.startswith("word"):
-            label = "C"
+        elif group.startswith("enum") or group.startswith("word"):
+            label = re.split("[_.]", group)[-1][0]
             colour = "#88FF88"
         else:
             label = "?"
@@ -106,10 +184,14 @@ def bit_grid_html(tileinfo, f):
         for frame in range(tileinfo.num_frames):
             group, label, colour = get_bit_info(frame, bit)
             print("<td style='height: 100%; border: 2px solid black;'>", file=f)
-            print("""<a href='#{}' title='F{}B{}' style='text-decoration: none; color: #000000'>
+            title = "F{}B{}".format(frame, bit)
+            if (frame, bit) in labels:
+                for lab in sorted(labels[frame, bit]):
+                    title += "&#13;&#10;" + lab
+            print("""<a href='#{}' title='{}' style='text-decoration: none; color: #000000'>
                     <div id='f{}b{}' style='height: 100%; background-color: {}; width: 12px' class='grp_{}'
                     onmouseover='mov(event);' onmouseout='mou(event);'>{}</div></a></td>""".format(
-                group, frame, bit, frame, bit, colour, group, label), file=f)
+                group, title, frame, bit, colour, group, label), file=f)
         print("</tr>", file=f)
     print("</table>", file=f)
 
@@ -126,9 +208,9 @@ parser.add_argument('outfile', type=argparse.FileType('w'),
 
 
 def main(argv):
-    global bitmap
+    global bitmap, labels
     bitmap = dict(dict())
-
+    labels = dict(dict())
     args = parser.parse_args(argv[1:])
     f = args.outfile
     print(
@@ -168,15 +250,17 @@ def main(argv):
     """.format(args.tile), file=f)
     pytrellis.load_database("../database")
     tdb = pytrellis.get_tile_bitdata(
-            pytrellis.TileLocator(args.family, args.device, args.tile))
+        pytrellis.TileLocator(args.family, args.device, args.tile))
     ch = pytrellis.Chip(args.device)
     ti = ch.get_tiles_by_type(args.tile)[0].info
     find_bits(tdb)
     bit_grid_html(ti, f)
     muxes_html(tdb, f)
-    # TODO: enums, words
+    setwords_html(tdb, f)
+    setenums_html(tdb, f)
     fixed_conns_html(tdb, f)
     print("""</body></html>""", file=f)
+
 
 if __name__ == "__main__":
     main(sys.argv)

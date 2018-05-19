@@ -35,6 +35,20 @@ struct ConfigBit {
         return (frame == other.frame) && (bit == other.bit) && (inv == other.inv);
     }
 };
+
+inline bool operator<(const ConfigBit &a, const ConfigBit &b) {
+    if (a.frame < b.frame) {
+        return true;
+    } else if (a.frame > b.frame) {
+        return false;
+    } else {
+        if (a.bit < b.bit) {
+            return true;
+        } else {
+            return a.inv < b.inv;
+        }
+    }
+}
 }
 
 namespace std {
@@ -77,7 +91,7 @@ struct BitGroup {
     // Delta should be calculated as (with feature) - (without feature)
     explicit BitGroup(const CRAMDelta &delta);
 
-    vector<ConfigBit> bits;
+    set<ConfigBit> bits;
 
     // Return true if the BitGroup is set in a tile
     bool match(const CRAMView &tile) const;
@@ -168,6 +182,11 @@ struct EnumSettingBits {
     string name;
     map<string, BitGroup> options;
     boost::optional<string> defval;
+
+    // Needed for Python
+    void set_defval(string val);
+    string get_defval() const;
+    vector<string> get_options() const;
 
     // Get the value of the enumeration, returning empty if not set or set to default, if default is non-empty
     boost::optional<string>
