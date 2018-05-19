@@ -37,7 +37,17 @@ struct ConfigBit {
 };
 
 inline bool operator<(const ConfigBit &a, const ConfigBit &b) {
-    return (a.frame < b.frame) || (a.bit < b.bit) || (a.inv < b.inv);
+    if (a.frame < b.frame) {
+        return true;
+    } else if (a.frame > b.frame) {
+        return false;
+    } else {
+        if (a.bit < b.bit) {
+            return true;
+        } else {
+            return a.inv < b.inv;
+        }
+    }
 }
 }
 
@@ -176,6 +186,7 @@ struct EnumSettingBits {
     // Needed for Python
     void set_defval(string val);
     string get_defval() const;
+    vector<string> get_options() const;
 
     // Get the value of the enumeration, returning empty if not set or set to default, if default is non-empty
     boost::optional<string>

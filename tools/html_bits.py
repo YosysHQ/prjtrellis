@@ -17,8 +17,8 @@ def find_bits(db):
     cenums = db.get_settings_enums()
     for cenum in cenums:
         ed = db.get_data_for_enum(cenum)
-        for opt, bits in sorted(ed.options):
-            for bit in bits.bits:
+        for opt in ed.get_options():
+            for bit in ed.options[opt].bits:
                 bitmap[bit.frame, bit.bit] = "enum_" + str(cenum)
     sinks = db.get_sinks()
     for sink in sinks:
@@ -112,7 +112,7 @@ def get_bit_info(frame, bit):
         if group.startswith("mux"):
             label = group.split("_")[-1][0]
             colour = "#FF8888"
-        elif group.startswith("emum") or group.startswith("word"):
+        elif group.startswith("enum") or group.startswith("word"):
             label = "C"
             colour = "#88FF88"
         else:
