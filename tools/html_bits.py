@@ -80,6 +80,43 @@ def setword_html(word, f):
     print('</table>', file=f)
 
 
+def setenum_html(enum, f):
+    print('<h3 id="enum_{}">Configuration Setting {}</h3>'.format(enum.name, enum.name), file=f)
+    if enum.defval != "":
+        print('<p>Default value: {}</p>'.format(enum.defval), file=f)
+    bitset = set()
+    for opt in enum.get_options():
+        for bit in enum.options[opt].bits:
+            bitset.add((bit.frame, bit.bit))
+
+    bitlist = list(sorted(bitset))
+    print('<table class="setenum"><tr><th>Value</th>', file=f)
+    for bit in bitlist:
+        print('<th style="padding-left: 10px; padding-right: 10px">F{}B{}</th>'.format(bit[0], bit[1]), file=f)
+    print("</tr>", file=f)
+    truthtable = []
+    for opt in enum.get_options():
+        ttrow = []
+        for blb in bitlist:
+            found = False
+            for ab in enum.options[opt].bits:
+                if ab.frame == blb[0] and ab.bit == blb[1]:
+                    ttrow.append('0' if ab.inv else '1')
+                    found = True
+                    break
+            if not found:
+                ttrow.append("-")
+        truthtable.append((opt, ttrow))
+    trstyle = ""
+    for (opt, ttrow) in sorted(truthtable, key=lambda x: "".join(reversed(x[1])).replace("-", "0")):
+        trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
+        print('<tr {}><td>{}</td>'.format(trstyle, opt), file=f)
+        for bit in ttrow:
+            print('<td style="text-align: center">{}</td>'.format(bit), file=f)
+        print('</td>', file=f)
+    print('</table>', file=f)
+
+
 def muxes_html(db, f):
     sinks = db.get_sinks()
     for sink in sorted(sinks):
@@ -92,6 +129,14 @@ def setwords_html(db, f):
     for name in sorted(words):
         word = db.get_data_for_setword(name)
         setword_html(word, f)
+
+
+def setenums_html(db, f):
+    enums = db.get_settings_enums()
+    for name in sorted(enums):
+        enum = db.get_data_for_enum(name)
+        setenum_html(enum, f)
+
 
 def fixed_conns_html(db, f):
     print("<h3>Fixed Connections</h3>", file=f)
@@ -199,7 +244,7 @@ def main(argv):
     bit_grid_html(ti, f)
     muxes_html(tdb, f)
     setwords_html(tdb, f)
-    # TODO: enums
+    setenums_html(tdb, f)
     fixed_conns_html(tdb, f)
     print("""</body></html>""", file=f)
 
