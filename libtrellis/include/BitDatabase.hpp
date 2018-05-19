@@ -169,6 +169,10 @@ struct EnumSettingBits {
     map<string, BitGroup> options;
     boost::optional<string> defval;
 
+    // Needed for Python
+    void set_defval(string val);
+    string get_defval() const;
+
     // Get the value of the enumeration, returning empty if not set or set to default, if default is non-empty
     boost::optional<string>
     get_value(const CRAMView &tile, boost::optional<BitSet &> coverage = boost::optional<BitSet &>()) const;
