@@ -8,7 +8,13 @@ jobs = [
                           tiles=["TAP_R6C22:TAP_DRIVE"]),
         "left_net": "R6C17_HPBX{:02d}00",
         "right_net": "R6C26_HPBX{:02d}00"
-    }
+    },
+    {
+        "cfg": FuzzConfig(job="TAP_DRIVE_CIB", family="ECP5", device="LFE5U-25F", ncl="tap.ncl",
+                          tiles=["TAP_R13C22:TAP_DRIVE_CIB"]),
+        "left_net": "R13C17_HPBX{:02d}00",
+        "right_net": "R13C26_HPBX{:02d}00"
+    },
 ]
 
 
