@@ -30,8 +30,8 @@ def find_bits(db):
     sinks = db.get_sinks()
     for sink in sinks:
         mux = db.get_mux_data_for_sink(sink)
-        for arc in mux.arcs:
-            for bit in arc.bits.bits:
+        for src in mux.get_sources():
+            for bit in mux.arcs[src].bits.bits:
                 bitmap[bit.frame, bit.bit] = "mux_" + str(sink)
                 if (bit.frame, bit.bit) not in labels:
                     labels[bit.frame, bit.bit] = set()
@@ -39,8 +39,8 @@ def find_bits(db):
 
 def mux_html(mux, f):
     bitset = set()
-    for arc in mux.arcs:
-        for bit in arc.bits.bits:
+    for src in mux.get_sources():
+        for bit in mux.arcs[src].bits.bits:
             bitset.add((bit.frame, bit.bit))
 
     bitlist = list(sorted(bitset))
@@ -50,18 +50,18 @@ def mux_html(mux, f):
         print('<th style="padding-left: 10px; padding-right: 10px">F{}B{}</th>'.format(bit[0], bit[1]), file=f)
     print('</tr>', file=f)
     truthtable = []
-    for arc in mux.arcs:
+    for src in mux.get_sources():
         ttrow = []
         for blb in bitlist:
             found = False
-            for ab in arc.bits.bits:
+            for ab in mux.arcs[src].bits.bits:
                 if ab.frame == blb[0] and ab.bit == blb[1]:
                     ttrow.append('0' if ab.inv else '1')
                     found = True
                     break
             if not found:
                 ttrow.append("-")
-        truthtable.append((arc, ttrow))
+        truthtable.append((mux.arcs[src], ttrow))
     trstyle = ""
     for (arc, ttrow) in sorted(truthtable, key=lambda x: "".join(reversed(x[1])).replace("-", "0")):
         trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""

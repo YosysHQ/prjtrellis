@@ -84,13 +84,19 @@ istream &operator>>(istream &in, BitGroup &bits) {
     return in;
 }
 
+vector<string> MuxBits::get_sources() const {
+    vector<string> result;
+    boost::copy(arcs | boost::adaptors::map_keys, back_inserter(result));
+    return result;
+}
+
 boost::optional<string> MuxBits::get_driver(const CRAMView &tile, boost::optional<BitSet &> coverage) const {
-    boost::optional<const ArcData&> bestmatch;
+    boost::optional<const ArcData &> bestmatch;
     size_t bestbits = 0;
     for (const auto &arc : arcs) {
-        if (arc.bits.match(tile) && arc.bits.bits.size() >= bestbits) {
-            bestmatch = arc;
-            bestbits = arc.bits.bits.size();
+        if (arc.second.bits.match(tile) && arc.second.bits.bits.size() >= bestbits) {
+            bestmatch = arc.second;
+            bestbits = arc.second.bits.bits.size();
         }
     }
     if (!bestmatch) {
@@ -103,19 +109,17 @@ boost::optional<string> MuxBits::get_driver(const CRAMView &tile, boost::optiona
 }
 
 void MuxBits::set_driver(Trellis::CRAMView &tile, const string &driver) const {
-    auto drv = find_if(arcs.begin(), arcs.end(), [driver](const ArcData &a) {
-        return a.source == driver;
-    });
+    auto drv = arcs.find(driver);
     if (drv == arcs.end()) {
         throw runtime_error("sink " + sink + " has no driver named " + driver);
     }
-    drv->bits.set_group(tile);
+    drv->second.bits.set_group(tile);
 }
 
 ostream &operator<<(ostream &out, const MuxBits &mux) {
     out << ".mux " << mux.sink << endl;
     for (const auto &arc : mux.arcs) {
-        out << arc.source << " " << arc.bits << endl;
+        out << arc.first << " " << arc.second.bits << endl;
     }
     return out;
 }
@@ -128,7 +132,7 @@ istream &operator>>(istream &in, MuxBits &mux) {
         ArcData a;
         a.sink = mux.sink;
         in >> a.source >> a.bits;
-        mux.arcs.push_back(a);
+        mux.arcs[a.source] = a;
     }
     return in;
 }
@@ -203,7 +207,6 @@ vector<string> EnumSettingBits::get_options() const {
     boost::copy(options | boost::adaptors::map_keys, back_inserter(result));
     return result;
 }
-
 
 boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile, boost::optional<BitSet &> coverage) const {
     boost::optional<const pair<const string, BitGroup> &> bestmatch;
@@ -365,7 +368,8 @@ void TileBitDatabase::load() {
         } else if (token == ".fixed_conn") {
             FixedConnection c;
             in >> c;
-            fixed_conns.push_back(c);
+            assert(fixed_conns.find(c.sink) == fixed_conns.end());
+            fixed_conns[c.sink] = c;
         } else {
             throw runtime_error("unexpected token " + token + " while parsing database file " + filename);
         }
@@ -388,7 +392,7 @@ void TileBitDatabase::save() {
         out << senum.second << endl;
     out << endl << "# Fixed Connections" << endl;
     for (auto conn : fixed_conns)
-        out << conn << endl;
+        out << conn.second << endl;
     dirty = false;
 }
 
@@ -430,7 +434,9 @@ EnumSettingBits TileBitDatabase::get_data_for_enum(const string &name) const {
 
 vector<FixedConnection> TileBitDatabase::get_fixed_conns() const {
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
-    return fixed_conns;
+    vector<FixedConnection> result;
+    boost::copy(fixed_conns | boost::adaptors::map_values, back_inserter(result));
+    return result;
 }
 
 void TileBitDatabase::add_mux_arc(const ArcData &arc) {
@@ -442,20 +448,18 @@ void TileBitDatabase::add_mux_arc(const ArcData &arc) {
         muxes[mux.sink] = mux;
     }
     MuxBits &curr = muxes.at(arc.sink);
-    auto found = find_if(curr.arcs.begin(), curr.arcs.end(), [arc](const ArcData &other) {
-        return (arc.source == other.source);
-    });
+    auto found = curr.arcs.find(arc.source);
     if (found == curr.arcs.end()) {
-        curr.arcs.push_back(arc);
+        curr.arcs[arc.source] = arc;
     } else {
-        if (found->bits == arc.bits) {
+        if (found->second.bits == arc.bits) {
             // In DB already, no-op
         } else {
             throw DatabaseConflictError(fmt("database conflict: arc " << arc.source << " -> " << arc.sink <<
                                                                       " already in DB, but config bits " <<
                                                                       arc.bits
                                                                       << " don't match existing DB bits " <<
-                                                                      found->bits));
+                                                                      found->second.bits));
         }
     }
 
@@ -508,8 +512,16 @@ void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb) {
 
 void TileBitDatabase::add_fixed_conn(const Trellis::FixedConnection &conn) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
-    if (find(fixed_conns.begin(), fixed_conns.end(), conn) == fixed_conns.end())
-        fixed_conns.push_back(conn);
+    auto found = fixed_conns.find(conn.sink);
+    if (found == fixed_conns.end()) {
+        fixed_conns[conn.sink] = conn;
+    } else {
+        if (found->second.source != conn.source) {
+            throw DatabaseConflictError(
+                    fmt("fixed connection driving " + conn.sink + " already in DB, but source " + conn.source +
+                        " doesn't match existing source " + found->second.source));
+        }
+    }
 }
 
 TileBitDatabase::TileBitDatabase(const TileBitDatabase &other) {
