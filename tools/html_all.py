@@ -13,6 +13,7 @@ import argparse
 import database
 import devices
 import html_tilegrid
+import html_bits
 
 trellis_docs_index = """
 <html>
@@ -50,6 +51,16 @@ def generate_device_docs(family, device, folder):
     html_tilegrid.main(["html_tilegrid", family, device, path.join(folder, "index.html")])
 
 
+def generate_tile_docs(family, device, tile, folder):
+    html_bits.main(["html_bits", family, device, tile, path.join(folder, "{}.html".format(tile))])
+
+
+# TODO find a better way of specifying tiles, or just go for all of them
+tiles = {
+    ("ECP5", "LFE5U-25F"): ["PLC2", "TAP_DRIVE", "TAP_DRIVE_CIB", "CIB"]
+}
+
+
 def main(argv):
     args = parser.parse_args(argv[1:])
     if not path.exists(args.fld):
@@ -61,6 +72,9 @@ def main(argv):
         fdir = path.join(args.fld, fam)
         if not path.exists(fdir):
             os.mkdir(fdir)
+        thdir = path.join(fdir, "tilehtml")
+        if not path.exists(thdir):
+            os.mkdir(thdir)
         docs_toc += "<h3>{} Family</h3>".format(fam)
         docs_toc += "<ul>"
         for dev in fam_data["devices"]:
@@ -68,11 +82,16 @@ def main(argv):
             if not path.exists(ddir):
                 os.mkdir(ddir)
             generate_device_docs(fam, dev, ddir)
+            if (fam, dev) in tiles:
+                for tile in tiles[fam, dev]:
+                    generate_tile_docs(fam, dev, tile, thdir)
             docs_toc += '<li><a href="{}">{} Documentation</a></li>'.format(
                 '{}/{}/index.html'.format(fam, dev),
                 dev
             )
+
         docs_toc += "</ul>"
+
     index_html = Template(trellis_docs_index).substitute(
         datetime=build_dt,
         commit=commit_hash,
