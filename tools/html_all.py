@@ -57,7 +57,9 @@ def generate_tile_docs(family, device, tile, folder):
 
 # TODO find a better way of specifying tiles, or just go for all of them
 tiles = {
-    ("ECP5", "LFE5U-25F"): ["PLC2", "TAP_DRIVE", "TAP_DRIVE_CIB", "CIB"]
+    ("ECP5", "LFE5U-25F"): ["PLC2", "TAP_DRIVE", "TAP_DRIVE_CIB", "CIB"],
+    ("ECP5", "LFE5U-45F"): ["EBR_SPINE_UL1", "EBR_SPINE_UL0", "EBR_SPINE_UR0", "EBR_SPINE_UR1", "EBR_SPINE_LL1",
+                            "EBR_SPINE_LL0", "EBR_SPINE_LR0", "EBR_SPINE_LR1"]
 }
 
 
