@@ -41,7 +41,9 @@ general_routing_re = re.compile('R\d+C\d+_[VH]\d{2}[NESWTLBR]\d{4}')
 # CIB signals
 cib_signal_re = re.compile('R\d+C\d+_J?[ABCDFMQ]\d')
 # CIB clock/control signals
-cib_control_re = re.compile('R\d+C\d+_J?(CLK|LSR|CEN)\d')
+cib_control_re = re.compile('R\d+C\d+_J?(CLK|LSR|CEN|CE)\d')
+# CIB bounce signals
+cib_bounce_re = re.compile('R\d+C\d+_[NESW]BOUNCE')
 
 
 def is_cib(wire):
@@ -49,7 +51,8 @@ def is_cib(wire):
        a special function - EBR, DSP, etc)"""
     return bool(general_routing_re.match(wire) or
                 cib_signal_re.match(wire) or
-                cib_control_re.match(wire))
+                cib_control_re.match(wire) or
+                cib_bounce_re.match(wire))
 
 
 h_wire_regex = re.compile(r'H(\d{2})([EW])(\d{2})(\d{2})')
@@ -122,7 +125,7 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
                 # V02S0002 --> y-1, V02S0001
                 # V02N0000 --> y-1, V02N0001
                 if vm.group(2) == "S" and wire_pos[0] == 1 and vm.group(4) == "02":
-                    return "V02S{}01".format(hm.group(3)), (wire_pos[0] - 1, wire_pos[1])
+                    return "V02S{}01".format(vm.group(3)), (wire_pos[0] - 1, wire_pos[1])
                 elif vm.group(2) == "N" and wire_pos[0] == 1 and vm.group(4) == "00":
                     return "V02N{}01".format(vm.group(3)), (wire_pos[0] - 1, wire_pos[1])
             elif tile_pos[0] == (chip_size[0] - 1):

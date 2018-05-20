@@ -120,6 +120,9 @@ def get_arcs_on_wires(desfiles, wires, drivers_only=False):
                 elif splitline[1].strip() == "<--":
                     if not drivers_only:
                         arcs.append((splitline[2].strip(), splitline[0].strip()))
+                elif splitline[1].strip() == "---":
+                    # Edge wires, currently ignored
+                    pass
                 else:
                     print (splitline)
                     assert False, "invalid output from Tcl command `dev_list_arcs`"
