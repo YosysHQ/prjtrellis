@@ -185,12 +185,13 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("sink", &ArcData::sink)
             .def_readwrite("bits", &ArcData::bits);
 
-    class_<vector<ArcData>>("ArcDataVector")
-            .def(vector_indexing_suite<vector<ArcData>>());
+    class_<map<string, ArcData>>("ArcDataMap")
+            .def(map_indexing_suite<map<string, ArcData>>());
 
     class_<MuxBits>("MuxBits")
             .def_readwrite("sink", &MuxBits::sink)
             .def_readwrite("arcs", &MuxBits::arcs)
+            .def("get_sources", &MuxBits::get_sources)
             .def("get_driver", &MuxBits::get_driver)
             .def("set_driver", &MuxBits::set_driver);
 
