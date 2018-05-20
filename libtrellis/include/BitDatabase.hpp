@@ -130,7 +130,10 @@ struct ArcData {
 // A mux specifies all the possible source node arcs driving a sink node
 struct MuxBits {
     string sink;
-    vector<ArcData> arcs;
+    map<string, ArcData> arcs;
+
+    // Get a list of sources for the mux
+    vector<string> get_sources() const;
 
     // Work out which connection inside the mux, if any, is made inside a tile
     boost::optional<string>
@@ -279,7 +282,7 @@ private:
     map<string, MuxBits> muxes;
     map<string, WordSettingBits> words;
     map<string, EnumSettingBits> enums;
-    vector<FixedConnection> fixed_conns;
+    map<string, FixedConnection> fixed_conns;
     string filename;
 
     void load();
