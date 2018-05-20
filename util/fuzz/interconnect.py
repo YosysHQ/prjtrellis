@@ -9,6 +9,7 @@ Then, bitstreams for each arc possibility are created and analysed using PyTrell
 These are then compared to determine the mux enable bits for that arc.
 """
 import threading
+import re
 
 import isptcl
 import fuzzloops
@@ -21,7 +22,8 @@ def fuzz_interconnect(config,
                       location,
                       netname_predicate=lambda x, nets: True,
                       arc_predicate=lambda x, nets: True,
-                      netname_filter_union=False):
+                      netname_filter_union=False,
+                      enable_span1_fix=False):
     """
     The fully-automatic interconnect fuzzer function. This performs the fuzzing and updates the database with the
     results. It is expected that PyTrellis has already been initialised with the database prior to this function being
@@ -37,9 +39,23 @@ def fuzz_interconnect(config,
     tuple and the set of all netnames, is of interest
     :param netname_filter_union: if True, arcs will be included if either net passes netname_predicate, if False both
     nets much pass the predicate.
+    :param enable_span1_fix: if True, include span1 wires that are excluded due to a Tcl API bug
     """
     netdata = isptcl.get_wires_at_position(config.ncd_prf, location)
     netnames = [x[0] for x in netdata]
+    if enable_span1_fix:
+        extra_netnames = []
+        for net in netnames:
+            m = re.match("R(\d+)C(\d+)_V01N(\d{4})", net)
+            if m:
+                row = int(m.group(1))
+                col = int(m.group(2))
+                idn = m.group(3)
+                if row == location[0] + 1 and col == location[1]:
+                    fixednet = "R{}C{}_V01N{}".format(location[0] - 1, col, idn)
+                    print("added {}".format(fixednet))
+                    extra_netnames.append(fixednet)
+        netnames = extra_netnames + netnames
     fuzz_interconnect_with_netnames(config, netnames, netname_predicate, arc_predicate, False, netname_filter_union)
 
 
