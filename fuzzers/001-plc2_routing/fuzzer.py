@@ -20,7 +20,8 @@ def main():
 
     interconnect.fuzz_interconnect(config=cfg, location=(19, 33),
                                    netname_predicate=nn_filter,
-                                   netname_filter_union=True)
+                                   netname_filter_union=True,
+                                   enable_span1_fix=True)
 
 if __name__ == "__main__":
     main()
