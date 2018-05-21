@@ -116,10 +116,12 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
             assert False
     if vm:
         if vm.group(1) == "01":
-            if tile_pos[0] == chip_size[0] - 1:
+            if tile_pos[0] == 1:
                 # V01N000 --> y-1, V01N0001
-                assert vm.group(4) == "00"
-                return "V01{}{}01".format(vm.group(2), vm.group(3)), (wire_pos[0] - 1, wire_pos[1])
+                if wire_pos[0] == 1 and vm.group(2) == "N" and vm.group(4) == "00":
+                    return "V01{}{}01".format(vm.group(2), vm.group(3)), (wire_pos[0] - 1, wire_pos[1])
+                if wire_pos[0] == 1 and vm.group(2) == "S" and vm.group(4) == "01":
+                    return "V01{}{}00".format(vm.group(2), vm.group(3)), (wire_pos[0] - 1, wire_pos[1])
         elif vm.group(1) == "02":
             if tile_pos[0] == 1:
                 # V02S0002 --> y-1, V02S0001
