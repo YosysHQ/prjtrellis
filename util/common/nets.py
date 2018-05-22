@@ -22,6 +22,17 @@ cdivx_clk_re = re.compile(r'R\d+C\d+_J?[UL]CDIVX\d+')
 # SED clock output
 sed_clk_re = re.compile(r'R\d+C\d+_J?SEDCLKOUT')
 
+# DCC signals
+dcc_clk_re = re.compile(r'R\d+C\d+_J?(CLK[IO]|CE)_[BLTR]?DCC(\d+|[BT][LR])')
+# DCC inputs
+dcc_clki_re = re.compile(r'R\d+C\d+_[BLTR]?DCC(\d+|[BT][LR])CLKI')
+# DCS signals
+dcs_sig_re = re.compile(r'R\d+C\d+_J?(CLK\d|SEL\d|DCSOUT|MODESEL)_DCS\d')
+# DCS clocks
+dcs_clk_re = re.compile(r'R\d+C\d+_DCS\d(CLK\d)?')
+# Misc. center clocks
+center_clk_re = re.compile(r'R\d+C\d+_J?(LE|BRGE|RE)CLK\d')
+
 
 def is_global(wire):
     """Return true if a wire is part of the global clock network"""
@@ -33,7 +44,11 @@ def is_global(wire):
                 cib_clk_re.match(wire) or
                 osc_clk_re.match(wire) or
                 cdivx_clk_re.match(wire) or
-                sed_clk_re.match(wire))
+                sed_clk_re.match(wire) or
+                dcc_clk_re.match(wire) or
+                dcc_clki_re.match(wire) or
+                dcs_sig_re.match(wire) or
+                center_clk_re.match(wire))
 
 
 # General inter-tile routing
@@ -57,6 +72,7 @@ def is_cib(wire):
 
 h_wire_regex = re.compile(r'H(\d{2})([EW])(\d{2})(\d{2})')
 v_wire_regex = re.compile(r'V(\d{2})([NS])(\d{2})(\d{2})')
+
 
 def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
     """
@@ -104,14 +120,14 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
                 if hm.group(2) == "W":
                     return "H06W{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] - (3 - int(hm.group(4))))
                 elif hm.group(2) == "E":
-                    return "H06W{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] - (int(hm.group(4)) - 3))
+                    return "H06E{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] - (int(hm.group(4)) - 3))
             if tile_pos[1] >= (chip_size[1] - 5):
                 # x+2, H06W0304 --> x+3, H06W0303
                 # x+2, H06E0302 --> x+3, H06E0303
                 if hm.group(2) == "W":
                     return "H06W{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] + (int(hm.group(4)) - 3))
                 elif hm.group(2) == "E":
-                    return "H06W{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] + (3 - int(hm.group(4))))
+                    return "H06E{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] + (3 - int(hm.group(4))))
         else:
             assert False
     if vm:
