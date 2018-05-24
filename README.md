@@ -1,6 +1,8 @@
 # Project Trellis
 
-Documenting the Lattice ECP5 bit-stream format.
+Documenting the Lattice ECP5 bit-stream format. Current documentation is
+located in machine-readable format in [prjtrellis-db](https://github.com/SymbiFlow/prjtrellis-db)
+and is also [published online as HTML](https://symbiflow.github.io/prjtrellis-db/).
 
 This repository contains both tools and scripts which allow you to document the
 bit-stream format of Lattice ECP5 series FPGAs.
@@ -18,13 +20,14 @@ the bitstream format for the Xilinx Series 7 devices.
 
 # Quickstart Guide
 
-Currently Project Trellis is tested on Arch Linux and Ubuntu 17.10.
+Currently Project Trellis is tested on Arch Linux, Ubuntu 17.10 and
+Ubuntu 16.04.
 
 Install the dependencies:
  - Lattice Diamond 3.10
  - Python 3.5 or later, including development libraries (`python3-dev` on Ubuntu)
- - A modern C++14 compiler (g++ or Clang recommended)
- - CMake 3.8 or later
+ - A modern C++14 compiler (Clang is recommended)
+ - CMake 3.5 or later
  - Boost including boost-python
  
 Pull submodules:
@@ -87,9 +90,6 @@ Experiments are like "minitests" except are only useful for a short period of
 time. Files are committed here to allow people to see how we are trying to
 understand the bitstream.
 
-When an experiment is finished with, it will be moved from this directory into
-the latest "prjxray-experiments-archive-XXXX" repository.
-
 ### [Fuzzers](fuzzers)
 
 Fuzzers are the scripts which generate the large number of bitstream.
@@ -137,11 +137,11 @@ but we can not do this alone, **we need your help**!
 ## TODO List
 
  - [X] Write fuzzing framework for configuration bit and routing fuzzing
- - [ ] Fuzz logic tile init and config bits
+ - [X] Fuzz logic tile init and config bits
  - [X] Fuzz logic tile routing
- - [ ] Fuzz other routing tiles (CIBs)
+ - [ ] Fuzz other routing tiles (CIBs) - WIP
  - [ ] Fuzz IO tiles
- - [ ] Fuzz global clock tiles
+ - [ ] Fuzz global clock tiles - WIP
  - [ ] Fuzz other function tiles (EBR, DSP, SERDES, etc)
 
 
