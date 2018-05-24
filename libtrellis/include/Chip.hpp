@@ -53,6 +53,8 @@ public:
 
     vector<shared_ptr<Tile>> get_tiles_by_type(string type);
 
+    vector<shared_ptr<Tile>> get_all_tiles();
+
     // Map tile name to a tile reference
     map<string, shared_ptr<Tile>> tiles;
 

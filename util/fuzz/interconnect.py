@@ -22,6 +22,7 @@ def fuzz_interconnect(config,
                       location,
                       netname_predicate=lambda x, nets: True,
                       arc_predicate=lambda x, nets: True,
+                      fc_predicate=lambda x, nets: True,
                       netname_filter_union=False,
                       enable_span1_fix=False):
     """
@@ -37,6 +38,7 @@ def fuzz_interconnect(config,
     the netname and the set of all nets
     :param arc_predicate: a predicate function which should return True if an arc, given the arc as a (source, sink)
     tuple and the set of all netnames, is of interest
+    :param fc_predicate: a predicate function which should return True if a fixed connection should be included
     :param netname_filter_union: if True, arcs will be included if either net passes netname_predicate, if False both
     nets much pass the predicate.
     :param enable_span1_fix: if True, include span1 wires that are excluded due to a Tcl API bug
@@ -56,7 +58,8 @@ def fuzz_interconnect(config,
                     print("added {}".format(fixednet))
                     extra_netnames.append(fixednet)
         netnames = extra_netnames + netnames
-    fuzz_interconnect_with_netnames(config, netnames, netname_predicate, arc_predicate, False, netname_filter_union)
+    fuzz_interconnect_with_netnames(config, netnames, netname_predicate, arc_predicate, fc_predicate, False,
+                                    netname_filter_union)
 
 
 def fuzz_interconnect_with_netnames(
@@ -64,6 +67,7 @@ def fuzz_interconnect_with_netnames(
         netnames,
         netname_predicate=lambda x, nets: True,
         arc_predicate=lambda x, nets: True,
+        fc_predicate=lambda x, nets: True,
         bidir=False,
         netname_filter_union=False):
     """
@@ -118,10 +122,11 @@ def fuzz_interconnect_with_netnames(
             if len(diff) == 0:
                 # No difference means fixed interconnect
                 # We consider this to be in the first tile if multiple tiles are being analysed
-                norm_arc = normalise_arc_in_tile(config.tiles[0], arc)
-                fc = pytrellis.FixedConnection()
-                fc.source, fc.sink = norm_arc
-                tile_dbs[config.tiles[0]].add_fixed_conn(fc)
+                if fc_predicate(arc, netnames):
+                    norm_arc = normalise_arc_in_tile(config.tiles[0], arc)
+                    fc = pytrellis.FixedConnection()
+                    fc.source, fc.sink = norm_arc
+                    tile_dbs[config.tiles[0]].add_fixed_conn(fc)
             else:
                 for tile in config.tiles:
                     if tile in diff:
