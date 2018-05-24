@@ -41,6 +41,14 @@ vector<shared_ptr<Tile>> Chip::get_tiles_by_type(string type) {
     return result;
 }
 
+vector<shared_ptr<Tile>> Chip::get_all_tiles() {
+    vector<shared_ptr<Tile>> result;
+    for (const auto &tile : tiles) {
+         result.push_back(tile.second);
+    }
+    return result;
+}
+
 int Chip::get_max_row() {
     return max_element(tiles.begin(), tiles.end(),
                [](const decltype(tiles)::value_type &a, const decltype(tiles)::value_type &b) {

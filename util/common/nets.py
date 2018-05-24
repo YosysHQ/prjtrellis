@@ -22,6 +22,17 @@ cdivx_clk_re = re.compile(r'R\d+C\d+_J?[UL]CDIVX\d+')
 # SED clock output
 sed_clk_re = re.compile(r'R\d+C\d+_J?SEDCLKOUT')
 
+# DCC signals
+dcc_clk_re = re.compile(r'R\d+C\d+_J?(CLK[IO]|CE)_[BLTR]?DCC(\d+|[BT][LR])')
+# DCC inputs
+dcc_clki_re = re.compile(r'R\d+C\d+_[BLTR]?DCC(\d+|[BT][LR])CLKI')
+# DCS signals
+dcs_sig_re = re.compile(r'R\d+C\d+_J?(CLK\d|SEL\d|DCSOUT|MODESEL)_DCS\d')
+# DCS clocks
+dcs_clk_re = re.compile(r'R\d+C\d+_DCS\d(CLK\d)?')
+# Misc. center clocks
+center_clk_re = re.compile(r'R\d+C\d+_J?(LE|BRGE|RE)CLK\d')
+
 
 def is_global(wire):
     """Return true if a wire is part of the global clock network"""
@@ -33,7 +44,11 @@ def is_global(wire):
                 cib_clk_re.match(wire) or
                 osc_clk_re.match(wire) or
                 cdivx_clk_re.match(wire) or
-                sed_clk_re.match(wire))
+                sed_clk_re.match(wire) or
+                dcc_clk_re.match(wire) or
+                dcc_clki_re.match(wire) or
+                dcs_sig_re.match(wire) or
+                center_clk_re.match(wire))
 
 
 # General inter-tile routing
@@ -41,7 +56,9 @@ general_routing_re = re.compile('R\d+C\d+_[VH]\d{2}[NESWTLBR]\d{4}')
 # CIB signals
 cib_signal_re = re.compile('R\d+C\d+_J?[ABCDFMQ]\d')
 # CIB clock/control signals
-cib_control_re = re.compile('R\d+C\d+_J?(CLK|LSR|CEN)\d')
+cib_control_re = re.compile('R\d+C\d+_J?(CLK|LSR|CEN|CE)\d')
+# CIB bounce signals
+cib_bounce_re = re.compile('R\d+C\d+_[NESW]BOUNCE')
 
 
 def is_cib(wire):
@@ -49,11 +66,13 @@ def is_cib(wire):
        a special function - EBR, DSP, etc)"""
     return bool(general_routing_re.match(wire) or
                 cib_signal_re.match(wire) or
-                cib_control_re.match(wire))
+                cib_control_re.match(wire) or
+                cib_bounce_re.match(wire))
 
 
 h_wire_regex = re.compile(r'H(\d{2})([EW])(\d{2})(\d{2})')
 v_wire_regex = re.compile(r'V(\d{2})([NS])(\d{2})(\d{2})')
+
 
 def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
     """
@@ -101,28 +120,30 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
                 if hm.group(2) == "W":
                     return "H06W{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] - (3 - int(hm.group(4))))
                 elif hm.group(2) == "E":
-                    return "H06W{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] - (int(hm.group(4)) - 3))
+                    return "H06E{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] - (int(hm.group(4)) - 3))
             if tile_pos[1] >= (chip_size[1] - 5):
                 # x+2, H06W0304 --> x+3, H06W0303
                 # x+2, H06E0302 --> x+3, H06E0303
                 if hm.group(2) == "W":
                     return "H06W{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] + (int(hm.group(4)) - 3))
                 elif hm.group(2) == "E":
-                    return "H06W{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] + (3 - int(hm.group(4))))
+                    return "H06E{}03".format(hm.group(3)), (wire_pos[0], wire_pos[1] + (3 - int(hm.group(4))))
         else:
             assert False
     if vm:
         if vm.group(1) == "01":
-            if tile_pos[0] == chip_size[0] - 1:
+            if tile_pos[0] == 1:
                 # V01N000 --> y-1, V01N0001
-                assert vm.group(4) == "00"
-                return "V01{}{}01".format(vm.group(2), vm.group(3)), (wire_pos[0] - 1, wire_pos[1])
+                if wire_pos[0] == 1 and vm.group(2) == "N" and vm.group(4) == "00":
+                    return "V01{}{}01".format(vm.group(2), vm.group(3)), (wire_pos[0] - 1, wire_pos[1])
+                if wire_pos[0] == 1 and vm.group(2) == "S" and vm.group(4) == "01":
+                    return "V01{}{}00".format(vm.group(2), vm.group(3)), (wire_pos[0] - 1, wire_pos[1])
         elif vm.group(1) == "02":
             if tile_pos[0] == 1:
                 # V02S0002 --> y-1, V02S0001
                 # V02N0000 --> y-1, V02N0001
                 if vm.group(2) == "S" and wire_pos[0] == 1 and vm.group(4) == "02":
-                    return "V02S{}01".format(hm.group(3)), (wire_pos[0] - 1, wire_pos[1])
+                    return "V02S{}01".format(vm.group(3)), (wire_pos[0] - 1, wire_pos[1])
                 elif vm.group(2) == "N" and wire_pos[0] == 1 and vm.group(4) == "00":
                     return "V02N{}01".format(vm.group(3)), (wire_pos[0] - 1, wire_pos[1])
             elif tile_pos[0] == (chip_size[0] - 1):
