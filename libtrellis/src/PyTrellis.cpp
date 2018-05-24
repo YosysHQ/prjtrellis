@@ -89,6 +89,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("get_tile_by_name", &Chip::get_tile_by_name)
             .def("get_tiles_by_position", &Chip::get_tiles_by_position)
             .def("get_tiles_by_type", &Chip::get_tiles_by_type)
+            .def("get_all_tiles", &Chip::get_all_tiles)
             .def("get_max_row", &Chip::get_max_row)
             .def("get_max_col", &Chip::get_max_col)
             .def_readonly("info", &Chip::info)
