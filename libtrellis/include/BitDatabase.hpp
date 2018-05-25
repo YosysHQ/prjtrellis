@@ -219,6 +219,17 @@ struct FixedConnection {
     }
 };
 
+
+inline bool operator<(const FixedConnection &a, const FixedConnection &b) {
+    if (a.sink < b.sink) {
+        return true;
+    } else if (a.sink > b.sink) {
+        return false;
+    } else {
+        return a.source < b.source;
+    }
+}
+
 // Write fixed connection to output
 ostream &operator<<(ostream &out, const FixedConnection &es);
 
@@ -282,7 +293,7 @@ private:
     map<string, MuxBits> muxes;
     map<string, WordSettingBits> words;
     map<string, EnumSettingBits> enums;
-    map<string, FixedConnection> fixed_conns;
+    map<string, set<FixedConnection>> fixed_conns;
     string filename;
 
     void load();
