@@ -11,8 +11,9 @@ global_cmux_out_re = re.compile(r'R\d+C\d+_[UL][LR]PCLK\d+')
 global_cmux_in_re = re.compile(r'R\d+C\d+_[HV]PF[NESW](\d){2}00')
 # Clock pins
 clock_pin_re = re.compile(r'R\d+C\d+_J?PCLK[TBLR]\d+')
-# PLL outputs
+# PLL global outputs
 pll_out_re = re.compile(r'R\d+C\d+_J?[UL][LR][QC]PLL\dCLKO[PS]\d?')
+
 # CIB clock inputs
 cib_clk_re = re.compile(r'R\d+C\d+_J?[ULTB][LR][QCM]PCLKCIB\d+')
 # Oscillator output
@@ -21,6 +22,9 @@ osc_clk_re = re.compile(r'R\d+C\d+_J?OSC')
 cdivx_clk_re = re.compile(r'R\d+C\d+_J?[UL]CDIVX\d+')
 # SED clock output
 sed_clk_re = re.compile(r'R\d+C\d+_J?SEDCLKOUT')
+
+# DDRDEL delay signals
+ddr_delay_re = re.compile(r'R\d+C\d+_[UL][LR]DDRDEL')
 
 # DCC signals
 dcc_clk_re = re.compile(r'R\d+C\d+_J?(CLK[IO]|CE)_[BLTR]?DCC(\d+|[BT][LR])')
@@ -32,6 +36,13 @@ dcs_sig_re = re.compile(r'R\d+C\d+_J?(CLK\d|SEL\d|DCSOUT|MODESEL)_DCS\d')
 dcs_clk_re = re.compile(r'R\d+C\d+_DCS\d(CLK\d)?')
 # Misc. center clocks
 center_clk_re = re.compile(r'R\d+C\d+_J?(LE|BRGE|RE)CLK\d')
+
+# Shared DQS signals
+dqs_ssig_re = re.compile(r'R\d+C\d+_(DQS[RW]\d*|(RD|WR)PNTR\d)$')
+
+# Bank edge clocks
+bnk_eclk_re = re.compile('R\d+C\d+_BANK\d+(ECLK\d+)')
+
 
 
 def is_global(wire):
@@ -45,6 +56,7 @@ def is_global(wire):
                 osc_clk_re.match(wire) or
                 cdivx_clk_re.match(wire) or
                 sed_clk_re.match(wire) or
+                ddr_delay_re.match(wire) or
                 dcc_clk_re.match(wire) or
                 dcc_clki_re.match(wire) or
                 dcs_sig_re.match(wire) or
@@ -189,6 +201,8 @@ def normalise_name(chip_size, tile, wire):
      - Wires where (r, c) correspond to the current tile have their prefix removed
      - Wires to the left (in TAP_DRIVEs) are given the prefix L, and wires to the right
        are given the prefix R
+     - Wires within a DQS group are given the prefix DQSG_
+     - Wires within a bank are given the prefix BNK_
      - Other wires are given a relative position prefix using the syntax
        ([NS]\d+)?([EW]\d+)?_
        so a wire whose nominal location is 6 tiles up would be given a prefix N6_
@@ -218,6 +232,12 @@ def normalise_name(chip_size, tile, wire):
             assert False, "bad TAP_DRIVE netname"
     elif is_global(wire):
         return "G_" + netname
+    elif dqs_ssig_re.match(wire):
+        return "DQSG_" + netname
+    elif bnk_eclk_re.match(wire):
+        return "BNK_" + bnk_eclk_re.match(wire).group(1)
+    elif netname in ("INRD", "LVDS"):
+        return "BNK_" + netname
     netname, prefix_pos = handle_edge_name(chip_size, tile_pos, prefix_pos, netname)
     if tile_pos == prefix_pos:
         return netname
