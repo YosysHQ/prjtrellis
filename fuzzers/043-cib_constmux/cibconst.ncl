@@ -17,6 +17,6 @@ design top
                  "DP16KD:::GSR=DISABLED:\"
                  "${sig}=${val}";
       }
-      site EBR_R25C22;
+      site EBR_R25C26;
    }
 }

@@ -14,18 +14,17 @@ all CIBs, including those where this would be difficult to fuzz and location-dep
 choice...
 """
 
-
 # List of all pins to fuzz
 fuzz_pins = [
     "JA0", "JA1", "JA2", "JA3", "JA4", "JA5", "JA6", "JA7",
     "JB0", "JB1", "JB2", "JB3", "JB4", "JB5", "JB6", "JB7",
     "JC0", "JC1", "JC2", "JC3", "JC4", "JC5", "JC6", "JC7",
     "JD0", "JD1", "JD2", "JD3", "JD4", "JD5", "JD6", "JD7",
-    "JCE0", "JCE1", "JCE2", "JCE3"
+    "JCE0", "JCE1", "JCE2", "JCE3", "JCLK0", "JCLK1", "JLSR0", "JLSR1"
 ]
 
-
-cfg = FuzzConfig(job="CIBCONST", family="ECP5", device="LFE5U-25F", ncl="empty.ncl", tiles=["CIB_R25C22:CIB_EBR"])
+cfg = FuzzConfig(job="CIBCONST", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+                 tiles=["CIB_R25C26:CIB_EBR", "CIB_R25C27:CIB_EBR", "CIB_R25C28:CIB_EBR"])
 
 
 def main():
@@ -40,17 +39,20 @@ def main():
                 val = "#SIG"
             subs = {"sig": sig, "val": val}
             return subs
+
         if pin.startswith("JCE"):
             options = [pin, "1"]
+        elif pin.startswith("JCLK") or pin.startswith("JLSR"):
+            options = [pin, "0"]
         else:
             options = [pin, "0", "1"]
         # Load the EBR database and find the correct signal
         ebrdb = pytrellis.get_tile_bitdata(
-            pytrellis.TileLocator(cfg.family, cfg.device, "MIB_EBR0"))
+            pytrellis.TileLocator(cfg.family, cfg.device, "MIB_EBR4"))
         fconns = ebrdb.get_fixed_conns()
         sig = None
         for conn in fconns:
-            if conn.source == pin:
+            if conn.source.endswith(pin):
                 sig = conn.sink
                 break
         assert sig is not None
@@ -58,9 +60,11 @@ def main():
         if sig[0] == "J":
             sig = sig[1:]
         sig = sig.replace("_EBR", "")
+
         nonrouting.fuzz_enum_setting(cfg, "CIB.{}MUX".format(pin), options,
                                      lambda x: get_substs(sig=sig, val=x),
                                      empty_bitfile, False)
+
     fuzzloops.parallel_foreach(fuzz_pins, per_pin)
 
 
