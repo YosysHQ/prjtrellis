@@ -24,7 +24,8 @@ def fuzz_interconnect(config,
                       arc_predicate=lambda x, nets: True,
                       fc_predicate=lambda x, nets: True,
                       netname_filter_union=False,
-                      enable_span1_fix=False):
+                      enable_span1_fix=False,
+                      func_cib=False):
     """
     The fully-automatic interconnect fuzzer function. This performs the fuzzing and updates the database with the
     results. It is expected that PyTrellis has already been initialised with the database prior to this function being
@@ -42,6 +43,7 @@ def fuzz_interconnect(config,
     :param netname_filter_union: if True, arcs will be included if either net passes netname_predicate, if False both
     nets much pass the predicate.
     :param enable_span1_fix: if True, include span1 wires that are excluded due to a Tcl API bug
+    :param func_cib: if True, we are fuzzing a special function to CIB interconnect, enable optimisations for this
     """
     netdata = isptcl.get_wires_at_position(config.ncd_prf, location)
     netnames = [x[0] for x in netdata]
@@ -58,7 +60,9 @@ def fuzz_interconnect(config,
                     print("added {}".format(fixednet))
                     extra_netnames.append(fixednet)
         netnames = extra_netnames + netnames
-    fuzz_interconnect_with_netnames(config, netnames, netname_predicate, arc_predicate, fc_predicate, False,
+    if func_cib and not netname_filter_union:
+        netnames = list(filter(lambda x: netname_predicate(x, netnames), netnames))
+    fuzz_interconnect_with_netnames(config, netnames, netname_predicate, arc_predicate, fc_predicate, func_cib,
                                     netname_filter_union)
 
 
