@@ -368,8 +368,7 @@ void TileBitDatabase::load() {
         } else if (token == ".fixed_conn") {
             FixedConnection c;
             in >> c;
-            assert(fixed_conns.find(c.sink) == fixed_conns.end());
-            fixed_conns[c.sink] = c;
+            fixed_conns[c.sink].insert(c);
         } else {
             throw runtime_error("unexpected token " + token + " while parsing database file " + filename);
         }
@@ -391,8 +390,9 @@ void TileBitDatabase::save() {
     for (auto senum : enums)
         out << senum.second << endl;
     out << endl << "# Fixed Connections" << endl;
-    for (auto conn : fixed_conns)
-        out << conn.second << endl;
+    for (auto conns : fixed_conns)
+        for (auto conn2 : conns.second)
+            out << conn2 << endl;
     dirty = false;
 }
 
@@ -435,7 +435,11 @@ EnumSettingBits TileBitDatabase::get_data_for_enum(const string &name) const {
 vector<FixedConnection> TileBitDatabase::get_fixed_conns() const {
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     vector<FixedConnection> result;
-    boost::copy(fixed_conns | boost::adaptors::map_values, back_inserter(result));
+    for (const auto &csink : fixed_conns) {
+        for (const auto &conn : csink.second) {
+            result.push_back(conn);
+        }
+    }
     return result;
 }
 
@@ -512,16 +516,8 @@ void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb) {
 
 void TileBitDatabase::add_fixed_conn(const Trellis::FixedConnection &conn) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
-    auto found = fixed_conns.find(conn.sink);
-    if (found == fixed_conns.end()) {
-        fixed_conns[conn.sink] = conn;
-    } else {
-        if (found->second.source != conn.source) {
-            throw DatabaseConflictError(
-                    fmt("fixed connection driving " + conn.sink + " already in DB, but source " + conn.source +
-                        " doesn't match existing source " + found->second.source));
-        }
-    }
+    fixed_conns[conn.sink].insert(conn);
+    dirty = true;
 }
 
 TileBitDatabase::TileBitDatabase(const TileBitDatabase &other) {
