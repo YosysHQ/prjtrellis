@@ -2,6 +2,7 @@
 *.bit
 *.dump
 *.incd
-*.ncl
+*_out.ncl
 *.ncd
 *.out
+*.twr
