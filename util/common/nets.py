@@ -60,6 +60,7 @@ def is_global(wire):
                 dcc_clk_re.match(wire) or
                 dcc_clki_re.match(wire) or
                 dcs_sig_re.match(wire) or
+                dcs_clk_re.match(wire) or
                 center_clk_re.match(wire))
 
 

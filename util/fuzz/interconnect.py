@@ -25,7 +25,8 @@ def fuzz_interconnect(config,
                       fc_predicate=lambda x, nets: True,
                       netname_filter_union=False,
                       enable_span1_fix=False,
-                      func_cib=False):
+                      func_cib=False,
+                      fc_prefix=""):
     """
     The fully-automatic interconnect fuzzer function. This performs the fuzzing and updates the database with the
     results. It is expected that PyTrellis has already been initialised with the database prior to this function being
@@ -44,6 +45,7 @@ def fuzz_interconnect(config,
     nets much pass the predicate.
     :param enable_span1_fix: if True, include span1 wires that are excluded due to a Tcl API bug
     :param func_cib: if True, we are fuzzing a special function to CIB interconnect, enable optimisations for this
+    :param fc_prefix: add a prefix to non-global fixed connections for device-specific fuzzers
     """
     netdata = isptcl.get_wires_at_position(config.ncd_prf, location)
     netnames = [x[0] for x in netdata]
@@ -63,7 +65,7 @@ def fuzz_interconnect(config,
     if func_cib and not netname_filter_union:
         netnames = list(filter(lambda x: netname_predicate(x, netnames), netnames))
     fuzz_interconnect_with_netnames(config, netnames, netname_predicate, arc_predicate, fc_predicate, func_cib,
-                                    netname_filter_union)
+                                    netname_filter_union, False, fc_prefix)
 
 
 def fuzz_interconnect_with_netnames(
@@ -73,7 +75,9 @@ def fuzz_interconnect_with_netnames(
         arc_predicate=lambda x, nets: True,
         fc_predicate=lambda x, nets: True,
         bidir=False,
-        netname_filter_union=False):
+        netname_filter_union=False,
+        full_mux_style=False,
+        fc_prefix=""):
     """
     Fuzz interconnect given a list of netnames to analyse. Arcs associated these netnames will be found using the Tcl
     API and bits identified as described above.
@@ -87,6 +91,8 @@ def fuzz_interconnect_with_netnames(
     :param bidir: if True, arcs driven by as well as driving the given netnames will be considered during analysis
     :param netname_filter_union: if True, arcs will be included if either net passes netname_predicate, if False both
     nets much pass the predicate.
+    :param full_mux_style: if True, is a full mux, and all 0s is considered a valid config bit possibility
+    :param fc_prefix: add a prefix to non-global fixed connections for device-specific fuzzers
     """
     net_arcs = isptcl.get_arcs_on_wires(config.ncd_prf, netnames, not bidir)
     baseline_bitf = config.build_design(config.ncl, {}, "base_")
@@ -114,7 +120,13 @@ def fuzz_interconnect_with_netnames(
             assoc_arcs = filter(lambda x: netname_predicate(x[0], netnames) or netname_predicate(x[1], netnames),
                                 assoc_arcs)
         # Then filter using the arc predicate
-        fuzz_arcs = filter(lambda x: arc_predicate(x, netnames), assoc_arcs)
+        fuzz_arcs = list(filter(lambda x: arc_predicate(x, netnames), assoc_arcs))
+
+        # Ful fullmux mode only
+        changed_bits = set()
+        arc_tiles = {}
+        tiles_changed = set()
+
         for arc in fuzz_arcs:
             # Route statement containing arc for NCL file
             arc_route = "route\n\t\t\t" + arc[0] + "." + arc[1] + ";"
@@ -123,23 +135,50 @@ def fuzz_interconnect_with_netnames(
             arc_chip = pytrellis.Bitstream.read_bit(arc_bitf).deserialise_chip()
             # Compare the bitstream with the arc to the baseline bitstream
             diff = arc_chip - baseline_chip
-            if len(diff) == 0:
-                # No difference means fixed interconnect
-                # We consider this to be in the first tile if multiple tiles are being analysed
-                if fc_predicate(arc, netnames):
-                    norm_arc = normalise_arc_in_tile(config.tiles[0], arc)
-                    fc = pytrellis.FixedConnection()
-                    fc.source, fc.sink = norm_arc
-                    tile_dbs[config.tiles[0]].add_fixed_conn(fc)
+            if (not full_mux_style) or len(fuzz_arcs) == 1:
+                if len(diff) == 0:
+                    # No difference means fixed interconnect
+                    # We consider this to be in the first tile if multiple tiles are being analysed
+                    if fc_predicate(arc, netnames):
+                        norm_arc = normalise_arc_in_tile(config.tiles[0], arc)
+                        fc = pytrellis.FixedConnection()
+                        norm_arc = [fc_prefix + _ if not _.startswith("G_") else _ for _ in norm_arc]
+                        fc.source, fc.sink = norm_arc
+                        tile_dbs[config.tiles[0]].add_fixed_conn(fc)
+                else:
+                    for tile in config.tiles:
+                        if tile in diff:
+                            # Configurable interconnect in <tile>
+                            norm_arc = normalise_arc_in_tile(tile, arc)
+                            ad = pytrellis.ArcData()
+                            ad.source, ad.sink = norm_arc
+                            ad.bits = pytrellis.BitGroup(diff[tile])
+                            tile_dbs[tile].add_mux_arc(ad)
             else:
+                arc_tiles[arc] = {}
                 for tile in config.tiles:
                     if tile in diff:
-                        # Configurable interconnect in <tile>
-                        norm_arc = normalise_arc_in_tile(tile, arc)
-                        ad = pytrellis.ArcData()
-                        ad.source, ad.sink = norm_arc
-                        ad.bits = pytrellis.BitGroup(diff[tile])
-                        tile_dbs[tile].add_mux_arc(ad)
+                        tiles_changed.add(tile)
+                        for bit in diff[tile]:
+                            changed_bits.add((tile, bit.frame, bit.bit))
+                        arc_tiles[arc][tile] = arc_chip.tiles[tile]
+
+        if full_mux_style and len(fuzz_arcs) > 1:
+            for tile in tiles_changed:
+                for arc in arc_tiles:
+                    bg = pytrellis.BitGroup()
+                    for (btile, bframe, bbit) in changed_bits:
+                        if btile == tile:
+                            state = arc_tiles[arc][tile].cram.bit(bframe, bbit)
+                            cb = pytrellis.ConfigBit()
+                            cb.frame = bframe
+                            cb.bit = bbit
+                            cb.inv = (state == 0)
+                            bg.bits.add(cb)
+                    ad = pytrellis.ArcData()
+                    ad.source, ad.sink = normalise_arc_in_tile(tile, arc)
+                    ad.bits = bg
+                    tile_dbs[tile].add_mux_arc(ad)
         # Flush database to disk
         for tile, db in tile_dbs.items():
             db.save()
