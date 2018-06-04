@@ -161,7 +161,7 @@ def fuzz_interconnect_with_netnames(
                         tiles_changed.add(tile)
                         for bit in diff[tile]:
                             changed_bits.add((tile, bit.frame, bit.bit))
-                        arc_tiles[arc][tile] = arc_chip.tiles[tile]
+                    arc_tiles[arc][tile] = arc_chip.tiles[tile]
 
         if full_mux_style and len(fuzz_arcs) > 1:
             for tile in tiles_changed:
