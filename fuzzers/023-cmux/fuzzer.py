@@ -10,7 +10,8 @@ jobs = [
                                  "MIB_R58C41:CMUX_LR_0", "MIB_R58C42:EBR_CMUX_LR"]),
         "cmux_outputs": ["R22C40_ULPCLK{}", "R22C40_URPCLK{}", "R46C40_LLPCLK{}", "R46C40_LRPCLK{}"],
         "dcc_loc": "R34C40",
-        "dcs_loc": "R34C40"
+        "dcs_loc": "R34C40",
+        "prefix": "45K_"
     }
 ]
 
@@ -32,8 +33,6 @@ def get_sinks(job):
         sinks.append("{}_CLK1_DCS{}".format(loc, dcs))
         sinks.append("{}_DCS{}CLK0".format(loc, dcs))
         sinks.append("{}_DCS{}CLK1".format(loc, dcs))
-        sinks.append("{}_DCS{}CLK0".format(loc, dcs))
-        sinks.append("{}_DCS{}CLK1".format(loc, dcs))
         sinks.append("{}_DCS{}".format(loc, dcs))
         sinks.append("{}_JSEL0_DCS{}".format(loc, dcs))
         sinks.append("{}_JSEL1_DCS{}".format(loc, dcs))
@@ -48,7 +47,9 @@ def main():
         cfg.setup()
         netnames = get_sinks(job)
         interconnect.fuzz_interconnect_with_netnames(config=cfg, netnames=netnames,
-                                                     netname_filter_union=False)
+                                                     netname_filter_union=False,
+                                                     full_mux_style=True,
+                                                     fc_prefix=job["prefix"])
 
 
 if __name__ == "__main__":
