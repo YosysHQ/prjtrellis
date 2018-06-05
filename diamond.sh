@@ -182,5 +182,4 @@ cp "$2.tmp"/par_impl.twr "$2.twr"
 
 if [ -z "$USE_NCL" ]; then
 cp "$2.tmp"/output.ncl "$2_out.ncl"
-cp "$2.tmp"/output.incd "$2.incd"
 fi
