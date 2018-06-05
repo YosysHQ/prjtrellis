@@ -333,8 +333,12 @@ TileConfig TileBitDatabase::tile_cram_to_config(const CRAMView &tile) const {
     }
     for (int f = 0; f < tile.frames(); f++) {
         for (int b = 0; b < tile.bits(); b++) {
-            if (tile.bit(f, b) && (coverage.find(ConfigBit{f, b, false}) == coverage.end())) {
+            if (tile.bit(f, b)) {
+              if(coverage.find(ConfigBit{f, b, false}) == coverage.end()) {
                 cfg.cunknowns.push_back(ConfigUnknown{f, b});
+              } else {
+                cfg.total_known_bits++;
+              }
             }
         }
     };

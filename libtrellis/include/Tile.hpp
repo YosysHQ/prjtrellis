@@ -63,6 +63,9 @@ public:
 
     // Dump the tile textual config as a string
     string dump_config() const;
+    // Set by dump_config
+    mutable int known_bits = 0;
+    mutable int unknown_bits = 0;
 };
 
 }
