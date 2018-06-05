@@ -5,7 +5,6 @@ import pytrellis
 import re
 import fuzzloops
 
-
 cfg = FuzzConfig(job="PIOCONFIG", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
                  tiles=["MIB_R59C0:PICL0", "MIB_R60C0:PICL1", "MIB_R61C0:PICL2"])
 
@@ -101,10 +100,16 @@ def main():
         for iodir in ("INPUT", "OUTPUT", "BIDIR"):
             modes += [iodir + "_" + _ for _ in get_io_types(iodir, pio, side)]
 
-        nonrouting.fuzz_enum_setting(cfg, "PIO{}.TYPE".format(pio), modes,
+        nonrouting.fuzz_enum_setting(cfg, "PIO{}.BASE_TYPE".format(pio), modes,
                                      lambda x: get_substs(iomode=x),
                                      empty_bitfile, False)
 
+        nonrouting.fuzz_enum_setting(cfg, "PIO{}.PULLMODE".format(pio), ["UP", "DOWN", "NONE"],
+                                     lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("PULLMODE", x)),
+                                     empty_bitfile)
+        nonrouting.fuzz_enum_setting(cfg, "PIO{}.SLEWRATE".format(pio), ["FAST", "SLOW"],
+                                     lambda x: get_substs(iomode="OUTPUT_LVCMOS33", extracfg=("SLEWRATE", x)),
+                                     empty_bitfile)
     fuzzloops.parallel_foreach(pins, per_pin)
 
 
