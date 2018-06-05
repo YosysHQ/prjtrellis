@@ -14,6 +14,8 @@ import database
 import devices
 import html_tilegrid
 import html_bits
+import fuzzloops
+
 
 trellis_docs_index = """
 <html>
@@ -61,11 +63,12 @@ tiles = {
                             "MIB_EBR3", "MIB_EBR4", "MIB_EBR5", "MIB_EBR6", "MIB_EBR7", "MIB_EBR8", "PICL0", "PICL1",
                             "PICL2"],
     ("ECP5", "LFE5U-45F"): ["EBR_SPINE_UL1", "EBR_SPINE_UL0", "EBR_SPINE_UR0", "EBR_SPINE_UR1", "EBR_SPINE_LL1",
-                            "EBR_SPINE_LL0", "EBR_SPINE_LR0", "EBR_SPINE_LR1", "CIB", "CIB_DSP", "CIB_EFB0", "CIB_EFB1",
-                            "CIB_LR", "CIB_LR_S", "CIB_PLL0", "CIB_PLL1", "CIB_PLL2", "CIB_PLL3", "VCIB_DCU0",
-                            "VCIB_DCU1", "VCIB_DCU2", "VCIB_DCU3", "VCIB_DCUA", "VCIB_DCUB", "VCIB_DCUC", "VCIB_DCUD",
-                            "VCIB_DCUF", "VCIB_DCUG", "VCIB_DCUH", "VCIB_DCUI", "EBR_CMUX_UL", "CMUX_UL_0", "CMUX_UR_0",
-                            "EBR_CMUX_UR", "EBR_CMUX_LL", "CMUX_LL_0", "CMUX_LR_0", "EBR_CMUX_LR"]
+                            "EBR_SPINE_LL0", "EBR_SPINE_LR0", "EBR_SPINE_LR1", "CIB", "CIB_EBR", "CIB_DSP", "CIB_EFB0",
+                            "CIB_EFB1", "CIB_LR", "CIB_LR_S", "CIB_PLL0", "CIB_PLL1", "CIB_PLL2", "CIB_PLL3",
+                            "VCIB_DCU0", "VCIB_DCU1", "VCIB_DCU2", "VCIB_DCU3", "VCIB_DCUA", "VCIB_DCUB", "VCIB_DCUC",
+                            "VCIB_DCUD", "VCIB_DCUF", "VCIB_DCUG", "VCIB_DCUH", "VCIB_DCUI", "EBR_CMUX_UL", "CMUX_UL_0",
+                            "CMUX_UR_0", "EBR_CMUX_UR", "EBR_CMUX_LL", "CMUX_LL_0", "CMUX_LR_0", "EBR_CMUX_LR",
+                            "LMID_0", "RMID_0", "TMID_0", "TMID_1", "BMID_0V", "BMID_2V"]
 }
 
 
