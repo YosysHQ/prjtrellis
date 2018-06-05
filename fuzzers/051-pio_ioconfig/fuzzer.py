@@ -7,9 +7,9 @@ import fuzzloops
 
 
 cfg = FuzzConfig(job="PIOCONFIG", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
-                 tiles=["MIB_R47C0:PICL0", "MIB_R48C0:PICL1", "MIB_R49C0:PICL2"])
+                 tiles=["MIB_R59C0:PICL0", "MIB_R60C0:PICL1", "MIB_R61C0:PICL2"])
 
-pins = [("P4", "A"), ("P5", "B"), ("P6", "C"), ("P7", "D")]
+pins = [("M4", "A"), ("N5", "B"), ("N4", "C"), ("P5", "D")]
 
 
 def get_io_types(dir, pio, side):
@@ -42,7 +42,6 @@ def get_io_types(dir, pio, side):
             "HSUL12D",
             "LVCMOS33D",
             "LVCMOS25D",
-            "LVCMOS18D"
         ]
         if dir == "INPUT":
             types += [
@@ -51,11 +50,12 @@ def get_io_types(dir, pio, side):
                 "MLVDS25",
                 "LVPECL33",
                 "SLVS",
-                "SUBLVDS"
+                "SUBLVDS",
+                "LVCMOS18D"
             ]
         elif dir == "OUTPUT":
             if pio == "A":
-                types += ["LVDS"]
+                types += ["LVDS", "LVCMOS18D"]
             types += [
                 "LVDS25E",
                 "BLVDS25E",
@@ -64,7 +64,7 @@ def get_io_types(dir, pio, side):
             ]
         elif dir == "BIDIR":
             if pio == "A":
-                types += ["LVDS"]
+                types += ["LVDS", "LVCMOS18D"]
             types += [
                 "BLVDS25E",
                 "MLVDS25E",
@@ -83,7 +83,10 @@ def main():
         loc, pio = pin
 
         def get_substs(iomode, extracfg=None):
-            iodir, type = iomode.split("_", 1)
+            if iomode == "NONE":
+                iodir, type = "NONE", ""
+            else:
+                iodir, type = iomode.split("_", 1)
             substs = {
                 "dir": iodir,
                 "io_type": type,
@@ -94,13 +97,13 @@ def main():
                 substs["extra_attrs"] = '(* {}="{}" *)'.format(extracfg[0], extracfg[1])
             return substs
 
-        modes = []
+        modes = ["NONE"]
         for iodir in ("INPUT", "OUTPUT", "BIDIR"):
             modes += [iodir + "_" + _ for _ in get_io_types(iodir, pio, side)]
 
         nonrouting.fuzz_enum_setting(cfg, "PIO{}.TYPE".format(pio), modes,
                                      lambda x: get_substs(iomode=x),
-                                     empty_bitfile)
+                                     empty_bitfile, False)
 
     fuzzloops.parallel_foreach(pins, per_pin)
 

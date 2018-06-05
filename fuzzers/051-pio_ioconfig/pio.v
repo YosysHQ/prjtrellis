@@ -1,6 +1,24 @@
-module top(inout pad);
-
 `define ${dir}
+
+`ifdef NONE
+
+module top(input x);
+
+// Minimum legal empty module
+wire dummy;
+
+// Dummy load
+GSR gsr_i(.GSR(dummy));
+
+// Dummy source
+OSCG osc_i(.OSC(dummy));
+
+
+endmodule
+
+`else
+
+module top(inout pad);
 
 `ifdef BIDIR
 
@@ -46,3 +64,5 @@ OB o_b(.O(pad), .I(1'b1));
 `endif
 
 endmodule
+
+`endif
