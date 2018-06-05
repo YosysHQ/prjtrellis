@@ -168,15 +168,18 @@ if [ -z "$USE_NCL" ]; then
 # convert ngd to ncl
 "$FOUNDRY"/userware/unix/bin/lin64/ncd2ncl par_impl.ncd output.ncl
 
-# run incdelay
-"$fpgabindir"/incdelay -d par_impl.ncd > output.incd
 fi
+
+# run trce
+"$fpgabindir"/trce par_impl.ncd
 
 export LD_LIBRARY_PATH=""
 )
 
 cp "$2.tmp"/output.bit "$2.bit"
 cp "$2.tmp"/output.dump "$2.dump"
+cp "$2.tmp"/par_impl.twr "$2.twr"
+
 if [ -z "$USE_NCL" ]; then
 cp "$2.tmp"/output.ncl "$2_out.ncl"
 cp "$2.tmp"/output.incd "$2.incd"
