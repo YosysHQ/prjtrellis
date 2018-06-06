@@ -53,7 +53,7 @@ jobs = [
     },
     {
         "cfg": FuzzConfig(job="PIOB", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
-                          tiles=["MIB_R71C9:PICB0", "MIB_R71C9:PICB1"]),
+                          tiles=["MIB_R71C9:PICB0", "MIB_R71C10:PICB1"]),
         "side": "B",
         "pins": [("W1", "A"), ("Y2", "B")]
     },
@@ -126,6 +126,13 @@ def get_io_types(dir, pio, side):
     return types
 
 
+def get_cfg_vccio(iotype):
+    m = re.match(r".*(\d)(\d)$", iotype)
+    if not m:
+        return "3.3"
+    return "{}.{}".format(m.group(1), m.group(2))
+
+
 def main():
     pytrellis.load_database("../../database")
     for job in jobs:
@@ -148,10 +155,13 @@ def main():
                     "dir": iodir,
                     "io_type": type,
                     "loc": loc,
-                    "extra_attrs": ""
+                    "extra_attrs": "",
+                    "cfg_vio": "3.3"
                 }
                 if extracfg is not None:
                     substs["extra_attrs"] = '(* {}="{}" *)'.format(extracfg[0], extracfg[1])
+                if side == "B":
+                    substs["cfg_vio"] = get_cfg_vccio(type)
                 return substs
 
             modes = ["NONE"]
