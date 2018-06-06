@@ -29,7 +29,7 @@ jobs = [
         "cfg": FuzzConfig(job="PIOL_DQS23", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
                           tiles=["MIB_R17C0:PICL0_DQS2", "MIB_R18C0:PICL1_DQS3", "MIB_R19C0:PICL2"]),
         "side": "L",
-        "pins": [("E4", "A"), ("C3", "B"), ("D5", "C"), ("D3", "D")]
+        "pins": [("E4", "A"), ("D5", "B"), ("C3", "C"), ("D3", "D")]
     },
     {
         "cfg": FuzzConfig(job="PIOR", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
