@@ -91,6 +91,17 @@ def setword_html(word, f):
     print('</table>', file=f)
 
 
+def nice_sort(x):
+    if x == "NONE":
+        return -1, ""
+    else:
+        n = re.findall('\d+', x)
+        if len(n) > 0:
+            return int("".join(n)), x
+        else:
+            return 0, x
+
+
 def setenum_html(enum, f):
     print('<h3 id="enum_{}">Configuration Setting {}</h3>'.format(enum.name, enum.name), file=f)
     if enum.defval != "":
@@ -119,11 +130,8 @@ def setenum_html(enum, f):
                 ttrow.append("-")
         truthtable.append((opt, ttrow))
     trstyle = ""
-    if re.match(r"PIO.\.BASE_TYPE", enum.name):
-        sorted_tt = sorted(truthtable, key=lambda x: x[0])
-    else:
-        sorted_tt = sorted(truthtable, key=lambda x: "".join(reversed(x[1])).replace("-", "0"))
-    for (opt, ttrow) in sorted_tt:
+    tt_sorted = sorted(truthtable, key=lambda x: nice_sort(x[0]))
+    for (opt, ttrow) in tt_sorted:
         trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
         print('<tr {}><td>{}</td>'.format(trstyle, opt), file=f)
         for bit in ttrow:
@@ -159,7 +167,8 @@ def fixed_conns_html(db, f):
         print("<h3>Fixed Connections</h3>", file=f)
         print('<table class="fconn" style="border-spacing:0"><tr><th>Source</th><th></th><th>Sink</th></tr>', file=f)
         trstyle = ""
-        for conn in conns:
+        sorted_conns = sorted(conns, key=lambda x: re.sub(r"^([NESW]\d+)+_", "", x.sink))
+        for conn in sorted_conns:
             trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
             print(
                 """<tr {}><td style="padding-left: 10px; padding-right: 10px; margin-left: 0px;">{}</td><td>&rarr;</td>
