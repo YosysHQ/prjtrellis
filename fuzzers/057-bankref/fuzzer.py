@@ -110,17 +110,17 @@ def main():
                                      lambda x: get_substs(iomode=vcco_opts[x]),
                                      empty_bitfile)
         if side in ('L', 'R'):
-            nonrouting.fuzz_enum_setting(cfg, "BANK.DIFF", ["OFF", "ON"],
+            nonrouting.fuzz_enum_setting(cfg, "BANK.DIFF_REF", ["OFF", "ON"],
                                          lambda x: get_substs(
-                                             iomode="OUTPUT_LVCMOS33D" if x == "ON" else "OUTPUT_LVCMOS33"),
+                                             iomode="INPUT_LVCMOS33D" if x == "ON" else "INPUT_LVCMOS33"),
                                          empty_bitfile)
-            nonrouting.fuzz_enum_setting(cfg, "BANK.LVDS", ["OFF", "ON"],
+            nonrouting.fuzz_enum_setting(cfg, "BANK.LVDSO", ["OFF", "ON"],
                                          lambda x: get_substs(
-                                             iomode="INPUT_LVDS" if x == "ON" else "NONE"),
+                                             iomode="OUTPUT_LVDS" if x == "ON" else "OUTPUT_LVCMOS25D"),
                                          empty_bitfile)
             nonrouting.fuzz_enum_setting(cfg, "BANK.VREF", ["OFF", "ON"],
                                          lambda x: get_substs(
-                                             iomode="INPUT_SSTL15_II" if x == "ON" else "INPUT_LVCMOS15"),
+                                             iomode="INPUT_SSTL15_II" if x == "ON" else "INPUT_LVDS"),
                                          empty_bitfile)
 
 
