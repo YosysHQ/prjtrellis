@@ -3,6 +3,7 @@
 """Generate a HTML representation of the tile bit database"""
 
 import pytrellis
+import database
 import argparse
 import sys
 import re
@@ -36,6 +37,7 @@ def find_bits(db):
                 if (bit.frame, bit.bit) not in labels:
                     labels[bit.frame, bit.bit] = set()
                 labels[bit.frame, bit.bit].add(sink)
+
 
 def mux_html(mux, f):
     bitset = set()
@@ -117,7 +119,11 @@ def setenum_html(enum, f):
                 ttrow.append("-")
         truthtable.append((opt, ttrow))
     trstyle = ""
-    for (opt, ttrow) in sorted(truthtable, key=lambda x: "".join(reversed(x[1])).replace("-", "0")):
+    if re.match(r"PIO.\.BASE_TYPE", enum.name):
+        sorted_tt = sorted(truthtable, key=lambda x: x[0])
+    else:
+        sorted_tt = sorted(truthtable, key=lambda x: "".join(reversed(x[1])).replace("-", "0"))
+    for (opt, ttrow) in sorted_tt:
         trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
         print('<tr {}><td>{}</td>'.format(trstyle, opt), file=f)
         for bit in ttrow:
@@ -148,16 +154,22 @@ def setenums_html(db, f):
 
 
 def fixed_conns_html(db, f):
-    print("<h3>Fixed Connections</h3>", file=f)
-    print('<table class="fconn"><tr><th>Source</th><th>Sink</th></tr>', file=f)
     conns = db.get_fixed_conns()
-    trstyle = ""
-    for conn in conns:
-        trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
-        print(
-            '<tr {}><td style="padding-left: 10px; padding-right: 10px">{}</td><td style="padding-left: 10px; padding-right: 10px">{}</td></tr>'.format(
-                trstyle, conn.source, conn.sink), file=f)
-    print('</table>', file=f)
+    if len(conns) > 0:
+        print("<h3>Fixed Connections</h3>", file=f)
+        print('<table class="fconn" style="border-spacing:0"><tr><th>Source</th><th></th><th>Sink</th></tr>', file=f)
+        trstyle = ""
+        for conn in conns:
+            trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
+            print(
+                """<tr {}><td style="padding-left: 10px; padding-right: 10px; margin-left: 0px;">{}</td><td>&rarr;</td>
+                <td style="padding-left: 10px; padding-right: 10px">{}</td></tr>""".format(
+                    trstyle, conn.source, conn.sink), file=f)
+        print('</table>', file=f)
+
+
+colours = {"A": "#88FFFF", "B": "#FF88FF", "C": "#8888FF", "D": "#FFFF88", "M": "#FFBBBB", "H": "#BBBBFF",
+           "V": "#FFFFBB"}
 
 
 def get_bit_info(frame, bit):
@@ -167,7 +179,10 @@ def get_bit_info(frame, bit):
             label = group.split("_")[-1][0]
             if label == "J":
                 label = group.split("_")[-1][1]
-            colour = "#FF8888"
+            if label in colours:
+                colour = colours[label]
+            else:
+                colour = "#FF8888"
         elif group.startswith("enum") or group.startswith("word"):
             label = re.split("[_.]", group)[-1][0]
             colour = "#88FF88"
@@ -250,7 +265,7 @@ def main(argv):
         """, file=f)
     print("""<h1>{} Bit Data</h1>
     """.format(args.tile), file=f)
-    pytrellis.load_database("../database")
+    pytrellis.load_database(database.get_db_root())
     tdb = pytrellis.get_tile_bitdata(
         pytrellis.TileLocator(args.family, args.device, args.tile))
     ch = pytrellis.Chip(args.device)
