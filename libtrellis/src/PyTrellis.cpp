@@ -149,7 +149,8 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("cram", &Tile::cram)
             .def_readwrite("known_bits", &Tile::known_bits)
             .def_readwrite("unknown_bits", &Tile::unknown_bits)
-            .def("dump_config", &Tile::dump_config);
+            .def("dump_config", &Tile::dump_config)
+            .def("read_config", &Tile::read_config);
 
     // From Database.cpp
     def("load_database", load_database);
