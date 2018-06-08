@@ -139,11 +139,11 @@ but we can not do this alone, **we need your help**!
  - [X] Write fuzzing framework for configuration bit and routing fuzzing
  - [X] Fuzz logic tile init and config bits
  - [X] Fuzz logic tile routing
- - [ ] Fuzz other routing tiles (CIBs) - WIP
- - [ ] Fuzz IO tiles
- - [ ] Fuzz global clock tiles - WIP
+ - [X] Fuzz other routing tiles (CIBs)
+ - [ ] Fuzz IO tiles (WIP - base config done, IOLOGIC and advanced features not)
+ - [X] Fuzz global clock tiles (focussed on 45k only current)
  - [ ] Fuzz other function tiles (EBR, DSP, SERDES, etc)
-
+ - [ ] Look at other Lattice devices (MachXO2, ECP3, etc)
 
 # Contributing
 
