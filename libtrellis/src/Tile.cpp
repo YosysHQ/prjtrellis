@@ -20,4 +20,11 @@ string Tile::dump_config() const {
     return ss.str();
 }
 
+void Tile::read_config(string config) {
+    shared_ptr<TileBitDatabase> bitdb = get_tile_bitdata(TileLocator(info.family, info.device, info.type));
+    stringstream ss(config);
+    TileConfig tcfg;
+    ss >> tcfg;
+    bitdb->config_to_tile_cram(tcfg, cram);
+}
 }
