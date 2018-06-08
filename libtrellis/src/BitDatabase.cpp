@@ -291,13 +291,23 @@ void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile)
     for (auto arc : cfg.carcs)
         muxes.at(arc.sink).set_driver(tile, arc.source);
     set<string> found_words, found_enums;
+    // Make sure "base" enums like IO type are applied first, other settings may overlay onto them later
+    const string base_prefix = "BASE_";
+    for (auto ce : cfg.cenums) {
+        if (ce.name.substr(0, base_prefix.length()) == base_prefix) {
+            enums.at(ce.name).set_value(tile, ce.value);
+            found_enums.insert(ce.name);
+        }
+    }
     for (auto cw : cfg.cwords) {
         words.at(cw.name).set_value(tile, cw.value);
         found_words.insert(cw.name);
     }
     for (auto ce : cfg.cenums) {
-        enums.at(ce.name).set_value(tile, ce.value);
-        found_enums.insert(ce.name);
+        if (ce.name.substr(0, base_prefix.length()) != base_prefix) {
+            enums.at(ce.name).set_value(tile, ce.value);
+            found_enums.insert(ce.name);
+        }
     }
     for (auto unk : cfg.cunknowns) {
         tile.bit(unk.frame, unk.bit) = 1;
