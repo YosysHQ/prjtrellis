@@ -7,7 +7,7 @@ import tiles
 import pytrellis
 
 
-def fuzz_word_setting(config, name, length, get_ncl_substs, empty_bitfile = None):
+def fuzz_word_setting(config, name, length, get_ncl_substs, empty_bitfile=None):
     """
     Fuzz a multi-bit setting, such as LUT initialisation
 
@@ -30,7 +30,7 @@ def fuzz_word_setting(config, name, length, get_ncl_substs, empty_bitfile = None
     baseline_chip = pytrellis.Bitstream.read_bit(baseline_bitf).deserialise_chip()
 
     wsb = {tile: pytrellis.WordSettingBits() for tile in
-        config.tiles}
+           config.tiles}
     is_empty = {tile: True for tile in config.tiles}
     for t in config.tiles:
         wsb[t].name = name
@@ -55,7 +55,7 @@ def fuzz_word_setting(config, name, length, get_ncl_substs, empty_bitfile = None
             tile_dbs[t].save()
 
 
-def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile = None, include_zeros = True):
+def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile=None, include_zeros=True):
     """
     Fuzz a setting with multiple possible values
 
@@ -78,19 +78,22 @@ def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile = None
         none_chip = None
 
     changed_bits = set()
-    chips = {}
+    prev_tiles = {}
     tiles_changed = set()
     for val in values:
+        print("****** Fuzzing {} = {} ******".format(name, val))
         bit_bitf = config.build_design(config.ncl, get_ncl_substs(val), prefix)
         bit_chip = pytrellis.Bitstream.read_bit(bit_bitf).deserialise_chip()
-        for prev in chips.values():
-            diff = bit_chip - prev
+        for prev in prev_tiles.values():
             for tile in config.tiles:
-                if tile in diff:
+                diff = bit_chip.tiles[tile].cram - prev[tile]
+                if len(diff) > 0:
                     tiles_changed.add(tile)
-                    for bit in diff[tile]:
+                    for bit in diff:
                         changed_bits.add((tile, bit.frame, bit.bit))
-        chips[val] = bit_chip
+        prev_tiles[val] = {}
+        for tile in config.tiles:
+            prev_tiles[val][tile] = bit_chip.tiles[tile].cram
 
     for tile in tiles_changed:
         esb = pytrellis.EnumSettingBits()
@@ -99,8 +102,9 @@ def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile = None
             bg = pytrellis.BitGroup()
             for (btile, bframe, bbit) in changed_bits:
                 if btile == tile:
-                    state = chips[val].tiles[tile].cram.bit(bframe, bbit)
-                    if state == 0 and not include_zeros:
+                    state = prev_tiles[val][tile].bit(bframe, bbit)
+                    if state == 0 and not include_zeros and (
+                            none_chip is not None and not none_chip.tiles[tile].cram.bit(bframe, bbit)):
                         continue
                     cb = pytrellis.ConfigBit()
                     cb.frame = bframe
@@ -112,4 +116,3 @@ def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile = None
                 esb.defval = val
         tile_dbs[tile].add_setting_enum(esb)
         tile_dbs[tile].save()
-

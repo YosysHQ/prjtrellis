@@ -13,9 +13,18 @@ Tile::Tile(Trellis::TileInfo info, Trellis::Chip &parent) : info(info), cram(par
 string Tile::dump_config() const {
     shared_ptr<TileBitDatabase> bitdb = get_tile_bitdata(TileLocator(info.family, info.device, info.type));
     TileConfig cfg = bitdb->tile_cram_to_config(cram);
+    known_bits = cfg.total_known_bits;
+    unknown_bits = int(cfg.cunknowns.size());
     stringstream ss;
     ss << cfg;
     return ss.str();
 }
 
+void Tile::read_config(string config) {
+    shared_ptr<TileBitDatabase> bitdb = get_tile_bitdata(TileLocator(info.family, info.device, info.type));
+    stringstream ss(config);
+    TileConfig tcfg;
+    ss >> tcfg;
+    bitdb->config_to_tile_cram(tcfg, cram);
+}
 }

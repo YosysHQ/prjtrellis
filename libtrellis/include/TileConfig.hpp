@@ -69,7 +69,7 @@ struct TileConfig {
     vector<ConfigWord> cwords;
     vector<ConfigEnum> cenums;
     vector<ConfigUnknown> cunknowns;
-
+    int total_known_bits = 0;
 };
 
 ostream &operator<<(ostream &out, const TileConfig &tc);
