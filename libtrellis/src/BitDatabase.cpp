@@ -222,7 +222,7 @@ boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile, boost::
     } else {
         if (coverage)
             bestmatch->second.add_coverage(*coverage);
-        if (defval && *defval == bestmatch->first) {
+        if (defval && (options.at(*defval) == bestmatch->second)) {
             return boost::optional<string>();
         } else {
             return boost::optional<string>(bestmatch->first);
