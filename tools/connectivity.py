@@ -121,6 +121,8 @@ def main():
     hist_buf = []
     while True:
         net = input("> ")
+        if net.strip() == "":
+            continue
         if net == "quit":
             return
         if net.isdigit():
@@ -130,6 +132,9 @@ def main():
                 continue
             else:
                 net = hist_buf[idx]
+        if not tile_net_re.match(net):
+            print("Bad netname, expected RyCx_...")
+            continue
         hist_buf = []
         fi = get_fanin(net)
         for drv in fi:
