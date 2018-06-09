@@ -96,8 +96,7 @@ capability in them.
 
 The inputs to spine tiles from the quadrant's centre mux are named **qqPCLK0** through **qqPCLK15**.
 
-The outputs are named **LHPRX0000** through **LHPRX15000** for left side spine tiles, and **RHPRX0000** through
-**RHPRX1500** for right side spine tiles, which feed one row of TAP_DRIVEs.
+The outputs are named **VPTX0000** through **VPTX15000**, which feed a column of tap drives.
 
 TAP_DRIVE Tiles
 ---------------
@@ -110,9 +109,8 @@ about 20 tiles, 10 to the left and 10 to the right.
 Like spine tiles, TAP_DRIVE tiles have a 1:1 input-output mapping and only offer the ability to turn on/of buffers
 to save power.
 
-The inputs to the TAP_DRIVE tiles from the spine are named **HPRX0000** through **HPRX1500**. The outputs feeding
-tiles to the left are named **LVPTX0000** through **LVPTX1500**, and the outputs feeding tiles to the right are named
-**RVPTX0000** through **RVPTX1500**.
+The outputs are named **HPBX0000** through **HPBX15000**, with a net location on the left or right for the left or
+right outputs (signified as **L_** or **R_** in the Project Trellis database.
 
 Non-Clock Global Usage
 -----------------------
