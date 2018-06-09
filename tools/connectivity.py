@@ -3,6 +3,8 @@ import pytrellis
 import nets
 import tiles
 import database
+import readline
+import re
 
 # Interactive connectivity explorer
 # All netnames here are canonical
@@ -71,6 +73,51 @@ def main():
         return drivers
 
 
+    # Get all nets at a location
+    net_tile_cache = {}
+    non_tile_re = re.compile(r"^([NS]\d+)?([EW]\d+)?[GLR]?_.*")
+
+    def get_nets_at(loc):
+        if loc in net_tile_cache:
+            return net_tile_cache[loc]
+        row, col = loc
+        nets = set()
+        for tile in c.get_tiles_by_position(row, col):
+            tinf = tile.info
+            tdb = pytrellis.get_tile_bitdata(pytrellis.TileLocator(c.info.family, c.info.name, tinf.type))
+            for sink in tdb.get_sinks():
+                if not non_tile_re.match(sink):
+                    nets.add(sink)
+                mux = tdb.get_mux_data_for_sink(sink)
+                for src in mux.get_sources():
+                    if not non_tile_re.match(src):
+                        nets.add(src)
+            for fc in tdb.get_fixed_conns():
+                if not non_tile_re.match(fc.sink):
+                    nets.add(fc.sink)
+                if not non_tile_re.match(fc.source):
+                    nets.add(fc.source)
+        nets = list(sorted((["R{}C{}_{}".format(row, col, _) for _ in nets])))
+        net_tile_cache[loc] = nets
+        return nets
+
+    tile_net_re = re.compile(r"^R\d+C\d+_.*")
+    def completer(str, idx):
+        if not tile_net_re.match(str):
+            return None
+        loc = tiles.pos_from_name(str)
+        nets = get_nets_at(loc)
+        for n in nets:
+            if n.startswith(str):
+                if idx > 0:
+                    idx -= 1
+                else:
+                    return n
+        return None
+
+    readline.parse_and_bind("tab: complete")
+    readline.set_completer(completer)
+
     hist_buf = []
     while True:
         net = input("> ")
@@ -78,7 +125,7 @@ def main():
             return
         if net.isdigit():
             idx = int(net)
-            if idx > len(hist_buf):
+            if idx >= len(hist_buf):
                 print("Invalid index into last result")
                 continue
             else:
