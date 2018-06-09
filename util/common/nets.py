@@ -255,6 +255,41 @@ def normalise_name(chip_size, tile, wire):
         return prefix + "_" + netname
 
 
+rel_netname_re = re.compile(r'^([NS]\d+)?([EW]\d+)?_.*')
+
+
+def canonicalise_name(chip_size, tile, wire):
+    """
+    Convert a normalised name in a given tile back to a canonical global name
+    :param chip_size: chip size as tuple (max_row, max_col)
+    :param tile: tilename
+    :param wire: normalised netname
+    :return: global canonical netname
+    """
+    if wire.startswith("G_"):
+        return wire
+    m = rel_netname_re.match(wire)
+    tile_pos = tiles.pos_from_name(tile)
+    wire_pos = tile_pos
+    if m:
+        assert len(m.groups()) >= 1
+        for g in m.groups():
+            if g is not None:
+                delta = int(g[1:])
+                if g[0] == "N":
+                    wire_pos = (wire_pos[0] - delta, wire_pos[1])
+                elif g[0] == "S":
+                    wire_pos = (wire_pos[0] + delta, wire_pos[1])
+                elif g[0] == "W":
+                    wire_pos = (wire_pos[0], wire_pos[1] - delta)
+                elif g[0] == "E":
+                    wire_pos = (wire_pos[0], wire_pos[1] + delta)
+        wire = wire.split("_", 1)[1]
+    if wire_pos[0] < 0 or wire_pos[0] > chip_size[0] or wire_pos[1] < 0 or wire_pos[1] > chip_size[1]:
+        return None #TODO: edge normalisation
+    return "R{}C{}_{}".format(wire_pos[0], wire_pos[1], wire)
+
+
 def main():
     assert is_global("R2C7_HPBX0100")
     assert is_global("R24C12_VPTX0700")
