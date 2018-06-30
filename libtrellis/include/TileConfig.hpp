@@ -70,6 +70,14 @@ struct TileConfig {
     vector<ConfigEnum> cenums;
     vector<ConfigUnknown> cunknowns;
     int total_known_bits = 0;
+
+    void add_arc(const string &sink, const string &source);
+    void add_word(const string &name, const vector<bool> &value);
+    void add_enum(const string &name, const string &value);
+    void add_unknown(int frame, int bit);
+
+    string to_string() const;
+    static TileConfig from_string(const string &str);
 };
 
 ostream &operator<<(ostream &out, const TileConfig &tc);
