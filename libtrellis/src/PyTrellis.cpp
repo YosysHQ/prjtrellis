@@ -234,11 +234,20 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("get_settings_enums", &TileBitDatabase::get_settings_enums)
             .def("get_data_for_enum", &TileBitDatabase::get_data_for_enum)
             .def("get_fixed_conns", &TileBitDatabase::get_fixed_conns)
+            .def("get_downhill_wires", &TileBitDatabase::get_downhill_wires)
             .def("add_mux_arc", &TileBitDatabase::add_mux_arc)
             .def("add_setting_word", &TileBitDatabase::add_setting_word)
             .def("add_setting_enum", &TileBitDatabase::add_setting_enum)
             .def("add_fixed_conn", &TileBitDatabase::add_fixed_conn)
             .def("save", &TileBitDatabase::save);
+
+    typedef pair<string, bool> StringBoolPair;
+    class_<StringBoolPair>("StringBoolPair")
+            .def_readwrite("first", &StringBoolPair::first)
+            .def_readwrite("second", &StringBoolPair::second);
+
+    class_<vector<StringBoolPair>>("StringBoolPairVector")
+            .def(vector_indexing_suite<vector<StringBoolPair>>());
 
     // From TileConfig.hpp
     class_<ConfigArc>("ConfigArc")
