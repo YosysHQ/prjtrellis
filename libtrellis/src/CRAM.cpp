@@ -25,6 +25,14 @@ CRAMView::CRAMView(shared_ptr<vector<vector<char>>> data, int frame_offset, int 
         : frame_offset(frame_offset), bit_offset(bit_offset), frame_count(frame_count),
           bit_count(bit_count), cram_data(data) {}
 
+void CRAMView::clear() {
+    for (int i = 0; i < frame_count; i++) {
+        for (int j = 0; j < bit_count; j++) {
+            bit(i, j) = 0;
+        }
+    }
+}
+
 CRAMDelta operator-(const CRAMView &a, const CRAMView &b) {
     if ((a.bits() != b.bits()) || (a.frames() != b.frames()))
         throw runtime_error("cannot compare CRAMViews of different sizes");
@@ -63,4 +71,5 @@ int CRAM::bits() const { return int(data->at(0).size()); }
 CRAMView CRAM::make_view(int frame_offset, int bit_offset, int frame_count, int bit_count) {
     return CRAMView(data, frame_offset, bit_offset, frame_count, bit_count);
 }
+
 }

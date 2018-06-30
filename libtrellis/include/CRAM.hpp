@@ -36,6 +36,9 @@ public:
     // Return the number of bits inside the view
     int bits() const;
 
+    // Clear the CRAM region
+    void clear();
+
     friend CRAMDelta operator-(const CRAMView &a, const CRAMView &b);
 
 private:
