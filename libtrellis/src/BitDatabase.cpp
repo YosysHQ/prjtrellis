@@ -457,6 +457,24 @@ vector<FixedConnection> TileBitDatabase::get_fixed_conns() const {
     return result;
 }
 
+vector<pair<string, bool>> TileBitDatabase::get_downhill_wires(const string &wire) const {
+    vector<pair<string, bool>> dhwires;
+    for (const auto &mux : muxes) {
+        for (const auto &arc : mux.second.arcs) {
+            if (arc.second.source == wire)
+                dhwires.push_back(make_pair(arc.second.sink, true));
+        }
+    }
+    for (const auto &csink : fixed_conns) {
+        for (const auto &conn : csink.second) {
+            if (conn.source == wire)
+                dhwires.push_back(make_pair(conn.sink, false));
+        }
+    }
+    return dhwires;
+}
+
+
 void TileBitDatabase::add_mux_arc(const ArcData &arc) {
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
     dirty = true;

@@ -266,6 +266,10 @@ public:
     vector<FixedConnection> get_fixed_conns() const;
     // TODO: function to get routing graph of tile
 
+    // Get a list of wires downhill in the tile of a given wire
+    // Returns pair<wire, configurable>
+    vector<pair<string, bool>> get_downhill_wires(const string &wire) const;
+
     // Add relevant items to the database
     void add_mux_arc(const ArcData &arc);
 
