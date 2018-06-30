@@ -33,8 +33,6 @@ class Autorouter:
                 hspan = int(wname[1:3])
             if wname.startswith("V") and wname[1:3].isdigit():
                 vspan = int(wname[1:3])
-            if wname.endswith("_SLICE"):
-                return []
             positions = {(npos[0], npos[1]), (npos[0] + vspan, npos[1]), (npos[0] - vspan, npos[1]),
                          (npos[0], npos[1] + hspan), (npos[0], npos[1] - hspan)}
             for pos in positions:
@@ -56,7 +54,9 @@ class Autorouter:
                         pytrellis.TileLocator(self.chip.info.family, self.chip.info.name, tinf.type))
                     downhill = tdb.get_downhill_wires(twire)
                     for sink in downhill:
-                        drivers.append((nets.canonicalise_name(self.chip_size, tname, sink.first), sink.second, tname))
+                        nn = nets.canonicalise_name(self.chip_size, tname, sink.first)
+                        if nn is not None:
+                            drivers.append((nn, sink.second, tname))
             self.dh_arc_cache[wire] = drivers
             return drivers
 
@@ -87,6 +87,7 @@ class Autorouter:
 
     # Route a net to a wire
     def route_net_to_wire(self, net, wire, config):
+        print("     Routing net '{}' to wire/pin '{}'...".format(net, wire))
         dest_pos = tiles.pos_from_name(wire)
         def get_score(x_wire):
             pos = tiles.pos_from_name(x_wire)
@@ -106,7 +107,7 @@ class Autorouter:
 
         while not routed and len(bfs_queue) > 0:
             score, curr_wire = heapq.heappop(bfs_queue)
-            print(curr_wire)
+            #print(curr_wire)
             arcs = self.get_arcs_downhill(curr_wire)
             for arc in arcs:
                 dest, cfg, loc = arc
@@ -115,6 +116,8 @@ class Autorouter:
                     routed = True
                     break
                 elif dest not in seen_wires:
+                    if dest in self.wire_to_net and self.wire_to_net[dest] != net:
+                        continue
                     backtrace[dest] = (curr_wire, arc)
                     heapq.heappush(bfs_queue, (get_score(dest), dest))
                     seen_wires.add(dest)

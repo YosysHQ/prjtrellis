@@ -113,6 +113,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("set_bit", &CRAMView::set_bit)
             .def("bits", &CRAMView::bits)
             .def("frames", &CRAMView::frames)
+            .def("clear", &CRAMView::clear)
             .def(self - self);
 
     class_<CRAM>("CRAM", init<int, int>())

@@ -4,3 +4,4 @@ ecpunpack
 *.out
 work_*/
 *.tmp/
+*.dbg
