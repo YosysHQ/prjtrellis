@@ -2,7 +2,7 @@
 #include "Util.hpp"
 #include "BitDatabase.hpp"
 #include <algorithm>
-
+#include <sstream>
 using namespace std;
 
 namespace Trellis {
@@ -94,6 +94,36 @@ istream &operator>>(istream &in, TileConfig &tc) {
         }
     }
     return in;
+}
+
+void TileConfig::add_arc(const string &sink, const string &source) {
+    carcs.push_back({sink, source});
+}
+
+void TileConfig::add_word(const string &name, const vector<bool> &value) {
+    cwords.push_back({name, value});
+}
+
+void TileConfig::add_enum(const string &name, const string &value) {
+    cenums.push_back({name, value});
+}
+
+void TileConfig::add_unknown(int frame, int bit) {
+    cunknowns.push_back({frame, bit});
+}
+
+
+string TileConfig::to_string() const {
+    stringstream ss;
+    ss << *this;
+    return ss.str();
+}
+
+TileConfig TileConfig::from_string(const string &str) {
+    stringstream ss(str);
+    TileConfig tc;
+    ss >> tc;
+    return tc;
 }
 
 }

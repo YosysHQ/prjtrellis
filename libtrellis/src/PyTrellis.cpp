@@ -267,5 +267,12 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("carcs", &TileConfig::carcs)
             .def_readwrite("cwords", &TileConfig::cwords)
             .def_readwrite("cenums", &TileConfig::cenums)
-            .def_readwrite("cunknowns", &TileConfig::cunknowns);
+            .def_readwrite("cunknowns", &TileConfig::cunknowns)
+            .def("add_arc", &TileConfig::add_arc)
+            .def("add_enum", &TileConfig::add_enum)
+            .def("add_word", &TileConfig::add_word)
+            .def("add_unknown", &TileConfig::add_unknown)
+            .def("to_string", &TileConfig::to_string)
+            .def("from_string", &TileConfig::from_string)
+            .staticmethod("from_string");
 }
