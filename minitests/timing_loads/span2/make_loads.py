@@ -131,10 +131,10 @@ timings = []
 for i in range(1, 9):
     loads = [sinks[j][0] for j in range(i)]
     route = ["R6C12_F5_SLICE.R6C12_F5",
-             "R6C12_F5.R6C11_H02W0501"]
+             "R6C12_F5.R6C11_H02W0701"]
     for j in range(i):
         destwire = sinks[j][1]
-        route.append("R6C11_H02W0501.R6C10_{}".format(destwire))
+        route.append("R6C11_H02W0701.R6C10_{}".format(destwire))
         route.append("R6C10_{}.R6C10_{}_SLICE".format(destwire, destwire))
     loads_txt = ",         \n".join(loads)
     route_txt = ",         \n".join(route)
