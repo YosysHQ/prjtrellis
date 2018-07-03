@@ -171,7 +171,7 @@ if [ -z "$USE_NCL" ]; then
 fi
 
 # run trce
-"$fpgabindir"/trce par_impl.ncd
+"$fpgabindir"/trce -v -u -c  par_impl.ncd
 
 export LD_LIBRARY_PATH=""
 )
