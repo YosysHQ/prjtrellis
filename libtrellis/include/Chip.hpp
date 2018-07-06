@@ -63,8 +63,8 @@ public:
     vector<string> metadata;
 
     // Get max row and column
-    int get_max_row();
-    int get_max_col();
+    int get_max_row() const;
+    int get_max_col() const;
 };
 
 ChipDelta operator-(const Chip &a, const Chip &b);
