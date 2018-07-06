@@ -5,7 +5,7 @@
 #include "RoutingGraph.hpp"
 #include "BitDatabase.hpp"
 #include <algorithm>
-
+#include <iostream>
 using namespace std;
 
 namespace Trellis {
@@ -88,8 +88,10 @@ ChipDelta operator-(const Chip &a, const Chip &b)
 shared_ptr<RoutingGraph> Chip::get_routing_graph()
 {
     shared_ptr<RoutingGraph> rg(new RoutingGraph(*this));
+    //cout << "Building routing graph" << endl;
     for (auto tile_entry : tiles) {
         shared_ptr<Tile> tile = tile_entry.second;
+        //cout << "    Tile " << tile->info.name << endl;
         shared_ptr<TileBitDatabase> bitdb = get_tile_bitdata(TileLocator{info.family, info.name, tile->info.type});
         bitdb->add_routing(tile->info, *rg);
     }
