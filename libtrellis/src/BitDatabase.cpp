@@ -1,6 +1,8 @@
 #include "BitDatabase.hpp"
 #include "CRAM.hpp"
 #include "TileConfig.hpp"
+#include "Tile.hpp"
+#include "RoutingGraph.hpp"
 
 #include <algorithm>
 #include <fstream>
@@ -12,7 +14,8 @@
 
 namespace Trellis {
 
-ConfigBit cbit_from_str(const string &s) {
+ConfigBit cbit_from_str(const string &s)
+{
     size_t idx = 0;
     ConfigBit b;
     if (s[idx] == '!') {
@@ -30,9 +33,11 @@ ConfigBit cbit_from_str(const string &s) {
     return b;
 }
 
-BitGroup::BitGroup() {}
+BitGroup::BitGroup()
+{}
 
-BitGroup::BitGroup(const CRAMDelta &delta) {
+BitGroup::BitGroup(const CRAMDelta &delta)
+{
     for (const auto &bit: delta) {
         if (bit.delta != 0)
             bits.insert(ConfigBit{bit.frame, bit.bit, (bit.delta < 0)});
@@ -40,30 +45,35 @@ BitGroup::BitGroup(const CRAMDelta &delta) {
 }
 
 
-bool BitGroup::match(const CRAMView &tile) const {
+bool BitGroup::match(const CRAMView &tile) const
+{
     return all_of(bits.begin(), bits.end(), [tile](const ConfigBit &b) {
         return tile.bit(b.frame, b.bit) != b.inv;
     });
 }
 
-void BitGroup::set_group(CRAMView &tile) const {
+void BitGroup::set_group(CRAMView &tile) const
+{
     for (auto bit : bits)
         tile.bit(bit.frame, bit.bit) = !bit.inv;
 }
 
-void BitGroup::clear_group(Trellis::CRAMView &tile) const {
+void BitGroup::clear_group(Trellis::CRAMView &tile) const
+{
     for (auto bit : bits)
         tile.bit(bit.frame, bit.bit) = bit.inv;
 }
 
-void BitGroup::add_coverage(Trellis::BitSet &known_bits, bool value) const {
+void BitGroup::add_coverage(Trellis::BitSet &known_bits, bool value) const
+{
     for (const auto &b : bits) {
         if (b.inv != value)
             known_bits.insert(ConfigBit{b.frame, b.bit});
     }
 }
 
-ostream &operator<<(ostream &out, const BitGroup &bits) {
+ostream &operator<<(ostream &out, const BitGroup &bits)
+{
     bool first = true;
     for (auto bit : bits.bits) {
         if (!first)
@@ -74,7 +84,8 @@ ostream &operator<<(ostream &out, const BitGroup &bits) {
     return out;
 }
 
-istream &operator>>(istream &in, BitGroup &bits) {
+istream &operator>>(istream &in, BitGroup &bits)
+{
     bits.bits.clear();
     while (!skip_check_eol(in)) {
         string s;
@@ -84,13 +95,15 @@ istream &operator>>(istream &in, BitGroup &bits) {
     return in;
 }
 
-vector<string> MuxBits::get_sources() const {
+vector<string> MuxBits::get_sources() const
+{
     vector<string> result;
     boost::copy(arcs | boost::adaptors::map_keys, back_inserter(result));
     return result;
 }
 
-boost::optional<string> MuxBits::get_driver(const CRAMView &tile, boost::optional<BitSet &> coverage) const {
+boost::optional<string> MuxBits::get_driver(const CRAMView &tile, boost::optional<BitSet &> coverage) const
+{
     boost::optional<const ArcData &> bestmatch;
     size_t bestbits = 0;
     for (const auto &arc : arcs) {
@@ -108,7 +121,8 @@ boost::optional<string> MuxBits::get_driver(const CRAMView &tile, boost::optiona
     }
 }
 
-void MuxBits::set_driver(Trellis::CRAMView &tile, const string &driver) const {
+void MuxBits::set_driver(Trellis::CRAMView &tile, const string &driver) const
+{
     auto drv = arcs.find(driver);
     if (drv == arcs.end()) {
         throw runtime_error("sink " + sink + " has no driver named " + driver);
@@ -116,7 +130,8 @@ void MuxBits::set_driver(Trellis::CRAMView &tile, const string &driver) const {
     drv->second.bits.set_group(tile);
 }
 
-ostream &operator<<(ostream &out, const MuxBits &mux) {
+ostream &operator<<(ostream &out, const MuxBits &mux)
+{
     out << ".mux " << mux.sink << endl;
     for (const auto &arc : mux.arcs) {
         out << arc.first << " " << arc.second.bits << endl;
@@ -124,7 +139,8 @@ ostream &operator<<(ostream &out, const MuxBits &mux) {
     return out;
 }
 
-istream &operator>>(istream &in, MuxBits &mux) {
+istream &operator>>(istream &in, MuxBits &mux)
+{
     in >> mux.sink;
     mux.arcs.clear();
     // Read arc source-bits pairs until end of record
@@ -138,7 +154,8 @@ istream &operator>>(istream &in, MuxBits &mux) {
 }
 
 boost::optional<vector<bool>>
-WordSettingBits::get_value(const CRAMView &tile, boost::optional<BitSet &> coverage) const {
+WordSettingBits::get_value(const CRAMView &tile, boost::optional<BitSet &> coverage) const
+{
     vector<bool> val;
     transform(bits.begin(), bits.end(), back_inserter(val), [tile, coverage](const BitGroup &b) {
         bool m = b.match(tile);
@@ -152,7 +169,8 @@ WordSettingBits::get_value(const CRAMView &tile, boost::optional<BitSet &> cover
         return boost::optional<vector<bool>>(val);
 }
 
-void WordSettingBits::set_value(Trellis::CRAMView &tile, const vector<bool> &value) const {
+void WordSettingBits::set_value(Trellis::CRAMView &tile, const vector<bool> &value) const
+{
     assert(value.size() == bits.size());
     for (size_t i = 0; i < bits.size(); i++) {
         if (value.at(i))
@@ -162,7 +180,8 @@ void WordSettingBits::set_value(Trellis::CRAMView &tile, const vector<bool> &val
     }
 }
 
-ostream &operator<<(ostream &out, const WordSettingBits &ws) {
+ostream &operator<<(ostream &out, const WordSettingBits &ws)
+{
     out << ".config " << ws.name << " " << to_string(ws.defval) << endl;
     for (const auto &bit : ws.bits) {
         out << bit << endl;
@@ -170,7 +189,8 @@ ostream &operator<<(ostream &out, const WordSettingBits &ws) {
     return out;
 }
 
-istream &operator>>(istream &in, WordSettingBits &ws) {
+istream &operator>>(istream &in, WordSettingBits &ws)
+{
     in >> ws.name;
     bool have_default = false;
     if (!skip_check_eol(in)) {
@@ -190,25 +210,29 @@ istream &operator>>(istream &in, WordSettingBits &ws) {
     return in;
 }
 
-void EnumSettingBits::set_defval(string val) {
+void EnumSettingBits::set_defval(string val)
+{
     defval = val;
 }
 
 
-string EnumSettingBits::get_defval() const {
+string EnumSettingBits::get_defval() const
+{
     if (defval)
         return *defval;
     else
         return "";
 }
 
-vector<string> EnumSettingBits::get_options() const {
+vector<string> EnumSettingBits::get_options() const
+{
     vector<string> result;
     boost::copy(options | boost::adaptors::map_keys, back_inserter(result));
     return result;
 }
 
-boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile, boost::optional<BitSet &> coverage) const {
+boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile, boost::optional<BitSet &> coverage) const
+{
     boost::optional<const pair<const string, BitGroup> &> bestmatch;
     size_t bestbits = 0;
     for (const auto &opt : options) {
@@ -230,12 +254,14 @@ boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile, boost::
     }
 }
 
-void EnumSettingBits::set_value(Trellis::CRAMView &tile, const string &value) const {
+void EnumSettingBits::set_value(Trellis::CRAMView &tile, const string &value) const
+{
     auto grp = options.at(value);
     grp.set_group(tile);
 }
 
-ostream &operator<<(ostream &out, const EnumSettingBits &es) {
+ostream &operator<<(ostream &out, const EnumSettingBits &es)
+{
     out << ".config_enum " << es.name;
     if (es.defval)
         out << " " << *(es.defval);
@@ -246,7 +272,8 @@ ostream &operator<<(ostream &out, const EnumSettingBits &es) {
     return out;
 }
 
-istream &operator>>(istream &in, EnumSettingBits &es) {
+istream &operator>>(istream &in, EnumSettingBits &es)
+{
     in >> es.name;
     if (!skip_check_eol(in)) {
         string s;
@@ -265,18 +292,21 @@ istream &operator>>(istream &in, EnumSettingBits &es) {
     return in;
 }
 
-ostream &operator<<(ostream &out, const FixedConnection &es) {
+ostream &operator<<(ostream &out, const FixedConnection &es)
+{
     out << ".fixed_conn " << es.sink << " " << es.source << endl;
     return out;
 }
 
-istream &operator>>(istream &in, FixedConnection &es) {
+istream &operator>>(istream &in, FixedConnection &es)
+{
     in >> es.sink >> es.source;
     return in;
 }
 
 
-TileBitDatabase::TileBitDatabase(const string &filename) : filename(filename) {
+TileBitDatabase::TileBitDatabase(const string &filename) : filename(filename)
+{
 #ifdef FUZZ_SAFETY_CHECK
     ip_db_lock = boost::interprocess::file_lock(filename.c_str());
     bool lck = ip_db_lock.try_lock();
@@ -286,7 +316,8 @@ TileBitDatabase::TileBitDatabase(const string &filename) : filename(filename) {
     load();
 }
 
-void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile) const {
+void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile) const
+{
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     for (auto arc : cfg.carcs)
         muxes.at(arc.sink).set_driver(tile, arc.source);
@@ -322,7 +353,8 @@ void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile)
                 e.second.set_value(tile, *e.second.defval);
 }
 
-TileConfig TileBitDatabase::tile_cram_to_config(const CRAMView &tile) const {
+TileConfig TileBitDatabase::tile_cram_to_config(const CRAMView &tile) const
+{
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     TileConfig cfg;
     BitSet coverage;
@@ -344,18 +376,19 @@ TileConfig TileBitDatabase::tile_cram_to_config(const CRAMView &tile) const {
     for (int f = 0; f < tile.frames(); f++) {
         for (int b = 0; b < tile.bits(); b++) {
             if (tile.bit(f, b)) {
-              if(coverage.find(ConfigBit{f, b, false}) == coverage.end()) {
-                cfg.cunknowns.push_back(ConfigUnknown{f, b});
-              } else {
-                cfg.total_known_bits++;
-              }
+                if (coverage.find(ConfigBit{f, b, false}) == coverage.end()) {
+                    cfg.cunknowns.push_back(ConfigUnknown{f, b});
+                } else {
+                    cfg.total_known_bits++;
+                }
             }
         }
     };
     return cfg;
 }
 
-void TileBitDatabase::load() {
+void TileBitDatabase::load()
+{
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
     ifstream in(filename);
     if (!in) {
@@ -389,7 +422,8 @@ void TileBitDatabase::load() {
     }
 }
 
-void TileBitDatabase::save() {
+void TileBitDatabase::save()
+{
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
     ofstream out(filename);
     if (!out) {
@@ -410,43 +444,50 @@ void TileBitDatabase::save() {
     dirty = false;
 }
 
-vector<string> TileBitDatabase::get_sinks() const {
+vector<string> TileBitDatabase::get_sinks() const
+{
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     vector<string> result;
     boost::copy(muxes | boost::adaptors::map_keys, back_inserter(result));
     return result;
 }
 
-MuxBits TileBitDatabase::get_mux_data_for_sink(const string &sink) const {
+MuxBits TileBitDatabase::get_mux_data_for_sink(const string &sink) const
+{
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     return muxes.at(sink);
 }
 
-vector<string> TileBitDatabase::get_settings_words() const {
+vector<string> TileBitDatabase::get_settings_words() const
+{
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     vector<string> result;
     boost::copy(words | boost::adaptors::map_keys, back_inserter(result));
     return result;
 }
 
-WordSettingBits TileBitDatabase::get_data_for_setword(const string &name) const {
+WordSettingBits TileBitDatabase::get_data_for_setword(const string &name) const
+{
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     return words.at(name);
 }
 
-vector<string> TileBitDatabase::get_settings_enums() const {
+vector<string> TileBitDatabase::get_settings_enums() const
+{
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     vector<string> result;
     boost::copy(enums | boost::adaptors::map_keys, back_inserter(result));
     return result;
 }
 
-EnumSettingBits TileBitDatabase::get_data_for_enum(const string &name) const {
+EnumSettingBits TileBitDatabase::get_data_for_enum(const string &name) const
+{
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     return enums.at(name);
 }
 
-vector<FixedConnection> TileBitDatabase::get_fixed_conns() const {
+vector<FixedConnection> TileBitDatabase::get_fixed_conns() const
+{
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     vector<FixedConnection> result;
     for (const auto &csink : fixed_conns) {
@@ -457,7 +498,8 @@ vector<FixedConnection> TileBitDatabase::get_fixed_conns() const {
     return result;
 }
 
-vector<pair<string, bool>> TileBitDatabase::get_downhill_wires(const string &wire) const {
+vector<pair<string, bool>> TileBitDatabase::get_downhill_wires(const string &wire) const
+{
     vector<pair<string, bool>> dhwires;
     for (const auto &mux : muxes) {
         for (const auto &arc : mux.second.arcs) {
@@ -474,8 +516,51 @@ vector<pair<string, bool>> TileBitDatabase::get_downhill_wires(const string &wir
     return dhwires;
 }
 
+void TileBitDatabase::add_routing(const TileInfo &tile, RoutingGraph &graph) const
+{
+    boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+    int row, col;
+    tie(row, col) = tile.get_row_col();
+    Location loc(col, row);
+    for (const auto &mux : muxes) {
+        RoutingId sink = graph.globalise_net(row, col, mux.second.sink);
+        if (sink == RoutingId())
+            continue;
+        for (const auto &arc : mux.second.arcs) {
+            RoutingId src = graph.globalise_net(row, col, arc.second.source);
+            if (src == RoutingId())
+                continue;
+            RoutingArc rarc;
+            rarc.id = graph.ident(arc.second.source + "->" + arc.second.sink);
+            rarc.source = src;
+            rarc.sink = sink;
+            rarc.tiletype = graph.ident(tile.type);
+            rarc.configurable = true;
+            graph.add_arc(loc, rarc);
+        }
+    }
 
-void TileBitDatabase::add_mux_arc(const ArcData &arc) {
+    for (const auto &fcs : fixed_conns) {
+        for (const auto &fc : fcs.second) {
+            RoutingId sink = graph.globalise_net(row, col, fc.sink);
+            if (sink == RoutingId())
+                continue;
+            RoutingId src = graph.globalise_net(row, col, fc.source);
+            if (src == RoutingId())
+                continue;
+            RoutingArc rarc;
+            rarc.id = graph.ident(fc.source + "=>" + fc.sink);
+            rarc.source = src;
+            rarc.sink = sink;
+            rarc.tiletype = graph.ident(tile.type);
+            rarc.configurable = false;
+            graph.add_arc(loc, rarc);
+        }
+    }
+}
+
+void TileBitDatabase::add_mux_arc(const ArcData &arc)
+{
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
     dirty = true;
     if (muxes.find(arc.sink) == muxes.end()) {
@@ -501,7 +586,8 @@ void TileBitDatabase::add_mux_arc(const ArcData &arc) {
 
 }
 
-void TileBitDatabase::add_setting_word(const WordSettingBits &wsb) {
+void TileBitDatabase::add_setting_word(const WordSettingBits &wsb)
+{
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
     dirty = true;
     if (words.find(wsb.name) != words.end()) {
@@ -523,7 +609,8 @@ void TileBitDatabase::add_setting_word(const WordSettingBits &wsb) {
     }
 }
 
-void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb) {
+void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb)
+{
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
     dirty = true;
     if (enums.find(esb.name) != enums.end()) {
@@ -546,21 +633,25 @@ void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb) {
     enums[esb.name] = esb;
 }
 
-void TileBitDatabase::add_fixed_conn(const Trellis::FixedConnection &conn) {
+void TileBitDatabase::add_fixed_conn(const Trellis::FixedConnection &conn)
+{
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
     fixed_conns[conn.sink].insert(conn);
     dirty = true;
 }
 
-TileBitDatabase::TileBitDatabase(const TileBitDatabase &other) {
+TileBitDatabase::TileBitDatabase(const TileBitDatabase &other)
+{
     UNUSED(other);
     assert(false);
     terminate();
 }
 
-DatabaseConflictError::DatabaseConflictError(const string &desc) : runtime_error(desc) {}
+DatabaseConflictError::DatabaseConflictError(const string &desc) : runtime_error(desc)
+{}
 
-TileBitDatabase::~TileBitDatabase() {
+TileBitDatabase::~TileBitDatabase()
+{
     if (dirty)
         save();
 #ifdef FUZZ_SAFETY_CHECK

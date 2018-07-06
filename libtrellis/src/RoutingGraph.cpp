@@ -7,11 +7,16 @@ namespace Trellis {
 
 const Location GlobalLoc(-2, -2);
 
-RoutingGraph::RoutingGraph()
-{}
-
 RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), max_row(c.get_max_col()), max_col(c.get_max_row())
-{};
+{
+    tiles[GlobalLoc].loc = GlobalLoc;
+    for (int y = 0; y <= max_row; y++) {
+        for (int x = 0; x <= max_col; x++) {
+            Location loc(x, y);
+            tiles[loc].loc = loc;
+        }
+    }
+};
 
 ident_t RoutingGraph::ident(const std::string &str) const
 {
@@ -72,6 +77,28 @@ RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_na
         if (id.loc.x < 0 || id.loc.x > max_col || id.loc.y < 0 || id.loc.y >= max_row)
             return RoutingId(); // TODO: handle edge nets properly
         return id;
+    }
+}
+
+void RoutingGraph::add_arc(Location loc, const RoutingArc &arc)
+{
+    RoutingId arcId;
+    arcId.loc = loc;
+    arcId.id = arc.id;
+    add_wire(arc.source);
+    add_wire(arc.sink);
+    tiles[loc].arcs.push_back(arc);
+    tiles[arc.sink.loc].wires.at(arc.sink.id).uphill.push_back(arcId);
+    tiles[arc.source.loc].wires.at(arc.source.id).downhill.push_back(arcId);
+}
+
+void RoutingGraph::add_wire(RoutingId wire)
+{
+    RoutingTileLoc &tile = tiles[wire.loc];
+    if (tile.wires.find(wire.id) == tile.wires.end()) {
+        RoutingWire rw;
+        rw.id = wire.id;
+        tiles[wire.loc].wires[rw.id] = rw;
     }
 }
 
