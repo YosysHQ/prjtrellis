@@ -83,6 +83,11 @@ struct RoutingTileLoc
     vector<RoutingArc> arcs;
 };
 
+inline bool operator==(const RoutingArc &a, const RoutingArc &b)
+{
+    return a.id == b.id;
+};
+
 class Chip;
 
 class RoutingGraph

@@ -4,6 +4,7 @@
 #include "Tile.hpp"
 #include "BitDatabase.hpp"
 #include "TileConfig.hpp"
+#include "RoutingGraph.hpp"
 
 #include <vector>
 #include <string>
@@ -92,6 +93,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("get_all_tiles", &Chip::get_all_tiles)
             .def("get_max_row", &Chip::get_max_row)
             .def("get_max_col", &Chip::get_max_col)
+            .def("get_routing_graph", &Chip::get_routing_graph)
             .def_readonly("info", &Chip::info)
             .def_readwrite("cram", &Chip::cram)
             .def_readwrite("tiles", &Chip::tiles)
@@ -285,4 +287,52 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("to_string", &TileConfig::to_string)
             .def("from_string", &TileConfig::from_string)
             .staticmethod("from_string");
+    // From RoutingGraph.hpp
+    class_<Location>("Location", init<int, int>())
+            .def_readwrite("x", &Location::x)
+            .def_readwrite("y", &Location::y)
+            .def(self + self)
+            .def(self == self)
+            .def(self != self);
+
+    class_<RoutingId>("RoutingId")
+            .def_readwrite("loc", &RoutingId::loc)
+            .def_readwrite("id", &RoutingId::id)
+            .def(self == self)
+            .def(self != self);
+
+    class_<vector<RoutingId>>("RoutingIdVector")
+            .def(vector_indexing_suite<vector<RoutingId>>());
+
+    class_<RoutingWire>("RoutingWire")
+            .def_readwrite("id", &RoutingWire::id)
+            .def_readwrite("uphill", &RoutingWire::uphill)
+            .def_readwrite("downhill", &RoutingWire::downhill);
+
+    class_<map<ident_t, RoutingWire>>("RoutingWireMap")
+            .def(map_indexing_suite<map<ident_t, RoutingWire>>());
+
+    class_<vector<RoutingArc>>("RoutingArcVector")
+            .def(vector_indexing_suite<vector<RoutingArc>>());
+
+    class_<RoutingTileLoc>("RoutingTileLoc")
+            .def_readwrite("loc", &RoutingTileLoc::loc)
+            .def_readwrite("wires", &RoutingTileLoc::wires)
+            .def_readwrite("arcs", &RoutingTileLoc::arcs);
+
+    class_<map<Location, RoutingTileLoc>>("RoutingTileMap")
+            .def(map_indexing_suite<map<Location, RoutingTileLoc>>());
+
+    class_<RoutingGraph, shared_ptr<RoutingGraph>>("RoutingGraph", no_init)
+            .def_readonly("chip_name", &RoutingGraph::chip_name)
+            .def_readonly("max_row", &RoutingGraph::max_row)
+            .def_readonly("max_col", &RoutingGraph::max_col)
+            .def("ident", &RoutingGraph::ident)
+            .def("to_str", &RoutingGraph::to_str)
+            .def("id_at_loc", &RoutingGraph::id_at_loc)
+            .def_readwrite("tiles", &RoutingGraph::tiles)
+            .def("globalise_net", &RoutingGraph::globalise_net)
+            .def("add_arc", &RoutingGraph::add_arc)
+            .def("add_wire", &RoutingGraph::add_wire);
+
 }
