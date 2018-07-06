@@ -2,6 +2,7 @@
 #include "Chip.hpp"
 #include "Tile.hpp"
 #include <regex>
+#include <iostream>
 
 namespace Trellis {
 
@@ -62,15 +63,17 @@ RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_na
         // Local net, process prefix
         smatch m;
         if (regex_match(db_name, m, e)) {
-            for (size_t i = 0; i < m.size() - 1; i++) {
-                if (*m[i].first == 'N') id.loc.y -= std::atoi(m[i].first.base() + 1);
-                else if (*m[i].first == 'S') id.loc.y += std::atoi(m[i].first.base() + 1);
-                else if (*m[i].first == 'W') id.loc.x -= std::atoi(m[i].first.base() + 1);
-                else if (*m[i].first == 'E') id.loc.x += std::atoi(m[i].first.base() + 1);
+            for (int i = 1; i < int(m.size()) - 1; i++) {
+                string g = m.str(i);
+                if (g.empty()) continue;
+                if (g[0] == 'N') id.loc.y -= std::stoi(g.substr(1));
+                else if (g[0] == 'S') id.loc.y += std::stoi(g.substr(1));
+                else if (g[0] == 'W') id.loc.x -= std::stoi(g.substr(1));
+                else if (g[0] == 'E') id.loc.x += std::stoi(g.substr(1));
                 else
                     assert(false);
             }
-            id.id = ident(m[m.size() - 1].str());
+            id.id = ident(m.str(m.size() - 1));
         } else {
             id.id = ident(db_name);
         }

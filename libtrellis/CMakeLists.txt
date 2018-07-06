@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(libtrellis)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "-Wall -pedantic -Wextra -Werror")
+set(CMAKE_CXX_FLAGS "-Wall -pedantic -Wextra -Werror -O3")
 set(CMAKE_DEFIN)
 set(boost_libs filesystem thread)
 find_package(PythonInterp 3.5 REQUIRED)
