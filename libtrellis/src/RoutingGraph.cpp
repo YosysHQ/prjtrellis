@@ -90,7 +90,7 @@ void RoutingGraph::add_arc(Location loc, const RoutingArc &arc)
     arcId.id = arc.id;
     add_wire(arc.source);
     add_wire(arc.sink);
-    tiles[loc].arcs.push_back(arc);
+    tiles[loc].arcs[arc.id] = arc;
     tiles[arc.sink.loc].wires.at(arc.sink.id).uphill.push_back(arcId);
     tiles[arc.source.loc].wires.at(arc.source.id).downhill.push_back(arcId);
 }

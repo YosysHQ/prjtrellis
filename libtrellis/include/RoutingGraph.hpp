@@ -80,7 +80,7 @@ struct RoutingTileLoc
 {
     Location loc;
     map<ident_t, RoutingWire> wires;
-    vector<RoutingArc> arcs;
+    map<ident_t, RoutingArc> arcs;
 };
 
 inline bool operator==(const RoutingArc &a, const RoutingArc &b)

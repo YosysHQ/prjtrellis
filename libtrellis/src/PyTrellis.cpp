@@ -309,11 +309,18 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("uphill", &RoutingWire::uphill)
             .def_readwrite("downhill", &RoutingWire::downhill);
 
+    class_<RoutingArc>("RoutingArc")
+            .def_readwrite("id", &RoutingArc::id)
+            .def_readwrite("tiletype", &RoutingArc::tiletype)
+            .def_readwrite("source", &RoutingArc::source)
+            .def_readwrite("sink", &RoutingArc::sink)
+            .def_readwrite("configurable", &RoutingArc::configurable);
+
     class_<map<ident_t, RoutingWire>>("RoutingWireMap")
             .def(map_indexing_suite<map<ident_t, RoutingWire>>());
 
-    class_<vector<RoutingArc>>("RoutingArcVector")
-            .def(vector_indexing_suite<vector<RoutingArc>>());
+    class_<map<ident_t, RoutingArc>>("RoutingArcMap")
+            .def(map_indexing_suite<map<ident_t, RoutingArc>>());
 
     class_<RoutingTileLoc>("RoutingTileLoc")
             .def_readwrite("loc", &RoutingTileLoc::loc)
