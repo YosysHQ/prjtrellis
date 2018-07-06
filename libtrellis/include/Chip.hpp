@@ -13,7 +13,8 @@ using namespace std;
 namespace Trellis {
 
 // Basic information about a chip that may be needed elsewhere
-struct ChipInfo {
+struct ChipInfo
+{
     string name;
     string family;
     uint32_t idcode;
@@ -29,7 +30,10 @@ class Tile;
 // A list of pairs mapping between tile identifier (name:type) and tile difference
 typedef map<string, CRAMDelta> ChipDelta;
 
-class Chip {
+class RoutingGraph;
+
+class Chip
+{
 public:
     // Construct a chip by looking up part name
     explicit Chip(string name);
@@ -64,7 +68,11 @@ public:
 
     // Get max row and column
     int get_max_row() const;
+
     int get_max_col() const;
+
+    // Build the routing graph for the chip
+    shared_ptr<RoutingGraph> get_routing_graph();
 };
 
 ChipDelta operator-(const Chip &a, const Chip &b);
