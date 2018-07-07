@@ -8,7 +8,7 @@ namespace Trellis {
 
 const Location GlobalLoc(-2, -2);
 
-RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), max_row(c.get_max_col()), max_col(c.get_max_row())
+RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), max_row(c.get_max_row()), max_col(c.get_max_col())
 {
     tiles[GlobalLoc].loc = GlobalLoc;
     for (int y = 0; y <= max_row; y++) {
@@ -53,8 +53,9 @@ RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_na
         // Global net
         // TODO: quadrants and TAP_DRIVE regions
         RoutingId id;
-        id.loc = GlobalLoc;
-        id.id = ident(db_name.substr(2));
+        id.loc.x = int16_t(col);
+        id.loc.y = int16_t(row);
+        id.id = ident(db_name);
         return id;
     } else {
         RoutingId id;
