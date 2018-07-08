@@ -39,6 +39,14 @@ vector<shared_ptr<Tile>> Chip::get_tiles_by_position(int row, int col)
     return result;
 }
 
+shared_ptr<Tile> Chip::get_tile_by_position_and_type(int row, int col, string type) {
+    for (const auto &tile : tiles) {
+        if (tile.second->info.get_row_col() == make_pair(row, col) && tile.second->info.type == type)
+            return tile.second;
+    }
+    return shared_ptr<Tile>();
+}
+
 vector<shared_ptr<Tile>> Chip::get_tiles_by_type(string type)
 {
     vector<shared_ptr<Tile>> result;
