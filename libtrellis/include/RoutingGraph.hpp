@@ -74,7 +74,7 @@ struct RoutingWire
 inline bool operator==(const RoutingWire &a, const RoutingWire &b)
 {
     return a.id == b.id;
-};
+}
 
 struct RoutingTileLoc
 {
@@ -86,7 +86,7 @@ struct RoutingTileLoc
 inline bool operator==(const RoutingArc &a, const RoutingArc &b)
 {
     return a.id == b.id;
-};
+}
 
 class Chip;
 

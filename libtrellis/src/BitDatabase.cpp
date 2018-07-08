@@ -110,15 +110,12 @@ boost::optional<string> MuxBits::get_driver(const CRAMView &tile, boost::optiona
         if (arc.second.bits.match(tile) && arc.second.bits.bits.size() >= bestbits) {
             bestmatch = arc.second;
             bestbits = arc.second.bits.bits.size();
+            if (coverage)
+                bestmatch->bits.add_coverage(*coverage);
+            return boost::optional<string>(bestmatch->source);
         }
     }
-    if (!bestmatch) {
-        return boost::optional<string>();
-    } else {
-        if (coverage)
-            bestmatch->bits.add_coverage(*coverage);
-        return boost::optional<string>(bestmatch->source);
-    }
+    return boost::optional<string>();
 }
 
 void MuxBits::set_driver(Trellis::CRAMView &tile, const string &driver) const
@@ -239,19 +236,16 @@ boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile, boost::
         if (opt.second.match(tile) && opt.second.bits.size() >= bestbits) {
             bestmatch = opt;
             bestbits = opt.second.bits.size();
+            if (coverage)
+                bestmatch->second.add_coverage(*coverage);
+            if (defval && (options.at(*defval) == bestmatch->second)) {
+                return boost::optional<string>();
+            } else {
+                return boost::optional<string>(bestmatch->first);
+            }
         }
     }
-    if (!bestmatch) {
-        return boost::optional<string>();
-    } else {
-        if (coverage)
-            bestmatch->second.add_coverage(*coverage);
-        if (defval && (options.at(*defval) == bestmatch->second)) {
-            return boost::optional<string>();
-        } else {
-            return boost::optional<string>(bestmatch->first);
-        }
-    }
+    return boost::optional<string>();
 }
 
 void EnumSettingBits::set_value(Trellis::CRAMView &tile, const string &value) const

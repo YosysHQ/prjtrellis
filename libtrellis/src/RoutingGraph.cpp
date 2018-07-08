@@ -17,7 +17,7 @@ RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), max_row(c.ge
             tiles[loc].loc = loc;
         }
     }
-};
+}
 
 ident_t RoutingGraph::ident(const std::string &str) const
 {
