@@ -174,7 +174,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
     class_<vector<ConfigBit>>("ConfigBitVector")
             .def(vector_indexing_suite<vector<ConfigBit>>());
     class_<set<ConfigBit>>("ConfigBitSet")
-            .def(bond::python::set_indexing_suite<set<ConfigBit>>());
+            .def(bond::python::set_indexing_suite<set<ConfigBit>,true>());
 
     class_<BitGroup>("BitGroup")
             .def(init<const CRAMDelta &>())
