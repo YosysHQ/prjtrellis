@@ -40,6 +40,7 @@ aux_source_directory(src/ SOURCE_FILES)
 
 add_library(trellis SHARED ${INCLUDE_FILES} ${SOURCE_FILES})
 PYTHON_ADD_MODULE(pytrellis ${INCLUDE_FILES} ${SOURCE_FILES})
+target_compile_definitions(pytrellis PRIVATE INCLUDE_PYTHON=1)
 target_compile_definitions(trellis PRIVATE FUZZ_SAFETY_CHECK=1)
 target_compile_definitions(pytrellis PRIVATE FUZZ_SAFETY_CHECK=1)
 target_link_libraries(trellis LINK_PUBLIC ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})

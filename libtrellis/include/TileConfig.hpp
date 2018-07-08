@@ -78,6 +78,8 @@ struct TileConfig {
 
     string to_string() const;
     static TileConfig from_string(const string &str);
+
+    bool empty() const;
 };
 
 ostream &operator<<(ostream &out, const TileConfig &tc);

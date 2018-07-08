@@ -20,7 +20,7 @@
 using namespace boost::python;
 using namespace Trellis;
 
-
+#ifdef INCLUDE_PYTHON
 void translate_bspe(const BitstreamParseError &e) {
     // Use the Python 'C' API to set up an exception object
     PyErr_SetString(PyExc_ValueError, e.what());
@@ -343,3 +343,4 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("add_wire", &RoutingGraph::add_wire);
 
 }
+#endif

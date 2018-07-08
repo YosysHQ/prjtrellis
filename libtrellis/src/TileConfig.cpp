@@ -126,4 +126,8 @@ TileConfig TileConfig::from_string(const string &str) {
     return tc;
 }
 
+bool TileConfig::empty() const {
+    return carcs.empty() && cwords.empty() && cenums.empty() && cunknowns.empty();
+}
+
 }
