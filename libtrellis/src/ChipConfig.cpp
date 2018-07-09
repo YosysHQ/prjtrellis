@@ -55,10 +55,14 @@ Chip ChipConfig::to_chip() const
 {
     Chip c(chip_name);
     c.metadata = metadata;
-    for (auto tile_entry : tiles) {
-        auto chip_tile = c.tiles.at(tile_entry.first);
-        auto tile_db = get_tile_bitdata(TileLocator{c.info.family, c.info.name, chip_tile->info.type});
-        tile_db->config_to_tile_cram(tile_entry.second, chip_tile->cram);
+    for (auto tile_entry : c.tiles) {
+        auto tile_db = get_tile_bitdata(TileLocator{c.info.family, c.info.name, tile_entry.second->info.type});
+        if (tiles.find(tile_entry.first) != tiles.end()) {
+            tile_db->config_to_tile_cram(tiles.at(tile_entry.first), tile_entry.second->cram);
+        } else {
+            // Empty config sets default values (not always zero, e.g. in IO tiles)
+            tile_db->config_to_tile_cram(TileConfig(), tile_entry.second->cram);
+        }
     }
     return c;
 }
