@@ -15,6 +15,7 @@ class Chip;
 // This represents the configuration of a chip at a high level
 class ChipConfig
 {
+public:
     string chip_name;
     vector<string> metadata;
     map<string, TileConfig> tiles;
