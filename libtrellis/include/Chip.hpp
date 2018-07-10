@@ -6,7 +6,7 @@
 #include <vector>
 #include <cstdint>
 #include <map>
-
+#include <set>
 #include "CRAM.hpp"
 
 using namespace std;
@@ -60,6 +60,7 @@ public:
     vector<shared_ptr<Tile>> get_all_tiles();
 
     shared_ptr<Tile> get_tile_by_position_and_type(int row, int col, string type);
+    shared_ptr<Tile> get_tile_by_position_and_type(int row, int col, set<string> type);
 
     // Map tile name to a tile reference
     map<string, shared_ptr<Tile>> tiles;
