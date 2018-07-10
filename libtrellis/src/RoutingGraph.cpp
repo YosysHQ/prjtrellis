@@ -78,7 +78,7 @@ RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_na
         } else {
             id.id = ident(db_name);
         }
-        if (id.loc.x < 0 || id.loc.x > max_col || id.loc.y < 0 || id.loc.y >= max_row)
+        if (id.loc.x < 0 || id.loc.x > max_col || id.loc.y < 0 || id.loc.y > max_row)
             return RoutingId(); // TODO: handle edge nets properly
         return id;
     }
