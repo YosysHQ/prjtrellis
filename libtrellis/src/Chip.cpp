@@ -21,6 +21,15 @@ Chip::Chip(const Trellis::ChipInfo &info) : info(info), cram(info.num_frames, in
     vector<TileInfo> allTiles = get_device_tilegrid(DeviceLocator{info.family, info.name});
     for (const auto &tile : allTiles) {
         tiles[tile.name] = make_shared<Tile>(tile, *this);
+        int row, col;
+        tie(row, col) = tile.get_row_col();
+        if (int(tiles_at_location.size()) <= row) {
+            tiles_at_location.resize(row+1);
+        }
+        if (int(tiles_at_location.at(row).size()) <= col) {
+            tiles_at_location.at(row).resize(col+1);
+        }
+        tiles_at_location.at(row).at(col).push_back(make_pair(tile.name, tile.type));
     }
 }
 
@@ -39,20 +48,20 @@ vector<shared_ptr<Tile>> Chip::get_tiles_by_position(int row, int col)
     return result;
 }
 
-shared_ptr<Tile> Chip::get_tile_by_position_and_type(int row, int col, string type) {
-    for (const auto &tile : tiles) {
-        if (tile.second->info.get_row_col() == make_pair(row, col) && tile.second->info.type == type)
-            return tile.second;
+string Chip::get_tile_by_position_and_type(int row, int col, string type) {
+    for (const auto &tile : tiles_at_location.at(row).at(col)) {
+        if (tile.second == type)
+            return tile.first;
     }
-    return shared_ptr<Tile>();
+    throw runtime_error(fmt("no suitable tile found at R" << row << "C" << col));
 }
 
-shared_ptr<Tile> Chip::get_tile_by_position_and_type(int row, int col, set<string> type) {
-    for (const auto &tile : tiles) {
-        if (tile.second->info.get_row_col() == make_pair(row, col) && type.find(tile.second->info.type) != type.end())
-            return tile.second;
+string Chip::get_tile_by_position_and_type(int row, int col, set<string> type) {
+    for (const auto &tile : tiles_at_location.at(row).at(col)) {
+        if (type.find(tile.second) != type.end())
+            return tile.first;
     }
-    return shared_ptr<Tile>();
+    throw runtime_error(fmt("no suitable tile found at R" << row << "C" << col));
 }
 
 
