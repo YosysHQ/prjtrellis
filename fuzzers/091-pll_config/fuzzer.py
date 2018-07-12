@@ -4,8 +4,14 @@ import pytrellis
 import fuzzloops
 
 jobs = [
-    ("PLL_TL0", FuzzConfig(job="PLLROUTE0", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
+    ("PLL_TL0", FuzzConfig(job="PLLCONFIG0", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
                            tiles=["MIB_R4C0:PLL0_UL", "MIB_R5C0:PLL1_UL"])),
+    ("PLL_BL0", FuzzConfig(job="PLLCONFIG1", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
+                           tiles=["MIB_R71C2:PLL0_LL", "MIB_R71C3:BANKREF8"])),
+    ("PLL_BR0", FuzzConfig(job="PLLCONFIG2", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
+                           tiles=["MIB_R71C88:PLL0_LR", "MIB_R71C87:PLL1_LR"])),
+    ("PLL_TR0", FuzzConfig(job="PLLCONFIG3", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
+                           tiles=["MIB_R4C90:PLL0_UR", "MIB_R5C90:PLL1_UR"])),
 ]
 
 
@@ -116,8 +122,8 @@ def main():
         nonrouting.fuzz_word_setting(cfg, "MFG_GMCREF_SEL", 2,
                                      lambda x: get_substs(settings={"MFG_GMCREF_SEL": b2d(x)}),
                                      empty_bitfile)
-        nonrouting.fuzz_word_setting(cfg, "MFG_ENABLE_FILTER_OPAMP", 1,
-                                     lambda x: get_substs(settings={"MFG_ENABLE_FILTER_OPAMP": b2d(x)}),
+        nonrouting.fuzz_word_setting(cfg, "MFG_ENABLE_FILTEROPAMP", 1,
+                                     lambda x: get_substs(settings={"MFG_EN_FILTEROPAMP": b2d(x)}),
                                      empty_bitfile)
         nonrouting.fuzz_word_setting(cfg, "MFG_VCO_NORESET", 1,
                                      lambda x: get_substs(settings={"MFG_VCO_NORESET": b2d(x)}),
@@ -139,7 +145,7 @@ def main():
                                      lambda x: get_substs(settings={"CLKOS3_ENABLE": x}), empty_bitfile)
 
         nonrouting.fuzz_enum_setting(cfg, "FEEDBK_PATH", ["CLKOP", "CLKOS", "CLKOS2", "CLKOS3", "INT_OP", "INT_OS", "INT_OS2", "INT_OS3", "USERCLOCK"],
-                                     lambda x: get_substs(settings={"FEEDBK_PATH": x}), empty_bitfile)
+                                     lambda x: get_substs(settings={"FEEDBK_PATH": x}), empty_bitfile, False)
 
         nonrouting.fuzz_enum_setting(cfg, "CLKOP_TRIM_POL", ["RISING", "FALLING"],
                                      lambda x: get_substs(settings={"CLKOP_TRIM_POL": x}), empty_bitfile)
