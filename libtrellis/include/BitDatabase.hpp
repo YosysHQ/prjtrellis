@@ -311,6 +311,8 @@ public:
 
     void add_fixed_conn(const FixedConnection &conn);
 
+    void remove_fixed_sink(const string &sink);
+
     // Save the bit database to file
     void save();
 
