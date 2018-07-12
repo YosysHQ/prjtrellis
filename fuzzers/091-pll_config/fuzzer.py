@@ -86,7 +86,7 @@ def main():
         nonrouting.fuzz_word_setting(cfg, "FREQ_LOCK_ACCURACY", 2,
                                      lambda x: get_substs(settings={"FREQ_LOCK_ACCURACY": b2d(x)}),
                                      empty_bitfile)
-        nonrouting.fuzz_word_setting(cfg, "PLL_LOCK_MODE", 2, lambda x: get_substs(settings={"PLL_LOCK_MODE": b2d(x)}),
+        nonrouting.fuzz_word_setting(cfg, "PLL_LOCK_MODE", 3, lambda x: get_substs(settings={"PLL_LOCK_MODE": b2d(x)}),
                                      empty_bitfile)
 
         nonrouting.fuzz_word_setting(cfg, "MFG_GMC_GAIN", 3, lambda x: get_substs(settings={"MFG_GMC_GAIN": b2d(x)}),
