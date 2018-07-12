@@ -26,7 +26,8 @@ def fuzz_interconnect(config,
                       netname_filter_union=False,
                       enable_span1_fix=False,
                       func_cib=False,
-                      fc_prefix=""):
+                      fc_prefix="",
+                      nonlocal_prefix=""):
     """
     The fully-automatic interconnect fuzzer function. This performs the fuzzing and updates the database with the
     results. It is expected that PyTrellis has already been initialised with the database prior to this function being
@@ -46,6 +47,7 @@ def fuzz_interconnect(config,
     :param enable_span1_fix: if True, include span1 wires that are excluded due to a Tcl API bug
     :param func_cib: if True, we are fuzzing a special function to CIB interconnect, enable optimisations for this
     :param fc_prefix: add a prefix to non-global fixed connections for device-specific fuzzers
+    :param nonlocal_prefix: add a prefix to non-global and non-neighbour wires for device-specific fuzzers
     """
     netdata = isptcl.get_wires_at_position(config.ncd_prf, location)
     netnames = [x[0] for x in netdata]
@@ -65,7 +67,7 @@ def fuzz_interconnect(config,
     if func_cib and not netname_filter_union:
         netnames = list(filter(lambda x: netname_predicate(x, netnames), netnames))
     fuzz_interconnect_with_netnames(config, netnames, netname_predicate, arc_predicate, fc_predicate, func_cib,
-                                    netname_filter_union, False, fc_prefix)
+                                    netname_filter_union, False, fc_prefix, nonlocal_prefix)
 
 
 def fuzz_interconnect_with_netnames(
@@ -77,7 +79,8 @@ def fuzz_interconnect_with_netnames(
         bidir=False,
         netname_filter_union=False,
         full_mux_style=False,
-        fc_prefix=""):
+        fc_prefix="",
+        nonlocal_prefix=""):
     """
     Fuzz interconnect given a list of netnames to analyse. Arcs associated these netnames will be found using the Tcl
     API and bits identified as described above.
@@ -103,6 +106,16 @@ def fuzz_interconnect_with_netnames(
 
     def normalise_arc_in_tile(tile, arc):
         return tuple(nets.normalise_name((max_row, max_col), tile, x) for x in arc)
+
+    def add_nonlocal_prefix(wire):
+        if wire.startswith("G_"):
+            return wire
+        m = re.match(r'([NS]\d+)?([EW]\d+)?_.*', wire)
+        if m:
+            for g in m.groups():
+                if g is not None and int(g[1:]) >= 3:
+                    return nonlocal_prefix + wire
+        return wire
 
     def per_netname(net):
         # Get a unique prefix from the thread ID
@@ -143,6 +156,7 @@ def fuzz_interconnect_with_netnames(
                         norm_arc = normalise_arc_in_tile(config.tiles[0], arc)
                         fc = pytrellis.FixedConnection()
                         norm_arc = [fc_prefix + _ if not _.startswith("G_") else _ for _ in norm_arc]
+                        norm_arc = [add_nonlocal_prefix(_) for _ in norm_arc]
                         fc.source, fc.sink = norm_arc
                         tile_dbs[config.tiles[0]].add_fixed_conn(fc)
                 else:
@@ -150,6 +164,7 @@ def fuzz_interconnect_with_netnames(
                         if tile in diff:
                             # Configurable interconnect in <tile>
                             norm_arc = normalise_arc_in_tile(tile, arc)
+                            norm_arc = [add_nonlocal_prefix(_) for _ in norm_arc]
                             ad = pytrellis.ArcData()
                             ad.source, ad.sink = norm_arc
                             ad.bits = pytrellis.BitGroup(diff[tile])
