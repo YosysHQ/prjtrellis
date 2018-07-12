@@ -7,7 +7,12 @@ import re
 jobs = [
     ((4, 1), "45K_", FuzzConfig(job="PLLROUTE0", family="ECP5", device="LFE5U-45F", ncl="pllroute.ncl",
                           tiles=["MIB_R4C0:PLL0_UL", "MIB_R5C0:PLL1_UL"])),
-
+    ((70, 2), "45K_", FuzzConfig(job="PLLROUTE1", family="ECP5", device="LFE5U-45F", ncl="pllroute.ncl",
+                                tiles=["MIB_R71C2:PLL0_LL", "MIB_R71C3:BANKREF8"])),
+    ((70, 88), "45K_", FuzzConfig(job="PLLROUTE2", family="ECP5", device="LFE5U-45F", ncl="pllroute.ncl",
+                                 tiles=["MIB_R71C88:PLL0_LR", "MIB_R71C87:PLL1_LR"])),
+    ((4, 89), "45K_", FuzzConfig(job="PLLROUTE3", family="ECP5", device="LFE5U-45F", ncl="pllroute.ncl",
+                                  tiles=["MIB_R4C90:PLL0_UR", "MIB_R5C90:PLL1_UR"])),
 ]
 
 
