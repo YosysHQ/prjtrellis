@@ -78,6 +78,9 @@ public:
     shared_ptr<RoutingGraph> get_routing_graph();
 
     vector<vector<vector<pair<string, string>>>> tiles_at_location;
+
+    // Block RAM initialisation (WIP)
+    map<uint16_t, vector<uint16_t>> bram_data;
 };
 
 ChipDelta operator-(const Chip &a, const Chip &b);
