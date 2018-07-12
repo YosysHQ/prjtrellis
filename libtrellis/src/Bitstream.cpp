@@ -228,6 +228,10 @@ Chip Bitstream::deserialise_chip() {
     bool found_preamble = rd.find_preamble(preamble);
     if (!found_preamble)
         throw BitstreamParseError("preamble not found in bitstream");
+
+    uint16_t current_ebr = 0;
+    int addr_in_ebr = 0;
+
     while (!rd.is_end()) {
         uint8_t cmd = rd.get_byte();
         switch ((BitstreamCommand) cmd) {
@@ -302,6 +306,43 @@ Chip Bitstream::deserialise_chip() {
                 // TODO: process SECURITY and SED
                 rd.skip_possible_dummy(4);
                 rd.skip_possible_dummy(8);
+            }
+                break;
+            case BitstreamCommand::LSC_EBR_ADDRESS: {
+                rd.skip_bytes(3);
+                uint32_t data = rd.get_uint32();
+                current_ebr = (data >> 11) & 0x3FF;
+                addr_in_ebr = data & 0x7FF;
+                chip->bram_data[current_ebr].resize(2048);
+            }
+                break;
+            case BitstreamCommand::LSC_EBR_WRITE: {
+                uint8_t params[3];
+                rd.get_bytes(params, 3);
+                int frame_count = (params[1] << 8U) | params[2];
+                int frames_read = 0;
+
+                while (frames_read < frame_count) {
+                    auto &ebr = chip->bram_data[current_ebr];
+                    frames_read++;
+                    uint8_t frame[9];
+                    rd.get_bytes(frame, 9);
+                    ebr.at(addr_in_ebr+0) = (frame[1] & 0x01) << 8 | frame[0];
+                    ebr.at(addr_in_ebr+1) = (frame[2] & 0x03) << 7 | (frame[1] >> 1);
+                    ebr.at(addr_in_ebr+2) = (frame[3] & 0x07) << 6 | (frame[2] >> 2);
+                    ebr.at(addr_in_ebr+3) = (frame[4] & 0x0F) << 5 | (frame[3] >> 3);
+                    ebr.at(addr_in_ebr+4) = (frame[5] & 0x1F) << 4 | (frame[4] >> 4);
+                    ebr.at(addr_in_ebr+5) = (frame[6] & 0x3F) << 3 | (frame[5] >> 5);
+                    ebr.at(addr_in_ebr+6) = (frame[7] & 0x7F) << 2 | (frame[6] >> 6);
+                    ebr.at(addr_in_ebr+7) = (frame[8] & 0xFF) << 1 | (frame[7] >> 7);
+                    addr_in_ebr += 8;
+                    if (addr_in_ebr >= 2048) {
+                        addr_in_ebr = 0;
+                        current_ebr++;
+                        chip->bram_data[current_ebr].resize(2048);
+                    }
+                }
+                rd.check_crc16();
             }
                 break;
             case BitstreamCommand::DUMMY:
