@@ -242,6 +242,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("add_setting_word", &TileBitDatabase::add_setting_word)
             .def("add_setting_enum", &TileBitDatabase::add_setting_enum)
             .def("add_fixed_conn", &TileBitDatabase::add_fixed_conn)
+            .def("remove_fixed_sink", &TileBitDatabase::remove_fixed_sink)
             .def("save", &TileBitDatabase::save);
 
     typedef pair<string, bool> StringBoolPair;

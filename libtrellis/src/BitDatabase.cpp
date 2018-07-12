@@ -647,6 +647,12 @@ TileBitDatabase::TileBitDatabase(const TileBitDatabase &other)
     terminate();
 }
 
+void TileBitDatabase::remove_fixed_sink(const string &sink)
+{
+    boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+    fixed_conns.erase(sink);
+}
+
 DatabaseConflictError::DatabaseConflictError(const string &desc) : runtime_error(desc)
 {}
 

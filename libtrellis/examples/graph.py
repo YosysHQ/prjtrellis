@@ -6,9 +6,9 @@ import pytrellis
 import sys
 
 pytrellis.load_database("../../database")
-chip = pytrellis.Chip("LFE5U-25F")
+chip = pytrellis.Chip("LFE5U-45F")
 rg = chip.get_routing_graph()
-tile = rg.tiles[pytrellis.Location(10, 10)]
+tile = rg.tiles[pytrellis.Location(9, 71)]
 for wire in tile.wires:
     print("Wire {}:".format(rg.to_str(wire.key())))
     for dh in wire.data().downhill:
