@@ -169,17 +169,18 @@ if [ -z "$USE_NCL" ]; then
 "$FOUNDRY"/userware/unix/bin/lin64/ncd2ncl par_impl.ncd output.ncl
 
 fi
-
+if [ -z "$NO_TRCE" ]; then
 # run trce
 "$fpgabindir"/trce -v -u -c  par_impl.ncd
-
+fi
 export LD_LIBRARY_PATH=""
 )
 
 cp "$2.tmp"/output.bit "$2.bit"
 cp "$2.tmp"/output.dump "$2.dump"
+if [ -z "$NO_TRCE" ]; then
 cp "$2.tmp"/par_impl.twr "$2.twr"
-
+fi
 if [ -z "$USE_NCL" ]; then
 cp "$2.tmp"/output.ncl "$2_out.ncl"
 fi
