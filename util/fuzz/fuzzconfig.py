@@ -66,7 +66,7 @@ class FuzzConfig:
             with open(lpf_template, "r") as inf:
                 with open(lpffile, "w") as ouf:
                     ouf.write(Template(inf.read()).substitute(**subst))
-        diamond.run(self.device, desfile)
+        diamond.run(self.device, desfile, no_trce=True)
         if ext == "ncl" and self.ncd_specimen is None:
             self.ncd_specimen = path.join(self.workdir, prefix + "design.tmp", "par_impl.ncd")
         return bitfile
