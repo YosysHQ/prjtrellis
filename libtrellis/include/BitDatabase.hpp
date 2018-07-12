@@ -49,6 +49,8 @@ inline bool operator<(const ConfigBit &a, const ConfigBit &b)
     } else {
         if (a.bit < b.bit) {
             return true;
+        } else if (a.bit > b.bit) {
+            return false;
         } else {
             return a.inv < b.inv;
         }

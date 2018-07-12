@@ -75,11 +75,15 @@ void BitGroup::add_coverage(Trellis::BitSet &known_bits, bool value) const
 ostream &operator<<(ostream &out, const BitGroup &bits)
 {
     bool first = true;
-    for (auto bit : bits.bits) {
-        if (!first)
-            out << " ";
-        out << to_string(bit);
-        first = false;
+    if (bits.bits.empty()) {
+        out << "-";
+    } else {
+        for (auto bit : bits.bits) {
+            if (!first)
+                out << " ";
+            out << to_string(bit);
+            first = false;
+        }
     }
     return out;
 }
@@ -90,6 +94,8 @@ istream &operator>>(istream &in, BitGroup &bits)
     while (!skip_check_eol(in)) {
         string s;
         in >> s;
+        if (s == "-")
+            break;
         bits.bits.insert(cbit_from_str(s));
     }
     return in;
