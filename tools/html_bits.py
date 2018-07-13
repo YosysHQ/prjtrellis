@@ -78,8 +78,14 @@ def mux_html(mux, f):
 def setword_html(word, f):
     print('<h3 id="word_{}">Configuration {} {}</h3>'.format(word.name, "bit" if len(word.bits) == 1 else "word",
                                                              word.name), file=f)
-    print('<p>Default value: {}\'b{}</p>'.format(len(word.defval),
-                                                 "".join(reversed(["1" if _ else "0" for _ in word.defval]))), file=f)
+    defval_bits = []
+    for i in range(len(word.defval)):
+        if len(word.bits[i].bits) == 0:
+            defval_bits.append("X")
+        else:
+            defval_bits.append("1" if word.defval[i] else "0")
+    defval = "{}'b{}".format(len(defval_bits), "".join(reversed(defval_bits)))
+    print('<p>Default value: {}</p>'.format(defval), file=f)
     print('<table class="setword">', file=f)
     trstyle = ""
     for idx in range(len(word.bits)):
