@@ -128,7 +128,9 @@ bitstream format in the [database](database) directory.
 
 # Current Focus
 
-The current focus is understanding the ECP5 programmable logic cells (PLC) and connectivity between the cells.
+Currently we have documented the logic tiles, interconnect (CIB) tiles,
+EBR, the PIO part of the IO tiles (excluding IOLOGIC), and the PLLs and IOLOGIC
+for the 45k part.
 
 The aim is to eventually document all parts in the Lattice ECP5 series FPGAs
 but we can not do this alone, **we need your help**!
@@ -142,8 +144,15 @@ but we can not do this alone, **we need your help**!
  - [X] Fuzz other routing tiles (CIBs)
  - [ ] Fuzz IO tiles (WIP - base config done, IOLOGIC and advanced features not)
  - [X] Fuzz global clock tiles (focussed on 45k only current)
- - [ ] Fuzz other function tiles (EBR, DSP, SERDES, etc)
+ - [ ] Fuzz other function tiles (DSP, SERDES, etc)
  - [ ] Look at other Lattice devices (MachXO2, ECP3, etc)
+
+# Credits
+
+Thanks to @tinyfpga for the original inspiration, and @mithro for the name and initial support.
+
+Thanks to @q3k, @emard and @tinyfpga for their donations of ECP5 hardware that have made real-world
+testing and demos possible.
 
 # Contributing
 
