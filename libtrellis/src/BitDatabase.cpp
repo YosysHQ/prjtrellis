@@ -366,7 +366,7 @@ TileConfig TileBitDatabase::tile_cram_to_config(const CRAMView &tile) const
     BitSet coverage;
     for (auto mux : muxes) {
         auto sink = mux.second.get_driver(tile, coverage);
-        if (sink)
+        if (sink && mux.second.arcs.at(*sink).bits.bits.size() > 0)
             cfg.carcs.push_back(ConfigArc{mux.first, *sink});
     }
     for (auto cw : words) {
