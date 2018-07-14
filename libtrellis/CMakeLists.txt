@@ -10,28 +10,61 @@ find_package(PythonLibs 3.5 REQUIRED)
 
 find_package(Boost REQUIRED COMPONENTS ${boost_libs})
 
+# Find Boost::Python of a suitable version in a cross-platform way
+# Some distributions (Arch) call it libboost_python3, others such as Ubuntu
+# call it libboost_python35. In the latter case we must consider all minor versions
+# Original source: https://github.com/BVLC/caffe/blob/master/cmake/Dependencies.cmake#L148
 set(version ${PYTHONLIBS_VERSION_STRING})
 
-STRING( REGEX REPLACE "[^0-9]" "" boost_py_version ${version} )
+STRING(REGEX REPLACE "[^0-9]" "" boost_py_version ${version})
 find_package(Boost COMPONENTS "python-py${boost_py_version}" ${boost_libs})
 set(Boost_PYTHON_FOUND ${Boost_PYTHON-PY${boost_py_version}_FOUND})
 
-while(NOT "${version}" STREQUAL "" AND NOT Boost_PYTHON_FOUND)
-    STRING( REGEX REPLACE "([0-9.]+).[0-9]+" "\\1" version ${version} )
+while (NOT "${version}" STREQUAL "" AND NOT Boost_PYTHON_FOUND)
+    STRING(REGEX REPLACE "([0-9.]+).[0-9]+" "\\1" version ${version})
 
-    STRING( REGEX REPLACE "[^0-9]" "" boost_py_version ${version} )
+    STRING(REGEX REPLACE "[^0-9]" "" boost_py_version ${version})
     find_package(Boost COMPONENTS "python-py${boost_py_version}" ${boost_libs})
     set(Boost_PYTHON_FOUND ${Boost_PYTHON-PY${boost_py_version}_FOUND})
 
-    STRING( REGEX MATCHALL "([0-9.]+).[0-9]+" has_more_version ${version} )
-    if("${has_more_version}" STREQUAL "")
+    STRING(REGEX MATCHALL "([0-9.]+).[0-9]+" has_more_version ${version})
+    if ("${has_more_version}" STREQUAL "")
         break()
-    endif()
-endwhile()
+    endif ()
+endwhile ()
 
-if(NOT Boost_PYTHON_FOUND)
+if (NOT Boost_PYTHON_FOUND)
     find_package(Boost COMPONENTS python3 ${boost_libs})
-endif()
+    if ("${Boost_LIBRARIES}" MATCHES ".*(python|PYTHON).*" )
+        set(Boost_PYTHON_FOUND TRUE)
+    endif ()
+endif ()
+
+if (NOT Boost_PYTHON_FOUND)
+    find_package(Boost COMPONENTS python36 ${boost_libs})
+    if ("${Boost_LIBRARIES}" MATCHES ".*(python|PYTHON).*" )
+        set(Boost_PYTHON_FOUND TRUE)
+    endif ()
+endif ()
+
+if (NOT Boost_PYTHON_FOUND)
+    find_package(Boost COMPONENTS python37 ${boost_libs})
+    if ("${Boost_LIBRARIES}" MATCHES ".*(python|PYTHON).*" )
+        set(Boost_PYTHON_FOUND TRUE)
+    endif ()
+endif ()
+
+if (NOT Boost_PYTHON_FOUND)
+    STRING(REGEX REPLACE "([0-9]+\\.[0-9]+).*" "\\1" gentoo_version ${PYTHONLIBS_VERSION_STRING})
+    find_package(Boost COMPONENTS python-${gentoo_version} ${boost_libs})
+    if ("${Boost_LIBRARIES}" MATCHES ".*(python|PYTHON).*" )
+        set(Boost_PYTHON_FOUND TRUE)
+    endif ()
+endif ()
+
+if (NOT Boost_PYTHON_FOUND )
+    message( FATAL_ERROR "No version of Boost::Python 3.x could be found.")
+endif ()
 
 include_directories(include/ ${Boost_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS})
 
