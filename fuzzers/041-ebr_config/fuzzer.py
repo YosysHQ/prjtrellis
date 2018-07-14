@@ -50,9 +50,9 @@ def main():
 
         nonrouting.fuzz_enum_setting(cfg, "{}.PDPW16KD.DATA_WIDTH_R".format(ebr), ["1", "2", "4", "9", "18", "36"],
                                      lambda x: get_substs(mode="PDPW16KD", settings={"DATA_WIDTH_R": x}), empty_bitfile)
-        nonrouting.fuzz_enum_setting(cfg, "{}.DP16KD.DATA_WIDTH_A".format(ebr), ["1", "2", "4", "9"],
+        nonrouting.fuzz_enum_setting(cfg, "{}.DP16KD.DATA_WIDTH_A".format(ebr), ["1", "2", "4", "9", "18"],
                                      lambda x: get_substs(mode="DP16KD", settings={"DATA_WIDTH_A": x}), empty_bitfile)
-        nonrouting.fuzz_enum_setting(cfg, "{}.DP16KD.DATA_WIDTH_B".format(ebr), ["1", "2", "4", "9"],
+        nonrouting.fuzz_enum_setting(cfg, "{}.DP16KD.DATA_WIDTH_B".format(ebr), ["1", "2", "4", "9", "18"],
                                      lambda x: get_substs(mode="DP16KD", settings={"DATA_WIDTH_B": x}), empty_bitfile)
 
         nonrouting.fuzz_enum_setting(cfg, "{}.REGMODE_A".format(ebr), ["NOREG", "OUTREG"],
