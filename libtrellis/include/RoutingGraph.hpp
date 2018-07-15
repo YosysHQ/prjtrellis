@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <boost/functional/hash.hpp>
 
 using namespace std;
 
@@ -124,4 +125,19 @@ private:
     mutable std::unordered_map<std::string, int32_t> str_to_id;
 };
 }
+
+namespace std {
+template <> struct hash <Trellis::Location>
+{
+    std::size_t operator()(const Trellis::Location &loc) const noexcept
+    {
+        std::size_t seed = 0;
+        boost::hash_combine(seed, hash<int>()(loc.x));
+        boost::hash_combine(seed, hash<int>()(loc.y));
+        return seed;
+    }
+};
+};
+
+
 #endif
