@@ -19,7 +19,7 @@ RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), max_row(c.ge
     }
 }
 
-ident_t RoutingGraph::ident(const std::string &str) const
+ident_t IdStore::ident(const std::string &str) const
 {
     if (str_to_id.find(str) != str_to_id.end()) {
         return str_to_id.at(str);
@@ -30,12 +30,12 @@ ident_t RoutingGraph::ident(const std::string &str) const
     }
 }
 
-std::string RoutingGraph::to_str(ident_t id) const
+std::string IdStore::to_str(ident_t id) const
 {
     return identifiers.at(id);
 }
 
-RoutingId RoutingGraph::id_at_loc(int16_t x, int16_t y, const std::string &str) const
+RoutingId IdStore::id_at_loc(int16_t x, int16_t y, const std::string &str) const
 {
     RoutingId rid;
     rid.id = ident(str);
@@ -104,6 +104,35 @@ void RoutingGraph::add_wire(RoutingId wire)
         rw.id = wire.id;
         tiles[wire.loc].wires[rw.id] = rw;
     }
+}
+
+void RoutingGraph::add_bel(RoutingBel &bel)
+{
+    tiles[bel.loc].bels[bel.name] = bel;
+}
+
+void RoutingGraph::add_bel_input(RoutingBel &bel, ident_t pin, int wire_x, int wire_y, ident_t wire_name) {
+    RoutingId wireId, belId;
+    wireId.id = wire_name;
+    wireId.loc.x = wire_x;
+    wireId.loc.y = wire_y;
+    belId.id = bel.name;
+    belId.loc = bel.loc;
+    add_wire(wireId);
+    bel.pins[pin] = wireId;
+    tiles[wireId.loc].wires[wireId.id].belsUphill.push_back(make_pair(belId, pin));
+}
+
+void RoutingGraph::add_bel_output(RoutingBel &bel, ident_t pin, int wire_x, int wire_y, ident_t wire_name) {
+    RoutingId wireId, belId;
+    wireId.id = wire_name;
+    wireId.loc.x = wire_x;
+    wireId.loc.y = wire_y;
+    belId.id = bel.name;
+    belId.loc = bel.loc;
+    add_wire(wireId);
+    bel.pins[pin] = wireId;
+    tiles[wireId.loc].wires[wireId.id].belsDownhill.push_back(make_pair(belId, pin));
 }
 
 }

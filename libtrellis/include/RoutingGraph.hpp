@@ -70,6 +70,8 @@ struct RoutingWire
     ident_t id = -1;
     vector<RoutingId> uphill;
     vector<RoutingId> downhill;
+    vector<pair<RoutingId, ident_t>> belsUphill;
+    vector<pair<RoutingId, ident_t>> belsDownhill;
 };
 
 inline bool operator==(const RoutingWire &a, const RoutingWire &b)
@@ -77,12 +79,22 @@ inline bool operator==(const RoutingWire &a, const RoutingWire &b)
     return a.id == b.id;
 }
 
+
+struct RoutingBel
+{
+    ident_t name, type;
+    Location loc;
+    map<ident_t, RoutingId> pins;
+};
+
 struct RoutingTileLoc
 {
     Location loc;
     map<ident_t, RoutingWire> wires;
     map<ident_t, RoutingArc> arcs;
+    map<ident_t, RoutingBel> bels;
 };
+
 
 inline bool operator==(const RoutingArc &a, const RoutingArc &b)
 {
@@ -91,7 +103,23 @@ inline bool operator==(const RoutingArc &a, const RoutingArc &b)
 
 class Chip;
 
-class RoutingGraph
+class IdStore
+{
+public:
+    // Core functions
+    ident_t ident(const std::string &str) const;
+
+    std::string to_str(ident_t id) const;
+
+    RoutingId id_at_loc(int16_t x, int16_t y, const std::string &str) const;
+private:
+
+private:
+    mutable std::vector<std::string> identifiers;
+    mutable std::unordered_map<std::string, int32_t> str_to_id;
+};
+
+class RoutingGraph : public IdStore
 {
 public:
     explicit RoutingGraph(const Chip &c);
@@ -99,13 +127,6 @@ public:
     // Must be set up beforehand
     std::string chip_name;
     int max_row, max_col;
-
-    // Core functions
-    ident_t ident(const std::string &str) const;
-
-    std::string to_str(ident_t id) const;
-
-    RoutingId id_at_loc(int16_t x, int16_t y, const std::string &str) const;
 
     // Routing tiles
     std::map<Location, RoutingTileLoc> tiles;
@@ -120,9 +141,12 @@ public:
     // Add a wire to the graph by id (ignoring it if already existing)
     void add_wire(RoutingId wire);
 
-private:
-    mutable std::vector<std::string> identifiers;
-    mutable std::unordered_map<std::string, int32_t> str_to_id;
+    // Add a Bel to the graph
+    void add_bel(RoutingBel &bel);
+
+    // Add a Bel input or output pin
+    void add_bel_input(RoutingBel &bel, ident_t pin, int wire_x, int wire_y, ident_t wire_name);
+    void add_bel_output(RoutingBel &bel, ident_t pin, int wire_x, int wire_y, ident_t wire_name);
 };
 }
 
