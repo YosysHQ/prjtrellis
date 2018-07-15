@@ -341,13 +341,14 @@ BOOST_PYTHON_MODULE (pytrellis) {
     class_<map<ident_t, RoutingArc>>("RoutingArcMap")
             .def(map_indexing_suite<map<ident_t, RoutingArc>>());
 
-    class_<map<ident_t, RoutingArc>>("RoutingBelMap")
+    class_<map<ident_t, RoutingBel>>("RoutingBelMap")
             .def(map_indexing_suite<map<ident_t, RoutingBel>>());
 
     class_<RoutingTileLoc>("RoutingTileLoc")
             .def_readwrite("loc", &RoutingTileLoc::loc)
             .def_readwrite("wires", &RoutingTileLoc::wires)
-            .def_readwrite("arcs", &RoutingTileLoc::arcs);
+            .def_readwrite("arcs", &RoutingTileLoc::arcs)
+            .def_readwrite("bels", &RoutingTileLoc::bels);
 
     class_<map<Location, RoutingTileLoc>>("RoutingTileMap")
             .def(map_indexing_suite<map<Location, RoutingTileLoc>>());
