@@ -4,6 +4,7 @@
 #include "Util.hpp"
 #include "RoutingGraph.hpp"
 #include "BitDatabase.hpp"
+#include "Bels.hpp"
 #include <algorithm>
 #include <iostream>
 using namespace std;
@@ -120,6 +121,18 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
         //cout << "    Tile " << tile->info.name << endl;
         shared_ptr<TileBitDatabase> bitdb = get_tile_bitdata(TileLocator{info.family, info.name, tile->info.type});
         bitdb->add_routing(tile->info, *rg);
+        int x, y;
+        tie(y, x) = tile->info.get_row_col();
+        if (tile->info.type == "PLC2") {
+            for (int z = 0; z < 4; z++)
+                Bels::add_lc(*rg, x, y, z);
+        }
+        if (tile->info.type.find("PIOL0") != string::npos || tile->info.type.find("PIOR0") != string::npos)
+            for (int z = 0; z < 4; z++)
+                Bels::add_pio(*rg, x, y, z);
+        if (tile->info.type.find("PIOT0") != string::npos || (tile->info.type.find("PICB0") != string::npos && tile->info.type != "SPICB0"))
+            for (int z = 0; z < 2; z++)
+                Bels::add_pio(*rg, x, y, z);
     }
     return rg;
 }
