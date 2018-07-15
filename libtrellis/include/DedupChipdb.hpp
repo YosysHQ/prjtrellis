@@ -83,6 +83,13 @@ struct BelData
     vector<BelWire> wires;
 };
 
+struct LocationData
+{
+    vector<WireData> wires;
+    vector<ArcData> arcs;
+    vector<BelData> bels;
+};
+
 }
 }
 
@@ -212,6 +219,57 @@ struct hash<Trellis::DDChipDb::BelData>
         boost::hash_combine(seed, hash<Trellis::ident_t>()(bel.name));
         boost::hash_combine(seed, hash<Trellis::ident_t>()(bel.type));
         boost::hash_combine(seed, hash<vector<Trellis::DDChipDb::BelWire>>()(bel.wires));
+        return seed;
+    }
+};
+
+template<>
+struct hash<vector<Trellis::DDChipDb::BelData>>
+{
+    std::size_t operator()(const vector<Trellis::DDChipDb::BelData> &vec) const noexcept
+    {
+        std::size_t seed = 0;
+        for (const auto &item : vec)
+            boost::hash_combine(seed, hash<Trellis::DDChipDb::BelData>()(item));
+        return seed;
+    }
+};
+
+template<>
+struct hash<vector<Trellis::DDChipDb::ArcData>>
+{
+    std::size_t operator()(const vector<Trellis::DDChipDb::ArcData> &vec) const noexcept
+    {
+        std::size_t seed = 0;
+        for (const auto &item : vec)
+            boost::hash_combine(seed, hash<Trellis::DDChipDb::ArcData>()(item));
+        return seed;
+    }
+};
+
+
+template<>
+struct hash<vector<Trellis::DDChipDb::WireData>>
+{
+    std::size_t operator()(const vector<Trellis::DDChipDb::WireData> &vec) const noexcept
+    {
+        std::size_t seed = 0;
+        for (const auto &item : vec)
+            boost::hash_combine(seed, hash<Trellis::DDChipDb::WireData>()(item));
+        return seed;
+    }
+};
+
+
+template<>
+struct hash<Trellis::DDChipDb::LocationData>
+{
+    std::size_t operator()(const Trellis::DDChipDb::LocationData &ld) const noexcept
+    {
+        std::size_t seed = 0;
+        boost::hash_combine(seed, hash<vector<Trellis::DDChipDb::WireData>>()(ld.wires));
+        boost::hash_combine(seed, hash<vector<Trellis::DDChipDb::ArcData>>()(ld.arcs));
+        boost::hash_combine(seed, hash<vector<Trellis::DDChipDb::BelData>>()(ld.bels));
         return seed;
     }
 };

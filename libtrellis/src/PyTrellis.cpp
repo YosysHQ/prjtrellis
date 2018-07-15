@@ -305,10 +305,20 @@ BOOST_PYTHON_MODULE (pytrellis) {
     class_<vector<RoutingId>>("RoutingIdVector")
             .def(vector_indexing_suite<vector<RoutingId>>());
 
+    typedef pair<RoutingId, ident_t> BelPin;
+    class_<BelPin>("BelPin")
+            .def_readwrite("bel", &BelPin::first)
+            .def_readwrite("pin", &BelPin::second);
+
+    class_<vector<BelPin>>("BelPinVector")
+            .def(vector_indexing_suite<vector<BelPin>>());
+
     class_<RoutingWire>("RoutingWire")
             .def_readwrite("id", &RoutingWire::id)
             .def_readwrite("uphill", &RoutingWire::uphill)
-            .def_readwrite("downhill", &RoutingWire::downhill);
+            .def_readwrite("downhill", &RoutingWire::downhill)
+            .def_readwrite("belsUphill", &RoutingWire::belsUphill)
+            .def_readwrite("belsDownhill", &RoutingWire::belsDownhill);
 
     class_<RoutingArc>("RoutingArc")
             .def_readwrite("id", &RoutingArc::id)
@@ -317,11 +327,22 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("sink", &RoutingArc::sink)
             .def_readwrite("configurable", &RoutingArc::configurable);
 
+    class_<map<ident_t, RoutingId>>("RoutingPinMap")
+            .def(map_indexing_suite<map<ident_t, RoutingId>>());
+
+    class_<RoutingBel>("RoutingBel")
+            .def_readwrite("name", &RoutingBel::name)
+            .def_readwrite("type", &RoutingBel::type)
+            .def_readwrite("pins", &RoutingBel::pins);
+
     class_<map<ident_t, RoutingWire>>("RoutingWireMap")
             .def(map_indexing_suite<map<ident_t, RoutingWire>>());
 
     class_<map<ident_t, RoutingArc>>("RoutingArcMap")
             .def(map_indexing_suite<map<ident_t, RoutingArc>>());
+
+    class_<map<ident_t, RoutingArc>>("RoutingBelMap")
+            .def(map_indexing_suite<map<ident_t, RoutingBel>>());
 
     class_<RoutingTileLoc>("RoutingTileLoc")
             .def_readwrite("loc", &RoutingTileLoc::loc)
