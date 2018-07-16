@@ -5,6 +5,7 @@
 #include "BitDatabase.hpp"
 #include "TileConfig.hpp"
 #include "RoutingGraph.hpp"
+#include "DedupChipdb.hpp"
 
 #include <vector>
 #include <string>
@@ -364,6 +365,74 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def("globalise_net", &RoutingGraph::globalise_net)
             .def("add_arc", &RoutingGraph::add_arc)
             .def("add_wire", &RoutingGraph::add_wire);
+
+    // DedupChipdb
+    using namespace DDChipDb;
+    class_<RelId>("RelId")
+            .def_readwrite("rel", &RelId::rel)
+            .def_readwrite("id", &RelId::id)
+            .def(self == self)
+            .def(self != self);
+
+    class_<BelPort>("BelPort")
+            .def_readwrite("bel", &BelPort::bel)
+            .def_readwrite("pin", &BelPort::pin);
+    class_<BelWire>("BelWire")
+            .def_readwrite("wire", &BelWire::wire)
+            .def_readwrite("pin", &BelWire::pin);
+
+    class_<vector<BelPort>>("BelPortVector")
+            .def(vector_indexing_suite<vector<BelPort>>());
+    class_<vector<BelWire>>("BelWireVector")
+            .def(vector_indexing_suite<vector<BelWire>>());
+    class_<vector<RelId>>("RelIdVector")
+            .def(vector_indexing_suite<vector<RelId>>());
+    class_<set<RelId>>("RelIdSet")
+            .def(bond::python::set_indexing_suite<set<RelId>>());
+
+    enum_<ArcClass>("ArcClass")
+            .value("ARC_STANDARD", ARC_STANDARD)
+            .value("ARC_FIXED", ARC_FIXED);
+    class_<DdArcData>("DdArcData")
+            .def_readwrite("srcWire", &DdArcData::srcWire)
+            .def_readwrite("sinkWire", &DdArcData::sinkWire)
+            .def_readwrite("cls", &DdArcData::cls)
+            .def_readwrite("delay", &DdArcData::delay)
+            .def_readwrite("tiletype", &DdArcData::tiletype);
+
+    class_<WireData>("WireData")
+            .def_readwrite("name", &WireData::name)
+            .def_readwrite("arcsDownhill", &WireData::arcsDownhill)
+            .def_readwrite("arcsUphill", &WireData::arcsUphill)
+            .def_readwrite("belsDownhill", &WireData::belsDownhill)
+            .def_readwrite("belUphill", &WireData::belUphill);
+
+    class_<BelData>("BelData")
+            .def_readwrite("name", &BelData::name)
+            .def_readwrite("type", &BelData::type)
+            .def_readwrite("wire", &BelData::wires);
+
+    class_<vector<BelData>>("BelDataVector")
+            .def(vector_indexing_suite<vector<BelData>>());
+    class_<vector<WireData>>("WireDataVector")
+            .def(vector_indexing_suite<vector<WireData>>());
+    class_<vector<DdArcData>>("DdArcDataVector")
+            .def(vector_indexing_suite<vector<DdArcData>>());
+
+    class_<LocationData>("LocationData")
+            .def_readwrite("wires", &LocationData::wires)
+            .def_readwrite("arcs", &LocationData::arcs)
+            .def_readwrite("bels", &LocationData::bels)
+            .def("checksum", &LocationData::checksum);
+
+    class_<map<Location, checksum_t>>("LocationMap")
+            .def(map_indexing_suite<map<Location, checksum_t>>());
+
+    class_<DedupChipdb>("DedupChipdb")
+            .def_readwrite("typeAtLocation", &DedupChipdb::typeAtLocation)
+            .def("get_cs_data", &DedupChipdb::get_cs_data)
+            .def("ident", &DedupChipdb::ident)
+            .def("to_str", &DedupChipdb::to_str);
 
 }
 #endif

@@ -18,8 +18,8 @@ checksum_t LocationData::checksum() const
         cs.second = magic2 + std::hash<BelData>()(bel) + (cs.second << 17UL) + (cs.first >> 1UL);
     }
     for (const auto &arc : arcs) {
-        cs.first = magic1 + std::hash<ArcData>()(arc) + (cs.first << 12UL) + (cs.second >> 2UL);
-        cs.second = magic2 + std::hash<ArcData>()(arc) + (cs.second << 17UL) + (cs.first >> 1UL);
+        cs.first = magic1 + std::hash<DdArcData>()(arc) + (cs.first << 12UL) + (cs.second >> 2UL);
+        cs.second = magic2 + std::hash<DdArcData>()(arc) + (cs.second << 17UL) + (cs.first >> 1UL);
     }
     return cs;
 }
@@ -81,7 +81,7 @@ shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
 
         for (const auto &arc : td.arcs) {
             const RoutingArc &ra = arc.second;
-            ArcData ad;
+            DdArcData ad;
             ad.tiletype = ra.tiletype;
             ad.cls = ra.configurable ? ARC_STANDARD : ARC_FIXED;
             ad.delay = 1;
@@ -124,5 +124,10 @@ shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
 
     return cdb;
 }
+
+LocationData DedupChipdb::get_cs_data(checksum_t id) {
+    return locationTypes.at(id);
+}
+
 }
 };
