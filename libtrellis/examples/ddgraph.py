@@ -6,6 +6,6 @@ import pytrellis
 import sys
 
 pytrellis.load_database("../../database")
-chip = pytrellis.Chip("LFE5U-85F")
+chip = pytrellis.Chip("LFE5U-25F")
 dd = pytrellis.make_dedup_chipdb(chip)
 print(len(dd.locationTypes))

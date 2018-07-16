@@ -116,7 +116,7 @@ struct BelData
 inline bool operator==(const BelData &a, const BelData &b)
 {
     return a.name == b.name && a.type == b.type && a.wires.size() == b.wires.size()
-            && equal(a.wires.begin(), a.wires.end(), b.wires.begin());
+           && equal(a.wires.begin(), a.wires.end(), b.wires.begin());
 }
 
 typedef pair<uint64_t, uint64_t> checksum_t;
@@ -129,6 +129,15 @@ struct LocationData
 
     checksum_t checksum() const;
 };
+
+inline bool operator==(const LocationData &a, const LocationData &b)
+{
+    return a.wires.size() == b.wires.size() && equal(a.wires.begin(), a.wires.end(), b.wires.begin()) &&
+           a.arcs.size() == b.arcs.size() && equal(a.arcs.begin(), a.arcs.end(), b.arcs.begin())
+           && a.bels.size() == b.bels.size() && equal(a.bels.begin(), a.bels.end(), b.bels.begin());
+
+}
+
 
 }
 }

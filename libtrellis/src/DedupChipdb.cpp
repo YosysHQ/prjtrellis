@@ -115,6 +115,9 @@ shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
         checksum_t cs = ld.checksum();
         if (cdb->locationTypes.find(cs) == cdb->locationTypes.end()) {
             cdb->locationTypes[cs] = ld;
+        } else {
+            if (!(ld == cdb->locationTypes[cs]))
+                terminate();
         }
         cdb->typeAtLocation[loc.first] = cs;
     }
