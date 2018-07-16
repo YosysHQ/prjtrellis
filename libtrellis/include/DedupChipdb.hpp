@@ -7,6 +7,7 @@
 #include <boost/functional/hash.hpp>
 #include <cstdint>
 #include <memory>
+
 using namespace std;
 
 namespace Trellis {
@@ -49,18 +50,30 @@ struct BelPort
     ident_t pin = -1;
 };
 
+inline bool operator==(const BelPort &a, const BelPort &b)
+{
+    return a.bel == b.bel && a.pin == b.pin;
+}
+
 struct BelWire
 {
     RelId wire;
     ident_t pin = -1;
 };
 
-enum ArcClass : int8_t {
+inline bool operator==(const BelWire &a, const BelWire &b)
+{
+    return a.wire == b.wire && a.pin == b.pin;
+}
+
+
+enum ArcClass : int8_t
+{
     ARC_STANDARD = 0,
     ARC_FIXED = 1
 };
 
-struct ArcData
+struct DdArcData
 {
     RelId srcWire;
     RelId sinkWire;
@@ -68,6 +81,12 @@ struct ArcData
     int32_t delay;
     ident_t tiletype;
 };
+
+inline bool operator==(const DdArcData &a, const DdArcData &b)
+{
+    return a.srcWire == b.srcWire && a.sinkWire == b.sinkWire && a.cls == b.cls && a.delay == b.delay &&
+           a.tiletype == b.tiletype;
+}
 
 struct WireData
 {
@@ -77,19 +96,37 @@ struct WireData
     BelPort belUphill;
 };
 
+inline bool operator==(const WireData &a, const WireData &b)
+{
+    return a.name == b.name && a.arcsDownhill.size() == b.arcsDownhill.size() &&
+           equal(a.arcsDownhill.begin(), a.arcsDownhill.end(), b.arcsDownhill.begin())
+           && a.arcsUphill.size() == b.arcsUphill.size()
+           && equal(a.arcsUphill.begin(), a.arcsUphill.end(), b.arcsUphill.begin())
+           && a.belsDownhill.size() == b.belsDownhill.size()
+           && equal(a.belsDownhill.begin(), a.belsDownhill.end(), b.belsDownhill.begin())
+           && a.belUphill == b.belUphill;
+}
+
 struct BelData
 {
     ident_t name, type;
     vector<BelWire> wires;
 };
 
+inline bool operator==(const BelData &a, const BelData &b)
+{
+    return a.name == b.name && a.type == b.type && a.wires.size() == b.wires.size()
+            && equal(a.wires.begin(), a.wires.end(), b.wires.begin());
+}
+
 typedef pair<uint64_t, uint64_t> checksum_t;
 
 struct LocationData
 {
     vector<WireData> wires;
-    vector<ArcData> arcs;
+    vector<DdArcData> arcs;
     vector<BelData> bels;
+
     checksum_t checksum() const;
 };
 
@@ -184,9 +221,9 @@ struct hash<vector<Trellis::DDChipDb::BelWire>>
 };
 
 template<>
-struct hash<Trellis::DDChipDb::ArcData>
+struct hash<Trellis::DDChipDb::DdArcData>
 {
-    std::size_t operator()(const Trellis::DDChipDb::ArcData &arc) const noexcept
+    std::size_t operator()(const Trellis::DDChipDb::DdArcData &arc) const noexcept
     {
         std::size_t seed = 0;
         boost::hash_combine(seed, hash<Trellis::DDChipDb::RelId>()(arc.srcWire));
@@ -239,13 +276,13 @@ struct hash<vector<Trellis::DDChipDb::BelData>>
 };
 
 template<>
-struct hash<vector<Trellis::DDChipDb::ArcData>>
+struct hash<vector<Trellis::DDChipDb::DdArcData>>
 {
-    std::size_t operator()(const vector<Trellis::DDChipDb::ArcData> &vec) const noexcept
+    std::size_t operator()(const vector<Trellis::DDChipDb::DdArcData> &vec) const noexcept
     {
         std::size_t seed = 0;
         for (const auto &item : vec)
-            boost::hash_combine(seed, hash<Trellis::DDChipDb::ArcData>()(item));
+            boost::hash_combine(seed, hash<Trellis::DDChipDb::DdArcData>()(item));
         return seed;
     }
 };
@@ -269,8 +306,8 @@ struct hash<Trellis::DDChipDb::checksum_t>
     std::size_t operator()(const Trellis::DDChipDb::checksum_t &cs) const noexcept
     {
         std::size_t seed = 0;
-        boost::hash_combine(seed, hash<uint64_t >()(cs.first));
-        boost::hash_combine(seed, hash<uint64_t >()(cs.second));
+        boost::hash_combine(seed, hash<uint64_t>()(cs.first));
+        boost::hash_combine(seed, hash<uint64_t>()(cs.second));
         return seed;
     }
 };
@@ -283,7 +320,7 @@ struct hash<Trellis::DDChipDb::LocationData>
     {
         std::size_t seed = 0;
         boost::hash_combine(seed, hash<vector<Trellis::DDChipDb::WireData>>()(ld.wires));
-        boost::hash_combine(seed, hash<vector<Trellis::DDChipDb::ArcData>>()(ld.arcs));
+        boost::hash_combine(seed, hash<vector<Trellis::DDChipDb::DdArcData>>()(ld.arcs));
         boost::hash_combine(seed, hash<vector<Trellis::DDChipDb::BelData>>()(ld.bels));
         return seed;
     }
@@ -296,12 +333,16 @@ class Chip;
 namespace DDChipDb {
 
 
-struct DedupChipdb : public IdStore {
+struct DedupChipdb : public IdStore
+{
     DedupChipdb();
+
     DedupChipdb(const IdStore &base);
 
     unordered_map<checksum_t, LocationData> locationTypes;
     map<Location, checksum_t> typeAtLocation;
+
+    LocationData get_cs_data(checksum_t id);
 };
 
 shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip);
