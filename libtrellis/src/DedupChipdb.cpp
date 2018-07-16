@@ -34,31 +34,28 @@ DedupChipdb::DedupChipdb(const IdStore &base) : IdStore(base)
 
 shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
 {
-    map<RoutingId, int> arc_ids;
-    map<RoutingId, int> wire_ids;
-    map<RoutingId, int> bel_ids;
     shared_ptr<RoutingGraph> graph = chip.get_routing_graph();
-    for (auto loc : graph->tiles) {
+    for (auto &loc : graph->tiles) {
         const auto &td = loc.second;
         // Index bels, wires and arcs
         int bel_id = 0, wire_id = 0, arc_id = 0;
-        for (auto bel : td.bels) {
+        for (auto &bel : td.bels) {
             RoutingId rid;
             rid.loc = loc.first;
             rid.id = bel.first;
-            bel_ids[rid] = bel_id++;
+            bel.second.cdb_id = bel_id++;
         }
-        for (auto wire : td.wires) {
+        for (auto &wire : td.wires) {
             RoutingId rid;
             rid.loc = loc.first;
             rid.id = wire.first;
-            wire_ids[rid] = wire_id++;
+            wire.second.cdb_id  = wire_id++;
         }
-        for (auto arc : td.arcs) {
+        for (auto &arc : td.arcs) {
             RoutingId rid;
             rid.loc = loc.first;
             rid.id = arc.first;
-            arc_ids[rid] = arc_id++;
+            arc.second.cdb_id = arc_id++;
         }
     }
     shared_ptr<DedupChipdb> cdb = make_shared<DedupChipdb>(IdStore(*graph));
@@ -74,7 +71,7 @@ shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
             for (const auto &wire : rb.pins) {
                 BelWire bw;
                 bw.pin = wire.first;
-                bw.wire = RelId{Location(wire.second.loc.x - x, wire.second.loc.y - y), wire_ids.at(wire.second)};
+                bw.wire = RelId{Location(wire.second.loc.x - x, wire.second.loc.y - y), graph->tiles.at(wire.second.loc).wires.at(wire.second.id).cdb_id};
             }
             ld.bels.push_back(bd);
         }
@@ -85,8 +82,8 @@ shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
             ad.tiletype = ra.tiletype;
             ad.cls = ra.configurable ? ARC_STANDARD : ARC_FIXED;
             ad.delay = 1;
-            ad.sinkWire = RelId{Location(ra.sink.loc.x - x, ra.sink.loc.y - y), wire_ids.at(ra.sink)};
-            ad.srcWire = RelId{Location(ra.source.loc.x - x, ra.source.loc.y - y), wire_ids.at(ra.source)};
+            ad.sinkWire = RelId{Location(ra.sink.loc.x - x, ra.sink.loc.y - y), graph->tiles.at(ra.sink.loc).wires.at(ra.sink.id).cdb_id};
+            ad.srcWire = RelId{Location(ra.source.loc.x - x, ra.source.loc.y - y), graph->tiles.at(ra.source.loc).wires.at(ra.source.id).cdb_id};
             ld.arcs.push_back(ad);
         }
 
@@ -95,19 +92,19 @@ shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
             WireData wd;
             wd.name = rw.id;
             for (const auto &dh : rw.downhill)
-                wd.arcsDownhill.insert(RelId{Location(dh.loc.x - x, dh.loc.y - y), arc_ids.at(dh)});
+                wd.arcsDownhill.insert(RelId{Location(dh.loc.x - x, dh.loc.y - y), graph->tiles.at(dh.loc).arcs.at(dh.id).cdb_id});
             for (const auto &uh : rw.uphill)
-                wd.arcsUphill.insert(RelId{Location(uh.loc.x - x, uh.loc.y - y), arc_ids.at(uh)});
+                wd.arcsUphill.insert(RelId{Location(uh.loc.x - x, uh.loc.y - y), graph->tiles.at(uh.loc).arcs.at(uh.id).cdb_id});
             for (const auto &bdh : rw.belsDownhill) {
                 BelPort bp;
                 bp.pin = bdh.second;
-                bp.bel = RelId{Location(bdh.first.loc.x - x, bdh.first.loc.y - y), bel_ids.at(bdh.first)};
+                bp.bel = RelId{Location(bdh.first.loc.x - x, bdh.first.loc.y - y), graph->tiles.at(bdh.first.loc).bels.at(bdh.first.id).cdb_id};
                 wd.belsDownhill.push_back(bp);
             }
             assert(rw.belsUphill.size() <= 1);
             if (rw.belsUphill.size() == 1) {
                 const auto &buh = rw.belsUphill[0];
-                wd.belUphill.bel = RelId{Location(buh.first.loc.x - x, buh.first.loc.y - y), bel_ids.at(buh.first)};
+                wd.belUphill.bel = RelId{Location(buh.first.loc.x - x, buh.first.loc.y - y), graph->tiles.at(buh.first.loc).bels.at(buh.first.id).cdb_id};
                 wd.belUphill.pin = buh.second;
             } else {
                 wd.belUphill.bel = RelId{Location(-1, -1), -1};
