@@ -428,11 +428,16 @@ BOOST_PYTHON_MODULE (pytrellis) {
     class_<map<Location, checksum_t>>("LocationMap")
             .def(map_indexing_suite<map<Location, checksum_t>>());
 
-    class_<DedupChipdb>("DedupChipdb")
+    class_<map<checksum_t, LocationData>>("LocationTypesMap")
+            .def(map_indexing_suite<map<checksum_t, LocationData>>());
+
+    class_<DedupChipdb, shared_ptr<DedupChipdb>>("DedupChipdb")
+            .def_readwrite("locationTypes", &DedupChipdb::locationTypes)
             .def_readwrite("typeAtLocation", &DedupChipdb::typeAtLocation)
             .def("get_cs_data", &DedupChipdb::get_cs_data)
             .def("ident", &DedupChipdb::ident)
             .def("to_str", &DedupChipdb::to_str);
 
+    def("make_dedup_chipdb", make_dedup_chipdb);
 }
 #endif

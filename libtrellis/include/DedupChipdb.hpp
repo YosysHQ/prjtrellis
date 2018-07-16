@@ -339,7 +339,7 @@ struct DedupChipdb : public IdStore
 
     DedupChipdb(const IdStore &base);
 
-    unordered_map<checksum_t, LocationData> locationTypes;
+    map<checksum_t, LocationData> locationTypes;
     map<Location, checksum_t> typeAtLocation;
 
     LocationData get_cs_data(checksum_t id);
