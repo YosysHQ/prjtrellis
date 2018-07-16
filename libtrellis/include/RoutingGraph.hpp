@@ -63,6 +63,7 @@ struct RoutingArc
     RoutingId source;
     RoutingId sink;
     bool configurable = false;
+    mutable int cdb_id = 0;
 };
 
 struct RoutingWire
@@ -72,6 +73,7 @@ struct RoutingWire
     vector<RoutingId> downhill;
     vector<pair<RoutingId, ident_t>> belsUphill;
     vector<pair<RoutingId, ident_t>> belsDownhill;
+    mutable int cdb_id = 0;
 };
 
 inline bool operator==(const RoutingWire &a, const RoutingWire &b)
@@ -85,6 +87,7 @@ struct RoutingBel
     ident_t name, type;
     Location loc;
     map<ident_t, RoutingId> pins;
+    mutable int cdb_id = 0;
 };
 
 struct RoutingTileLoc
