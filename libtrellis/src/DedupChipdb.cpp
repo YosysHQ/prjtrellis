@@ -95,9 +95,9 @@ shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
             WireData wd;
             wd.name = rw.id;
             for (const auto &dh : rw.downhill)
-                wd.arcsDownhill.insert(RelId{Location(dh.loc.x - x, dh.loc.y - y), wire_ids.at(dh)});
+                wd.arcsDownhill.insert(RelId{Location(dh.loc.x - x, dh.loc.y - y), arc_ids.at(dh)});
             for (const auto &uh : rw.uphill)
-                wd.arcsUphill.insert(RelId{Location(uh.loc.x - x, uh.loc.y - y), wire_ids.at(uh)});
+                wd.arcsUphill.insert(RelId{Location(uh.loc.x - x, uh.loc.y - y), arc_ids.at(uh)});
             for (const auto &bdh : rw.belsDownhill) {
                 BelPort bp;
                 bp.pin = bdh.second;
@@ -106,7 +106,7 @@ shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
             }
             assert(rw.belsUphill.size() <= 1);
             if (rw.belsUphill.size() == 1) {
-                const auto &buh = rw.belsUphill[1];
+                const auto &buh = rw.belsUphill[0];
                 wd.belUphill.bel = RelId{Location(buh.first.loc.x - x, buh.first.loc.y - y), bel_ids.at(buh.first)};
                 wd.belUphill.pin = buh.second;
             } else {
