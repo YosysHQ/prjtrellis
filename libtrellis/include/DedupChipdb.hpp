@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <boost/functional/hash.hpp>
 #include <cstdint>
-
+#include <memory>
 using namespace std;
 
 namespace Trellis {
@@ -83,11 +83,14 @@ struct BelData
     vector<BelWire> wires;
 };
 
+typedef pair<uint64_t, uint64_t> checksum_t;
+
 struct LocationData
 {
     vector<WireData> wires;
     vector<ArcData> arcs;
     vector<BelData> bels;
+    checksum_t checksum() const;
 };
 
 }
@@ -260,6 +263,18 @@ struct hash<vector<Trellis::DDChipDb::WireData>>
     }
 };
 
+template<>
+struct hash<Trellis::DDChipDb::checksum_t>
+{
+    std::size_t operator()(const Trellis::DDChipDb::checksum_t &cs) const noexcept
+    {
+        std::size_t seed = 0;
+        boost::hash_combine(seed, hash<uint64_t >()(cs.first));
+        boost::hash_combine(seed, hash<uint64_t >()(cs.second));
+        return seed;
+    }
+};
+
 
 template<>
 struct hash<Trellis::DDChipDb::LocationData>
@@ -277,7 +292,19 @@ struct hash<Trellis::DDChipDb::LocationData>
 };
 
 namespace Trellis {
+class Chip;
 namespace DDChipDb {
+
+
+struct DedupChipdb : public IdStore {
+    DedupChipdb();
+    DedupChipdb(const IdStore &base);
+
+    unordered_map<checksum_t, LocationData> locationTypes;
+    map<Location, checksum_t> typeAtLocation;
+};
+
+shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip);
 
 }
 };
