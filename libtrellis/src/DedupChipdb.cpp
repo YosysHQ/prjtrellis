@@ -72,6 +72,7 @@ shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
                 BelWire bw;
                 bw.pin = wire.first;
                 bw.wire = RelId{Location(wire.second.loc.x - x, wire.second.loc.y - y), graph->tiles.at(wire.second.loc).wires.at(wire.second.id).cdb_id};
+                bd.wires.push_back(bw);
             }
             ld.bels.push_back(bd);
         }
