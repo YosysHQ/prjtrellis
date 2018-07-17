@@ -410,7 +410,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
     class_<BelData>("BelData")
             .def_readwrite("name", &BelData::name)
             .def_readwrite("type", &BelData::type)
-            .def_readwrite("wire", &BelData::wires);
+            .def_readwrite("wires", &BelData::wires);
 
     class_<vector<BelData>>("BelDataVector")
             .def(vector_indexing_suite<vector<BelData>>());
@@ -430,6 +430,10 @@ BOOST_PYTHON_MODULE (pytrellis) {
 
     class_<map<checksum_t, LocationData>>("LocationTypesMap")
             .def(map_indexing_suite<map<checksum_t, LocationData>>());
+
+    class_<checksum_t>("checksum_t")
+            .def_readwrite("first", &checksum_t::first)
+            .def_readwrite("second", &checksum_t::second);
 
     class_<DedupChipdb, shared_ptr<DedupChipdb>>("DedupChipdb")
             .def_readwrite("locationTypes", &DedupChipdb::locationTypes)

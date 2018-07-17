@@ -67,15 +67,15 @@ void add_lc(RoutingGraph &graph, int x, int y, int z) {
         graph.add_bel_output(bel, graph.ident("FCO"), x, y, graph.ident(fmt("FCO" << l << "_SLICE")));
 
     if (z == 2) {
-        graph.add_bel_output(bel, graph.ident("WD0"), x, y, graph.ident("WD0C_SLICE"));
-        graph.add_bel_output(bel, graph.ident("WD1"), x, y, graph.ident("WD1C_SLICE"));
-        graph.add_bel_output(bel, graph.ident("WD2"), x, y, graph.ident("WD2C_SLICE"));
-        graph.add_bel_output(bel, graph.ident("WD3"), x, y, graph.ident("WD3C_SLICE"));
+        graph.add_bel_output(bel, graph.ident("WDO0"), x, y, graph.ident("WDO0C_SLICE"));
+        graph.add_bel_output(bel, graph.ident("WDO1"), x, y, graph.ident("WDO1C_SLICE"));
+        graph.add_bel_output(bel, graph.ident("WDO2"), x, y, graph.ident("WDO2C_SLICE"));
+        graph.add_bel_output(bel, graph.ident("WDO3"), x, y, graph.ident("WDO3C_SLICE"));
 
-        graph.add_bel_output(bel, graph.ident("WAD0"), x, y, graph.ident("WAD0C_SLICE"));
-        graph.add_bel_output(bel, graph.ident("WAD1"), x, y, graph.ident("WAD1C_SLICE"));
-        graph.add_bel_output(bel, graph.ident("WAD2"), x, y, graph.ident("WAD2C_SLICE"));
-        graph.add_bel_output(bel, graph.ident("WAD3"), x, y, graph.ident("WAD3C_SLICE"));
+        graph.add_bel_output(bel, graph.ident("WADO0"), x, y, graph.ident("WADO0C_SLICE"));
+        graph.add_bel_output(bel, graph.ident("WADO1"), x, y, graph.ident("WADO1C_SLICE"));
+        graph.add_bel_output(bel, graph.ident("WADO2"), x, y, graph.ident("WADO2C_SLICE"));
+        graph.add_bel_output(bel, graph.ident("WADO3"), x, y, graph.ident("WADO3C_SLICE"));
     }
     graph.add_bel(bel);
 }
