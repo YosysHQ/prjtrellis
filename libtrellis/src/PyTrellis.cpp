@@ -433,7 +433,8 @@ BOOST_PYTHON_MODULE (pytrellis) {
 
     class_<checksum_t>("checksum_t")
             .def_readwrite("first", &checksum_t::first)
-            .def_readwrite("second", &checksum_t::second);
+            .def_readwrite("second", &checksum_t::second)
+            .def(self == self);
 
     class_<DedupChipdb, shared_ptr<DedupChipdb>>("DedupChipdb")
             .def_readwrite("locationTypes", &DedupChipdb::locationTypes)

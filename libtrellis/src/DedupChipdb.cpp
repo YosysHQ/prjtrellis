@@ -111,6 +111,7 @@ shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
                 wd.belUphill.bel = RelId{Location(-1, -1), -1};
                 wd.belUphill.pin = -1;
             }
+            ld.wires.push_back(wd);
         }
 
         checksum_t cs = ld.checksum();
