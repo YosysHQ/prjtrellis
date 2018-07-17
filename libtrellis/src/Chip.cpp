@@ -127,7 +127,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
             for (int z = 0; z < 4; z++)
                 Bels::add_lc(*rg, x, y, z);
         }
-        if (tile->info.type.find("PIOL0") != string::npos || tile->info.type.find("PIOR0") != string::npos)
+        if (tile->info.type.find("PICL0") != string::npos || tile->info.type.find("PICR0") != string::npos)
             for (int z = 0; z < 4; z++)
                 Bels::add_pio(*rg, x, y, z);
         if (tile->info.type.find("PIOT0") != string::npos || (tile->info.type.find("PICB0") != string::npos && tile->info.type != "SPICB0"))
