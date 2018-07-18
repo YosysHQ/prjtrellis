@@ -31,3 +31,4 @@ to develop a free and open Verilog to bitstream toolchain for these devices.
    :caption: libtrellis Documenation
 
    libtrellis/overview
+   libtrellis/textconfig
