@@ -69,3 +69,23 @@ The ``TileBitDatabase`` stored the function of all bits in the tile, in terms of
 be saved back to disk using the ``save`` method.
 
 They can also be used to convert between tile CRAM data and higher level tile config, as described above.
+
+RoutingGraph
+-------------
+
+``RoutingGraph`` and related structures are designed to store a complete routing graph for the Chip. ``RoutingWire``
+represents wires, ``RoutingArc`` represents arcs between wires and ``RoutingBel`` represents a Bel (logic element).
+To reduce memory usage, ``ident_t``, an index into a string store, is used instead of using strings directly. Use
+``RoutingGraph.ident`` to convert from string to ``ident_t``, and ``RoutingGraph.to_str`` to convert to a string.
+
+DedupChipdb
+-----------
+This is an experimental part of libtrellis to "deduplicate" the repetition in the routing graph, by converting it to
+relative coordinates and then storing identical tile locations only once. The data produced is intended to be exported
+to a database for a place and route tool using the Python API.
+
+ChipConfig
+----------
+ChipConfig contains the high-level configuration for the entire chip, including all tiles and metadata. It can be
+directly converted to or from a high-level configuration text file. For more information see
+:doc:`Text Config Documentation <textconfig>`.
