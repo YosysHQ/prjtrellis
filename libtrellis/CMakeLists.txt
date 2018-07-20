@@ -84,5 +84,10 @@ add_executable(ecppack ${INCLUDE_FILES} tools/ecppack.cpp)
 target_compile_definitions(ecppack PRIVATE TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
 target_link_libraries(ecppack trellis ${Boost_LIBRARIES})
 
-install(TARGETS trellis ecppack LIBRARY DESTINATION lib  RUNTIME DESTINATION bin)
+add_executable(ecpunpack ${INCLUDE_FILES} tools/ecpunpack.cpp)
+target_compile_definitions(ecpunpack PRIVATE TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
+target_link_libraries(ecpunpack trellis ${Boost_LIBRARIES})
+
+
+install(TARGETS trellis ecppack ecpunpack LIBRARY DESTINATION lib  RUNTIME DESTINATION bin)
 install(DIRECTORY ../database DESTINATION share/trellis)
