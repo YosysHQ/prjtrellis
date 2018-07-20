@@ -15,3 +15,6 @@ Testing
 *.dll
 *.a
 *.cbp
+install_manifest.txt
+ecppack
+ecpunpack

@@ -313,12 +313,6 @@ istream &operator>>(istream &in, FixedConnection &es)
 
 TileBitDatabase::TileBitDatabase(const string &filename) : filename(filename)
 {
-#ifdef FUZZ_SAFETY_CHECK
-    ip_db_lock = boost::interprocess::file_lock(filename.c_str());
-    bool lck = ip_db_lock.try_lock();
-    if (!lck)
-        throw runtime_error("database file " + filename + " is locked");
-#endif
     load();
 }
 
@@ -666,9 +660,6 @@ TileBitDatabase::~TileBitDatabase()
 {
     if (dirty)
         save();
-#ifdef FUZZ_SAFETY_CHECK
-    ip_db_lock.unlock();
-#endif
 }
 
 }
