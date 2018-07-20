@@ -15,6 +15,14 @@ namespace Trellis {
 static const uint16_t CRC16_POLY = 0x8005;
 static const uint16_t CRC16_INIT = 0x0000;
 
+static const vector<pair<std::string, uint8_t>> frequencies =
+    {{"2.4", 0x00},
+     {"4.8", 0x01},
+     {"9.7", 0x20},
+     {"19.4", 0x30},
+     {"38.8", 0x38},
+     {"62.0", 0x3b}};
+
 // The BitstreamReadWriter class stores state (including CRC16) whilst reading
 // the bitstream
 class BitstreamReadWriter {

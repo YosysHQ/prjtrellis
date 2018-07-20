@@ -74,7 +74,15 @@ aux_source_directory(src/ SOURCE_FILES)
 add_library(trellis SHARED ${INCLUDE_FILES} ${SOURCE_FILES})
 PYTHON_ADD_MODULE(pytrellis ${INCLUDE_FILES} ${SOURCE_FILES})
 target_compile_definitions(pytrellis PRIVATE INCLUDE_PYTHON=1)
-target_compile_definitions(trellis PRIVATE FUZZ_SAFETY_CHECK=1)
-target_compile_definitions(pytrellis PRIVATE FUZZ_SAFETY_CHECK=1)
 target_link_libraries(trellis LINK_PUBLIC ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 target_link_libraries(pytrellis LINK_PUBLIC ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+
+
+find_package(Boost REQUIRED COMPONENTS program_options)
+
+add_executable(ecppack ${INCLUDE_FILES} tools/ecppack.cpp)
+target_compile_definitions(ecppack PRIVATE TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
+target_link_libraries(ecppack trellis ${Boost_LIBRARIES})
+
+install(TARGETS trellis ecppack LIBRARY DESTINATION lib  RUNTIME DESTINATION bin)
+install(DIRECTORY ../database DESTINATION share/trellis)
