@@ -59,11 +59,12 @@ struct BelWire
 {
     RelId wire;
     ident_t pin = -1;
+    PortDirection dir;
 };
 
 inline bool operator==(const BelWire &a, const BelWire &b)
 {
-    return a.wire == b.wire && a.pin == b.pin;
+    return a.wire == b.wire && a.pin == b.pin && a.dir == b.dir;
 }
 
 
@@ -94,6 +95,7 @@ struct WireData
     set<RelId> arcsDownhill, arcsUphill;
     vector<BelPort> belsDownhill;
     BelPort belUphill;
+    vector<BelPort> belPins;
 };
 
 inline bool operator==(const WireData &a, const WireData &b)
@@ -104,7 +106,9 @@ inline bool operator==(const WireData &a, const WireData &b)
            && equal(a.arcsUphill.begin(), a.arcsUphill.end(), b.arcsUphill.begin())
            && a.belsDownhill.size() == b.belsDownhill.size()
            && equal(a.belsDownhill.begin(), a.belsDownhill.end(), b.belsDownhill.begin())
-           && a.belUphill == b.belUphill;
+           && a.belUphill == b.belUphill
+           && a.belPins.size() == b.belPins.size()
+           && equal(a.belPins.begin(), a.belPins.end(), b.belPins.begin());
 }
 
 struct BelData
@@ -200,6 +204,7 @@ struct hash<Trellis::DDChipDb::BelWire>
         std::size_t seed = 0;
         boost::hash_combine(seed, hash<Trellis::DDChipDb::RelId>()(port.wire));
         boost::hash_combine(seed, hash<Trellis::ident_t>()(port.pin));
+        boost::hash_combine(seed, hash<Trellis::ident_t>()(port.dir));
         return seed;
     }
 };
@@ -255,6 +260,7 @@ struct hash<Trellis::DDChipDb::WireData>
         boost::hash_combine(seed, hash<set<Trellis::DDChipDb::RelId>>()(wire.arcsUphill));
         boost::hash_combine(seed, hash<vector<Trellis::DDChipDb::BelPort>>()(wire.belsDownhill));
         boost::hash_combine(seed, hash<Trellis::DDChipDb::BelPort>()(wire.belUphill));
+        boost::hash_combine(seed, hash<vector<Trellis::DDChipDb::BelPort>>()(wire.belPins));
         return seed;
     }
 };
