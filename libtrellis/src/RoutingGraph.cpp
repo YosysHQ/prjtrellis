@@ -119,7 +119,7 @@ void RoutingGraph::add_bel_input(RoutingBel &bel, ident_t pin, int wire_x, int w
     belId.id = bel.name;
     belId.loc = bel.loc;
     add_wire(wireId);
-    bel.pins[pin] = wireId;
+    bel.pins[pin] = make_pair(wireId, PORT_IN);
     tiles[wireId.loc].wires[wireId.id].belsUphill.push_back(make_pair(belId, pin));
 }
 
@@ -131,7 +131,7 @@ void RoutingGraph::add_bel_output(RoutingBel &bel, ident_t pin, int wire_x, int 
     belId.id = bel.name;
     belId.loc = bel.loc;
     add_wire(wireId);
-    bel.pins[pin] = wireId;
+    bel.pins[pin] = make_pair(wireId, PORT_OUT);
     tiles[wireId.loc].wires[wireId.id].belsDownhill.push_back(make_pair(belId, pin));
 }
 

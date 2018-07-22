@@ -311,6 +311,16 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("bel", &BelPin::first)
             .def_readwrite("pin", &BelPin::second);
 
+    typedef pair<RoutingId, PortDirection> BelWireDir;
+    class_<BelWireDir>("BelWireDir")
+            .def_readwrite("wire", &BelWireDir::first)
+            .def_readwrite("dir", &BelWireDir::second);
+
+    enum_<PortDirection>("PortDirection")
+            .value("PORT_IN", PORT_IN)
+            .value("PORT_OUT", PORT_OUT)
+            .value("PORT_INOUT", PORT_INOUT);
+
     class_<vector<BelPin>>("BelPinVector")
             .def(vector_indexing_suite<vector<BelPin>>());
 
@@ -328,8 +338,8 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("sink", &RoutingArc::sink)
             .def_readwrite("configurable", &RoutingArc::configurable);
 
-    class_<map<ident_t, RoutingId>>("RoutingPinMap")
-            .def(map_indexing_suite<map<ident_t, RoutingId>>());
+    class_<map<ident_t, BelWireDir>>("RoutingPinMap")
+            .def(map_indexing_suite<map<ident_t, BelWireDir>>());
 
     class_<RoutingBel>("RoutingBel")
             .def_readwrite("name", &RoutingBel::name)
@@ -379,7 +389,8 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("pin", &BelPort::pin);
     class_<BelWire>("BelWire")
             .def_readwrite("wire", &BelWire::wire)
-            .def_readwrite("pin", &BelWire::pin);
+            .def_readwrite("pin", &BelWire::pin)
+            .def_readwrite("dir", &BelWire::dir);
 
     class_<vector<BelPort>>("BelPortVector")
             .def(vector_indexing_suite<vector<BelPort>>());
@@ -405,7 +416,8 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("arcsDownhill", &WireData::arcsDownhill)
             .def_readwrite("arcsUphill", &WireData::arcsUphill)
             .def_readwrite("belsDownhill", &WireData::belsDownhill)
-            .def_readwrite("belUphill", &WireData::belUphill);
+            .def_readwrite("belUphill", &WireData::belUphill)
+            .def_readwrite("belPins", &WireData::belPins);
 
     class_<BelData>("BelData")
             .def_readwrite("name", &BelData::name)

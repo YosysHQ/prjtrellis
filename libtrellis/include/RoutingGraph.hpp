@@ -81,12 +81,17 @@ inline bool operator==(const RoutingWire &a, const RoutingWire &b)
     return a.id == b.id;
 }
 
+enum PortDirection {
+    PORT_IN = 0,
+    PORT_OUT = 1,
+    PORT_INOUT = 2
+};
 
 struct RoutingBel
 {
     ident_t name, type;
     Location loc;
-    map<ident_t, RoutingId> pins;
+    map<ident_t, pair<RoutingId, PortDirection>> pins;
     mutable int cdb_id = 0;
 };
 
