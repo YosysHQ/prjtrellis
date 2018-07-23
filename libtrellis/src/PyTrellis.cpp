@@ -344,7 +344,8 @@ BOOST_PYTHON_MODULE (pytrellis) {
     class_<RoutingBel>("RoutingBel")
             .def_readwrite("name", &RoutingBel::name)
             .def_readwrite("type", &RoutingBel::type)
-            .def_readwrite("pins", &RoutingBel::pins);
+            .def_readwrite("pins", &RoutingBel::pins)
+            .def_readwrite("z", &RoutingBel::z);
 
     class_<map<ident_t, RoutingWire>>("RoutingWireMap")
             .def(map_indexing_suite<map<ident_t, RoutingWire>>());
@@ -415,13 +416,12 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("name", &WireData::name)
             .def_readwrite("arcsDownhill", &WireData::arcsDownhill)
             .def_readwrite("arcsUphill", &WireData::arcsUphill)
-            .def_readwrite("belsDownhill", &WireData::belsDownhill)
-            .def_readwrite("belUphill", &WireData::belUphill)
             .def_readwrite("belPins", &WireData::belPins);
 
     class_<BelData>("BelData")
             .def_readwrite("name", &BelData::name)
             .def_readwrite("type", &BelData::type)
+            .def_readwrite("z", &BelData::z)
             .def_readwrite("wires", &BelData::wires);
 
     class_<vector<BelData>>("BelDataVector")

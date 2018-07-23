@@ -13,6 +13,7 @@ void add_lc(RoutingGraph &graph, int x, int y, int z) {
     bel.type = graph.ident("SLICE");
     bel.loc.x = x;
     bel.loc.y = y;
+    bel.z = z;
     graph.add_bel_input(bel, graph.ident("A0"), x, y, graph.ident(fmt("A" << lc0 << "_SLICE")));
     graph.add_bel_input(bel, graph.ident("B0"), x, y, graph.ident(fmt("B" << lc0 << "_SLICE")));
     graph.add_bel_input(bel, graph.ident("C0"), x, y, graph.ident(fmt("C" << lc0 << "_SLICE")));
@@ -88,6 +89,7 @@ void add_pio(RoutingGraph &graph, int x, int y, int z) {
     bel.type = graph.ident("PIO");
     bel.loc.x = x;
     bel.loc.y = y;
+    bel.z = z;
 
     graph.add_bel_input(bel, graph.ident("I"), x, y, graph.ident(fmt("PADDO" << l << "_PIO")));
     graph.add_bel_input(bel, graph.ident("T"), x, y, graph.ident(fmt("PADDT" << l << "_PIO")));

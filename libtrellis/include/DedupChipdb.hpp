@@ -93,8 +93,6 @@ struct WireData
 {
     ident_t name;
     set<RelId> arcsDownhill, arcsUphill;
-    vector<BelPort> belsDownhill;
-    BelPort belUphill;
     vector<BelPort> belPins;
 };
 
@@ -104,9 +102,6 @@ inline bool operator==(const WireData &a, const WireData &b)
            equal(a.arcsDownhill.begin(), a.arcsDownhill.end(), b.arcsDownhill.begin())
            && a.arcsUphill.size() == b.arcsUphill.size()
            && equal(a.arcsUphill.begin(), a.arcsUphill.end(), b.arcsUphill.begin())
-           && a.belsDownhill.size() == b.belsDownhill.size()
-           && equal(a.belsDownhill.begin(), a.belsDownhill.end(), b.belsDownhill.begin())
-           && a.belUphill == b.belUphill
            && a.belPins.size() == b.belPins.size()
            && equal(a.belPins.begin(), a.belPins.end(), b.belPins.begin());
 }
@@ -114,12 +109,13 @@ inline bool operator==(const WireData &a, const WireData &b)
 struct BelData
 {
     ident_t name, type;
+    int z;
     vector<BelWire> wires;
 };
 
 inline bool operator==(const BelData &a, const BelData &b)
 {
-    return a.name == b.name && a.type == b.type && a.wires.size() == b.wires.size()
+    return a.name == b.name && a.type == b.type && a.z == b.z && a.wires.size() == b.wires.size()
            && equal(a.wires.begin(), a.wires.end(), b.wires.begin());
 }
 
@@ -258,8 +254,6 @@ struct hash<Trellis::DDChipDb::WireData>
         boost::hash_combine(seed, hash<Trellis::ident_t>()(wire.name));
         boost::hash_combine(seed, hash<set<Trellis::DDChipDb::RelId>>()(wire.arcsDownhill));
         boost::hash_combine(seed, hash<set<Trellis::DDChipDb::RelId>>()(wire.arcsUphill));
-        boost::hash_combine(seed, hash<vector<Trellis::DDChipDb::BelPort>>()(wire.belsDownhill));
-        boost::hash_combine(seed, hash<Trellis::DDChipDb::BelPort>()(wire.belUphill));
         boost::hash_combine(seed, hash<vector<Trellis::DDChipDb::BelPort>>()(wire.belPins));
         return seed;
     }
@@ -274,6 +268,7 @@ struct hash<Trellis::DDChipDb::BelData>
         boost::hash_combine(seed, hash<Trellis::ident_t>()(bel.name));
         boost::hash_combine(seed, hash<Trellis::ident_t>()(bel.type));
         boost::hash_combine(seed, hash<vector<Trellis::DDChipDb::BelWire>>()(bel.wires));
+        boost::hash_combine(seed, hash<int>()(bel.z));
         return seed;
     }
 };
