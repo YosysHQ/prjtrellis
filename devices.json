@@ -45,7 +45,7 @@
                 "bits_per_frame": 846,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 2,
-                "fuzz": 0
+                "fuzz": 1
             },
             "LFE5UM-85F": {
                 "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
@@ -72,7 +72,7 @@
                 "bits_per_frame": 846,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 2,
-                "fuzz": 0
+                "fuzz": 1
             },
             "LFE5UM5G-85F": {
                 "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
@@ -81,7 +81,7 @@
                 "bits_per_frame": 1136,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
-                "fuzz": 0
+                "fuzz":1
             }
         }
     }

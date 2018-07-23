@@ -11,7 +11,6 @@ from os import path
 from string import Template
 import argparse
 import database
-import devices
 import html_tilegrid
 import html_bits
 import fuzzloops
@@ -62,14 +61,15 @@ def generate_tile_docs(family, device, tile, folder):
 def get_device_tiles(family, devices):
     all_tiles = set()
     fd_tiles = {}
-    for dev in devices:
-        fd_tiles[family, dev] = []
-        c = pytrellis.Chip(dev)
-        for tile in c.get_all_tiles():
-            tt = tile.info.type
-            if tt not in all_tiles:
-                all_tiles.add(tt)
-                fd_tiles[family, dev].append(tt)
+    for dev, devdata in sorted(devices.items()):
+        if devdata["fuzz"]:
+            fd_tiles[family, dev] = []
+            c = pytrellis.Chip(dev)
+            for tile in c.get_all_tiles():
+                tt = tile.info.type
+                if tt not in all_tiles:
+                    all_tiles.add(tt)
+                    fd_tiles[family, dev].append(tt)
     return fd_tiles
 
 
@@ -81,7 +81,7 @@ def main(argv):
     build_dt = time.strftime('%Y-%m-%d %H:%M:%S')
     docs_toc = ""
     pytrellis.load_database(database.get_db_root())
-    for fam, fam_data in sorted(devices.families.items()):
+    for fam, fam_data in sorted(database.get_devices()["families"].items()):
         fdir = path.join(args.fld, fam)
         if not path.exists(fdir):
             os.mkdir(fdir)
@@ -91,20 +91,21 @@ def main(argv):
         docs_toc += "<h3>{} Family</h3>".format(fam)
         docs_toc += "<ul>"
         tiles = get_device_tiles(fam, fam_data["devices"])
-        for dev in fam_data["devices"]:
-            ddir = path.join(fdir, dev)
-            if not path.exists(ddir):
-                os.mkdir(ddir)
-            print("********* Generating documentation for device {}".format(dev))
-            generate_device_docs(fam, dev, ddir)
-            if (fam, dev) in tiles:
-                for tile in tiles[fam, dev]:
-                    print("*** Generating documentation for tile {}".format(tile))
-                    generate_tile_docs(fam, dev, tile, thdir)
-            docs_toc += '<li><a href="{}">{} Documentation</a></li>'.format(
-                '{}/{}/index.html'.format(fam, dev),
-                dev
-            )
+        for dev, devdata in sorted(fam_data["devices"].items()):
+            if devdata["fuzz"]:
+                ddir = path.join(fdir, dev)
+                if not path.exists(ddir):
+                    os.mkdir(ddir)
+                print("********* Generating documentation for device {}".format(dev))
+                generate_device_docs(fam, dev, ddir)
+                if (fam, dev) in tiles:
+                    for tile in tiles[fam, dev]:
+                        print("*** Generating documentation for tile {}".format(tile))
+                        generate_tile_docs(fam, dev, tile, thdir)
+                docs_toc += '<li><a href="{}">{} Documentation</a></li>'.format(
+                    '{}/{}/index.html'.format(fam, dev),
+                    dev
+                )
 
         docs_toc += "</ul>"
 
