@@ -91,6 +91,7 @@ struct RoutingBel
 {
     ident_t name, type;
     Location loc;
+    int z;
     map<ident_t, pair<RoutingId, PortDirection>> pins;
     mutable int cdb_id = 0;
 };

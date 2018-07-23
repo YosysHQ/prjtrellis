@@ -68,6 +68,7 @@ shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
             BelData bd;
             bd.name = rb.name;
             bd.type = rb.type;
+            bd.z = rb.z;
             for (const auto &wire : rb.pins) {
                 BelWire bw;
                 bw.pin = wire.first;
@@ -101,18 +102,15 @@ shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
                 BelPort bp;
                 bp.pin = bdh.second;
                 bp.bel = RelId{Location(bdh.first.loc.x - x, bdh.first.loc.y - y), graph->tiles.at(bdh.first.loc).bels.at(bdh.first.id).cdb_id};
-                wd.belsDownhill.push_back(bp);
                 wd.belPins.push_back(bp);
             }
             assert(rw.belsUphill.size() <= 1);
             if (rw.belsUphill.size() == 1) {
                 const auto &buh = rw.belsUphill[0];
-                wd.belUphill.bel = RelId{Location(buh.first.loc.x - x, buh.first.loc.y - y), graph->tiles.at(buh.first.loc).bels.at(buh.first.id).cdb_id};
-                wd.belUphill.pin = buh.second;
-                wd.belPins.push_back(wd.belUphill);
-            } else {
-                wd.belUphill.bel = RelId{Location(-1, -1), -1};
-                wd.belUphill.pin = -1;
+                BelPort uh;
+                uh.bel = RelId{Location(buh.first.loc.x - x, buh.first.loc.y - y), graph->tiles.at(buh.first.loc).bels.at(buh.first.id).cdb_id};
+                uh.pin = buh.second;
+                wd.belPins.push_back(uh);
             }
             ld.wires.push_back(wd);
         }
