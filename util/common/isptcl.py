@@ -57,6 +57,7 @@ def run_ncd_prf(desfiles, commands):
         elif not is_header:
             output += line
             output += "\n"
+    output = output.replace("ERROR: Placement is not performanced.", "")
     return output
 
 
