@@ -248,7 +248,11 @@ boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile, boost::
         }
     }
     if (!bestmatch) {
-        return boost::optional<string>();
+        if (defval) {
+            return boost::optional<string>("_NONE_");
+        } else {
+            return boost::optional<string>();
+        }
     } else {
         if (coverage)
             bestmatch->second.add_coverage(*coverage);
@@ -262,8 +266,10 @@ boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile, boost::
 
 void EnumSettingBits::set_value(Trellis::CRAMView &tile, const string &value) const
 {
-    auto grp = options.at(value);
-    grp.set_group(tile);
+    if (value != "_NONE_") {
+        auto grp = options.at(value);
+        grp.set_group(tile);
+    }
 }
 
 ostream &operator<<(ostream &out, const EnumSettingBits &es)
