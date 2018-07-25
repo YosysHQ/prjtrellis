@@ -137,4 +137,46 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
     return rg;
 }
 
+// Global network funcs
+
+bool GlobalRegion::matches(int row, int col) const {
+    return (row >= y0 && row <= y1 && col >= x0 && col <= x1);
+}
+
+bool TapSegment::matches_left(int row, int col) const {
+    UNUSED(row);
+    return (col >= lx0 && col <= lx1);
+}
+
+bool TapSegment::matches_right(int row, int col) const {
+    UNUSED(row);
+    return (col >= rx0 && col <= rx1);
+}
+
+string GlobalsInfo::get_quadrant(int row, int col) const {
+    for (const auto &quad : quadrants) {
+        if (quad.matches(row, col))
+            return quad.name;
+    }
+    throw runtime_error(fmt("R" << row << "C" << col << " matches no globals quadrant"));
+}
+
+TapDriver GlobalsInfo::get_tap_driver(int row, int col) const {
+    for (const auto &seg : tapsegs) {
+        if (seg.matches_left(row, col)) {
+            TapDriver td;
+            td.dir = TapDriver::LEFT;
+            td.col = seg.tap_col;
+            return td;
+        }
+        if (seg.matches_right(row, col)) {
+            TapDriver td;
+            td.dir = TapDriver::RIGHT;
+            td.col = seg.tap_col;
+            return td;
+        }
+    }
+    throw runtime_error(fmt("R" << row << "C" << col << " matches no global TAP_DRIVE segment"));
+}
+
 }

@@ -22,18 +22,22 @@ using namespace boost::python;
 using namespace Trellis;
 
 #ifdef INCLUDE_PYTHON
-void translate_bspe(const BitstreamParseError &e) {
+
+void translate_bspe(const BitstreamParseError &e)
+{
     // Use the Python 'C' API to set up an exception object
     PyErr_SetString(PyExc_ValueError, e.what());
 }
 
-void translate_dbce(const DatabaseConflictError &e) {
+void translate_dbce(const DatabaseConflictError &e)
+{
     // Use the Python 'C' API to set up an exception object
     PyErr_SetString(PyExc_ValueError, e.what());
 }
 
 
-BOOST_PYTHON_MODULE (pytrellis) {
+BOOST_PYTHON_MODULE (pytrellis)
+{
     // Common Types
     class_<vector<string>>("StringVector")
             .def(vector_indexing_suite<vector<string>>());
@@ -85,6 +89,43 @@ BOOST_PYTHON_MODULE (pytrellis) {
     class_<vector<shared_ptr<Tile>>>("TileVector")
             .def(vector_indexing_suite<vector<shared_ptr<Tile>>, true>());
 
+    class_<GlobalRegion>("GlobalRegion")
+            .def_readwrite("name", &GlobalRegion::name)
+            .def_readwrite("x0", &GlobalRegion::x0)
+            .def_readwrite("y0", &GlobalRegion::y0)
+            .def_readwrite("x1", &GlobalRegion::x1)
+            .def_readwrite("y1", &GlobalRegion::y1)
+            .def("matches", &GlobalRegion::matches);
+
+    class_<vector<GlobalRegion>>("GlobalRegionVector")
+            .def(vector_indexing_suite<vector<GlobalRegion>>());
+
+    class_<TapSegment>("TapSegment")
+            .def_readwrite("tap_col", &TapSegment::tap_col)
+            .def_readwrite("lx0", &TapSegment::lx0)
+            .def_readwrite("lx1", &TapSegment::lx1)
+            .def_readwrite("rx0", &TapSegment::rx0)
+            .def_readwrite("rx1", &TapSegment::rx1)
+            .def("matches_left", &TapSegment::matches_left)
+            .def("matches_right", &TapSegment::matches_right);
+
+    enum_<TapDriver::TapDir>("TapDir")
+            .value("LEFT", TapDriver::LEFT)
+            .value("RIGHT", TapDriver::RIGHT);
+
+    class_<TapDriver>("TapDriver")
+            .def_readwrite("col", &TapDriver::col)
+            .def_readwrite("dir", &TapDriver::dir);
+
+    class_<vector<TapSegment>>("TapSegmentVector")
+            .def(vector_indexing_suite<vector<TapSegment>>());
+
+    class_<GlobalsInfo>("GlobalsInfo")
+            .def_readwrite("quadrants", &GlobalsInfo::quadrants)
+            .def_readwrite("tapsegs", &GlobalsInfo::quadrants)
+            .def("get_quadrant", &GlobalsInfo::get_quadrant)
+            .def("get_tap_driver", &GlobalsInfo::get_tap_driver);
+
     class_<Chip>("Chip", init<string>())
             .def(init<uint32_t>())
             .def(init<const ChipInfo &>())
@@ -100,6 +141,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
             .def_readwrite("tiles", &Chip::tiles)
             .def_readwrite("usercode", &Chip::usercode)
             .def_readwrite("metadata", &Chip::metadata)
+            .def_readwrite("global_data", &Chip::global_data)
             .def(self - self);
 
     class_<ChipDelta>("ChipDelta")
@@ -175,7 +217,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
     class_<vector<ConfigBit>>("ConfigBitVector")
             .def(vector_indexing_suite<vector<ConfigBit>>());
     class_<set<ConfigBit>>("ConfigBitSet")
-            .def(bond::python::set_indexing_suite<set<ConfigBit>,true>());
+            .def(bond::python::set_indexing_suite<set<ConfigBit>, true>());
 
     class_<BitGroup>("BitGroup")
             .def(init<const CRAMDelta &>())
@@ -457,4 +499,5 @@ BOOST_PYTHON_MODULE (pytrellis) {
 
     def("make_dedup_chipdb", make_dedup_chipdb);
 }
+
 #endif
