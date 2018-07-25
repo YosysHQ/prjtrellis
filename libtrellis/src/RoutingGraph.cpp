@@ -17,6 +17,14 @@ RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), max_row(c.ge
             tiles[loc].loc = loc;
         }
     }
+    if (chip_name.find("25F") != string::npos || chip_name.find("12F") != string::npos)
+        chip_prefix = "25K_";
+    else if (chip_name.find("45F") != string::npos)
+        chip_prefix = "45K_";
+    else if (chip_name.find("85F") != string::npos)
+        chip_prefix = "85K_";
+    else
+        assert(false);
 }
 
 ident_t IdStore::ident(const std::string &str) const
@@ -46,16 +54,23 @@ RoutingId IdStore::id_at_loc(int16_t x, int16_t y, const std::string &str) const
 RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_name)
 {
     static const std::regex e(R"(^([NS]\d+)?([EW]\d+)?_(.*))", std::regex::optimize);
-
-    if (db_name.find("BNK_") == 0 || db_name.find("DQSG_") == 0) // Not yet implemented
+    std::string stripped_name = db_name;
+    if (db_name.find("25K_") == 0 || db_name.find("45K_") == 0 || db_name.find("85K_") == 0) {
+        if (db_name.substr(0, 4) == chip_prefix) {
+            stripped_name = db_name.substr(4);
+        } else {
+            return RoutingId();
+        }
+    }
+    if (stripped_name.find("BNK_") == 0 || stripped_name.find("DQSG_") == 0) // Not yet implemented
         return RoutingId();
-    if (db_name.find("G_") == 0 || db_name.find("L_") == 0 || db_name.find("R_") == 0) {
+    if (stripped_name.find("G_") == 0 || stripped_name.find("L_") == 0 || stripped_name.find("R_") == 0) {
         // Global net
         // TODO: quadrants and TAP_DRIVE regions
         RoutingId id;
         id.loc.x = int16_t(col);
         id.loc.y = int16_t(row);
-        id.id = ident(db_name);
+        id.id = ident(stripped_name);
         return id;
     } else {
         RoutingId id;
@@ -63,7 +78,7 @@ RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_na
         id.loc.y = int16_t(row);
         // Local net, process prefix
         smatch m;
-        if (regex_match(db_name, m, e)) {
+        if (regex_match(stripped_name, m, e)) {
             for (int i = 1; i < int(m.size()) - 1; i++) {
                 string g = m.str(i);
                 if (g.empty()) continue;
@@ -76,7 +91,7 @@ RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_na
             }
             id.id = ident(m.str(m.size() - 1));
         } else {
-            id.id = ident(db_name);
+            id.id = ident(stripped_name);
         }
         if (id.loc.x < 0 || id.loc.x > max_col || id.loc.y < 0 || id.loc.y > max_row)
             return RoutingId(); // TODO: handle edge nets properly

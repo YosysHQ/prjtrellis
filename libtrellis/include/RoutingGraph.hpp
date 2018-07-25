@@ -135,6 +135,7 @@ public:
 
     // Must be set up beforehand
     std::string chip_name;
+    std::string chip_prefix;
     int max_row, max_col;
 
     // Routing tiles
