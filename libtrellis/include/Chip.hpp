@@ -24,6 +24,55 @@ struct ChipInfo
     int pad_bits_after_frame;
 };
 
+// Information about the global networks in a chip
+struct GlobalRegion
+{
+    string name;
+    int x0, y0, x1, y1;
+
+    bool matches(int row, int col) const;
+};
+
+inline bool operator==(const GlobalRegion &a, const GlobalRegion &b)
+{
+    return (a.name == b.name) && (a.x0 == b.x0) && (a.x1 == b.x1) && (a.y0 == b.y0) && (a.y1 == b.y1);
+}
+
+struct TapSegment
+{
+    int tap_col;
+    int lx0, lx1, rx0, rx1;
+
+    bool matches_left(int row, int col) const;
+
+    bool matches_right(int row, int col) const;
+};
+
+inline bool operator==(const TapSegment &a, const TapSegment &b)
+{
+    return (a.tap_col == b.tap_col) && (a.lx0 == b.lx0) && (a.lx1 == b.lx1) && (a.rx0 == b.rx0) && (a.rx1 == b.rx1);
+}
+
+struct TapDriver
+{
+    int col;
+    enum TapDir
+    {
+        LEFT,
+        RIGHT
+    } dir;
+};
+
+struct GlobalsInfo
+{
+    vector<GlobalRegion> quadrants;
+    vector<TapSegment> tapsegs;
+
+    string get_quadrant(int row, int col) const;
+
+    TapDriver get_tap_driver(int row, int col) const;
+};
+
 class Tile;
 
 // A difference between two Chips
@@ -60,6 +109,7 @@ public:
     vector<shared_ptr<Tile>> get_all_tiles();
 
     string get_tile_by_position_and_type(int row, int col, string type);
+
     string get_tile_by_position_and_type(int row, int col, set<string> type);
 
     // Map tile name to a tile reference
@@ -81,6 +131,9 @@ public:
 
     // Block RAM initialisation (WIP)
     map<uint16_t, vector<uint16_t>> bram_data;
+
+    // Globals data
+    GlobalsInfo global_data;
 };
 
 ChipDelta operator-(const Chip &a, const Chip &b);
