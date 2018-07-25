@@ -32,6 +32,7 @@ Chip::Chip(const Trellis::ChipInfo &info) : info(info), cram(info.num_frames, in
         }
         tiles_at_location.at(row).at(col).push_back(make_pair(tile.name, tile.type));
     }
+    global_data = get_global_info(DeviceLocator{info.family, info.name});
 }
 
 shared_ptr<Tile> Chip::get_tile_by_name(string name)

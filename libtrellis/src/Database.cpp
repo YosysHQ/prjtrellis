@@ -80,6 +80,33 @@ ChipInfo get_chip_info(const DeviceLocator &part) {
     return ci;
 }
 
+GlobalsInfo get_global_info(const DeviceLocator &part) {
+    string glbdata_path = db_root + "/" + part.family + "/" + part.device + "/globals.json";
+    pt::ptree glb_parsed;
+    pt::read_json(glbdata_path, glb_parsed);
+    GlobalsInfo glbs;
+    for (const pt::ptree::value_type &quad : glb_parsed.get_child("quadrants")) {
+        GlobalRegion rg;
+        rg.name = quad.first;
+        rg.x0 = quad.second.get<int>("x0");
+        rg.x1 = quad.second.get<int>("x1");
+        rg.y0 = quad.second.get<int>("y0");
+        rg.y1 = quad.second.get<int>("y1");
+        glbs.quadrants.push_back(rg);
+    }
+    for (const pt::ptree::value_type &tap : glb_parsed.get_child("taps")) {
+        TapSegment ts;
+        assert(tap.first[0] == 'C');
+        ts.tap_col = stoi(tap.first.substr(1));
+        ts.lx0 = tap.second.get<int>("lx0");
+        ts.lx1 = tap.second.get<int>("lx1");
+        ts.rx0 = tap.second.get<int>("rx0");
+        ts.rx1 = tap.second.get<int>("rx1");
+        glbs.tapsegs.push_back(ts);
+    }
+    return glbs;
+}
+
 vector<TileInfo> get_device_tilegrid(const DeviceLocator &part) {
     vector <TileInfo> tilesInfo;
     assert(db_root != "");
