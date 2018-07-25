@@ -30,7 +30,7 @@ DedupChipdb::DedupChipdb()
 }
 
 DedupChipdb::DedupChipdb(const IdStore &base) : IdStore(base)
-{};
+{}
 
 shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
 {
@@ -133,4 +133,4 @@ LocationData DedupChipdb::get_cs_data(checksum_t id) {
 }
 
 }
-};
+}

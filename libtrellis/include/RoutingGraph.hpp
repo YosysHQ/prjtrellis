@@ -171,7 +171,7 @@ template <> struct hash <Trellis::Location>
         return seed;
     }
 };
-};
+}
 
 
 #endif

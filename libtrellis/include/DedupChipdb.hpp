@@ -31,17 +31,17 @@ struct RelId
 inline bool operator<(RelId a, RelId b)
 {
     return (a.rel < b.rel) || (a.rel == b.rel && a.id < b.id);
-};
+}
 
 inline bool operator==(RelId a, RelId b)
 {
     return (a.rel == b.rel) && (a.id == b.id);
-};
+}
 
 inline bool operator!=(RelId a, RelId b)
 {
     return (a.rel != b.rel) || (a.id != b.id);
-};
+}
 
 
 struct BelPort
@@ -336,7 +336,7 @@ struct hash<Trellis::DDChipDb::LocationData>
     }
 };
 
-};
+}
 
 namespace Trellis {
 class Chip;
@@ -358,6 +358,6 @@ struct DedupChipdb : public IdStore
 shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip);
 
 }
-};
+}
 
 #endif
