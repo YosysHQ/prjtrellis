@@ -400,7 +400,7 @@ BOOST_PYTHON_MODULE (pytrellis) {
     class_<vector<RelId>>("RelIdVector")
             .def(vector_indexing_suite<vector<RelId>>());
     class_<set<RelId>>("RelIdSet")
-            .def(bond::python::set_indexing_suite<set<RelId>>());
+            .def(bond::python::set_indexing_suite<set<RelId>,true>());
 
     enum_<ArcClass>("ArcClass")
             .value("ARC_STANDARD", ARC_STANDARD)
