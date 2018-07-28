@@ -12,7 +12,29 @@ jobs = [
         "dcc_loc": "R34C40",
         "dcs_loc": "R34C40",
         "prefix": "45K_"
-    }
+    },
+    {
+        "cfg": FuzzConfig(job="CMUX_25k", family="ECP5", device="LFE5U-25F", ncl="cmux_25k.ncl",
+                          tiles=["MIB_R13C31:DSP_CMUX_UL", "MIB_R13C31:CMUX_UL_0",
+                                 "MIB_R13C32:CMUX_UR_0", "MIB_R13C32:DSP_CMUX_UR",
+                                 "MIB_R37C30:EBR_CMUX_LL_25K", "MIB_R37C31:CMUX_LL_0",
+                                 "MIB_R37C32:CMUX_LR_0", "MIB_R37C33:EBR_CMUX_LR_25K"]),
+        "cmux_outputs": ["R19C31_ULPCLK{}", "R19C31_URPCLK{}", "R31C31_LLPCLK{}", "R31C31_LRPCLK{}"],
+        "dcc_loc": "R25C31",
+        "dcs_loc": "R25C31",
+        "prefix": "25K_"
+    },
+    {
+        "cfg": FuzzConfig(job="CMUX_85k", family="ECP5", device="LFE5U-85F", ncl="cmux_85k.ncl",
+                          tiles=["MIB_R22C66:EBR_CMUX_UL", "MIB_R22C67:CMUX_UL_0",
+                                 "MIB_R22C68:CMUX_UR_0", "MIB_R22C69:EBR_CMUX_UR",
+                                 "MIB_R70C66:EBR_CMUX_LL", "MIB_R70C67:CMUX_LL_0",
+                                 "MIB_R70C68:CMUX_LR_0", "MIB_R70C69:EBR_CMUX_LR"]),
+        "cmux_outputs": ["R34C67_ULPCLK{}", "R34C67_URPCLK{}", "R58C67_LLPCLK{}", "R58C67_LRPCLK{}"],
+        "dcc_loc": "R46C67",
+        "dcs_loc": "R46C67",
+        "prefix": "85K_"
+    },
 ]
 
 

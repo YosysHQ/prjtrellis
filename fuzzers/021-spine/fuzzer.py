@@ -43,6 +43,53 @@ jobs = [
                           tiles=["MIB_R58C77:EBR_SPINE_LR1"]),
         "sink_net": "R53C77_VPTX{:02d}00"
     },
+
+    {
+        "cfg": FuzzConfig(job="DSP_SPINE_UL1", family="ECP5", device="LFE5U-25F", ncl="spine_25k.ncl",
+                          tiles=["MIB_R13C3:DSP_SPINE_UL1"]),
+        "sink_net": "R13C3_VPTX{:02d}00"
+    },
+    {
+        "cfg": FuzzConfig(job="DSP_SPINE_UL0", family="ECP5", device="LFE5U-25F", ncl="spine_25k.ncl",
+                          tiles=["MIB_R13C21:DSP_SPINE_UL0"]),
+        "sink_net": "R13C21_VPTX{:02d}00"
+    },
+    {
+        "cfg": FuzzConfig(job="DSP_SPINE_UR0", family="ECP5", device="LFE5U-25F", ncl="spine_25k.ncl",
+                          tiles=["MIB_R13C41:DSP_SPINE_UR0"]),
+        "sink_net": "R13C41_VPTX{:02d}00"
+    },
+    {
+        "cfg": FuzzConfig(job="DSP_SPINE_UR1", family="ECP5", device="LFE5U-25F", ncl="spine_25k.ncl",
+                          tiles=["MIB_R13C59:DSP_SPINE_UR1"]),
+        "sink_net": "R13C59_VPTX{:02d}00"
+    },
+    {
+        "cfg": FuzzConfig(job="EBR_SPINE_LL3", family="ECP5", device="LFE5U-25F", ncl="spine_25k.ncl",
+                          tiles=["MIB_R37C3:EBR_SPINE_LL3"]),
+        "sink_net": "R38C3_VPTX{:02d}00"
+    },
+
+    {
+        "cfg": FuzzConfig(job="EBR_SPINE_UL2", family="ECP5", device="LFE5U-85F", ncl="spine_85k.ncl",
+                          tiles=["MIB_R22C12:EBR_SPINE_UL2"]),
+        "sink_net": "R24C12_VPTX{:02d}00"
+    },
+    {
+        "cfg": FuzzConfig(job="EBR_SPINE_UR2", family="ECP5", device="LFE5U-85F", ncl="spine_85k.ncl",
+                          tiles=["MIB_R22C113:EBR_SPINE_UR2"]),
+        "sink_net": "R24C113_VPTX{:02d}00"
+    },
+    {
+        "cfg": FuzzConfig(job="EBR_SPINE_LL2", family="ECP5", device="LFE5U-85F", ncl="spine_85k.ncl",
+                          tiles=["MIB_R70C12:EBR_SPINE_LL2"]),
+        "sink_net": "R71C12_VPTX{:02d}00"
+    },
+    {
+        "cfg": FuzzConfig(job="EBR_SPINE_LR2", family="ECP5", device="LFE5U-85F", ncl="spine_85k.ncl",
+                          tiles=["MIB_R70C113:EBR_SPINE_LR2"]),
+        "sink_net": "R71C113_VPTX{:02d}00"
+    },
 ]
 
 
