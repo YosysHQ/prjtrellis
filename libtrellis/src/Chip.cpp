@@ -124,16 +124,31 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
         bitdb->add_routing(tile->info, *rg);
         int x, y;
         tie(y, x) = tile->info.get_row_col();
+        // SLICE Bels
         if (tile->info.type == "PLC2") {
             for (int z = 0; z < 4; z++)
                 Bels::add_lc(*rg, x, y, z);
         }
+        // PIO Bels
         if (tile->info.type.find("PICL0") != string::npos || tile->info.type.find("PICR0") != string::npos)
             for (int z = 0; z < 4; z++)
                 Bels::add_pio(*rg, x, y, z);
         if (tile->info.type.find("PIOT0") != string::npos || (tile->info.type.find("PICB0") != string::npos && tile->info.type != "SPICB0"))
             for (int z = 0; z < 2; z++)
                 Bels::add_pio(*rg, x, y, z);
+        // DCC Bels
+        if (tile->info.type == "LMID_0")
+            for (int z = 0; z < 14; z++)
+                Bels::add_dcc(*rg, x, y, "L", std::to_string(z));
+        if (tile->info.type == "RMID_0")
+            for (int z = 0; z < 14; z++)
+                Bels::add_dcc(*rg, x, y, "R", std::to_string(z));
+        if (tile->info.type == "TMID_0")
+            for (int z = 0; z < 12; z++)
+                Bels::add_dcc(*rg, x, y, "T", std::to_string(z));
+        if (tile->info.type == "BMID_0V" || tile->info.type == "BMID_0")
+            for (int z = 0; z < 16; z++)
+                Bels::add_dcc(*rg, x, y, "B", std::to_string(z));
     }
     return rg;
 }

@@ -98,5 +98,28 @@ void add_pio(RoutingGraph &graph, int x, int y, int z) {
     graph.add_bel(bel);
 }
 
+void add_dcc(RoutingGraph &graph, int x, int y, string side, string z) {
+    string name = side + string("DCC") + z;
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("DCCA");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    if (z == "BL")
+        bel.z = 0;
+    else if (z == "BR")
+        bel.z = 1;
+    else if (z == "TL")
+        bel.z = 2;
+    else if (z == "TR")
+        bel.z = 3;
+    else
+        bel.z = stoi(z);
+    graph.add_bel_input(bel, graph.ident("CLKI"), 0, 0, graph.ident(fmt("G_CLKI_" << side << "DCC" << z)));
+    graph.add_bel_input(bel, graph.ident("CE"), 0, 0, graph.ident(fmt("G_JCE_" << side << "DCC" << z)));
+    graph.add_bel_output(bel, graph.ident("CLKO"), 0, 0, graph.ident(fmt("G_CLKO_" << side << "DCC" << z)));
+
+}
+
 }
 }
