@@ -1,0 +1,6 @@
+*.bit
+*.svf
+*.json
+*_out.config
+*.blif
+
