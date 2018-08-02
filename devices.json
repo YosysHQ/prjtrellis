@@ -36,7 +36,7 @@
                 "bits_per_frame": 592,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
-                "fuzz": 0
+                "fuzz": 1
             },
             "LFE5UM-45F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
@@ -54,7 +54,7 @@
                 "bits_per_frame": 1136,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
-                "fuzz": 0
+                "fuzz": 1
             },
             "LFE5UM5G-25F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
@@ -63,7 +63,7 @@
                 "bits_per_frame": 592,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
-                "fuzz": 0
+                "fuzz": 1
             },
             "LFE5UM5G-45F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
@@ -81,7 +81,7 @@
                 "bits_per_frame": 1136,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
-                "fuzz":1
+                "fuzz": 1
             }
         }
     }
