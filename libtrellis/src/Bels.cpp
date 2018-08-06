@@ -119,6 +119,8 @@ void add_dcc(RoutingGraph &graph, int x, int y, string side, string z) {
     graph.add_bel_input(bel, graph.ident("CE"), 0, 0, graph.ident(fmt("G_JCE_" << side << "DCC" << z)));
     graph.add_bel_output(bel, graph.ident("CLKO"), 0, 0, graph.ident(fmt("G_CLKO_" << side << "DCC" << z)));
 
+    graph.add_bel(bel);
+
 }
 
 }
