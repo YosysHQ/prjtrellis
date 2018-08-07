@@ -195,4 +195,14 @@ TapDriver GlobalsInfo::get_tap_driver(int row, int col) const {
     throw runtime_error(fmt("R" << row << "C" << col << " matches no global TAP_DRIVE segment"));
 }
 
+pair<int, int> GlobalsInfo::get_spine_driver(std::string quadrant, int col) {
+    for (const auto &seg : spinesegs) {
+        if (seg.quadrant == quadrant && seg.tap_col == col) {
+            return make_pair(seg.spine_row, seg.spine_col);
+        }
+    }
+    throw runtime_error(fmt(quadrant << "C" << col << " matches no global SPINE segment"));
+}
+
+
 }
