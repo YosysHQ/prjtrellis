@@ -55,6 +55,7 @@ Chip ChipConfig::to_chip() const
 {
     Chip c(chip_name);
     c.metadata = metadata;
+    set<string> processed_tiles;
     for (auto tile_entry : c.tiles) {
         auto tile_db = get_tile_bitdata(TileLocator{c.info.family, c.info.name, tile_entry.second->info.type});
         if (tiles.find(tile_entry.first) != tiles.end()) {
@@ -62,6 +63,12 @@ Chip ChipConfig::to_chip() const
         } else {
             // Empty config sets default values (not always zero, e.g. in IO tiles)
             tile_db->config_to_tile_cram(TileConfig(), tile_entry.second->cram);
+        }
+        processed_tiles.insert(tile_entry.first);
+    }
+    for (auto &tile : tiles) {
+        if (!processed_tiles.count(tile.first)) {
+            throw runtime_error("tile " + tile.first + " does not exist in chip " + chip_name);
         }
     }
     return c;
