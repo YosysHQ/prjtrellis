@@ -15,11 +15,12 @@ int main(int argc, char *argv[])
     using namespace Trellis;
     namespace po = boost::program_options;
 
-    load_database(TRELLIS_PREFIX "/share/trellis/database/");
+    std::string database_folder = TRELLIS_PREFIX "/share/trellis/database";
 
     po::options_description options("Allowed options");
     options.add_options()("help,h", "show help");
     options.add_options()("verbose,v", "verbose output");
+    options.add_options()("db", po::value<std::string>(), "Trellis database folder location");
     po::positional_options_description pos;
     options.add_options()("input", po::value<std::string>()->required(), "input bitstream file");
     pos.add("input", 1);
@@ -51,6 +52,17 @@ help:
     ifstream bit_file(vm["input"].as<string>(), ios::binary);
     if (!bit_file) {
         cerr << "Failed to open input file" << endl;
+        return 1;
+    }
+
+    if (vm.count("db")) {
+        database_folder = vm["db"].as<string>();
+    }
+
+    try {
+        load_database(database_folder);
+    } catch (runtime_error &e) {
+        cerr << "Failed to load Trellis database: " << e.what() << endl;
         return 1;
     }
 
