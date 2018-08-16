@@ -11,6 +11,8 @@
 #include <string>
 #include <iostream>
 
+#ifdef INCLUDE_PYTHON
+
 #include <boost/python.hpp>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -20,8 +22,6 @@
 
 using namespace boost::python;
 using namespace Trellis;
-
-#ifdef INCLUDE_PYTHON
 
 void translate_bspe(const BitstreamParseError &e)
 {
