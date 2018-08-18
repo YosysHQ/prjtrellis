@@ -1,9 +1,12 @@
 start:
     li s0, 2
     li s1, 0x02000000
+    li s3, 256
 outerloop:
     addi s0, s0, 1
-    andi s0, s0, 0xff
+    blt s0, s3, inrange
+    li s0, 2
+inrange:
     li s2, 2
 innerloop:
     bge s2, s0, prime
@@ -15,6 +18,7 @@ innerloop:
     j innerloop
 prime:
     sw s0, 0(s1)
+    jal ra, delay
 notprime:
     j outerloop
 
@@ -23,4 +27,11 @@ divtest:
 divloop:
     sub a0, a0, a1
     bge a0, t0, divloop
+    jr ra
+    
+delay:
+    li t0, 360000
+delayloop:
+    addi t0, t0, -1
+    bnez t0, delayloop
     jr ra

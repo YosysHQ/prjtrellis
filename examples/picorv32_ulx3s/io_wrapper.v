@@ -7,10 +7,10 @@ module top(
 wire clk;
 wire [7:0] led;
 
-reg [17:0] div;
+reg [1:0] divclk;
 
 always @(posedge clk)
-    div <= div + 1'b1;
+    divclk <= divclk + 1'b1;
 
 (* LOC="G2" *) (* IO_TYPE="LVCMOS33" *)
 TRELLIS_IO #(.DIR("INPUT")) clk_buf (.B(clk_pin), .O(clk));
@@ -37,7 +37,7 @@ TRELLIS_IO #(.DIR("OUTPUT")) led_buf_7 (.B(led_pin[7]), .I(led[7]));
 TRELLIS_IO #(.DIR("OUTPUT")) gpio0_buf (.B(gpio0_pin), .I(1'b1));
 
 attosoc soc(
-	.clk(div[11]),
+	.clk(divclk[1]),
 	.led(led)
 );
 
