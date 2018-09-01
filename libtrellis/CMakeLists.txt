@@ -92,7 +92,7 @@ else()
     add_library(trellis STATIC ${INCLUDE_FILES} ${SOURCE_FILES})
 endif()
 
-target_link_libraries(trellis LINK_PUBLIC ${Boost_LIBRARIES})
+target_link_libraries(trellis LINK_PUBLIC ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 if (BUILD_PYTHON)
     target_link_libraries(trellis LINK_PUBLIC ${PYTHON_LIBRARIES})
 endif()
