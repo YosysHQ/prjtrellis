@@ -116,6 +116,10 @@ add_executable(ecpunpack ${INCLUDE_FILES} tools/ecpunpack.cpp)
 target_compile_definitions(ecpunpack PRIVATE TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
 target_link_libraries(ecpunpack trellis ${Boost_LIBRARIES} ${link_param})
 
+add_executable(ecprepack ${INCLUDE_FILES} tools/ecprepack.cpp)
+target_compile_definitions(ecprepack PRIVATE TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
+target_link_libraries(ecprepack trellis ${Boost_LIBRARIES} ${link_param})
+
 if (BUILD_SHARED)
     install(TARGETS trellis ecppack ecpunpack LIBRARY DESTINATION lib  RUNTIME DESTINATION bin)
 else()
