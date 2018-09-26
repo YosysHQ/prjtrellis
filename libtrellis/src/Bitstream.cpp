@@ -331,6 +331,13 @@ Chip Bitstream::deserialise_chip() {
                 int frames_read = 0;
 
                 while (frames_read < frame_count) {
+
+                    if (addr_in_ebr >= 2048) {
+                        addr_in_ebr = 0;
+                        current_ebr++;
+                        chip->bram_data[current_ebr].resize(2048);
+                    }
+
                     auto &ebr = chip->bram_data[current_ebr];
                     frames_read++;
                     uint8_t frame[9];
@@ -344,11 +351,7 @@ Chip Bitstream::deserialise_chip() {
                     ebr.at(addr_in_ebr+6) = (frame[7] & 0x7F) << 2 | (frame[6] >> 6);
                     ebr.at(addr_in_ebr+7) = (frame[8] & 0xFF) << 1 | (frame[7] >> 7);
                     addr_in_ebr += 8;
-                    if (addr_in_ebr >= 2048) {
-                        addr_in_ebr = 0;
-                        current_ebr++;
-                        chip->bram_data[current_ebr].resize(2048);
-                    }
+
                 }
                 rd.check_crc16();
             }
