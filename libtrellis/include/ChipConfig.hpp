@@ -19,6 +19,10 @@ public:
     string chip_name;
     vector<string> metadata;
     map<string, TileConfig> tiles;
+
+    // Block RAM initialisation (WIP)
+    map<uint16_t, vector<uint16_t>> bram_data;
+
     string to_string() const;
     static ChipConfig from_string(const string &config);
     Chip to_chip() const;

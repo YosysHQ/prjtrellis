@@ -22,6 +22,19 @@ string ChipConfig::to_string() const
             ss << endl;
         }
     }
+    for (const auto &bram : bram_data) {
+        ss << ".bram_init " << bram.first << endl;
+        ios_base::fmtflags f( ss.flags() );
+        for (size_t i = 0; i < bram.second.size(); i++) {
+            ss << setw(3) << setfill('0') << hex << bram.second.at(i);
+            if (i % 8 == 7)
+                ss << endl;
+            else
+                ss << " ";
+        }
+        ss.flags(f);
+        ss << endl;
+    }
     return ss.str();
 }
 
@@ -44,6 +57,16 @@ ChipConfig ChipConfig::from_string(const string &config)
             TileConfig tc;
             ss >> tc;
             cc.tiles[tilename] = tc;
+        } else if (verb == ".bram_init") {
+            uint16_t bram;
+            ss >> bram;
+            ios_base::fmtflags f( ss.flags() );
+            while (!skip_check_eor(ss)) {
+                uint16_t value;
+                ss >> hex >> value;
+                cc.bram_data[bram].push_back(value);
+            }
+            ss.flags(f);
         } else {
             throw runtime_error("unrecognised config entry " + verb);
         }
@@ -55,6 +78,7 @@ Chip ChipConfig::to_chip() const
 {
     Chip c(chip_name);
     c.metadata = metadata;
+    c.bram_data = bram_data;
     set<string> processed_tiles;
     for (auto tile_entry : c.tiles) {
         auto tile_db = get_tile_bitdata(TileLocator{c.info.family, c.info.name, tile_entry.second->info.type});
@@ -79,6 +103,7 @@ ChipConfig ChipConfig::from_chip(const Chip &chip)
     ChipConfig cc;
     cc.chip_name = chip.info.name;
     cc.metadata = chip.metadata;
+    cc.bram_data = chip.bram_data;
     for (auto tile : chip.tiles) {
         auto tile_db = get_tile_bitdata(TileLocator{chip.info.family, chip.info.name, tile.second->info.type});
         cc.tiles[tile.first] = tile_db->tile_cram_to_config(tile.second->cram);
