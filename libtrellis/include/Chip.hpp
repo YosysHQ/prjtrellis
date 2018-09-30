@@ -63,14 +63,24 @@ struct TapDriver
     } dir;
 };
 
+struct SpineSegment
+{
+    int tap_col;
+    string quadrant;
+    int spine_row, spine_col;
+};
+
 struct GlobalsInfo
 {
     vector<GlobalRegion> quadrants;
     vector<TapSegment> tapsegs;
+    vector<SpineSegment> spinesegs;
 
     string get_quadrant(int row, int col) const;
 
     TapDriver get_tap_driver(int row, int col) const;
+
+    pair<int, int> get_spine_driver(std::string quadrant, int col);
 };
 
 class Tile;

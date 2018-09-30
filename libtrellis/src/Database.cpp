@@ -104,6 +104,14 @@ GlobalsInfo get_global_info(const DeviceLocator &part) {
         ts.rx1 = tap.second.get<int>("rx1");
         glbs.tapsegs.push_back(ts);
     }
+    for (const pt::ptree::value_type &spine : glb_parsed.get_child("spines")) {
+        SpineSegment ss;
+        ss.quadrant = spine.first.substr(0, 2);
+        ss.tap_col = stoi(spine.first.substr(2));
+        ss.spine_row = spine.second.get<int>("y");
+        ss.spine_col = spine.second.get<int>("x");
+        glbs.spinesegs.push_back(ss);
+    }
     return glbs;
 }
 

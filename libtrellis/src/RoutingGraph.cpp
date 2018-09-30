@@ -67,9 +67,17 @@ RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_na
     if (stripped_name.find("G_") == 0 || stripped_name.find("L_") == 0 || stripped_name.find("R_") == 0) {
         // Global net
         // TODO: quadrants and TAP_DRIVE regions
+        // TAP_DRIVE and SPINE wires go in their respective tiles
+        // Other globals are placed at a nominal location of (0, 0)
         RoutingId id;
-        id.loc.x = int16_t(col);
-        id.loc.y = int16_t(row);
+        if (stripped_name.find("G_") == 0 && stripped_name.find("VPTX") == string::npos &&
+            stripped_name.find("HPBX") == string::npos && stripped_name.find("HPRX") == string::npos) {
+            id.loc.x = 0;
+            id.loc.y = 0;
+        } else {
+            id.loc.x = int16_t(col);
+            id.loc.y = int16_t(row);
+        }
         id.id = ident(stripped_name);
         return id;
     } else {
