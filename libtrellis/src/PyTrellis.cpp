@@ -122,9 +122,10 @@ BOOST_PYTHON_MODULE (pytrellis)
 
     class_<GlobalsInfo>("GlobalsInfo")
             .def_readwrite("quadrants", &GlobalsInfo::quadrants)
-            .def_readwrite("tapsegs", &GlobalsInfo::quadrants)
+            .def_readwrite("tapsegs", &GlobalsInfo::tapsegs)
             .def("get_quadrant", &GlobalsInfo::get_quadrant)
-            .def("get_tap_driver", &GlobalsInfo::get_tap_driver);
+            .def("get_tap_driver", &GlobalsInfo::get_tap_driver)
+            .def("get_spine_driver", &GlobalsInfo::get_spine_driver);
 
     class_<Chip>("Chip", init<string>())
             .def(init<uint32_t>())
