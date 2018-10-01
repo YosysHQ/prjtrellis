@@ -49,8 +49,8 @@ void add_lc(RoutingGraph &graph, int x, int y, int z) {
         graph.add_bel_input(bel, graph.ident("WAD2"), x, y, graph.ident(fmt("WAD2" << l << "_SLICE")));
         graph.add_bel_input(bel, graph.ident("WAD3"), x, y, graph.ident(fmt("WAD3" << l << "_SLICE")));
 
-        graph.add_bel_input(bel, graph.ident("WRE"), x, y, graph.ident(fmt("WRE" << l << "_SLICE")));
-        graph.add_bel_input(bel, graph.ident("WCK"), x, y, graph.ident(fmt("WCK" << l << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("WRE"), x, y, graph.ident(fmt("WRE" << z << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("WCK"), x, y, graph.ident(fmt("WCK" << z << "_SLICE")));
     }
 
     graph.add_bel_output(bel, graph.ident("F0"), x, y, graph.ident(fmt("F" << lc0 << "_SLICE")));
