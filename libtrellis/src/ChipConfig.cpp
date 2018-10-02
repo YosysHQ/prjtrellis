@@ -112,6 +112,15 @@ Chip ChipConfig::to_chip() const
         }
         processed_tiles.insert(tile_entry.first);
     }
+
+    for (const auto &tilegroup : tilegroups) {
+        for (const auto &tilename : tilegroup.tiles) {
+            auto tile = c.tiles.at(tilename);
+            auto tile_db = get_tile_bitdata(TileLocator{c.info.family, c.info.name, tile->info.type});
+            tile_db->config_to_tile_cram(tilegroup.config, tile->cram, true);
+        }
+    }
+
     for (auto &tile : tiles) {
         if (!processed_tiles.count(tile.first)) {
             throw runtime_error("tile " + tile.first + " does not exist in chip " + chip_name);
