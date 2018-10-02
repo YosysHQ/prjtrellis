@@ -322,7 +322,7 @@ TileBitDatabase::TileBitDatabase(const string &filename) : filename(filename)
     load();
 }
 
-void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile) const
+void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile, bool is_tilegroup) const
 {
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     for (auto arc : cfg.carcs)
@@ -332,16 +332,22 @@ void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile)
     const string base_prefix = "BASE_";
     for (auto ce : cfg.cenums) {
         if (ce.name.substr(0, base_prefix.length()) == base_prefix) {
+            if (is_tilegroup && !enums.count(ce.name))
+                continue;
             enums.at(ce.name).set_value(tile, ce.value);
             found_enums.insert(ce.name);
         }
     }
     for (auto cw : cfg.cwords) {
+        if (is_tilegroup && !words.count(cw.name))
+            continue;
         words.at(cw.name).set_value(tile, cw.value);
         found_words.insert(cw.name);
     }
     for (auto ce : cfg.cenums) {
         if (ce.name.substr(0, base_prefix.length()) != base_prefix) {
+            if (is_tilegroup && !enums.count(ce.name))
+                continue;
             enums.at(ce.name).set_value(tile, ce.value);
             found_enums.insert(ce.name);
         }
@@ -350,13 +356,16 @@ void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile)
         tile.bit(unk.frame, unk.bit) = 1;
     }
     // Apply default values if not overriden in cfg
-    for (auto w : words)
-        if (found_words.find(w.first) == found_words.end())
-            w.second.set_value(tile, w.second.defval);
-    for (auto e : enums)
-        if (found_enums.find(e.first) == found_enums.end())
-            if (e.second.defval)
-                e.second.set_value(tile, *e.second.defval);
+    if (!is_tilegroup) {
+        for (auto w : words)
+            if (found_words.find(w.first) == found_words.end())
+                w.second.set_value(tile, w.second.defval);
+        for (auto e : enums)
+            if (found_enums.find(e.first) == found_enums.end())
+                if (e.second.defval)
+                    e.second.set_value(tile, *e.second.defval);
+    }
+
 }
 
 TileConfig TileBitDatabase::tile_cram_to_config(const CRAMView &tile) const
