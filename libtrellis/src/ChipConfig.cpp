@@ -35,6 +35,15 @@ string ChipConfig::to_string() const
         ss.flags(f);
         ss << endl;
     }
+    for (const auto &tg : tilegroups) {
+        ss << ".tile_group";
+        for (const auto &tile : tg.tiles) {
+            ss << " " << tile;
+        }
+        ss << endl;
+        ss << tg.config;
+        ss << endl;
+    }
     return ss.str();
 }
 
@@ -60,13 +69,26 @@ ChipConfig ChipConfig::from_string(const string &config)
         } else if (verb == ".bram_init") {
             uint16_t bram;
             ss >> bram;
-            ios_base::fmtflags f( ss.flags() );
+            ios_base::fmtflags f(ss.flags());
             while (!skip_check_eor(ss)) {
                 uint16_t value;
                 ss >> hex >> value;
                 cc.bram_data[bram].push_back(value);
             }
             ss.flags(f);
+        } else if (verb == ".tile_group") {
+            TileGroup tg;
+            std::string line;
+            getline(ss, line);
+            std::stringstream ss2(line);
+
+            std::string tile;
+            while (ss2) {
+                ss2 >> tile;
+                tg.tiles.push_back(tile);
+            }
+            ss >> tg.config;
+            cc.tilegroups.push_back(tg);
         } else {
             throw runtime_error("unrecognised config entry " + verb);
         }
