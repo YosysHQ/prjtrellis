@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     po::positional_options_description pos;
     options.add_options()("input", po::value<std::string>()->required(), "input bitstream file");
     pos.add("input", 1);
-    options.add_options()("id", po::value<uint32_t>(), "chip ID to set in output bitstream");
+    options.add_options()("id", po::value<std::string>(), "chip ID to set in output bitstream");
     pos.add("id", 1);
     options.add_options()("output", po::value<std::string>()->required(), "output bitstream file");
     pos.add("output", 1);
@@ -75,7 +75,7 @@ help:
            cerr << "Failed to open output file" << endl;
         }
         if(vm.count("id"))
-          c.info.idcode = vm["id"].as<uint32_t>();
+          c.info.idcode = strtoul((vm["id"].as<string>()).c_str(), NULL, 0);
         Bitstream::serialise_chip(c).write_bit(out_bit_file);
         return 0;
     } catch (runtime_error &e) {
