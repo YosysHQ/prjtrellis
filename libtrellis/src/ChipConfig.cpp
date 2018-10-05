@@ -114,11 +114,18 @@ Chip ChipConfig::to_chip() const
     }
 
     for (const auto &tilegroup : tilegroups) {
+        set<string> matched;
         for (const auto &tilename : tilegroup.tiles) {
             auto tile = c.tiles.at(tilename);
             auto tile_db = get_tile_bitdata(TileLocator{c.info.family, c.info.name, tile->info.type});
-            tile_db->config_to_tile_cram(tilegroup.config, tile->cram, true);
+            tile_db->config_to_tile_cram(tilegroup.config, tile->cram, true, &matched);
         }
+        for (const auto &word : tilegroup.config.cwords)
+            if (!matched.count(word.name))
+                throw runtime_error("config word " + word.name + " matched in no tilegroup tiles");
+        for (const auto &cenum : tilegroup.config.cenums)
+            if (!matched.count(cenum.name))
+                throw runtime_error("config enum " + cenum.name + " matched in no tilegroup tiles");
     }
 
     for (auto &tile : tiles) {
