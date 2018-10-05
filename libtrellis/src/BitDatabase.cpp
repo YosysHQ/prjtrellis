@@ -322,7 +322,7 @@ TileBitDatabase::TileBitDatabase(const string &filename) : filename(filename)
     load();
 }
 
-void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile, bool is_tilegroup) const
+void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile, bool is_tilegroup, set<string> *tg_matches) const
 {
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
     for (auto arc : cfg.carcs)
@@ -334,6 +334,10 @@ void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile,
         if (ce.name.substr(0, base_prefix.length()) == base_prefix) {
             if (is_tilegroup && !enums.count(ce.name))
                 continue;
+            if (is_tilegroup && !enums.at(ce.name).options.count(ce.value))
+                continue;
+            if (tg_matches)
+                tg_matches->insert(ce.name);
             enums.at(ce.name).set_value(tile, ce.value);
             found_enums.insert(ce.name);
         }
@@ -341,6 +345,8 @@ void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile,
     for (auto cw : cfg.cwords) {
         if (is_tilegroup && !words.count(cw.name))
             continue;
+        if (tg_matches)
+            tg_matches->insert(cw.name);
         words.at(cw.name).set_value(tile, cw.value);
         found_words.insert(cw.name);
     }
@@ -348,6 +354,10 @@ void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile,
         if (ce.name.substr(0, base_prefix.length()) != base_prefix) {
             if (is_tilegroup && !enums.count(ce.name))
                 continue;
+            if (is_tilegroup && !enums.at(ce.name).options.count(ce.value))
+                continue;
+            if (tg_matches)
+                tg_matches->insert(ce.name);
             enums.at(ce.name).set_value(tile, ce.value);
             found_enums.insert(ce.name);
         }
