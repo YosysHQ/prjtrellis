@@ -58,6 +58,7 @@ ChipConfig ChipConfig::from_string(const string &config)
             ss >> cc.chip_name;
         } else if (verb == ".comment") {
             std::string line;
+            ss.get(); //skip space
             getline(ss, line);
             cc.metadata.push_back(line);
         } else if (verb == ".tile") {
