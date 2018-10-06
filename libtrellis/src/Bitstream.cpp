@@ -342,14 +342,14 @@ Chip Bitstream::deserialise_chip() {
                     frames_read++;
                     uint8_t frame[9];
                     rd.get_bytes(frame, 9);
-                    ebr.at(addr_in_ebr+0) = (frame[1] & 0x01) << 8 | frame[0];
-                    ebr.at(addr_in_ebr+1) = (frame[2] & 0x03) << 7 | (frame[1] >> 1);
-                    ebr.at(addr_in_ebr+2) = (frame[3] & 0x07) << 6 | (frame[2] >> 2);
-                    ebr.at(addr_in_ebr+3) = (frame[4] & 0x0F) << 5 | (frame[3] >> 3);
-                    ebr.at(addr_in_ebr+4) = (frame[5] & 0x1F) << 4 | (frame[4] >> 4);
-                    ebr.at(addr_in_ebr+5) = (frame[6] & 0x3F) << 3 | (frame[5] >> 5);
-                    ebr.at(addr_in_ebr+6) = (frame[7] & 0x7F) << 2 | (frame[6] >> 6);
-                    ebr.at(addr_in_ebr+7) = (frame[8] & 0xFF) << 1 | (frame[7] >> 7);
+                    ebr.at(addr_in_ebr+0) = (frame[0] << 1)        | (frame[1] >> 7);
+                    ebr.at(addr_in_ebr+1) = (frame[1] & 0x7F) << 2 | (frame[2] >> 6);
+                    ebr.at(addr_in_ebr+2) = (frame[2] & 0x3F) << 3 | (frame[3] >> 5);
+                    ebr.at(addr_in_ebr+3) = (frame[3] & 0x1F) << 4 | (frame[4] >> 4);
+                    ebr.at(addr_in_ebr+4) = (frame[4] & 0x0F) << 5 | (frame[5] >> 3);
+                    ebr.at(addr_in_ebr+5) = (frame[5] & 0x07) << 6 | (frame[6] >> 2);
+                    ebr.at(addr_in_ebr+6) = (frame[6] & 0x03) << 7 | (frame[7] >> 1);
+                    ebr.at(addr_in_ebr+7) = (frame[7] & 0x01) << 8 | frame[8];
                     addr_in_ebr += 8;
 
                 }
