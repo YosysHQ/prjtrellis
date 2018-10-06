@@ -419,6 +419,36 @@ Bitstream Bitstream::serialise_chip(const Chip &chip) {
     wr.insert_zeros(2);
     wr.write_uint32(chip.usercode);
     wr.insert_crc16();
+    for (const auto &ebr : chip.bram_data) {
+        // BlockRAM initialisation
+
+        // Set EBR address
+        wr.write_byte(uint8_t(BitstreamCommand::LSC_EBR_ADDRESS));
+        wr.insert_zeros(3);
+        wr.write_uint32(ebr.first << 11UL);
+
+        // Write EBR data
+        wr.write_byte(uint8_t(BitstreamCommand::LSC_EBR_WRITE));
+        wr.write_byte(0xD0); // Dummy/CRC config
+        wr.write_byte(0x01); // 0x0100 = 256x 72-bit frames
+        wr.write_byte(0x00);
+
+        uint8_t frame[9];
+        const auto &data = ebr.second;
+        for (int addr_in_ebr = 0; addr_in_ebr < 2048; addr_in_ebr+=8) {
+            frame[0] = data.at(addr_in_ebr+0) >> 1;
+            frame[1] = (data.at(addr_in_ebr+0) & 0x01) << 7 | (data.at(addr_in_ebr+1) >> 2);
+            frame[2] = (data.at(addr_in_ebr+1) & 0x03) << 6 | (data.at(addr_in_ebr+2) >> 3);
+            frame[3] = (data.at(addr_in_ebr+2) & 0x07) << 5 | (data.at(addr_in_ebr+3) >> 4);
+            frame[4] = (data.at(addr_in_ebr+3) & 0x0F) << 4 | (data.at(addr_in_ebr+4) >> 5);
+            frame[5] = (data.at(addr_in_ebr+4) & 0x1F) << 3 | (data.at(addr_in_ebr+5) >> 6);
+            frame[6] = (data.at(addr_in_ebr+5) & 0x3F) << 2 | (data.at(addr_in_ebr+6) >> 7);
+            frame[7] = (data.at(addr_in_ebr+6) & 0x7F) << 1 | (data.at(addr_in_ebr+7) >> 8);
+            frame[8] = data.at(addr_in_ebr+7);
+            wr.write_bytes(frame, 9);
+        }
+        wr.insert_crc16();
+    }
     // Program DONE
     wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_DONE));
     wr.insert_zeros(3);
