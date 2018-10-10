@@ -1,7 +1,6 @@
 MEMORY
 {
-    ROM (rx)        : ORIGIN = 0x00000000, LENGTH = 0x001000 /* 4 KB ROM */
-    RAM (xrw)       : ORIGIN = 0x01000000, LENGTH = 0x000400 /* 1 KB */
+    RAM (xrw)       : ORIGIN = 0x00000000, LENGTH = 0x004000 /* 16 KB */
 }
 
 SECTIONS {
@@ -17,7 +16,7 @@ SECTIONS {
         *(.srodata*)       /* .rodata* sections (constants, strings, etc.) */
         _etext = .;        /* define a global symbol at end of code */
         _sidata = _etext;  /* This is used by the startup in order to initialize the .data secion */
-    } >ROM
+    } >RAM
 
 
     /* This is the initialized data section

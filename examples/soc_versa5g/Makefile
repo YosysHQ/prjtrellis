@@ -1,8 +1,11 @@
 firmware.elf: sections.lds start.s firmware.c
 	riscv32-unknown-elf-gcc -march=rv32i -Wl,-Bstatic,-T,sections.lds,--strip-debug -ffreestanding -nostdlib -o firmware.elf start.s firmware.c
 
-firmware.hex: firmware.elf
-	riscv32-unknown-elf-objcopy -O verilog firmware.elf /dev/stdout > firmware.hex
+firmware.bin: firmware.elf
+	riscv32-unknown-elf-objcopy -O binary firmware.elf /dev/stdout > firmware.bin
+
+firmware.hex: firmware.bin
+	python3 makehex.py $^ 4096 > $@
 
 attosoc_tb.vvp: attosoc_tb.v attosoc.v picorv32.v
 	iverilog -s testbench -o $@ $^

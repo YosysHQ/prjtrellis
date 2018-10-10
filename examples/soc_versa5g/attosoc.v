@@ -36,16 +36,12 @@ module attosoc (
 		reset_cnt <= reset_cnt + !resetn;
 	end
 
-	parameter integer MEM_WORDS = 256;
-	parameter [31:0] STACKADDR = 32'h 0100_0000 + (4*MEM_WORDS);       // end of memory
-	parameter [31:0] PROGADDR_RESET = 32'h 0000_0000; // ROM at 0x0
-	parameter integer ROM_BYTES = 4096;
+	parameter integer MEM_WORDS = 4096;
+	parameter [31:0] STACKADDR = 32'h 0000_0000 + (4*MEM_WORDS);       // end of memory
+	parameter [31:0] PROGADDR_RESET = 32'h 0000_0000;       // start of memory
 
-	reg [7:0] rom [0:ROM_BYTES-1];
-	wire [31:0] rom_rdata = {rom[mem_addr+3], rom[mem_addr+2], rom[mem_addr+1], rom[mem_addr+0]};
-	initial $readmemh("firmware.hex", rom);
-	
 	reg [31:0] ram [0:MEM_WORDS-1];
+	initial $readmemh("firmware.hex", ram);
 	reg [31:0] ram_rdata;
 	reg ram_ready;
 
@@ -57,12 +53,10 @@ module attosoc (
 	wire [3:0] mem_wstrb;
 	wire [31:0] mem_rdata;
 
-        wire rom_ready = mem_valid && mem_addr[31:24] == 8'h00;
-	
 	always @(posedge clk)
         begin
 		ram_ready <= 1'b0;
-		if (mem_addr[31:24] == 8'h01 && mem_valid) begin
+		if (mem_addr[31:24] == 8'h00 && mem_valid) begin
 			if (mem_wstrb[0]) ram[mem_addr[23:2]][7:0] <= mem_wdata[7:0];
 			if (mem_wstrb[1]) ram[mem_addr[23:2]][15:8] <= mem_wdata[15:8];
 			if (mem_wstrb[2]) ram[mem_addr[23:2]][23:16] <= mem_wdata[23:16];
@@ -93,9 +87,9 @@ module attosoc (
           if (iomem_valid && iomem_wstrb[0])
             led <= iomem_wdata[7:0];
 
-	assign mem_ready = (iomem_valid && iomem_ready) || rom_ready || ram_ready;
+	assign mem_ready = (iomem_valid && iomem_ready) || ram_ready;
 
-	assign mem_rdata = ram_ready ? ram_rdata : rom_rdata;
+	assign mem_rdata = ram_rdata;
 
 	picorv32 #(
 		.STACKADDR(STACKADDR),
