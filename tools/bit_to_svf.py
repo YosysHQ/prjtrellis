@@ -6,7 +6,7 @@ import textwrap
 # Very basic bitstream to SVF converter, tested with the ULX3S WiFi interface
 
 max_row_size = 8000 # needed for ULX3S Wifi
-idcode = 0x41112043
+
 
 def bitreverse(x):
     y = 0
@@ -16,6 +16,22 @@ def bitreverse(x):
     return y
 
 with open(sys.argv[1], 'rb') as bitf:
+    bs = bitf.read()
+    # Autodetect IDCODE from bitstream
+    idcode_cmd = bytes([0xE2, 0x00, 0x00, 0x00])
+    idcode = None
+    for i in range(len(bs) - 4):
+        if bs[i:i+4] == idcode_cmd:
+            idcode = bs[i+4] << 24
+            idcode |= bs[i+5] << 16
+            idcode |= bs[i+6] << 8
+            idcode |= bs[i+7]
+            break
+    if idcode is None:
+        print("Failed to find IDCODE in bitstream, check bitstream is valid")
+        sys.exit(1)
+    print("IDCODE in bitstream is 0x%08x" % idcode)
+    bitf.seek(0)
     with open(sys.argv[2], 'w') as svf:
         print("""
 HDR	0;
