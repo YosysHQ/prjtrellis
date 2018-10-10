@@ -229,6 +229,14 @@ Bitstream Bitstream::read_bit(istream &in) {
 
 static const vector<uint8_t> preamble = {0xFF, 0xFF, 0xBD, 0xB3};
 
+inline uint16_t bit_reverse(uint16_t x) {
+    uint16_t y = 0;
+    for (int i = 0; i < 16; i++)
+        if (x & (1 << i))
+            y |= (1 << (15 - i));
+    return y;
+}
+
 Chip Bitstream::deserialise_chip() {
     cerr << "bitstream size: " << data.size() * 8 << " bits" << endl;
     BitstreamReadWriter rd(data);
@@ -319,7 +327,7 @@ Chip Bitstream::deserialise_chip() {
             case BitstreamCommand::LSC_EBR_ADDRESS: {
                 rd.skip_bytes(3);
                 uint32_t data = rd.get_uint32();
-                current_ebr = (data >> 11) & 0x3FF;
+                current_ebr = bit_reverse((data >> 11) & 0x3FF);
                 addr_in_ebr = data & 0x7FF;
                 chip->bram_data[current_ebr].resize(2048);
             }
@@ -425,7 +433,7 @@ Bitstream Bitstream::serialise_chip(const Chip &chip) {
         // Set EBR address
         wr.write_byte(uint8_t(BitstreamCommand::LSC_EBR_ADDRESS));
         wr.insert_zeros(3);
-        wr.write_uint32(ebr.first << 11UL);
+        wr.write_uint32(bit_reverse(ebr.first) << 11UL);
 
         // Write EBR data
         wr.write_byte(uint8_t(BitstreamCommand::LSC_EBR_WRITE));
