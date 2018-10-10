@@ -7,14 +7,14 @@ firmware.bin: firmware.elf
 firmware.hex: firmware.bin
 	python3 makehex.py $^ 4096 > $@
 
-attosoc_tb.vvp: attosoc_tb.v attosoc.v picorv32.v
+attosoc_tb.vvp: attosoc_tb.v attosoc.v picorv32.v simpleuart.v
 	iverilog -s testbench -o $@ $^
 
 attosoc_sim: attosoc_tb.vvp firmware.hex
 	vvp -N $<
 
 attosoc.json: io_wrapper.v attosoc.v picorv32.v firmware.hex
-	yosys -p "synth_ecp5 -nomux -json $@ -top top" io_wrapper.v attosoc.v picorv32.v
+	yosys -p "synth_ecp5 -nomux -json $@ -top top" io_wrapper.v attosoc.v picorv32.v simpleuart.v
 
 attosoc_out.config: attosoc.json
 	nextpnr-ecp5 --json $< --basecfg ../../misc/basecfgs/empty_lfe5um5g-45f.config --textcfg $@ --45k

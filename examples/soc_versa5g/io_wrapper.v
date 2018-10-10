@@ -1,12 +1,14 @@
 module top(
 	input clk_pin,
 	output [7:0] led_pin,
-        output clken_pin
+	output uart_tx_pin,
+	input uart_rx_pin,
+  output clken_pin
 );
 
 wire clk;
 wire [7:0] led;
-
+wire uart_rx, uart_tx;
 reg [4:0] divclk;
 
 always @(posedge clk)
@@ -33,13 +35,20 @@ TRELLIS_IO #(.DIR("OUTPUT")) led_buf_6 (.B(led_pin[6]), .I(!led[6]));
 (* LOC="F16" *) (* IO_TYPE="LVCMOS25" *)
 TRELLIS_IO #(.DIR("OUTPUT")) led_buf_7 (.B(led_pin[7]), .I(!led[7]));
 
+(* LOC="A11" *) (* IO_TYPE="LVCMOS33" *)
+TRELLIS_IO #(.DIR("OUTPUT")) utx_buf (.B(uart_tx_pin), .I(uart_tx));
+(* LOC="C11" *) (* IO_TYPE="LVCMOS33" *)
+TRELLIS_IO #(.DIR("INPUT")) urx_buf (.B(uart_rx_pin), .O(uart_rx));
+
 (* LOC="C12" *) (* IO_TYPE="LVCMOS33" *)
 TRELLIS_IO #(.DIR("OUTPUT")) clken_buf (.B(clken_pin), .I(1'b1));
 
 
 attosoc soc(
 	.clk(divclk[4]),
-	.led(led)
+	.led(led),
+	.uart_tx(uart_tx),
+	.uart_rx(uart_rx)
 );
 
 
