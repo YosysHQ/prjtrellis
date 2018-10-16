@@ -3,7 +3,8 @@ import pytrellis
 
 cib_tiles = ["CIB", "CIB_DSP", "CIB_EFB0", "CIB_EFB1", "CIB_LR", "CIB_LR_S", "CIB_PLL0", "CIB_PLL1", "CIB_PLL2",
              "CIB_PLL3", "VCIB_DCU0", "VCIB_DCU1", "VCIB_DCU2", "VCIB_DCU3", "VCIB_DCUA", "VCIB_DCUB", "VCIB_DCUC",
-             "VCIB_DCUD", "VCIB_DCUF", "VCIB_DCUG", "VCIB_DCUH", "VCIB_DCUI"]
+             "VCIB_DCUD", "VCIB_DCUF", "VCIB_DCUG", "VCIB_DCUH", "VCIB_DCUI", "CIB_DCU0", "CIB_DCU1", "CIB_DCU2", "CIB_DCU3", "CIB_DCUA", "CIB_DCUB", "CIB_DCUC",
+             "CIB_DCUD", "CIB_DCUF", "CIB_DCUG", "CIB_DCUH", "CIB_DCUI"]
 
 
 def main():
