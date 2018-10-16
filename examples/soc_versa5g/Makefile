@@ -17,7 +17,7 @@ attosoc.json: io_wrapper.v attosoc.v picorv32.v firmware.hex
 	yosys -p "synth_ecp5 -nomux -json $@ -top top" io_wrapper.v attosoc.v picorv32.v simpleuart.v
 
 attosoc_out.config: attosoc.json
-	nextpnr-ecp5 --json $< --basecfg ../../misc/basecfgs/empty_lfe5um5g-45f.config --textcfg $@ --45k
+	nextpnr-ecp5 --json $< --basecfg ../../misc/basecfgs/empty_lfe5um5g-45f.config --textcfg $@ --um5g-45k
 
 attosoc.bit: attosoc_out.config
 	ecppack $< $@
