@@ -276,7 +276,7 @@ public:
     // Access functions
 
     // Convert TileConfigs to and from actual Tile CRAM
-    void config_to_tile_cram(const TileConfig &cfg, CRAMView &tile) const;
+    void config_to_tile_cram(const TileConfig &cfg, CRAMView &tile, bool is_tilegroup = false, set<string> *tg_matches = nullptr) const;
 
     TileConfig tile_cram_to_config(const CRAMView &tile) const;
 

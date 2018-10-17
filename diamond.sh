@@ -126,6 +126,7 @@ fi
 if test -f "$2.sdc"; then cp "$2.sdc" "$2.tmp/input.sdc"; fi
 if test -f "$2.lpf"; then cp "$2.lpf" "$2.tmp/input.lpf"; fi
 if test -f "$2.prf"; then cp "$2.prf" "$2.tmp/input.prf"; fi
+if test -f "$2.dat"; then cp "$2.dat" "$2.tmp/$2.dat"; fi
 cd "$2.tmp"
 
 touch input.sdc

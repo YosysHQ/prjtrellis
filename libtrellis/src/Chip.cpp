@@ -149,6 +149,16 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
         if (tile->info.type == "BMID_0V" || tile->info.type == "BMID_0")
             for (int z = 0; z < 16; z++)
                 Bels::add_dcc(*rg, x, y, "B", std::to_string(z));
+        // RAM Bels
+        if (tile->info.type == "MIB_EBR0" || tile->info.type == "EBR_CMUX_UR" || tile->info.type == "EBR_CMUX_LR"
+            || tile->info.type == "EBR_CMUX_LR_25K")
+            Bels::add_bram(*rg, x, y, 0);
+        if (tile->info.type == "MIB_EBR2")
+            Bels::add_bram(*rg, x, y, 1);
+        if (tile->info.type == "MIB_EBR4")
+            Bels::add_bram(*rg, x, y, 2);
+        if (tile->info.type == "MIB_EBR6")
+            Bels::add_bram(*rg, x, y, 3);
     }
     return rg;
 }

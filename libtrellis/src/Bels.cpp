@@ -123,5 +123,49 @@ void add_dcc(RoutingGraph &graph, int x, int y, string side, string z) {
 
 }
 
+void add_bram(RoutingGraph &graph, int x, int y, int z) {
+    string name = string("EBR") + std::to_string(z);
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("DP16KD");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    bel.z = z;
+
+    for (int i = 0; i < 14; i++) {
+        graph.add_bel_input(bel, graph.ident(fmt("ADA" << i)), x, y, graph.ident(fmt("JADA" << i << "_EBR")));
+        graph.add_bel_input(bel, graph.ident(fmt("ADB" << i)), x, y, graph.ident(fmt("JADB" << i << "_EBR")));
+    }
+
+    graph.add_bel_input(bel, graph.ident("CEA"), x, y, graph.ident("JCEA_EBR"));
+    graph.add_bel_input(bel, graph.ident("CEB"), x, y, graph.ident("JCEB_EBR"));
+    graph.add_bel_input(bel, graph.ident("CLKA"), x, y, graph.ident("JCLKA_EBR"));
+    graph.add_bel_input(bel, graph.ident("CLKB"), x, y, graph.ident("JCLKB_EBR"));
+    graph.add_bel_input(bel, graph.ident("CSA0"), x, y, graph.ident("JCSA0_EBR"));
+    graph.add_bel_input(bel, graph.ident("CSA1"), x, y, graph.ident("JCSA1_EBR"));
+    graph.add_bel_input(bel, graph.ident("CSA2"), x, y, graph.ident("JCSA2_EBR"));
+    graph.add_bel_input(bel, graph.ident("CSB0"), x, y, graph.ident("JCSB0_EBR"));
+    graph.add_bel_input(bel, graph.ident("CSB1"), x, y, graph.ident("JCSB1_EBR"));
+    graph.add_bel_input(bel, graph.ident("CSB2"), x, y, graph.ident("JCSB2_EBR"));
+
+    for (int i = 0; i < 18; i++) {
+        graph.add_bel_input(bel, graph.ident(fmt("DIA" << i)), x, y, graph.ident(fmt("JDIA" << i << "_EBR")));
+        graph.add_bel_input(bel, graph.ident(fmt("DIB" << i)), x, y, graph.ident(fmt("JDIB" << i << "_EBR")));
+        graph.add_bel_output(bel, graph.ident(fmt("DOA" << i)), x, y, graph.ident(fmt("JDOA" << i << "_EBR")));
+        graph.add_bel_output(bel, graph.ident(fmt("DOB" << i)), x, y, graph.ident(fmt("JDOB" << i << "_EBR")));
+    }
+
+
+    graph.add_bel_input(bel, graph.ident("OCEA"), x, y, graph.ident("JOCEA_EBR"));
+    graph.add_bel_input(bel, graph.ident("OCEB"), x, y, graph.ident("JOCEB_EBR"));
+    graph.add_bel_input(bel, graph.ident("RSTA"), x, y, graph.ident("JRSTA_EBR"));
+    graph.add_bel_input(bel, graph.ident("RSTB"), x, y, graph.ident("JRSTB_EBR"));
+    graph.add_bel_input(bel, graph.ident("WEA"), x, y, graph.ident("JWEA_EBR"));
+    graph.add_bel_input(bel, graph.ident("WEB"), x, y, graph.ident("JWEB_EBR"));
+
+    graph.add_bel(bel);
+
+}
+
 }
 }
