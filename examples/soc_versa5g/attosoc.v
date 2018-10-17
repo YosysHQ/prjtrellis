@@ -26,7 +26,9 @@
 
 module attosoc (
 	input clk,
-	output reg [7:0] led
+	output reg [7:0] led,
+	output uart_tx,
+	input uart_rx
 );
 
 	reg [5:0] reset_cnt = 0;
@@ -36,16 +38,12 @@ module attosoc (
 		reset_cnt <= reset_cnt + !resetn;
 	end
 
-	parameter integer MEM_WORDS = 256;
-	parameter [31:0] STACKADDR = 32'h 0100_0000 + (4*MEM_WORDS);       // end of memory
-	parameter [31:0] PROGADDR_RESET = 32'h 0000_0000; // ROM at 0x0
-	parameter integer ROM_BYTES = 4096;
+	parameter integer MEM_WORDS = 8192;
+	parameter [31:0] STACKADDR = 32'h 0000_0000 + (4*MEM_WORDS);       // end of memory
+	parameter [31:0] PROGADDR_RESET = 32'h 0000_0000;       // start of memory
 
-	reg [7:0] rom [0:ROM_BYTES-1];
-	wire [31:0] rom_rdata = {rom[mem_addr+3], rom[mem_addr+2], rom[mem_addr+1], rom[mem_addr+0]};
-	initial $readmemh("firmware.hex", rom);
-	
 	reg [31:0] ram [0:MEM_WORDS-1];
+	initial $readmemh("firmware.hex", ram);
 	reg [31:0] ram_rdata;
 	reg ram_ready;
 
@@ -57,45 +55,55 @@ module attosoc (
 	wire [3:0] mem_wstrb;
 	wire [31:0] mem_rdata;
 
-        wire rom_ready = mem_valid && mem_addr[31:24] == 8'h00;
-	
 	always @(posedge clk)
         begin
 		ram_ready <= 1'b0;
-		if (mem_addr[31:24] == 8'h01 && mem_valid) begin
+		if (mem_addr[31:24] == 8'h00 && mem_valid) begin
 			if (mem_wstrb[0]) ram[mem_addr[23:2]][7:0] <= mem_wdata[7:0];
 			if (mem_wstrb[1]) ram[mem_addr[23:2]][15:8] <= mem_wdata[15:8];
 			if (mem_wstrb[2]) ram[mem_addr[23:2]][23:16] <= mem_wdata[23:16];
 			if (mem_wstrb[3]) ram[mem_addr[23:2]][31:24] <= mem_wdata[31:24];
-			
+
 			ram_rdata <= ram[mem_addr[23:2]];
 			ram_ready <= 1'b1;
 		end
         end
 
 	wire iomem_valid;
-	wire iomem_ready;
+	reg iomem_ready;
 	wire [31:0] iomem_addr;
 	wire [31:0] iomem_wdata;
 	wire [3:0] iomem_wstrb;
 	wire [31:0] iomem_rdata;
 
 	assign iomem_valid = mem_valid && (mem_addr[31:24] > 8'h 01);
-	assign iomem_ready = 1'b1;
 	assign iomem_wstrb = mem_wstrb;
 	assign iomem_addr = mem_addr;
 	assign iomem_wdata = mem_wdata;
 
-	wire [31:0] spimemio_cfgreg_do;
+	wire        simpleuart_reg_div_sel = mem_valid && (mem_addr == 32'h 0200_0004);
+	wire [31:0] simpleuart_reg_div_do;
+
+	wire        simpleuart_reg_dat_sel = mem_valid && (mem_addr == 32'h 0200_0008);
+	wire [31:0] simpleuart_reg_dat_do;
+	wire simpleuart_reg_dat_wait;
+
+	always @(posedge clk) begin
+		iomem_ready <= 1'b0;
+	  if (iomem_valid && iomem_wstrb[0] && mem_addr == 32'h 02000000) begin
+	    led <= iomem_wdata[7:0];
+			iomem_ready <= 1'b1;
+		end
+	end
 
 
-        always @(posedge clk)
-          if (iomem_valid && iomem_wstrb[0])
-            led <= iomem_wdata[7:0];
+	assign mem_ready = (iomem_valid && iomem_ready) ||
+	                   simpleuart_reg_div_sel || (simpleuart_reg_dat_sel && !simpleuart_reg_dat_wait) ||
+										 ram_ready;
 
-	assign mem_ready = (iomem_valid && iomem_ready) || rom_ready || ram_ready;
-
-	assign mem_rdata = ram_ready ? ram_rdata : rom_rdata;
+	assign mem_rdata = simpleuart_reg_div_sel ? simpleuart_reg_div_do :
+										 simpleuart_reg_dat_sel ? simpleuart_reg_dat_do :
+ 											ram_rdata;
 
 	picorv32 #(
 		.STACKADDR(STACKADDR),
@@ -119,7 +127,23 @@ module attosoc (
 		.mem_rdata   (mem_rdata  )
 	);
 
+	simpleuart simpleuart (
+		.clk         (clk         ),
+		.resetn      (resetn      ),
 
+		.ser_tx      (uart_tx     ),
+		.ser_rx      (uart_rx     ),
+
+		.reg_div_we  (simpleuart_reg_div_sel ? mem_wstrb : 4'b 0000),
+		.reg_div_di  (mem_wdata),
+		.reg_div_do  (simpleuart_reg_div_do),
+
+		.reg_dat_we  (simpleuart_reg_dat_sel ? mem_wstrb[0] : 1'b 0),
+		.reg_dat_re  (simpleuart_reg_dat_sel && !mem_wstrb),
+		.reg_dat_di  (mem_wdata),
+		.reg_dat_do  (simpleuart_reg_dat_do),
+		.reg_dat_wait(simpleuart_reg_dat_wait)
+);
 
 endmodule
 
