@@ -5,15 +5,15 @@ import pytrellis
 import re
 
 dsp_tiles = [
-    "MIB_R13C13:MIB_DSP0", "MIB_R13C13:MIB2_DSP0",
-    "MIB_R13C14:MIB_DSP1", "MIB_R13C14:MIB2_DSP1",
-    "MIB_R13C15:MIB_DSP2", "MIB_R13C15:MIB2_DSP2",
-    "MIB_R13C16:MIB_DSP3", "MIB_R13C16:MIB2_DSP3",
-    "MIB_R13C17:MIB_DSP4", "MIB_R13C17:MIB2_DSP4",
-    "MIB_R13C18:MIB_DSP5", "MIB_R13C18:MIB2_DSP5",
-    "MIB_R13C19:MIB_DSP6", "MIB_R13C19:MIB2_DSP6",
-    "MIB_R13C20:MIB_DSP7", "MIB_R13C20:MIB2_DSP7",
-    "MIB_R13C21:MIB_DSP8", "MIB_R13C21:MIB2_DSP8",
+    "MIB_R13C60:MIB_DSP0", "MIB_R13C60:MIB2_DSP0",
+    "MIB_R13C61:MIB_DSP1", "MIB_R13C61:MIB2_DSP1",
+    "MIB_R13C62:MIB_DSP2", "MIB_R13C62:MIB2_DSP2",
+    "MIB_R13C63:MIB_DSP3", "MIB_R13C63:MIB2_DSP3",
+    "MIB_R13C64:MIB_DSP4", "MIB_R13C64:MIB2_DSP4",
+    "MIB_R13C65:MIB_DSP5", "MIB_R13C65:MIB2_DSP5",
+    "MIB_R13C66:MIB_DSP6", "MIB_R13C66:MIB2_DSP6",
+    "MIB_R13C67:MIB_DSP7", "MIB_R13C67:MIB2_DSP7",
+    "MIB_R13C68:MIB_DSP8", "MIB_R13C68:MIB2_DSP8",
 ]
 
 
@@ -24,12 +24,24 @@ def get_tiles(first):
 
 
 jobs = [
-    ((13, 13), FuzzConfig(job="DSPROUTE0", family="ECP5", device="LFE5U-25F", ncl="dsproute.ncl",
-                          tiles=get_tiles("MIB_R13C13:MIB_DSP0"))),
-    ((13, 14), FuzzConfig(job="DSPROUTE1", family="ECP5", device="LFE5U-25F", ncl="dsproute.ncl",
-                          tiles=get_tiles("MIB_R13C14:MIB_DSP1"))),
-    ((13, 15), FuzzConfig(job="DSPROUTE1", family="ECP5", device="LFE5U-25F", ncl="dsproute.ncl",
-                          tiles=get_tiles("MIB_R13C15:MIB_DSP2"))),
+    ((13, 60), FuzzConfig(job="DSPROUTE0", family="ECP5", device="LFE5U-25F", ncl="dsproute.ncl",
+                          tiles=get_tiles("MIB_R13C60:MIB_DSP0"))),
+    ((13, 61), FuzzConfig(job="DSPROUTE1", family="ECP5", device="LFE5U-25F", ncl="dsproute.ncl",
+                          tiles=get_tiles("MIB_R13C61:MIB_DSP1"))),
+    ((13, 62), FuzzConfig(job="DSPROUTE2", family="ECP5", device="LFE5U-25F", ncl="dsproute.ncl",
+                          tiles=get_tiles("MIB_R13C62:MIB_DSP2"))),
+    ((13, 63), FuzzConfig(job="DSPROUTE3", family="ECP5", device="LFE5U-25F", ncl="dsproute.ncl",
+                          tiles=get_tiles("MIB_R13C63:MIB_DSP3"))),
+    ((13, 64), FuzzConfig(job="DSPROUTE4", family="ECP5", device="LFE5U-25F", ncl="dsproute.ncl",
+                          tiles=get_tiles("MIB_R13C64:MIB_DSP4"))),
+    ((13, 65), FuzzConfig(job="DSPROUTE5", family="ECP5", device="LFE5U-25F", ncl="dsproute.ncl",
+                          tiles=get_tiles("MIB_R13C65:MIB_DSP5"))),
+    ((13, 66), FuzzConfig(job="DSPROUTE6", family="ECP5", device="LFE5U-25F", ncl="dsproute.ncl",
+                          tiles=get_tiles("MIB_R13C66:MIB_DSP6"))),
+    ((13, 67), FuzzConfig(job="DSPROUTE7", family="ECP5", device="LFE5U-25F", ncl="dsproute.ncl",
+                          tiles=get_tiles("MIB_R13C67:MIB_DSP7"))),
+    ((13, 68), FuzzConfig(job="DSPROUTE8", family="ECP5", device="LFE5U-25F", ncl="dsproute.ncl",
+                          tiles=get_tiles("MIB_R13C68:MIB_DSP8")))
 ]
 
 
