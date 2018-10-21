@@ -23,6 +23,10 @@ cdivx_clk_re = re.compile(r'R\d+C\d+_J?[UL]CDIVX\d+')
 # SED clock output
 sed_clk_re = re.compile(r'R\d+C\d+_J?SEDCLKOUT')
 
+# SERDES reference clocks
+pcs_clk_re = re.compile(r'R\d+C\d+_J?PCS[AB][TR]XCLK\d')
+
+
 # DDRDEL delay signals
 ddr_delay_re = re.compile(r'R\d+C\d+_[UL][LR]DDRDEL')
 
@@ -61,6 +65,7 @@ def is_global(wire):
                 dcc_clki_re.match(wire) or
                 dcs_sig_re.match(wire) or
                 dcs_clk_re.match(wire) or
+                pcs_clk_re.match(wire) or
                 center_clk_re.match(wire))
 
 
