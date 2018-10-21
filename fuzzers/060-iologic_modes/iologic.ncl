@@ -13,7 +13,7 @@ design top
    ${comment} {
    ${comment}   logical
    ${comment}   {
-   ${comment}      cellmodel-name IOLOGIC;
+   ${comment}      cellmodel-name ${s}IOLOGIC;
    ${comment}      ${program};
    ${comment}   }
    ${comment}   site ${loc};
