@@ -18,6 +18,12 @@ dsp_tiles = [
 jobs = [
     ("MULT18_R13C4", "MULT18_0", FuzzConfig(job="MULT18_0", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
                                             tiles=dsp_tiles)),
+    ("MULT18_R13C5", "MULT18_1", FuzzConfig(job="MULT18_1", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+                                            tiles=dsp_tiles)),
+    ("MULT18_R13C8", "MULT18_4", FuzzConfig(job="MULT18_4", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+                                            tiles=dsp_tiles)),
+    ("MULT18_R13C9", "MULT18_5", FuzzConfig(job="MULT18_5", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+                                            tiles=dsp_tiles)),
 ]
 
 
