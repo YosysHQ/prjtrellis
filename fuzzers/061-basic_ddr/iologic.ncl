@@ -9,13 +9,20 @@ design top
       performance "8";
    }
 
-   ${comment} comp Q_MGIOL
-   ${comment} {
-   ${comment}   logical
-   ${comment}   {
-   ${comment}      cellmodel-name ${s}IOLOGIC;
-   ${comment}      ${program};
-   ${comment}   }
-   ${comment}   site ${loc};
-   ${comment} }
+    comp Q_MGIOL
+    {
+      logical
+      {
+         cellmodel-name ${s}IOLOGIC;
+         program "GSR:${gsr} "
+                 "MODE:IDDRX1_ODDRX1 "
+                 "CLKIMUX:${clkimux} "
+                 "LSRIMUX:${lsrimux} "
+                 "CLKOMUX:${clkomux} "
+                 "LSROMUX:${lsromux} "
+                 "LSRMUX:${lsrmux} "
+                 "${ddr}";
+      }
+      site ${loc};
+    }
 }
