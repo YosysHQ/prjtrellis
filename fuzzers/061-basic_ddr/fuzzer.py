@@ -82,18 +82,22 @@ def main():
     pytrellis.load_database("../../database")
 
     def per_job(job):
-        def get_substs(mode="IREG_OREG", program=[]):
-            if mode == "NONE":
-                comment = "//"
-                program = ""
+        def get_substs(ddrtype="", ddren="OFF", gsr="ENABLED", lsrimux="0", clkimux="CLK", lsromux="0", clkomux="CLK", lsrmux="LSR"):
+            if ddren == "ON":
+                ddr = "{}:#ON ".format(ddrtype)
             else:
-                comment = ""
-                program = "program " + "\n\t\t\t".join(['"' + _ + ' "' for _ in program])
+                ddr = ""
+            if clkimux == "INV":
+                clkimux = "CLK:::CLK=#INV"
+            if clkomux == "INV":
+                clkomux = "CLK:::CLK=#INV"
+            if lsrmux == "INV":
+                lsrmux = "LSR:::LSR=#INV"
             if side in ("T, B"):
                 s = "S"
             else:
                 s = ""
-            return dict(loc=loc, mode=mode, program=program, comment=comment, s=s)
+            return dict(loc=loc, ddr=ddr, gsr=gsr, lsrimux=lsrimux, clkimux=clkimux, lsromux=lsromux, clkomux=clkomux, lsrmux=lsrmux, s=s)
 
         cfg = job["cfg"]
         loc = job["site"]
@@ -103,13 +107,23 @@ def main():
         cfg.setup()
         empty_bitfile = cfg.build_design(cfg.ncl, {})
         cfg.ncl = "iologic.ncl"
-        modes = ["NONE", "IREG_OREG", "IDDRX1_ODDRX1"]
-        if side in ("L", "R"):
-            modes += ["IDDRXN", "ODDRXN", "MIDDRX_MODDRX"]
-        tie_program = ["LSRIMUX:0", "LSROMUX:0"]
-        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.MODE".format(iol), modes,
-                                     lambda x: get_substs(mode=x, program=["MODE:" + x] + tie_program), empty_bitfile, False)
 
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.IDDRX1".format(iol), ["OFF", "ON"],
+                                     lambda x: get_substs(ddrtype="IDDRX1", ddren=x), empty_bitfile, False)
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.ODDRX1".format(iol), ["OFF", "ON"],
+                                     lambda x: get_substs(ddrtype="ODDRX1", ddren=x), empty_bitfile, False)
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.GSR".format(iol), ["ENABLED", "DISABLED"],
+                                     lambda x: get_substs(gsr=x), empty_bitfile, False)
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.LSRIMUX".format(iol), ["LSRMUX", "0"],
+                                     lambda x: get_substs(lsrimux=x), empty_bitfile, False)
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.LSROMUX".format(iol), ["LSRMUX", "0"],
+                                     lambda x: get_substs(lsromux=x), empty_bitfile, False)
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.CLKIMUX".format(iol), ["CLK", "INV"],
+                                     lambda x: get_substs(clkimux=x), empty_bitfile, False)
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.CLKOMUX".format(iol), ["CLK", "INV"],
+                                     lambda x: get_substs(clkomux=x), empty_bitfile, False)
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.LSRMUX".format(iol), ["LSR", "INV"],
+                                     lambda x: get_substs(lsrmux=x), empty_bitfile, False)
     fuzzloops.parallel_foreach(jobs, per_job)
 
 
