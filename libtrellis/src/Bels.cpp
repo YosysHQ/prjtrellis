@@ -202,6 +202,7 @@ void add_mult18(RoutingGraph &graph, int x, int y, int z) {
     for (int i = 0; i < 36; i++)
         add_output(fmt("P" << i));
     add_output("SIGNEDP");
+    graph.add_bel(bel);
 }
 
 void add_alu54b(RoutingGraph &graph, int x, int y, int z) {
@@ -245,6 +246,7 @@ void add_alu54b(RoutingGraph &graph, int x, int y, int z) {
     add_output("UNDER");
     add_output("OVERUNDER");
     add_output("SIGNEDR");
+    graph.add_bel(bel);
 }
 
 }
