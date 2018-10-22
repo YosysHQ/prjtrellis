@@ -16,10 +16,18 @@ dsp_tiles = [
 ]
 
 jobs = [
-    ("MULT18_R13C4", "DSP_LEFT", FuzzConfig(job="MULT18_0", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+    ("MULT18_R13C4", "DSP_LEFT", FuzzConfig(job="DSP_LEFT", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
                                             tiles=dsp_tiles)),
-    ("MULT18_R13C8", "DSP_RIGHT", FuzzConfig(job="MULT18_4", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+    ("MULT18_R13C8", "DSP_RIGHT", FuzzConfig(job="DSP_RIGHT", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
                                              tiles=dsp_tiles)),
+    ("MULT18_R13C4", "MULT18_0", FuzzConfig(job="MULT18_0", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+                                            tiles=dsp_tiles)),
+    ("MULT18_R13C5", "MULT18_1", FuzzConfig(job="MULT18_1", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+                                             tiles=dsp_tiles)),
+    ("MULT18_R13C8", "MULT18_4", FuzzConfig(job="MULT18_4", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+                                            tiles=dsp_tiles)),
+    ("MULT18_R13C9", "MULT18_5", FuzzConfig(job="MULT18_5", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+                                            tiles=dsp_tiles)),
 ]
 
 
@@ -27,21 +35,29 @@ def main():
     pytrellis.load_database("../../database")
 
     def per_job(job):
-        def get_substs(settings, cibout="OFF"):
+        def get_substs(settings, cibout="OFF", outclk="CLK0"):
             route = ""
             if cibout == "ON":
-                if mult == "DSP_RIGHT":
+                if mult == "DSP_RIGHT" or mult == "MULT18_4":
                     route = "route\n\t\t\t" + rc + "_JP0_MULT18." + rc + "_JF4;"
+                elif mult == "MULT18_1":
+                    route = "route\n\t\t\t" + rc + "_JP0_MULT18.R13C4_JQ0;"
+                elif mult == "MULT18_5":
+                    route = "route\n\t\t\t" + rc + "_JP0_MULT18.R13C8_JQ4;"
                 else:
                     route = "route\n\t\t\t" + rc + "_JP0_MULT18." + rc + "_JF0;"
-            return dict(loc=loc, route=route, rc=rc)
+            return dict(loc=loc, route=route, rc=rc, outclk=outclk)
 
         loc, mult, cfg = job
         rc = loc.split("_")[1]
         cfg.setup()
         empty_bitfile = cfg.build_design(cfg.ncl, {})
         cfg.ncl = "dspconfig.ncl"
-        nonrouting.fuzz_enum_setting(cfg, "{}.CIBOUT".format(mult), ["OFF", "ON"],
+        if mult.startswith("MULT"):
+            nonrouting.fuzz_enum_setting(cfg, "{}.CIBOUT_BYP".format(mult), ["OFF", "ON"],
+                                     lambda x: get_substs(settings={}, cibout="ON", outclk=("NONE" if x == "ON" else "CLK0")), empty_bitfile, False)
+        else:
+            nonrouting.fuzz_enum_setting(cfg, "{}.CIBOUT".format(mult), ["OFF", "ON"],
                                      lambda x: get_substs(settings={}, cibout=x), empty_bitfile, False)
 
     fuzzloops.parallel_foreach(jobs, per_job)
