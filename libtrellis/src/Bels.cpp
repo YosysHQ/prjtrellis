@@ -167,5 +167,87 @@ void add_bram(RoutingGraph &graph, int x, int y, int z) {
 
 }
 
+void add_mult18(RoutingGraph &graph, int x, int y, int z) {
+    string name = string("MULT18_") + std::to_string(z);
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("MULT18X18D");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    bel.z = z;
+    auto add_input = [&](const std::string &pin) {
+        graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt("J" << pin << "_MULT18")));
+    };
+    auto add_output = [&](const std::string &pin) {
+        graph.add_bel_output(bel, graph.ident(pin), x, y, graph.ident(fmt("J" << pin << "_MULT18")));
+    };
+    for (auto sig : {"CLK", "CE", "RST"})
+        for (int i = 0; i < 4; i++)
+            add_input(fmt(sig << i));
+    for (auto sig : {"SIGNED", "SOURCE"})
+        for (auto c : {"A", "B"})
+            add_input(fmt(sig << c));
+    for (auto port : {"A", "B", "C"})
+        for (int i = 0; i < 18; i++)
+            add_input(fmt(port << i));
+    for (auto port : {"SRIA", "SRIB"})
+        for (int i = 0; i < 18; i++)
+            add_input(fmt(port << i));
+    for (auto port : {"ROA", "ROB", "ROC"})
+        for (int i = 0; i < 18; i++)
+            add_output(fmt(port << i));
+    for (auto port : {"SROA", "SROB"})
+        for (int i = 0; i < 18; i++)
+            add_output(fmt(port << i));
+    for (int i = 0; i < 36; i++)
+        add_output(fmt("P" << i));
+    add_output("SIGNEDP");
+    graph.add_bel(bel);
+}
+
+void add_alu54b(RoutingGraph &graph, int x, int y, int z) {
+    string name = string("ALU54_") + std::to_string(z);
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("ALU54B");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    bel.z = z;
+    auto add_input = [&](const std::string &pin) {
+        graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt("J" << pin << "_ALU54")));
+    };
+    auto add_output = [&](const std::string &pin) {
+        graph.add_bel_output(bel, graph.ident(pin), x, y, graph.ident(fmt("J" << pin << "_ALU54")));
+    };
+    for (auto sig : {"CLK", "CE", "RST"})
+        for (int i = 0; i < 4; i++)
+            add_input(fmt(sig << i));
+    add_input("SIGNEDIA");
+    add_input("SIGNEDIB");
+    add_input("SIGNEDCIN");
+    for (auto port : {"A", "B", "MA", "MB"})
+        for (int i = 0; i < 36; i++)
+            add_input(fmt(port << i));
+    for (auto port : {"C", "CFB", "CIN"})
+        for (int i = 0; i < 54; i++)
+            add_input(fmt(port << i));
+    for (int i = 0; i < 11; i++)
+        add_input(fmt("OP" << i));
+
+    for (auto port : {"R", "CO"})
+        for (int i = 0; i < 54; i++)
+            add_output(fmt(port << i));
+    add_output("EQZ");
+    add_output("EQZM");
+    add_output("EQOM");
+    add_output("EQPAT");
+    add_output("EQPATB");
+    add_output("OVER");
+    add_output("UNDER");
+    add_output("OVERUNDER");
+    add_output("SIGNEDR");
+    graph.add_bel(bel);
+}
+
 }
 }

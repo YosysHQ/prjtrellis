@@ -159,6 +159,20 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
             Bels::add_bram(*rg, x, y, 2);
         if (tile->info.type == "MIB_EBR6")
             Bels::add_bram(*rg, x, y, 3);
+        // DSP Bels
+        if (tile->info.type == "MIB_DSP0")
+            Bels::add_mult18(*rg, x, y, 0);
+        if (tile->info.type == "MIB_DSP1")
+            Bels::add_mult18(*rg, x, y, 1);
+        if (tile->info.type == "MIB_DSP4")
+            Bels::add_mult18(*rg, x, y, 4);
+        if (tile->info.type == "MIB_DSP5")
+            Bels::add_mult18(*rg, x, y, 5);
+        if (tile->info.type == "MIB_DSP3")
+            Bels::add_alu54b(*rg, x, y, 3);
+        if (tile->info.type == "MIB_DSP7")
+            Bels::add_alu54b(*rg, x, y, 7);
+
     }
     return rg;
 }

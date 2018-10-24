@@ -18,6 +18,8 @@ dsp_tiles = [
 jobs = [
     ("ALU54_R13C7", "ALU54_3", FuzzConfig(job="ALU54_3", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
                                           tiles=dsp_tiles)),
+    ("ALU54_R13C11", "ALU54_7", FuzzConfig(job="ALU54_7", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+                                          tiles=dsp_tiles)),
 ]
 
 
