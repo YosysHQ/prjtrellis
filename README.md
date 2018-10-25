@@ -1,6 +1,64 @@
 # Project Trellis
+ 
+## For FPGA Toolchain Users
 
-Documenting the Lattice ECP5 bit-stream format. Current documentation is
+Project Trellis enables a fully open-source flow for ECP5 FPGAs using [Yosys](https://github.com/YosysHQ/yosys)
+for Verilog synthesis and [nextpnr](https://github.com/YosysHQ/nextpnr) for place and route.
+Project Trellis itself provides the device database and tools for bitstream creation.
+
+### Getting Started
+
+Install the dependencies for Project Trellis:
+ - Python 3.5 or later, including development libraries (`python3-dev` on Ubuntu)
+ - A modern C++14 compiler (Clang is recommended)
+ - CMake 3.5 or later
+ - Boost including boost-python
+ - Git
+ 
+Clone the Project Trellis repository and download the latest database:
+
+     git clone https://github.com/SymbiFlow/prjtrellis
+     cd prjtrellis
+     ./download-latest-db.sh
+     
+Install _libtrellis_ and associated tools:
+
+    cd libtrellis
+    cmake -DCMAKE_INSTALL_PREFIX=/usr .
+    make
+    sudo make install
+
+Clone and install **latest git master** versions (Yosys 0.8 is not sufficient for ECP5 development) of [Yosys](https://github.com/YosysHQ/yosys)
+ and [nextpnr](https://github.com/YosysHQ/nextpnr) according to their own instructions. Ensure
+ to include the ECP5 architecture when building nextpnr; and point it towards your prjtrellis
+ folder.
+
+You should now be able to build the [examples](examples).
+
+### Current Status
+ 
+The following features are currently working in the Yosys/nextpnr/Trellis flow.
+ - Logic slice functionality, including carries
+ - Distributed RAM inside logic slices
+ - All internal interconnect
+ - Basic IO, including tristate, using `TRELLIS_IO` primitives. Pin location and IO type
+ must be specified as attributes on these primitives, separate IO constraint files are not yet implemented.
+ - Block RAM, using either inference in Yosys or manual instantiation of the DP16KD primitive
+ - Multipliers using manual instantiation of the MULT18X18D primitive. Inference and more advanced DSP features
+ are not yet supported.
+ - Global networks (automatically promoted and routed in nextpnr)
+
+### Development Boards
+Project Trellis supports all ECP5 devices and should work with any development board. The following
+boards have been tested and confirmed working:
+ - [Lattice ECP5-5G Versa Development Kit](http://www.latticesemi.com/Products/DevelopmentBoardsAndKits/ECP55GVersaDevKit.aspx)
+ - [Lattice ECP5 Evaluation Board](http://www.latticesemi.com/ecp5-evaluation)
+ - [Radiona ULX3S](https://github.com/emard/ulx3s) (open hardware)
+ - [TinyFPGA](https://tinyfpga.com/) Ex (coming soon)
+
+## For Developers
+
+Project Trellis documents the Lattice ECP5 bit-stream format and internal architecture. Current documentation is
 located in machine-readable format in [prjtrellis-db](https://github.com/SymbiFlow/prjtrellis-db)
 and is also [published online as HTML](https://symbiflow.github.io/prjtrellis-db/).
 
@@ -18,7 +76,7 @@ This follows follows the lead of
 [Project X-Ray](https://github.com/SymbiFlow/prjxray) - which is documenting
 the bitstream format for the Xilinx Series 7 devices.
 
-# Quickstart Guide
+### Quickstart Guide
 
 Currently Project Trellis is tested on Arch Linux, Ubuntu 17.10 and
 Ubuntu 16.04.
@@ -30,10 +88,6 @@ Install the dependencies:
  - CMake 3.5 or later
  - Boost including boost-python
  
-Pull submodules:
-
-    git submodule update --init --recursive
-
 For a generic environment:
 
     source environment.sh
@@ -52,13 +106,11 @@ Alternatively, if you want to start from scratch:
 
     ./create-empty-db.sh
 
-Build and test libtrellis:
+Build libtrellis:
 
     cd libtrellis
     cmake .
     make
-    cd tests/
-    ./run_all.sh
 
 
 (Re-)creating parts of the database, for example LUT interconnect:
@@ -66,7 +118,7 @@ Build and test libtrellis:
     cd fuzzers/001-plc2_routing
     TRELLIS_JOBS=`nproc` python3 fuzzer.py
 
-# Process
+## Process
 
 The documentation is done through a "black box" process were Diamond is asked to
 generate a large number of designs which then used to create bitstreams. The
@@ -77,84 +129,47 @@ This follows the same process as
 [Project X-Ray](https://github.com/SymbiFlow/prjxray) -
 [more documentation can be found here](https://prjxray.readthedocs.org).
 
-## Parts
+### Parts
 
-### [Minitests](minitests)
+#### [Minitests](minitests)
 
-There are also "minitests" which are designs which can be viewed by a human in
-Vivado to better understand how to generate more useful designs.
+There are also "minitests" which are small tests of features used to build fuzers.
 
-### [Experiments](experiments)
-
-Experiments are like "minitests" except are only useful for a short period of
-time. Files are committed here to allow people to see how we are trying to
-understand the bitstream.
-
-### [Fuzzers](fuzzers)
+#### [Fuzzers](fuzzers)
 
 Fuzzers are the scripts which generate the large number of bitstream.
 
 They are called "fuzzers" because they follow an approach similar to the
 [idea of software testing through fuzzing](https://en.wikipedia.org/wiki/Fuzzing).
 
-### [Tools](tools) & [Libs](libs)
+#### [Tools](tools)
 
-Tools & libs are useful tools (and libraries) for converting the resulting
-bitstreams into various formats.
+Miscellaneous tools for exploring the database and experimenting with bitstreams.
 
-Binaries in the tools directory are considered more mature and stable then
-those in the [utils](utils) directory and could be actively used in other
-projects.
+#### [Util](util)
 
-### [Utils](utils)
+Python libraries used for fuzzers and other purposes
 
-Utils are various tools which are still highly experimental. These tools should
-only be used inside this repository.
-
-### [Third Party](third_party)
-
-Third party contains code not developed as part of Project Trellis.
-
-### [libtrellis](libtrellis)
+#### [libtrellis](libtrellis)
 
 libtrellis is a library for manipulating ECP5 bitstreams, tiles and the Project
 Trellis databases. It is written with C++, with Python bindings exposed using
 Boost::Python so that fuzzers and utilities can be written in Python.
 
-# Database
+### Database
 
 Running the all fuzzers in order will produce a database which documents the
 bitstream format in the [database](database) directory.
 
-# Current Focus
 
-Currently we have documented the logic tiles, interconnect (CIB) tiles,
-EBR, the PIO part of the IO tiles (excluding IOLOGIC), and the PLLs and IOLOGIC
-for the 45k part.
-
-The aim is to eventually document all parts in the Lattice ECP5 series FPGAs
-but we can not do this alone, **we need your help**!
-
-
-## TODO List
-
- - [X] Write fuzzing framework for configuration bit and routing fuzzing
- - [X] Fuzz logic tile init and config bits
- - [X] Fuzz logic tile routing
- - [X] Fuzz other routing tiles (CIBs)
- - [ ] Fuzz IO tiles (WIP - base config done, IOLOGIC and advanced features not)
- - [X] Fuzz global clock tiles (focussed on 45k only current)
- - [ ] Fuzz other function tiles (DSP, SERDES, etc)
- - [ ] Look at other Lattice devices (MachXO2, ECP3, etc)
-
-# Credits
+## Credits
 
 Thanks to @tinyfpga for the original inspiration, and @mithro for the name and initial support.
 
 Thanks to @q3k, @emard and @tinyfpga for their donations of ECP5 hardware that have made real-world
 testing and demos possible.
 
-# Contributing
+## Contributing
 
 There are a couple of guidelines when contributing to Project Trellis which are
 listed here.
@@ -176,51 +191,3 @@ All new contributions must also be released under this license.
 By contributing you agree to the [code of conduct](CODE_OF_CONDUCT.md). We
 follow the open source best practice of using the [Contributor
 Covenant](https://www.contributor-covenant.org/) for our Code of Conduct.
-
-### Sign your work
-
-To improve tracking of who did what, we follow the Linux Kernel's
-["sign your work" system](https://github.com/wking/signed-off-by).
-This is also called a
-["DCO" or "Developer's Certificate of Origin"](https://developercertificate.org/).
-
-**All** commits are required to include this sign off and we use the
-[Probot DCO App](https://github.com/probot/dco) to check pull requests for
-this.
-
-The sign-off is a simple line at the end of the explanation for the
-patch, which certifies that you wrote it or otherwise have the right to
-pass it on as a open-source patch.  The rules are pretty simple: if you
-can certify the below:
-
-        Developer's Certificate of Origin 1.1
-
-        By making a contribution to this project, I certify that:
-
-        (a) The contribution was created in whole or in part by me and I
-            have the right to submit it under the open source license
-            indicated in the file; or
-
-        (b) The contribution is based upon previous work that, to the best
-            of my knowledge, is covered under an appropriate open source
-            license and I have the right under that license to submit that
-            work with modifications, whether created in whole or in part
-            by me, under the same open source license (unless I am
-            permitted to submit under a different license), as indicated
-            in the file; or
-
-        (c) The contribution was provided directly to me by some other
-            person who certified (a), (b) or (c) and I have not modified
-            it.
-
-	(d) I understand and agree that this project and the contribution
-	    are public and that a record of the contribution (including all
-	    personal information I submit with it, including my sign-off) is
-	    maintained indefinitely and may be redistributed consistent with
-	    this project or the open source license(s) involved.
-
-then you just add a line saying
-
-	Signed-off-by: Random J Developer <random@developer.example.org>
-
-using your real name (sorry, no pseudonyms or anonymous contributions.)
