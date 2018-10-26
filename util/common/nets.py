@@ -39,13 +39,15 @@ dcs_sig_re = re.compile(r'R\d+C\d+_J?(CLK\d|SEL\d|DCSOUT|MODESEL)_DCS\d')
 # DCS clocks
 dcs_clk_re = re.compile(r'R\d+C\d+_DCS\d(CLK\d)?')
 # Misc. center clocks
-center_clk_re = re.compile(r'R\d+C\d+_J?(LE|BRGE|RE)CLK\d')
+center_clk_re = re.compile(r'R\d+C\d+_J?(LE|RE)CLK\d')
 
 # Shared DQS signals
 dqs_ssig_re = re.compile(r'R\d+C\d+_(DQS[RW]\d*|(RD|WR)PNTR\d)$')
 
 # Bank edge clocks
 bnk_eclk_re = re.compile('R\d+C\d+_BANK\d+(ECLK\d+)')
+# CIB ECLK inputs
+cib_eclk_re = re.compile(r'R\d+C\d+_J?[ULTB][LR][QCM]ECLKCIB\d+')
 
 
 
@@ -66,7 +68,8 @@ def is_global(wire):
                 dcs_sig_re.match(wire) or
                 dcs_clk_re.match(wire) or
                 pcs_clk_re.match(wire) or
-                center_clk_re.match(wire))
+                center_clk_re.match(wire) or
+                cib_eclk_re.match(wire))
 
 
 # General inter-tile routing
@@ -241,7 +244,10 @@ def normalise_name(chip_size, tile, wire):
     elif dqs_ssig_re.match(wire):
         return "DQSG_" + netname
     elif bnk_eclk_re.match(wire):
-        return "BNK_" + bnk_eclk_re.match(wire).group(1)
+        if "ECLK" in tile:
+            return "G_" + netname
+        else:
+            return "BNK_" + bnk_eclk_re.match(wire).group(1)
     elif netname in ("INRD", "LVDS"):
         return "BNK_" + netname
     netname, prefix_pos = handle_edge_name(chip_size, tile_pos, prefix_pos, netname)
