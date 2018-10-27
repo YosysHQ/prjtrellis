@@ -192,7 +192,7 @@ EOT
 fi
 
 # make bitmap
-"$fpgabindir"/bitgen -d par_impl.ncd output.bit synth_impl.prf
+"$fpgabindir"/bitgen -d par_impl.ncd $BITARGS output.bit synth_impl.prf
 
 # dump bitmap
 "$fpgabindir"/bstool -d output.bit > output.dump
