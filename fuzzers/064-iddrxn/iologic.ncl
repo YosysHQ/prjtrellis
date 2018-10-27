@@ -15,7 +15,7 @@ design top
       {
          cellmodel-name IOLOGIC;
          program "MODE:IDDRXN "
-                 "IDDRXN:::DDRMODE=${mode}";
+                 "${mode}";
       }
       site ${loc};
     }

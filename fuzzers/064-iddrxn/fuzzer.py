@@ -68,6 +68,10 @@ def main():
 
     def per_job(job):
         def get_substs(mode=""):
+            if mode != "NONE":
+                mode = "IDDRXN:::DDRMODE={}".format(mode)
+            else:
+                mode = ""
             return dict(loc=loc, mode=mode)
 
         cfg = job["cfg"]
@@ -79,7 +83,7 @@ def main():
         empty_bitfile = cfg.build_design(cfg.ncl, {})
         cfg.ncl = "iologic.ncl"
 
-        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.IDDRXN.MODE".format(iol), ["IDDRX2", "IDDR71"],
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.IDDRXN.MODE".format(iol), ["NONE", "IDDRX2", "IDDR71"],
                                      lambda x: get_substs(mode=x), empty_bitfile, False)
     fuzzloops.parallel_foreach(jobs, per_job)
 
