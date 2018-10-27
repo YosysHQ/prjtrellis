@@ -52,11 +52,17 @@ class FuzzConfig:
         subst = dict(substitutions)
         if "route" not in subst:
             subst["route"] = ""
+        if "sysconfig" not in subst:
+            subst["sysconfig"] = ""
         ext = des_template.split(".")[-1]
         lpf_template = des_template.replace("." + ext, ".lpf")
+        prf_template = des_template.replace("." + ext, ".prf")
+
         desfile = path.join(self.workdir, prefix + "design." + ext)
         bitfile = path.join(self.workdir, prefix + "design.bit")
         lpffile = path.join(self.workdir, prefix + "design.lpf")
+        prffile = path.join(self.workdir, prefix + "design.prf")
+
         if path.exists(bitfile):
             os.remove(bitfile)
         with open(des_template, "r") as inf:
@@ -65,6 +71,10 @@ class FuzzConfig:
         if path.exists(lpf_template):
             with open(lpf_template, "r") as inf:
                 with open(lpffile, "w") as ouf:
+                    ouf.write(Template(inf.read()).substitute(**subst))
+        if path.exists(prf_template):
+            with open(prf_template, "r") as inf:
+                with open(prffile, "w") as ouf:
                     ouf.write(Template(inf.read()).substitute(**subst))
         diamond.run(self.device, desfile, no_trce=True)
         if ext == "ncl" and self.ncd_specimen is None:

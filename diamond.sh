@@ -119,6 +119,7 @@ rm -rf "$2.tmp"
 mkdir -p "$2.tmp"
 if [ -n "$USE_NCL" ]; then
 cp "$2.ncl" "$2.tmp/input.ncl"
+if test -f "$2.prf"; then cp "$2.prf" "$2.tmp/input.prf"; fi
 else
 cp "$2.v" "$2.tmp/input.v"
 fi
@@ -134,7 +135,13 @@ touch input.lpf
 
 if [ -n "$USE_NCL" ]; then
 "$FOUNDRY"/userware/unix/bin/lin64/ncl2ncd input.ncl -drc -o par_impl.ncd
+
+if test -f "input.prf"; then
+cp "input.prf" "synth_impl.prf"
+else
 touch synth_impl.prf
+fi
+
 else
 cat > impl_lse.prj << EOT
 #device
