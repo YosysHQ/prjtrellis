@@ -41,7 +41,9 @@ def main():
         nets = ["{}_JCDIVX_CLKDIV{}".format(rc, idx),
                 "{}_CLKI_CLKDIV{}".format(rc, idx),
                 "{}_JRST_CLKDIV{}".format(rc, idx),
-                "{}_JALIGNWD_CLKDIV{}".format(rc, idx)]
+                "{}_JALIGNWD_CLKDIV{}".format(rc, idx),
+                "{}_CLKI{}".format(rc, idx),
+                ]
         cfg.ncl = "clkdiv_routing.ncl"
         interconnect.fuzz_interconnect_with_netnames(cfg, nets, bidir=True)
 
@@ -50,4 +52,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
