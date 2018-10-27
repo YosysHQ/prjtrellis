@@ -55,7 +55,7 @@ def fuzz_word_setting(config, name, length, get_ncl_substs, empty_bitfile=None):
             tile_dbs[t].save()
 
 
-def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile=None, include_zeros=True):
+def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile=None, include_zeros=True, ignore_cover=None):
     """
     Fuzz a setting with multiple possible values
 
@@ -67,6 +67,7 @@ def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile=None, 
     default value
     :param include_zeros: if set, bits set to zero are not included in db. Needed for settings such as CEMUX which share
     bits with routing muxes to prevent conflicts.
+    :param ignore_cover: these values will also be checked, and bits changing between these will be ignored
     """
     prefix = "thread{}_".format(threading.get_ident())
     tile_dbs = {tile: pytrellis.get_tile_bitdata(
@@ -94,7 +95,25 @@ def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile=None, 
         prev_tiles[val] = {}
         for tile in config.tiles:
             prev_tiles[val][tile] = bit_chip.tiles[tile].cram
-
+    if ignore_cover is not None:
+        ignore_changed_bits = set()
+        ignore_prev_tiles = {}
+        for ival in ignore_cover:
+            print("****** Fuzzing {} = {} [to ignore] ******".format(name, ival))
+            bit_bitf = config.build_design(config.ncl, get_ncl_substs(ival), prefix)
+            bit_chip = pytrellis.Bitstream.read_bit(bit_bitf).deserialise_chip()
+            for prev in ignore_prev_tiles.values():
+                for tile in config.tiles:
+                    diff = bit_chip.tiles[tile].cram - prev[tile]
+                    if len(diff) > 0:
+                        for bit in diff:
+                            ignore_changed_bits.add((tile, bit.frame, bit.bit))
+            ignore_prev_tiles[ival] = {}
+            for tile in config.tiles:
+                ignore_prev_tiles[ival][tile] = bit_chip.tiles[tile].cram
+        for ibit in ignore_changed_bits:
+            if ibit in changed_bits:
+                changed_bits.remove(ibit)
     for tile in tiles_changed:
         esb = pytrellis.EnumSettingBits()
         esb.name = name
