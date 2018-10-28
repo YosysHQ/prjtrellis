@@ -21,9 +21,8 @@ def html_for_cell(cellname, cell, html):
                 tuple(entry["rising"]), tuple(entry["rising"])
             ))
         elif entry["type"] == "SetupHold":
-            print(entry["pin"])
             setupholds.append((
-                proc_pin(entry["clock"]), proc_pin(entry["pin"]),
+                proc_pin(entry["pin"]), proc_pin(entry["clock"]),
                 tuple(entry["setup"]), tuple(entry["hold"])
             ))
         elif entry["type"] == "Width":
@@ -52,12 +51,49 @@ def html_for_cell(cellname, cell, html):
             trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
             print("<tr {}>".format(trstyle), file=html)
             print("<td>{}</td><td>{}</td>".format(from_pin, to_pin), file=html)
-            print("<td>{}</td><td>{}</td><td>{}</td>".format(rising[0], rising[1], rising[2]), file=html)
-            print("<td>{}</td><td>{}</td><td>{}</td>".format(falling[0], falling[1], falling[2]), file=html)
+            print("<td>{:.0f}</td><td>{:.0f}</td><td>{:.0f}</td>".format(rising[0], rising[1], rising[2]), file=html)
+            print("<td>{:.0f}</td><td>{:.0f}</td><td>{:.0f}</td>".format(falling[0], falling[1], falling[2]), file=html)
             print("</tr>", file=html)
         print("</tbody>", file=html)
         print("</table>", file=html)
+    if len(setupholds) > 0:
+        print("<h3>Setup/Hold Checks</h3>", file=html)
+        print("<table width='800'>", file=html)
+        print("<tbody>", file=html)
+        print("<tr><th rowspan='2'>From Port</th><th rowspan='2'>To Clock</th>", file=html)
+        print("<th colspan='3'>Setup (ps)</th><th colspan='3'>Hold (ps)</th></tr>", file=html)
+        print("<tr><th>Min</th><th>Typ</th><th>Max</th><th>Min</th><th>Typ</th><th>Max</th></tr>", file=html)
 
+        trstyle = ""
+        for path in setupholds:
+            from_pin, clock, setup, hold = path
+            trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
+            print("<tr {}>".format(trstyle), file=html)
+            print("<td>{}</td><td>{}</td>".format(from_pin, clock), file=html)
+            print("<td>{:.0f}</td><td>{:.0f}</td><td>{:.0f}</td>".format(setup[0], setup[1], setup[2]), file=html)
+            print("<td>{:.0f}</td><td>{:.0f}</td><td>{:.0f}</td>".format(hold[0], hold[1], hold[2]), file=html)
+            print("</tr>", file=html)
+        print("</tbody>", file=html)
+        print("</table>", file=html)
+    if len(widths) > 0:
+        print("<h3>Width Checks</h3>", file=html)
+        print("<table width='800'>", file=html)
+        print("<tbody>", file=html)
+        print("<tr><th rowspan='2'>Clock</th>", file=html)
+        print("<th colspan='3'>Width (ps)</th><th colspan='3'>Equiv. Freq (MHz)</th></tr>", file=html)
+        print("<tr><th>Min</th><th>Typ</th><th>Max</th><th>Min</th><th>Typ</th><th>Max</th></tr>", file=html)
+
+        trstyle = ""
+        for wc in widths:
+            clock, width = wc
+            trstyle = " bgcolor=\"#dddddd\"" if trstyle == "" else ""
+            print("<tr {}>".format(trstyle), file=html)
+            print("<td>{}</td>".format(clock), file=html)
+            print("<td>{:.0f}</td><td>{:.0f}</td><td>{:.0f}</td>".format(width[0], width[1], width[2]), file=html)
+            print("<td>{:.0f}</td><td>{:.0f}</td><td>{:.0f}</td>".format(0.5e6/width[2], 0.5e6/width[1], 0.5e6/width[0]), file=html)
+            print("</tr>", file=html)
+        print("</tbody>", file=html)
+        print("</table>", file=html)
     print("<hr/>", file=html)
 
 
@@ -74,7 +110,7 @@ def make_cell_timing_html(dbfile, family, grade, htmlfile):
         print("<h3>Contents</h3>", file=html)
         print("<ul>", file=html)
         for cell in sorted(db.keys()):
-            print("<a href='#{}'>{}</a>".format(cell, cell), file=html)
+            print("<li><a href='#{}'>{}</a></li>".format(cell, cell), file=html)
         print("</ul>", file=html)
         print("<hr/>", file=html)
         for cellname in sorted(db.keys()):

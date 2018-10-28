@@ -38,11 +38,18 @@ def load_database(dbfile):
     return database
 
 
+def make_key(x):
+    if type(x) is tuple:
+        return ",".join(make_key(_) for _ in x)
+    else:
+        return str(x)
+
+
 def save_database(dbfile, database):
     jdb = {}
     for cell, cdata in database.items():
         jcdata = []
-        for dtype, dat in sorted(cdata):
+        for dtype, dat in sorted(cdata, key=lambda x: make_key(x)):
             assert dtype == "dict"
             jcdata.append({k: v for k, v in dat})
         jdb[cell] = jcdata

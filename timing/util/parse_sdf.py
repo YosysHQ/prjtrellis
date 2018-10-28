@@ -33,7 +33,7 @@ class SetupHoldCheck:
 
 class WidthCheck:
     def __init__(self, clock, width):
-        self.clock = clock,
+        self.clock = clock
         self.width = width
 
 
@@ -89,7 +89,7 @@ def parse_sexpr_file(filename):
 
 
 def parse_delay(delay):
-    sp = [1e-12 * float(x) for x in delay.split(":")]
+    sp = [int(x) for x in delay.split(":")]
     assert len(sp) == 3
     return Delay(sp[0], sp[1], sp[2])
 
@@ -125,7 +125,7 @@ def parse_sdf_file(filename):
                     if check[0] == "SETUPHOLD":
                         cell.entries.append(
                             SetupHoldCheck(check[1], check[2], parse_delay(check[3][0]), parse_delay(check[4][0])))
-                    elif check[1] == "WIDTH":
+                    elif check[0] == "WIDTH":
                         cell.entries.append(WidthCheck(check[1], parse_delay(check[2][0])))
         sdf.cells[inst] = cell
     return sdf
