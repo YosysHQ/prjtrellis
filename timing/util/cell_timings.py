@@ -18,6 +18,8 @@ def tupleise(x):
         return tuple([tupleise(_) for _ in x])
     elif type(x) is tuple:
         return tuple([tupleise(_) for _ in x])
+    elif type(x) is dict:
+        return "dict", tuple([(k, tupleise(v)) for k, v in sorted(x.items())])
     else:
         return x
 
@@ -39,7 +41,11 @@ def load_database(dbfile):
 def save_database(dbfile, database):
     jdb = {}
     for cell, cdata in database.items():
-        jdb[cell] = list(cdata)
+        jcdata = []
+        for dtype, dat in sorted(cdata):
+            assert dtype == "dict"
+            jcdata.append({k: v for k, v in dat})
+        jdb[cell] = jcdata
     with open(dbfile, 'w') as dbf:
         json.dump(jdb, dbf, indent=4, sort_keys=True)
 
@@ -59,13 +65,15 @@ def add_sdf_to_database(dbfile, sdffile, include_cell_predicate=include_cell, re
             db[celltype] = set()
         for entry in cell.entries:
             if type(entry) is parse_sdf.IOPath:
-                db[celltype].add(("IOPath", tupleise(entry.from_pin), tupleise(entry.to_pin), delay_tuple(entry.rising),
-                                  delay_tuple(entry.falling)))
+                db[celltype].add(tupleise(
+                    dict(type="IOPath", from_pin=entry.from_pin, to_pin=entry.to_pin, rising=delay_tuple(entry.rising),
+                         falling=delay_tuple(entry.falling))))
             elif type(entry) is parse_sdf.SetupHoldCheck:
-                db[celltype].add(("SetupHold", tupleise(entry.pin), tupleise(entry.clock), delay_tuple(entry.setup),
-                                  delay_tuple(entry.hold)))
+                db[celltype].add(
+                    tupleise(dict(type="SetupHold", pin=entry.pin, clock=entry.clock, setup=delay_tuple(entry.setup),
+                                  hold=delay_tuple(entry.hold))))
             elif type(entry) is parse_sdf.WidthCheck:
-                db[celltype].add(("Width", tupleise(entry.clock), delay_tuple(entry.width)))
+                db[celltype].add(tupleise(dict(type="Width", clock=entry.clock, width=delay_tuple(entry.width))))
             else:
                 assert False
     save_database(dbfile, db)
