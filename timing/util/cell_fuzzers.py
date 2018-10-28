@@ -18,7 +18,8 @@ def timing_configs(job, design, density="45"):
     ]
 
 
-def build_and_add(designs, density="45"):
+def build_and_add(designs, density="45", inc_cell=cell_timings.include_cell, rw_cell_func=cell_timings.rewrite_celltype,
+                  rw_pin_func=cell_timings.rewrite_pin):
     jobs = []
     sdfs = dict()
     for des in designs:
@@ -38,4 +39,5 @@ def build_and_add(designs, density="45"):
     for grade in sdfs.keys():
         db = timing_dbs.cells_db_path("ECP5", grade)
         for sdf in sdfs[grade]:
-            cell_timings.add_sdf_to_database(db, sdf)
+            cell_timings.add_sdf_to_database(db, sdf, include_cell_predicate=inc_cell, rewrite_cell_func=rw_cell_func,
+                                             rewrite_pin_func=rw_pin_func)
