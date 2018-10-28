@@ -30,12 +30,12 @@ def build_and_add(designs, density="45"):
     def per_job(job):
         grade, cfg = job
         cfg.setup(skip_specimen=True)
-        bitf = cfg.build_design(cfg.ncl, {}, backanno=True)
+        bitf = cfg.build_design(cfg.ncl, {}, backanno=True, substitute=False)
         sdf = bitf.replace(".bit", ".sdf")
         sdfs[grade].append(sdf)
 
     fuzzloops.parallel_foreach(jobs, per_job)
     for grade in sdfs.keys():
         db = timing_dbs.cells_db_path("ECP5", grade)
-        for sdf in sdfs["grade"]:
+        for sdf in sdfs[grade]:
             cell_timings.add_sdf_to_database(db, sdf)
