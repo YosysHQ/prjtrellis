@@ -13,6 +13,10 @@ def rewrite_celltype(name, type):
     return type
 
 
+def rewrite_pin(name, type, pin):
+    return pin
+
+
 def tupleise(x):
     if type(x) is list:
         return tuple(tupleise(_) for _ in x)
@@ -61,7 +65,8 @@ def delay_tuple(delay):
     return delay.minv, delay.typv, delay.maxv
 
 
-def add_sdf_to_database(dbfile, sdffile, include_cell_predicate=include_cell, rewrite_cell_func=rewrite_celltype):
+def add_sdf_to_database(dbfile, sdffile, include_cell_predicate=include_cell, rewrite_cell_func=rewrite_celltype,
+                        rewrite_pin_func=rewrite_pin):
     db = load_database(dbfile)
     sdf = parse_sdf.parse_sdf_file(sdffile)
     for instname, cell in sdf.cells.items():
@@ -73,14 +78,18 @@ def add_sdf_to_database(dbfile, sdffile, include_cell_predicate=include_cell, re
         for entry in cell.entries:
             if type(entry) is parse_sdf.IOPath:
                 db[celltype].add(tupleise(
-                    dict(type="IOPath", from_pin=entry.from_pin, to_pin=entry.to_pin, rising=delay_tuple(entry.rising),
+                    dict(type="IOPath", from_pin=rewrite_pin_func(cell.inst, cell.type, entry.from_pin),
+                         to_pin=rewrite_pin_func(cell.inst, cell.type, entry.to_pin), rising=delay_tuple(entry.rising),
                          falling=delay_tuple(entry.falling))))
             elif type(entry) is parse_sdf.SetupHoldCheck:
                 db[celltype].add(
-                    tupleise(dict(type="SetupHold", pin=entry.pin, clock=entry.clock, setup=delay_tuple(entry.setup),
+                    tupleise(dict(type="SetupHold", pin=rewrite_pin_func(cell.inst, cell.type, entry.pin),
+                                  clock=rewrite_pin_func(cell.inst, cell.type, entry.clock),
+                                  setup=delay_tuple(entry.setup),
                                   hold=delay_tuple(entry.hold))))
             elif type(entry) is parse_sdf.WidthCheck:
-                db[celltype].add(tupleise(dict(type="Width", clock=entry.clock, width=delay_tuple(entry.width))))
+                db[celltype].add(tupleise(dict(type="Width", clock=rewrite_pin_func(cell.inst, cell.type, entry.clock),
+                                               width=delay_tuple(entry.width))))
             else:
                 assert False
     save_database(dbfile, db)
