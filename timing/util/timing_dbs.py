@@ -1,6 +1,12 @@
 import database
 from os import path
-
+import os
 
 def cells_db_path(family, speedgrade):
-    return path.join(database.get_db_root(), family, "timing", "speed_{}".format(speedgrade), "cells.json")
+    tmgroot = path.join(database.get_db_root(), family, "timing")
+    if not path.exists(tmgroot):
+        os.mkdir(tmgroot)
+    sgroot = path.join(tmgroot, "speed_{}".format(speedgrade))
+    if not path.exists(sgroot):
+        os.mkdir(sgroot)
+    return path.join(sgroot, "cells.json")

@@ -40,7 +40,7 @@ class FuzzConfig:
         if not skip_specimen:
             self.build_design(self.ncl, {})
 
-    def build_design(self, des_template, substitutions, prefix="", no_trce=True, backanno=False):
+    def build_design(self, des_template, substitutions, prefix="", no_trce=True, backanno=False, substitute=True):
         """
         Run Diamond on a given design template, applying a map of substitutions, plus some standard substitutions
         if not overriden.
@@ -69,11 +69,17 @@ class FuzzConfig:
             os.remove(bitfile)
         with open(des_template, "r") as inf:
             with open(desfile, "w") as ouf:
-                ouf.write(Template(inf.read()).substitute(**subst))
+                if substitute:
+                    ouf.write(Template(inf.read()).substitute(**subst))
+                else:
+                    ouf.write(inf.read())
         if path.exists(lpf_template):
             with open(lpf_template, "r") as inf:
                 with open(lpffile, "w") as ouf:
-                    ouf.write(Template(inf.read()).substitute(**subst))
+                    if substitute:
+                        ouf.write(Template(inf.read()).substitute(**subst))
+                    else:
+                        ouf.write(inf.read())
         if path.exists(prf_template):
             with open(prf_template, "r") as inf:
                 with open(prffile, "w") as ouf:
