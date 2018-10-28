@@ -8,7 +8,7 @@ import diamond
 
 
 class FuzzConfig:
-    def __init__(self, job, family, device, tiles, ncl):
+    def __init__(self, job, family, device, tiles, ncl, mapargs=None):
         """
         :param job: user-friendly job name, used for folder naming etc
         :param family: Target family name
@@ -22,6 +22,7 @@ class FuzzConfig:
         self.tiles = tiles
         self.ncl = ncl
         self.ncd_specimen = None
+        self.mapargs = mapargs
 
     @property
     def workdir(self):
@@ -31,14 +32,15 @@ class FuzzConfig:
         """Create the working directory for this job, if it doesn't exist already"""
         os.makedirs(self.workdir, exist_ok=True)
 
-    def setup(self):
+    def setup(self, skip_specimen=False):
         """
         Create a working directory, and run Diamond on a minimal ncl file to create a ncd/prf for Tcl usage
         """
         self.make_workdir()
-        self.build_design(self.ncl, {})
+        if not skip_specimen:
+            self.build_design(self.ncl, {})
 
-    def build_design(self, des_template, substitutions, prefix=""):
+    def build_design(self, des_template, substitutions, prefix="", no_trce=True, backanno=False):
         """
         Run Diamond on a given design template, applying a map of substitutions, plus some standard substitutions
         if not overriden.
@@ -76,7 +78,7 @@ class FuzzConfig:
             with open(prf_template, "r") as inf:
                 with open(prffile, "w") as ouf:
                     ouf.write(Template(inf.read()).substitute(**subst))
-        diamond.run(self.device, desfile, no_trce=True)
+        diamond.run(self.device, desfile, no_trce=no_trce, backanno=backanno, mapargs=self.mapargs)
         if ext == "ncl" and self.ncd_specimen is None:
             self.ncd_specimen = path.join(self.workdir, prefix + "design.tmp", "par_impl.ncd")
         return bitfile

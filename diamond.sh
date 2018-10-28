@@ -184,7 +184,7 @@ EOT
 "$fpgabindir"/synthesis -f "impl_lse.prj"
 
 # map design
-"$fpgabindir"/map -a $LSE_ARCH -p $DEVICE -t $PACKAGE synth_impl.ngd -o map_impl.ncd  -lpf synth_impl.lpf -lpf input.lpf
+"$fpgabindir"/map -a $LSE_ARCH -p $DEVICE -t $PACKAGE synth_impl.ngd -o map_impl.ncd  -lpf synth_impl.lpf -lpf input.lpf $MAPARGS
 
 # place and route design
 "$fpgabindir"/par map_impl.ncd par_impl.ncd synth_impl.prf
@@ -209,6 +209,12 @@ if [ -z "$NO_TRCE" ]; then
 # run trce
 "$fpgabindir"/trce -v -u -c  par_impl.ncd
 fi
+
+if [ -n "$BACKANNO" ]; then
+# run trce
+"$fpgabindir"/ldbanno -n Verilog par_impl.ncd synth_impl.prf
+fi
+
 export LD_LIBRARY_PATH=""
 )
 
@@ -219,4 +225,7 @@ cp "$2.tmp"/par_impl.twr "$2.twr"
 fi
 if [ -z "$USE_NCL" ]; then
 cp "$2.tmp"/output.ncl "$2_out.ncl"
+fi
+if [ -n "$BACKANNO" ]; then
+cp "$2.tmp"/par_impl.sdf "$2.sdf"
 fi
