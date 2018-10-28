@@ -26,7 +26,7 @@ class IOPath:
 class SetupHoldCheck:
     def __init__(self, pin, clock, setup, hold):
         self.pin = pin
-        self.clock = clock,
+        self.clock = clock
         self.setup = setup
         self.hold = hold
 

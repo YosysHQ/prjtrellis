@@ -15,9 +15,9 @@ def rewrite_celltype(name, type):
 
 def tupleise(x):
     if type(x) is list:
-        return tuple([tupleise(_) for _ in x])
+        return tuple(tupleise(_) for _ in x)
     elif type(x) is tuple:
-        return tuple([tupleise(_) for _ in x])
+        return tuple(tupleise(_) for _ in x)
     elif type(x) is dict:
         return "dict", tuple([(k, tupleise(v)) for k, v in sorted(x.items())])
     else:
