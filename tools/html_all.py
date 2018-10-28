@@ -15,7 +15,8 @@ import html_tilegrid
 import html_bits
 import fuzzloops
 import pytrellis
-
+import cell_html
+import timing_dbs
 
 trellis_docs_index = """
 <html>
@@ -89,6 +90,7 @@ def main(argv):
         if not path.exists(thdir):
             os.mkdir(thdir)
         docs_toc += "<h3>{} Family</h3>".format(fam)
+        docs_toc += "<h4>Bitstream Documentation</h4>"
         docs_toc += "<ul>"
         tiles = get_device_tiles(fam, fam_data["devices"])
         for dev, devdata in sorted(fam_data["devices"].items()):
@@ -107,6 +109,19 @@ def main(argv):
                     dev
                 )
 
+        docs_toc += "</ul>"
+        docs_toc += "<h4>Cell Timing Documentation</h4>"
+        docs_toc += "<ul>"
+        for spgrade in ["6", "7", "8", "8_5G"]:
+            tdir = path.join(fdir, "timing")
+            if not path.exists(tdir):
+                os.mkdir(tdir)
+            docs_toc += '<li><a href="{}">Speed Grade -{}</a></li>'.format(
+                '{}/timing/cell_timing_{}.html'.format(fam, spgrade),
+                spgrade
+            )
+            cell_html.make_cell_timing_html(timing_dbs.cells_db_path(fam, spgrade), fam, spgrade,
+                                            path.join(tdir, 'cell_timing_{}.html'.format(spgrade)))
         docs_toc += "</ul>"
 
     index_html = Template(trellis_docs_index).substitute(
