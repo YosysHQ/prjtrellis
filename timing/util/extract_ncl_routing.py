@@ -3,6 +3,7 @@ Function to get the routed path of a net out of the ncl file
 """
 
 import re
+import sys
 
 
 def slice_pin_to_net(site, pin):
@@ -36,6 +37,48 @@ def slice_pin_to_net(site, pin):
         assert False, "unhandled pin {} on slice {}".format(pin, slice)
 
 # TODO: Add other bel types?
+
+
+def is_slice(site):
+    return re.match(r'R\d+C\d+[ABCD]', site)
+
+
+# Convert a parsed net to dict form (sink -> source)
+def net_to_dict(signal, bels):
+    drivers, loads, route = signal
+    has_slice_driver = False
+    has_slice_load = False
+    route_map = {}
+    for driver in drivers:
+        if is_slice(bels[driver[0]]):
+            has_slice_driver = True
+            route_map[slice_pin_to_net(bels[driver[0]], driver[1])] = driver
+    if not has_slice_driver:
+        return None
+    for load in loads:
+        if is_slice(bels[load[0]]):
+            has_slice_load = True
+            route_map[load] = slice_pin_to_net(bels[load[0]], load[1])
+    if not has_slice_load:
+        return None
+    for arc in route:
+        route_map[arc[1]] = arc[0]
+    return route_map
+
+
+# Print the route for a given net for a given source/sink pair
+def print_route(net_dict, driver, load):
+    route = []
+    cursor = load
+    route.append(cursor)
+    while cursor in net_dict:
+        cursor = net_dict[cursor]
+        route.append(cursor)
+    if cursor != driver:
+        return
+    route[0] = ".".join(route[0])
+    route[-1] = ".".join(route[-1])
+    print("\t" + " -> ".join(reversed(route)))
 
 
 # Not a full parser, just for standard Diamond NCLs
@@ -112,7 +155,8 @@ def parse_ncl(filename):
                 break
             line = line.strip()
             if line.startswith("comp"):
-                assert "{" in f.readline().strip()
+                while "{" not in f.readline().strip():
+                    continue
                 process_comp(line.split(' ', 1)[1].strip().replace('"', ''))
             elif line.startswith("signal"):
                 assert "{" in f.readline().strip()
@@ -123,3 +167,19 @@ def parse_ncl(filename):
             else:
                 continue
     return signals, bels
+
+
+def main():
+    signals, bels = parse_ncl(sys.argv[1])
+    for name, sig in sorted(signals.items()):
+        nd = net_to_dict(sig, bels)
+        drivers, loads, route = sig
+        if nd is not None:
+            print("Signal {}:".format(name))
+            for load in loads:
+                print_route(nd, drivers[0], load)
+            print()
+
+
+if __name__ == "__main__":
+    main()
