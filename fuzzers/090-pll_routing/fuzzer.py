@@ -6,16 +6,16 @@ import re
 
 jobs = [
     ((4, 1), "45K_", FuzzConfig(job="PLLROUTE0", family="ECP5", device="LFE5U-45F", ncl="pllroute.ncl",
-                          tiles=["MIB_R4C0:PLL0_UL", "MIB_R5C0:PLL1_UL"])),
+                          tiles=["MIB_R4C0:PLL0_UL", "MIB_R5C0:PLL1_UL", "CIB_R4C1:CIB_PLL0", "CIB_R5C1:CIB_PLL1"])),
     ((70, 2), "45K_", FuzzConfig(job="PLLROUTE1", family="ECP5", device="LFE5U-45F", ncl="pllroute.ncl",
-                                tiles=["MIB_R71C2:PLL0_LL", "MIB_R71C3:BANKREF8"])),
+                                tiles=["MIB_R71C2:PLL0_LL", "MIB_R71C3:BANKREF8", "CIB_R70C2:CIB_PLL2", "CIB_R70C3:CIB_PLL3"])),
     ((70, 88), "45K_", FuzzConfig(job="PLLROUTE2", family="ECP5", device="LFE5U-45F", ncl="pllroute.ncl",
-                                 tiles=["MIB_R71C88:PLL0_LR", "MIB_R71C87:PLL1_LR"])),
+                                 tiles=["MIB_R71C88:PLL0_LR", "MIB_R71C87:PLL1_LR", "CIB_R70C87:CIB_PLL3", "CIB_R70C88:CIB_PLL2"])),
     ((4, 89), "45K_", FuzzConfig(job="PLLROUTE3", family="ECP5", device="LFE5U-45F", ncl="pllroute.ncl",
-                                  tiles=["MIB_R4C90:PLL0_UR", "MIB_R5C90:PLL1_UR"])),
+                                  tiles=["MIB_R4C90:PLL0_UR", "MIB_R5C90:PLL1_UR", "CIB_R4C89:CIB_PLL0", "CIB_R5C89:CIB_PLL1"])),
 
     ((4, 1), "85K_", FuzzConfig(job="PLLROUTE0", family="ECP5", device="LFE5U-85F", ncl="pllroute_85k.ncl",
-                                tiles=["MIB_R4C0:PLL0_UL", "MIB_R5C0:PLL1_UL"])),
+                                tiles=["MIB_R4C0:PLL0_UL", "MIB_R5C0:PLL1_UL", "CIB_R4C1:CIB_PLL0", "CIB_R5C1:CIB_PLL1"])),
     ((94, 2), "85K_", FuzzConfig(job="PLLROUTE1", family="ECP5", device="LFE5U-85F", ncl="pllroute_85k.ncl",
                                  tiles=["MIB_R95C2:PLL0_LL", "MIB_R95C3:BANKREF8"])),
     ((94, 124), "85K_", FuzzConfig(job="PLLROUTE2", family="ECP5", device="LFE5U-85F", ncl="pllroute_85k.ncl",
