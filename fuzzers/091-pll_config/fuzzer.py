@@ -41,7 +41,7 @@ def main():
         cfg.ncl = "pllconfig.ncl"
 
         nonrouting.fuzz_enum_setting(cfg, "MODE", ["NONE", "EHXPLLL"],
-                                     lambda x: get_substs(settings={}, mode=x), empty_bitfile)
+                                     lambda x: get_substs(settings={}, mode=x), empty_bitfile, False)
 
         nonrouting.fuzz_word_setting(cfg, "CLKI_DIV", 7, lambda x: get_substs(settings={"CLKI_DIV": b2d(x) + 1}),
                                      empty_bitfile)
@@ -136,13 +136,13 @@ def main():
                                      empty_bitfile)
 
         nonrouting.fuzz_enum_setting(cfg, "CLKOP_ENABLE", ["DISABLED", "ENABLED"],
-                                     lambda x: get_substs(settings={"CLKOP_ENABLE": x}), empty_bitfile)
+                                     lambda x: get_substs(settings={"CLKOP_ENABLE": x}), empty_bitfile, False)
         nonrouting.fuzz_enum_setting(cfg, "CLKOS_ENABLE", ["DISABLED", "ENABLED"],
-                                     lambda x: get_substs(settings={"CLKOS_ENABLE": x}), empty_bitfile)
+                                     lambda x: get_substs(settings={"CLKOS_ENABLE": x}), empty_bitfile, False)
         nonrouting.fuzz_enum_setting(cfg, "CLKOS2_ENABLE", ["DISABLED", "ENABLED"],
-                                     lambda x: get_substs(settings={"CLKOS2_ENABLE": x}), empty_bitfile)
+                                     lambda x: get_substs(settings={"CLKOS2_ENABLE": x}), empty_bitfile, False)
         nonrouting.fuzz_enum_setting(cfg, "CLKOS3_ENABLE", ["DISABLED", "ENABLED"],
-                                     lambda x: get_substs(settings={"CLKOS3_ENABLE": x}), empty_bitfile)
+                                     lambda x: get_substs(settings={"CLKOS3_ENABLE": x}), empty_bitfile, False)
 
         nonrouting.fuzz_enum_setting(cfg, "FEEDBK_PATH", ["CLKOP", "CLKOS", "CLKOS2", "CLKOS3", "INT_OP", "INT_OS", "INT_OS2", "INT_OS3", "USERCLOCK"],
                                      lambda x: get_substs(settings={"FEEDBK_PATH": x}), empty_bitfile, False)
@@ -157,13 +157,13 @@ def main():
                                      lambda x: get_substs(settings={"CLKOS_TRIM_DELAY": x}), empty_bitfile)
 
         nonrouting.fuzz_enum_setting(cfg, "OUTDIVIDER_MUXA", ["DIVA", "REFCLK"],
-                                     lambda x: get_substs(settings={"OUTDIVIDER_MUXA": x}), empty_bitfile)
+                                     lambda x: get_substs(settings={"OUTDIVIDER_MUXA": x}), empty_bitfile, False)
         nonrouting.fuzz_enum_setting(cfg, "OUTDIVIDER_MUXB", ["DIVB", "REFCLK"],
-                                     lambda x: get_substs(settings={"OUTDIVIDER_MUXB": x}), empty_bitfile)
+                                     lambda x: get_substs(settings={"OUTDIVIDER_MUXB": x}), empty_bitfile, False)
         nonrouting.fuzz_enum_setting(cfg, "OUTDIVIDER_MUXC", ["DIVC", "REFCLK"],
-                                     lambda x: get_substs(settings={"OUTDIVIDER_MUXC": x}), empty_bitfile)
+                                     lambda x: get_substs(settings={"OUTDIVIDER_MUXC": x}), empty_bitfile, False)
         nonrouting.fuzz_enum_setting(cfg, "OUTDIVIDER_MUXD", ["DIVD", "REFCLK"],
-                                     lambda x: get_substs(settings={"OUTDIVIDER_MUXD": x}), empty_bitfile)
+                                     lambda x: get_substs(settings={"OUTDIVIDER_MUXD": x}), empty_bitfile, False)
 
         nonrouting.fuzz_enum_setting(cfg, "PLL_LOCK_DELAY", ["200", "400", "800", "1600"],
                                      lambda x: get_substs(settings={"PLL_LOCK_DELAY": x}), empty_bitfile)
