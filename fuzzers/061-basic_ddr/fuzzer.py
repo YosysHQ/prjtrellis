@@ -100,8 +100,12 @@ def main():
                 ddr = ""
             if clkimux == "INV":
                 clkimux = "CLK:::CLK=#INV"
+            elif clkimux in ("0", "1"):
+                clkimux = "1:::1={}".format(clkimux)
             if clkomux == "INV":
                 clkomux = "CLK:::CLK=#INV"
+            elif clkomux in ("0", "1"):
+                clkomux = "1:::1={}".format(clkomux)
             if lsrmux == "INV":
                 lsrmux = "LSR:::LSR=#INV"
             if side in ("T, B"):
@@ -130,9 +134,9 @@ def main():
                                      lambda x: get_substs(lsrimux=x), empty_bitfile, False)
         nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.LSROMUX".format(iol), ["LSRMUX", "0"],
                                      lambda x: get_substs(lsromux=x), empty_bitfile, False)
-        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.CLKIMUX".format(iol), ["CLK", "INV"],
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.CLKIMUX".format(iol), ["CLK", "INV", "0"],
                                      lambda x: get_substs(clkimux=x), empty_bitfile, False)
-        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.CLKOMUX".format(iol), ["CLK", "INV"],
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.CLKOMUX".format(iol), ["CLK", "INV", "0"],
                                      lambda x: get_substs(clkomux=x), empty_bitfile, False)
         nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.LSRMUX".format(iol), ["LSR", "INV"],
                                      lambda x: get_substs(lsrmux=x), empty_bitfile, False)
