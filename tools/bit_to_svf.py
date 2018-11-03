@@ -40,7 +40,6 @@ TDR	0;
 TIR	0;
 ENDDR	DRPAUSE;
 ENDIR	IRPAUSE;
-FREQUENCY	1.00e+06 HZ;
 STATE	IDLE;
         """, file=svf)
         print("""
