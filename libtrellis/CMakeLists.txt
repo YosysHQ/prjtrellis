@@ -108,13 +108,28 @@ endif()
 
 find_package(Boost REQUIRED COMPONENTS program_options)
 
+function(setup_rpath name)
+  if(APPLE)
+    set_target_properties(${name} PROPERTIES
+                          BUILD_WITH_INSTALL_RPATH ON
+                          INSTALL_RPATH "@loader_path/../lib"
+                          INSTALL_NAME_DIR "@rpath")
+  elseif(UNIX)
+    set_target_properties(${name} PROPERTIES
+                          BUILD_WITH_INSTALL_RPATH ON
+                          INSTALL_RPATH "\$ORIGIN/../lib")
+  endif()
+endfunction()
+
 add_executable(ecppack ${INCLUDE_FILES} tools/ecppack.cpp)
 target_compile_definitions(ecppack PRIVATE TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
 target_link_libraries(ecppack trellis ${Boost_LIBRARIES} ${link_param})
+setup_rpath(ecppack)
 
 add_executable(ecpunpack ${INCLUDE_FILES} tools/ecpunpack.cpp)
 target_compile_definitions(ecpunpack PRIVATE TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
 target_link_libraries(ecpunpack trellis ${Boost_LIBRARIES} ${link_param})
+setup_rpath(ecpunpack)
 
 if (BUILD_SHARED)
     install(TARGETS trellis ecppack ecpunpack LIBRARY DESTINATION lib  RUNTIME DESTINATION bin)
