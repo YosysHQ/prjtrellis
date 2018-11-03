@@ -20,9 +20,12 @@ def main():
                           copy_words=False)
 
     copy_config_rules = {
+        "PICL0": ["PICL0_DQS2"],
+        "PICL1": ["PICL1_DQS0", "PICL1_DQS3"],
+        "PICL2": ["PICL2_DQS1", "MIB_CIB_LR"],
         "PICR0": ["PICR0_DQS2"],
         "PICR1": ["PICR1_DQS0", "PICR1_DQS3"],
-        "PICR2": ["PICR2_DQS1"],
+        "PICR2": ["PICR2_DQS1", "MIB_CIB_LR_A"],
         "EFB2_PICB0": ["EFB0_PICB0"],
         "EFB3_PICB1": ["EFB1_PICB1"],
     }
