@@ -55,7 +55,8 @@ def fuzz_word_setting(config, name, length, get_ncl_substs, empty_bitfile=None):
             tile_dbs[t].save()
 
 
-def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile=None, include_zeros=True, ignore_cover=None):
+def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile=None, include_zeros=True, ignore_cover=None,
+                      opt_pref=None):
     """
     Fuzz a setting with multiple possible values
 
@@ -68,6 +69,7 @@ def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile=None, 
     :param include_zeros: if set, bits set to zero are not included in db. Needed for settings such as CEMUX which share
     bits with routing muxes to prevent conflicts.
     :param ignore_cover: these values will also be checked, and bits changing between these will be ignored
+    :param opt_pref: bits exclusively set in these options will be included in all options overriding include_zeros
     """
     prefix = "thread{}_".format(threading.get_ident())
     tile_dbs = {tile: pytrellis.get_tile_bitdata(
@@ -117,13 +119,27 @@ def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile=None, 
     for tile in tiles_changed:
         esb = pytrellis.EnumSettingBits()
         esb.name = name
+        pref_exclusive = {}
+        if opt_pref is not None:
+            for val in values:
+                for (btile, bframe, bbit) in changed_bits:
+                    if btile == tile:
+                        state = prev_tiles[val][tile].bit(bframe, bbit)
+                        if state:
+                            if val in opt_pref:
+                                if (btile, bframe, bbit) not in pref_exclusive:
+                                    pref_exclusive[(btile, bframe, bbit)] = True
+                            else:
+                                pref_exclusive[(btile, bframe, bbit)] = False
         for val in values:
             bg = pytrellis.BitGroup()
             for (btile, bframe, bbit) in changed_bits:
                 if btile == tile:
                     state = prev_tiles[val][tile].bit(bframe, bbit)
                     if state == 0 and not include_zeros and (
-                            none_chip is not None and not none_chip.tiles[tile].cram.bit(bframe, bbit)):
+                            none_chip is not None and not none_chip.tiles[tile].cram.bit(bframe, bbit)) \
+                            and (
+                            (btile, bframe, bbit) not in pref_exclusive or not pref_exclusive[(btile, bframe, bbit)]):
                         continue
                     cb = pytrellis.ConfigBit()
                     cb.frame = bframe
