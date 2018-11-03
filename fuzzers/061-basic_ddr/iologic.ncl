@@ -25,4 +25,16 @@ design top
       }
       site ${loc};
     }
+
+    comp PIO
+    {
+      logical
+      {
+         cellmodel-name PIO;
+         program "DATAMUX:${datamux}";
+         primitive IOBUF Q_pad;
+         primitive PAD Q;
+      }
+      site ${pin};
+    }
 }
