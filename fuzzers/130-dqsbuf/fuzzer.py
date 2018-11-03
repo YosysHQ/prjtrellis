@@ -102,6 +102,7 @@ def main():
             "{}_JDQSR90_DQS".format(rc),
             "{}_JDQSW270_DQS".format(rc),
             "{}_JDQSW_DQS".format(rc),
+            "{}_DDRDEL".format(rc),
         ]
 
         for i in range(8):
