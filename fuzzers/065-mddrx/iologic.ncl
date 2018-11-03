@@ -15,7 +15,8 @@ design top
       {
          cellmodel-name IOLOGIC;
          program "MODE:MIDDRX_MODDRX "
-                 "${program}";
+                 "${program}"
+                 "IOLTOMUX:${ioltomux}";
       }
       site ${loc};
     }
