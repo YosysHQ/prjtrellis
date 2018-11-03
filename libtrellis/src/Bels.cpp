@@ -249,5 +249,50 @@ void add_alu54b(RoutingGraph &graph, int x, int y, int z) {
     graph.add_bel(bel);
 }
 
+void add_pll(RoutingGraph &graph, std::string quad, int x, int y) {
+    string name = string("EHXPLL_") + (quad);
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("EHXPLLL");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    auto add_input = [&](const std::string &pin) {
+        graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt("J" << pin << "_PLL")));
+    };
+    auto add_output = [&](const std::string &pin) {
+        graph.add_bel_output(bel, graph.ident(pin), x, y, graph.ident(fmt("J" << pin << "_PLL")));
+    };
+
+    add_input("REFCLK");
+    add_input("RST");
+    add_input("STDBY");
+
+    add_input("PHASEDIR");
+    add_input("PHASELOADREG");
+    add_input("PHASESEL0");
+    add_input("PHASESEL1");
+    add_input("PHASESTEP");
+    add_input("PLLWAKESYNC");
+
+    add_input("ENCLKOP");
+    add_input("ENCLKOS2");
+    add_input("ENCLKOS3");
+    add_input("ENCLKOS");
+
+    graph.add_bel_input(bel, graph.ident("CLKI"), x, y, graph.ident("CLKI_PLL"));
+    graph.add_bel_input(bel, graph.ident("CLKFB"), x, y, graph.ident("CLKFB_PLL"));
+    graph.add_bel_output(bel, graph.ident("CLKINTFB"), x, y, graph.ident("CLKINTFB_PLL"));
+
+    add_output("LOCK");
+    add_output("INTLOCK");
+    add_output("CLKOP");
+    add_output("CLKOS");
+    add_output("CLKOS2");
+    add_output("CLKOS3");
+
+    graph.add_bel(bel);
+}
+
+
 }
 }

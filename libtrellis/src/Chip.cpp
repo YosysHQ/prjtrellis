@@ -172,7 +172,15 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
             Bels::add_alu54b(*rg, x, y, 3);
         if (tile->info.type == "MIB_DSP7")
             Bels::add_alu54b(*rg, x, y, 7);
-
+        // PLL Bels
+        if (tile->info.type == "PLL0_UL")
+            Bels::add_pll(*rg, "UL", x+1, y);
+        if (tile->info.type == "PLL0_LL")
+            Bels::add_pll(*rg, "LL", x, y-1);
+        if (tile->info.type == "PLL0_LR")
+            Bels::add_pll(*rg, "LR", x, y-1);
+        if (tile->info.type == "PLL0_UR")
+            Bels::add_pll(*rg, "UR", x-1, y);
     }
     return rg;
 }
