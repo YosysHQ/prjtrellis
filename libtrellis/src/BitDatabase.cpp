@@ -678,6 +678,18 @@ void TileBitDatabase::remove_fixed_sink(const string &sink)
     fixed_conns.erase(sink);
 }
 
+void TileBitDatabase::remove_setting_enum(const string &enum_name)
+{
+    boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+    enums.erase(enum_name);
+}
+
+void TileBitDatabase::remove_setting_word(const string &word_name)
+{
+    boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+    words.erase(word_name);
+}
+
 DatabaseConflictError::DatabaseConflictError(const string &desc) : runtime_error(desc)
 {}
 
