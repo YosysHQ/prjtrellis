@@ -75,16 +75,22 @@ def main():
     pytrellis.load_database("../../database")
 
     def per_job(job):
-        def get_substs(type, mode, value="", datamux="PADDO"):
+        def get_substs(type, mode, value="", datamux="PADDO", ioltomux="NONE"):
             if "." in mode:
                 program = "{}:::DDRMODE={},{}={}".format(type, mode.split(".")[0], mode.split(".")[1], value)
             elif "WRCLKMUX" in mode:
+                if value == "NONE":
+                    value = "#OFF"
                 program = "{}:{}".format(mode, value)
             elif mode != "NONE":
                 program = "{}:::DDRMODE={}".format(type, mode)
+                if mode == "MTSHX2":
+                    program += ",DQSW_INVERT=DISABLED,REGSET=RESET"
             else:
                 program = ""
-            return dict(loc=loc, program=program, pin=pin, datamux=datamux)
+            if ioltomux == "NONE":
+                ioltomux = "#OFF"
+            return dict(loc=loc, program=program, pin=pin, datamux=datamux, ioltomux=ioltomux)
 
         cfg = job["cfg"]
         loc = job["site"]
@@ -104,10 +110,14 @@ def main():
                                      lambda x: get_substs(type="MTDDRX", mode=x), empty_bitfile, False)
         nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.MTDDRX.DQSW_INVERT".format(iol), ["DISABLED", "ENABLED"],
                                      lambda x: get_substs(type="MTDDRX", mode="MTSHX2.DQSW_INVERT", value=x), empty_bitfile, False)
-        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.MIDDRX_MODDRX.WRCLKMUX".format(iol), ["DQSW", "DQSW270"],
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.MTDDRX.REGSET".format(iol), ["RESET", "SET"],
+                                     lambda x: get_substs(type="MTDDRX", mode="MTSHX2.REGSET", value=x), empty_bitfile, False)
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.MIDDRX_MODDRX.WRCLKMUX".format(iol), ["NONE", "DQSW", "DQSW270"],
                                      lambda x: get_substs(type="MODDRX", mode="WRCLKMUX", value=x), empty_bitfile, False)
         nonrouting.fuzz_enum_setting(cfg, "PIO{}.DATAMUX_MDDR".format(iol), ["PADDO", "IOLDO"],
                                      lambda x: get_substs(type="MODDRX", mode="MODDRX2", datamux=x), empty_bitfile, False)
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.IOLTOMUX".format(iol), ["NONE", "TS", "TDDR"],
+                                     lambda x: get_substs(type="MTDDRX", mode="MTSHX2", ioltomux=x), empty_bitfile, False)
     fuzzloops.parallel_foreach(jobs, per_job)
 
 
