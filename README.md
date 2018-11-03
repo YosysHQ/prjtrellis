@@ -21,7 +21,8 @@ Clone the Project Trellis repository and download the latest database:
      cd prjtrellis
      ./download-latest-db.sh
      
-Install _libtrellis_ and associated tools:
+Install _libtrellis_ and associated tools. You _must_ run `cmake` from the libtrellis directory.
+Out-of-tree builds are currently unsupported when coupled with `nextpnr`:
 
     cd libtrellis
     cmake -DCMAKE_INSTALL_PREFIX=/usr .
