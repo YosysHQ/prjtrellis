@@ -106,9 +106,10 @@ def main():
         modes = ["NONE", "IREG_OREG", "IDDRX1_ODDRX1"]
         if side in ("L", "R"):
             modes += ["IDDRXN", "ODDRXN", "MIDDRX_MODDRX"]
-        tie_program = ["LSRIMUX:0", "LSROMUX:0"]
+        tie_program = ["LSRIMUX:0", "LSROMUX:0", "CLKIMUX:1:::1=0", "CLKOMUX:1:::1=0"]
         nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.MODE".format(iol), modes,
-                                     lambda x: get_substs(mode=x, program=["MODE:" + x] + tie_program), empty_bitfile, False)
+                                     lambda x: get_substs(mode=x, program=["MODE:" + x] + tie_program), empty_bitfile, False,
+                                     opt_pref=["MIDDRX_MODDRX"])
 
     fuzzloops.parallel_foreach(jobs, per_job)
 
