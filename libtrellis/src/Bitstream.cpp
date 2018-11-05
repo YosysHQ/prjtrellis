@@ -312,8 +312,8 @@ Chip Bitstream::deserialise_chip() {
                 }
                 // Post-bitstream space for SECURITY and SED
                 // TODO: process SECURITY and SED
-                rd.skip_possible_dummy(4);
                 rd.skip_possible_dummy(8);
+                rd.skip_possible_dummy(4);
             }
                 break;
             case BitstreamCommand::LSC_EBR_ADDRESS: {
