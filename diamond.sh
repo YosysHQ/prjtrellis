@@ -17,15 +17,36 @@
 # You need to set the DIAMONDDIR environment variable to the path where you have
 # installed Lattice Diamond, unless it matches this default.
 
-diamonddir="${DIAMONDDIR:-/usr/local/diamond/3.10_x64}"
+WINDOWS= [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]
+
+if $WINDOWS; then
+	diamonddir="${DIAMONDDIR:-/c/lscc/diamond/3.10_x64}"
+else
+	diamonddir="${DIAMONDDIR:-/usr/local/diamond/3.10_x64}"
+fi
 export FOUNDRY="${diamonddir}/ispfpga"
-bindir="${diamonddir}/bin/lin64"
+
+if $WINDOWS; then
+	bindir="${diamonddir}/bin/nt64"
+else
+	bindir="${diamonddir}/bin/lin64"
+fi
 LSC_DIAMOND=true
 export LSC_DIAMOND
 export NEOCAD_MAXLINEWIDTH=32767
 export TCL_LIBRARY="${diamonddir}/tcltk/lib/tcl8.5"
-export fpgabindir=${FOUNDRY}/bin/lin64
-export LD_LIBRARY_PATH="${bindir}:${fpgabindir}"
+
+if $WINDOWS; then
+	export fpgabindir=${FOUNDRY}/bin/nt64
+else
+	export fpgabindir=${FOUNDRY}/bin/lin64
+fi
+
+if $WINDOWS; then
+	export PATH="${bindir}:${fpgabindir}:$PATH"
+else
+	export LD_LIBRARY_PATH="${bindir}:${fpgabindir}"
+fi
 export LM_LICENSE_FILE="${diamonddir}/license/license.dat"
 
 set -ex
@@ -92,6 +113,11 @@ case "${PART}" in
 		LSE_ARCH="ECP5UM5G"
 		;;
 
+	LCMXO2-1200HC)
+		PACKAGE="${DEV_PACKAGE:-QFN32}"
+		DEVICE="LCMXO2-1200HC"
+		LSE_ARCH="MachXO2"
+		;;
 	LCMXO2-2000HC)
 		PACKAGE="${DEV_PACKAGE:-TQFP100}"
 		DEVICE="LCMXO2-2000HC"
@@ -134,13 +160,19 @@ touch input.sdc
 touch input.lpf
 
 if [ -n "$USE_NCL" ]; then
-"$FOUNDRY"/userware/unix/bin/lin64/ncl2ncd input.ncl -drc -o par_impl.ncd
+
+if $WINDOWS; then
+	"$FOUNDRY"/userware/NT/bin/nt64/ncd2ncl par_impl.ncd output.ncl
+else
+	"$FOUNDRY"/userware/unix/bin/lin64/ncl2ncd input.ncl -drc -o par_impl.ncd
+fi
 
 if test -f "input.prf"; then
 cp "input.prf" "synth_impl.prf"
 else
 touch synth_impl.prf
 fi
+
 
 else
 cat > impl_lse.prj << EOT
@@ -191,6 +223,9 @@ EOT
 
 fi
 
+# Forcefully disable compression
+echo "SYSCONFIG COMPRESS_CONFIG=OFF ;" >> synth_impl.prf
+
 # make bitmap
 "$fpgabindir"/bitgen -d par_impl.ncd $BITARGS output.bit synth_impl.prf
 
@@ -202,9 +237,14 @@ if [ -z "$USE_NCL" ]; then
 "$fpgabindir"/bstool -t output.bit > output.test
 
 # convert ngd to ncl
-"$FOUNDRY"/userware/unix/bin/lin64/ncd2ncl par_impl.ncd output.ncl
+if $WINDOWS; then
+	"$FOUNDRY"/userware/NT/bin/nt64/ncd2ncl par_impl.ncd output.ncl
+else
+	"$FOUNDRY"/userware/unix/bin/lin64/ncd2ncl par_impl.ncd output.ncl
+fi
 
 fi
+
 if [ -z "$NO_TRCE" ]; then
 # run trce
 "$fpgabindir"/trce -v -u -c  par_impl.ncd
