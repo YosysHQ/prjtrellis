@@ -25,6 +25,8 @@ site_re = re.compile(
     r'^\s+([A-Z0-9_]+) \((-?\d+), (-?\d+)\)')
 
 parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('-m', action="store_true",
+                    help="Use MachXO2 family layout")
 parser.add_argument('infile', type=argparse.FileType('r'),
                     help="input file from bstool")
 parser.add_argument('outfile', type=argparse.FileType('w'),
@@ -38,14 +40,24 @@ def main(argv):
         tile_m = tile_re.match(line)
         if tile_m:
             name = tile_m.group(6)
-            current_tile = {
-                "type": tile_m.group(1),
-                "start_bit": int(tile_m.group(4)),
-                "start_frame": int(tile_m.group(5)),
-                "rows": int(tile_m.group(2)),
-                "cols": int(tile_m.group(3)),
-                "sites": []
-            }
+            if args.m:
+                current_tile = {
+                    "type": tile_m.group(1),
+                    "start_bit": int(tile_m.group(5)),
+                    "start_frame": int(tile_m.group(4)),
+                    "rows": int(tile_m.group(2)),
+                    "cols": int(tile_m.group(3)),
+                    "sites": []
+                }
+            else:
+                current_tile = {
+                    "type": tile_m.group(1),
+                    "start_bit": int(tile_m.group(4)),
+                    "start_frame": int(tile_m.group(5)),
+                    "rows": int(tile_m.group(2)),
+                    "cols": int(tile_m.group(3)),
+                    "sites": []
+                }
             identifier = name + ":" + tile_m.group(1)
             assert identifier not in tiles
             tiles[identifier] = current_tile
