@@ -162,7 +162,7 @@ touch input.lpf
 if [ -n "$USE_NCL" ]; then
 
 if $WINDOWS; then
-	"$FOUNDRY"/userware/NT/bin/nt64/ncd2ncl par_impl.ncd output.ncl
+	"$FOUNDRY"/userware/NT/bin/nt64/ncl2ncd input.ncl -drc -o par_impl.ncd
 else
 	"$FOUNDRY"/userware/unix/bin/lin64/ncl2ncd input.ncl -drc -o par_impl.ncd
 fi
