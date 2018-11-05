@@ -292,8 +292,13 @@ Chip Bitstream::deserialise_chip() {
                 rd.get_bytes(params, 3);
                 BITSTREAM_DEBUG("settings: " << hex << setw(2) << int(params[0]) << " " << int(params[1]) << " "
                                              << int(params[2]));
+
+                size_t family = (params[0] & 0xF0U);
                 size_t dummy_bytes = (params[0] & 0x0FU);
                 size_t frame_count = (params[1] << 8U) | params[2];
+
+                bool machxo2 = (family == 0xE0);
+
                 BITSTREAM_NOTE(
                         "reading " << std::dec << frame_count << " config frames (with " << std::dec << dummy_bytes
                                    << " dummy bytes)");
@@ -307,8 +312,15 @@ Chip Bitstream::deserialise_chip() {
                         chip->cram.bit((chip->info.num_frames - 1) - i, j) = (char) (
                                 (frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] >> (ofs % 8)) & 0x01);
                     }
-                    rd.check_crc16();
+                    if(!machxo2) {
+                        rd.check_crc16();
+                    }
                     rd.skip_bytes(dummy_bytes);
+                }
+
+                // MachXO2 only checks CRC16 once at end.
+                if(machxo2) {
+                    rd.check_crc16();
                 }
                 // Post-bitstream space for SECURITY and SED
                 // TODO: process SECURITY and SED
