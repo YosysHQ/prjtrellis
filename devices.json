@@ -84,6 +84,20 @@
                 "fuzz": 1
             }
         }
+    },
+
+    "MachXO2" : {
+        "devices" : {
+            "LCMXO2-1200HC": {
+                "packages": ["QFN32"],
+                "idcode": "0x012ba043",
+                "frames": 333,
+                "bits_per_frame": 1080,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "fuzz": 1
+            }
+        }
     }
   }
 }
