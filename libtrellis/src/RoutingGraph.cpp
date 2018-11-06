@@ -64,6 +64,12 @@ RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_na
     }
     if (stripped_name.find("BNK_") == 0 || stripped_name.find("DQSG_") == 0) // Not yet implemented
         return RoutingId();
+    // Workaround for PCSA/B sharing tile dbs
+    if (col >= 69) {
+        size_t pcsa_pos = stripped_name.find("PCSA");
+        if (pcsa_pos != std::string::npos)
+            stripped_name.replace(pcsa_pos + 3, 1, "B");
+    }
     if (stripped_name.find("G_") == 0 || stripped_name.find("L_") == 0 || stripped_name.find("R_") == 0) {
         // Global net
         // TODO: quadrants and TAP_DRIVE regions
