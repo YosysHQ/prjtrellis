@@ -1,5 +1,7 @@
 #include "Bels.hpp"
 #include "Util.hpp"
+#include "Database.hpp"
+#include "BitDatabase.hpp"
 namespace Trellis {
 namespace Bels {
 
@@ -293,6 +295,38 @@ void add_pll(RoutingGraph &graph, std::string quad, int x, int y) {
     graph.add_bel(bel);
 }
 
+void add_dcu(RoutingGraph &graph, int dcu, int x, int y) {
+    // Just import from routing db
+    auto tdb = get_tile_bitdata(TileLocator{"ECP5", "LFE5UM5G-45F", "DCU0"});
+    string name = string("DCU") + std::to_string(dcu);
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("DCUA");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    bel.z = 0;
+
+    auto endswith = [](const std::string &net, const std::string &ending) {
+        return net.substr(net.size()-ending.size(), ending.size()) == ending;
+    };
+
+    auto net_to_pin = [endswith](std::string net) {
+        if (endswith(net, "_DCU"))
+            net.erase(net.size()-4, 4);
+        if (net.front() == 'J')
+            net.erase(0, 1);
+        return net;
+    };
+
+    for (const auto &conn : tdb->get_fixed_conns()) {
+        if (endswith(conn.source, "_DCU"))
+            graph.add_bel_output(bel, graph.ident(net_to_pin(conn.source)), x, y, graph.ident(conn.source));
+        if (endswith(conn.sink, "_DCU"))
+            graph.add_bel_input(bel, graph.ident(net_to_pin(conn.sink)), x, y, graph.ident(conn.sink));
+    }
+
+    graph.add_bel(bel);
+}
 
 }
 }
