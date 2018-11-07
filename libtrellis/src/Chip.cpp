@@ -146,7 +146,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
         if (tile->info.type == "TMID_0")
             for (int z = 0; z < 12; z++)
                 Bels::add_dcc(*rg, x, y, "T", std::to_string(z));
-        if (tile->info.type == "BMID_0V" || tile->info.type == "BMID_0")
+        if (tile->info.type == "BMID_0V" || tile->info.type == "BMID_0H")
             for (int z = 0; z < 16; z++)
                 Bels::add_dcc(*rg, x, y, "B", std::to_string(z));
         // RAM Bels
