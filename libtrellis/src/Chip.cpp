@@ -181,6 +181,8 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
             Bels::add_pll(*rg, "LR", x, y-1);
         if (tile->info.type == "PLL0_UR")
             Bels::add_pll(*rg, "UR", x-1, y);
+        if (tile->info.type == "DCU0")
+            Bels::add_dcu(*rg, x, y);
     }
     return rg;
 }
