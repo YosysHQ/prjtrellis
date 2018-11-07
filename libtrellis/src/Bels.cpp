@@ -335,5 +335,38 @@ void add_dcu(RoutingGraph &graph, int x, int y) {
     graph.add_bel(bel);
 }
 
+void add_extref(RoutingGraph &graph, int x, int y) {
+    string name = string("EXTREF");
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("EXTREFB");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    bel.z = 1;
+    graph.add_bel_input(bel, graph.ident("REFCLKP"), x, y, graph.ident("REFCLKP_EXTREF"));
+    graph.add_bel_input(bel, graph.ident("REFCLKN"), x, y, graph.ident("REFCLKN_EXTREF"));
+    graph.add_bel_output(bel, graph.ident("REFCLKO"), x, y, graph.ident("JREFCLKO_REFCLK"));
+    graph.add_bel(bel);
+}
+
+void add_pcsclkdiv(RoutingGraph &graph, int x, int y, int z) {
+    string name = string("PCSCLKDIV" + std::to_string(z));
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("PCSCLKDIV");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    bel.z = z;
+    graph.add_bel_input(bel, graph.ident("CLKI"), x, y, graph.ident("CLKI_" + name));
+    graph.add_bel_input(bel, graph.ident("RST"), x, y, graph.ident("JRST_" + name));
+    graph.add_bel_input(bel, graph.ident("SEL0"), x, y, graph.ident("JSEL0_" + name));
+    graph.add_bel_input(bel, graph.ident("SEL1"), x, y, graph.ident("JSEL1_" + name));
+    graph.add_bel_input(bel, graph.ident("SEL2"), x, y, graph.ident("JSEL2_" + name));
+    graph.add_bel_output(bel, graph.ident("CDIV1"), x, y, graph.ident("CDIV1_" + name));
+    graph.add_bel_output(bel, graph.ident("CDIVX"), x, y, graph.ident("CDIVX_" + name));
+    graph.add_bel(bel);
+}
+
+
 }
 }
