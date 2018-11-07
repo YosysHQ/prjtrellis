@@ -295,10 +295,10 @@ void add_pll(RoutingGraph &graph, std::string quad, int x, int y) {
     graph.add_bel(bel);
 }
 
-void add_dcu(RoutingGraph &graph, int dcu, int x, int y) {
+void add_dcu(RoutingGraph &graph, int x, int y) {
     // Just import from routing db
     auto tdb = get_tile_bitdata(TileLocator{"ECP5", "LFE5UM5G-45F", "DCU0"});
-    string name = string("DCU") + std::to_string(dcu);
+    string name = string("DCU");
     RoutingBel bel;
     bel.name = graph.ident(name);
     bel.type = graph.ident("DCUA");
@@ -310,6 +310,13 @@ void add_dcu(RoutingGraph &graph, int dcu, int x, int y) {
         return net.substr(net.size()-ending.size(), ending.size()) == ending;
     };
 
+    auto is_pin = [endswith](const std::string &net) {
+        if(!endswith(net, "_DCU"))
+            return false;
+        char c = net.front();
+        return c != 'N' && c != 'E' && c != 'W' && c != 'S';
+    };
+
     auto net_to_pin = [endswith](std::string net) {
         if (endswith(net, "_DCU"))
             net.erase(net.size()-4, 4);
@@ -319,9 +326,9 @@ void add_dcu(RoutingGraph &graph, int dcu, int x, int y) {
     };
 
     for (const auto &conn : tdb->get_fixed_conns()) {
-        if (endswith(conn.source, "_DCU"))
+        if (is_pin(conn.source))
             graph.add_bel_output(bel, graph.ident(net_to_pin(conn.source)), x, y, graph.ident(conn.source));
-        if (endswith(conn.sink, "_DCU"))
+        if (is_pin(conn.sink))
             graph.add_bel_input(bel, graph.ident(net_to_pin(conn.sink)), x, y, graph.ident(conn.sink));
     }
 
