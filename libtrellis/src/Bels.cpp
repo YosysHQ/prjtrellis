@@ -345,7 +345,7 @@ void add_extref(RoutingGraph &graph, int x, int y) {
     bel.z = 1;
     graph.add_bel_input(bel, graph.ident("REFCLKP"), x, y, graph.ident("REFCLKP_EXTREF"));
     graph.add_bel_input(bel, graph.ident("REFCLKN"), x, y, graph.ident("REFCLKN_EXTREF"));
-    graph.add_bel_output(bel, graph.ident("REFCLKO"), x, y, graph.ident("JREFCLKO_REFCLK"));
+    graph.add_bel_output(bel, graph.ident("REFCLKO"), x, y, graph.ident("JREFCLKO_EXTREF"));
     graph.add_bel(bel);
 }
 
