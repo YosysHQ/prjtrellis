@@ -54,11 +54,13 @@ public:
     }
 
     // Return a single byte and update CRC
-    inline uint8_t get_byte() {
+    inline uint8_t get_byte(bool skip_dummy_crc = false) {
         assert(iter < data.end());
         uint8_t val = *(iter++);
         //cerr << hex << setw(2) << int(val) << endl;
-        update_crc16(val);
+        if((val != 0xFF) || !skip_dummy_crc) {
+            update_crc16(val);
+        }
         return val;
     }
 
@@ -241,7 +243,7 @@ Chip Bitstream::deserialise_chip() {
     int addr_in_ebr = 0;
 
     while (!rd.is_end()) {
-        uint8_t cmd = rd.get_byte();
+        uint8_t cmd = rd.get_byte(true);
         switch ((BitstreamCommand) cmd) {
             case BitstreamCommand::LSC_RESET_CRC:
                 BITSTREAM_DEBUG("reset crc");
@@ -325,7 +327,11 @@ Chip Bitstream::deserialise_chip() {
                 // Post-bitstream space for SECURITY and SED
                 // TODO: process SECURITY and SED
                 rd.skip_possible_dummy(8);
-                rd.skip_possible_dummy(4);
+
+                // This seems absent on machxo2.
+                if(!machxo2) {
+                    rd.skip_possible_dummy(4);
+                }
             }
                 break;
             case BitstreamCommand::LSC_EBR_ADDRESS: {

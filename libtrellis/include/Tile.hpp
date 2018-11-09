@@ -1,6 +1,7 @@
 #ifndef LIBTRELLIS_TILE_HPP
 #define LIBTRELLIS_TILE_HPP
 
+#include <iostream>
 #include <string>
 #include <cstdint>
 #include <utility>
@@ -12,6 +13,7 @@ namespace Trellis {
 
 // Regex to extract row/column from a tile name
 static const regex tile_row_col_re(R"(R(\d+)C(\d+))");
+// static const regex tile_row_col_machxo2_
 
 // Basic information about a site
 struct SiteInfo {
@@ -39,8 +41,14 @@ struct TileInfo {
 
     inline pair<int, int> get_row_col() const {
         smatch m;
-        assert(regex_search(name, m, tile_row_col_re));
-        return make_pair(stoi(m.str(1)), stoi(m.str(2)));
+        bool match;
+
+        match = regex_search(name, m, tile_row_col_re);
+        if(match) {
+            return make_pair(stoi(m.str(1)), stoi(m.str(2)));
+        } else {
+            return make_pair(0, 0);
+        }
     };
 
     // Get the Lattice name

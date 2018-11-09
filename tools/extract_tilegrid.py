@@ -45,8 +45,8 @@ def main(argv):
                     "type": tile_m.group(1),
                     "start_bit": int(tile_m.group(5)),
                     "start_frame": int(tile_m.group(4)),
-                    "rows": int(tile_m.group(2)),
-                    "cols": int(tile_m.group(3)),
+                    "rows": int(tile_m.group(3)),
+                    "cols": int(tile_m.group(2)),
                     "sites": []
                 }
             else:
