@@ -35,43 +35,43 @@ def get_rc(name):
     rc = rc_regex.match(name)
     if rc:
         row = int(rc.group(1))
-        col = int(rc.group(2))
+        col = int(rc.group(2)) - 1
         return (row, col)
 
     centert = centert_regex.match(name)
     if centert:
         row = 0
-        col = 13
+        col = 12
         return (row, col)
 
     centerb = centerb_regex.match(name)
     if centerb:
         row = 12
-        col = 13
+        col = 12
         return (row, col)
 
     centerebr = centerebr_regex.match(name)
     if centerebr:
         row = 6
-        col = 14
+        col = 13
         return (row, col)
 
     center = center_regex.match(name)
     if center:
         row = int(center.group(1))
-        col = 13
+        col = 12
         return (row, col)
 
     t = t_regex.match(name)
     if t:
         row = 0
-        col = int(t.group(1))
+        col = int(t.group(1)) - 1
         return (row, col)
 
     b = b_regex.match(name)
     if b:
         row = 12
-        col = int(b.group(1))
+        col = int(b.group(1)) - 1
         return (row, col)
 
     l = l_regex.match(name)
@@ -83,7 +83,7 @@ def get_rc(name):
     r = r_regex.match(name)
     if r:
         row = int(r.group(1))
-        col = 23
+        col = 21
         return (row, col)
 
 
