@@ -311,7 +311,15 @@ Chip Bitstream::deserialise_chip() {
                     rd.get_bytes(frame_bytes.get(), bytes_per_frame);
                     for (int j = 0; j < chip->info.bits_per_frame; j++) {
                         size_t ofs = j + chip->info.pad_bits_after_frame;
-                        chip->cram.bit((chip->info.num_frames - 1) - i, j) = (char) (
+                        size_t curr_frame;
+
+                        // ECP reads frames in reverse order.
+                        if(machxo2) {
+                            curr_frame = i;
+                        } else {
+                            curr_frame = (chip->info.num_frames - 1) - i;
+                        }
+                        chip->cram.bit(curr_frame, j) = (char) (
                                 (frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] >> (ofs % 8)) & 0x01);
                     }
                     if(!machxo2) {
