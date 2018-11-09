@@ -54,7 +54,10 @@ def main(argv):
     max_row = 0
     max_col = 0
     for name in sorted(tilegrid.keys()):
-        row, col = get_rc(name)
+        try:
+            row, col = get_rc(name)
+        except:
+            continue
         if row > max_row: max_row = row
         if col > max_col: max_col = col
 
@@ -67,7 +70,10 @@ def main(argv):
 
     for identifier, data in sorted(tilegrid.items()):
         name = identifier.split(":")[0]
-        row, col = get_rc(name)
+        try:
+            row, col = get_rc(name)
+        except:
+            continue
         colour = get_colour(data["type"])
         tiles[row][col].append((name, data["type"], colour))
 
