@@ -15,13 +15,76 @@ parser.add_argument('outfile', type=argparse.FileType('w'),
                     help="output HTML file")
 
 rc_regex = re.compile(r"[A-Za-z0-9_]*R(\d+)C(\d+)")
+# MachXO2-specific
+center_regex = re.compile(r"CENTER(\d+)")
+centerb_regex = re.compile(r"CENTER_B")
+centert_regex = re.compile(r"CENTER_T")
+centerebr_regex = re.compile(r"CENTER_EBR(\d+)")
+t_regex = re.compile(r"[A-Za-z0-9_]*T(\d+)")
+b_regex = re.compile(r"[A-Za-z0-9_]*B(\d+)")
+l_regex = re.compile(r"[A-Za-z0-9_]*L(\d+)")
+r_regex = re.compile(r"[A-Za-z0-9_]*R(\d+)")
 
 
+# FIXME: This only works for MachXO2-1200, because we don't know in general
+# how many rows/cols an MachXO2 device will have without knowing the part
+# number.
 def get_rc(name):
+    # Match in order of most-specific to least-specific
+    # (E.g. CENTER matches "R" regex too)
     rc = rc_regex.match(name)
-    row = int(rc.group(1))
-    col = int(rc.group(2))
-    return (row, col)
+    if rc:
+        row = int(rc.group(1))
+        col = int(rc.group(2))
+        return (row, col)
+
+    centert = centert_regex.match(name)
+    if centert:
+        row = 0
+        col = 13
+        return (row, col)
+
+    centerb = centerb_regex.match(name)
+    if centerb:
+        row = 12
+        col = 13
+        return (row, col)
+
+    centerebr = centerebr_regex.match(name)
+    if centerebr:
+        row = 6
+        col = 14
+        return (row, col)
+
+    center = center_regex.match(name)
+    if center:
+        row = int(center.group(1))
+        col = 13
+        return (row, col)
+
+    t = t_regex.match(name)
+    if t:
+        row = 0
+        col = int(t.group(1))
+        return (row, col)
+
+    b = b_regex.match(name)
+    if b:
+        row = 12
+        col = int(b.group(1))
+        return (row, col)
+
+    l = l_regex.match(name)
+    if l:
+        row = int(l.group(1))
+        col = 0
+        return (row, col)
+
+    r = r_regex.match(name)
+    if r:
+        row = int(r.group(1))
+        col = 23
+        return (row, col)
 
 
 def get_colour(ttype):
@@ -54,10 +117,7 @@ def main(argv):
     max_row = 0
     max_col = 0
     for name in sorted(tilegrid.keys()):
-        try:
-            row, col = get_rc(name)
-        except:
-            continue
+        row, col = get_rc(name)
         if row > max_row: max_row = row
         if col > max_col: max_col = col
 
@@ -70,10 +130,7 @@ def main(argv):
 
     for identifier, data in sorted(tilegrid.items()):
         name = identifier.split(":")[0]
-        try:
-            row, col = get_rc(name)
-        except:
-            continue
+        row, col = get_rc(name)
         colour = get_colour(data["type"])
         tiles[row][col].append((name, data["type"], colour))
 
