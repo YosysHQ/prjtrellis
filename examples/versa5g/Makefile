@@ -13,10 +13,9 @@ pattern.vh: make_14seg.py text.in
 	nextpnr-ecp5 --json $< --lpf ${CONSTR} --basecfg ../../misc/basecfgs/empty_lfe5um5g-45f.config --textcfg $@ --um5g-45k --package CABGA381
 
 %.bit: %_out.config
-	ecppack $< $@
+	ecppack --svf-rowsize 100000 --svf ${PROJ}.svf $< $@
 
-%.svf: %.bit
-	../../tools/bit_to_svf.py $< $@
+${PROJ}.svf: ${PROJ}.bit
 
 prog: ${PROJ}.svf
 	openocd -f ../../misc/openocd/ecp5-versa5g.cfg -c "transport select jtag; init; svf $<; exit"

@@ -7,7 +7,7 @@
 #include <vector>
 #include <string>
 #include <stdexcept>
-
+#include <map>
 using namespace std;
 
 namespace Trellis {
@@ -43,7 +43,7 @@ public:
     static Bitstream read_bit_py(string file);
 
     // Serialise a Chip back to a bitstream
-    static Bitstream serialise_chip(const Chip &chip);
+    static Bitstream serialise_chip(const Chip &chip, const map<string, string> options);
 
     // Deserialise a bitstream to a Chip
     Chip deserialise_chip();
@@ -54,6 +54,8 @@ public:
     // Python variant of the above, takes filename instead of ostream
     void write_bit_py(string file);
 
+    // Write bitstream as a vector of bytes
+    vector<uint8_t> get_bytes();
 
     // Write a Lattice .bin file (bitstream only, for flash prog.)
     void write_bin(ostream &out);
