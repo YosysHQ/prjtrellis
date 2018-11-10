@@ -1,36 +1,4 @@
-module top(input clk_pin, input btn_pin, output [7:0] led_pin);
-
-    wire clk;
-    wire [7:0] led;
-    wire btn;
-
-    (* LOC="A10" *) (* IO_TYPE="LVCMOS33" *)
-    TRELLIS_IO #(.DIR("INPUT")) clk_buf (.B(clk_pin), .O(clk));
-
-    // Pressing and holding SW4 will trigger led array fading
-    (* LOC="P4" *) (* IO_TYPE="LVCMOS33" *)
-    TRELLIS_IO #(.DIR("INPUT")) btn_buf (.B(btn_pin), .O(btn));
-
-    (* LOC="B17" *) (* IO_TYPE="LVCMOS33" *)
-    TRELLIS_IO #(.DIR("OUTPUT")) led_buf_0 (.B(led_pin[0]), .I(!led[0]));
-    (* LOC="A17" *) (* IO_TYPE="LVCMOS33" *)
-    TRELLIS_IO #(.DIR("OUTPUT")) led_buf_1 (.B(led_pin[1]), .I(!led[1]));
-    (* LOC="C17" *) (* IO_TYPE="LVCMOS33" *)
-    TRELLIS_IO #(.DIR("OUTPUT")) led_buf_2 (.B(led_pin[2]), .I(!led[2]));
-    (* LOC="B18" *) (* IO_TYPE="LVCMOS33" *)
-    TRELLIS_IO #(.DIR("OUTPUT")) led_buf_3 (.B(led_pin[3]), .I(!led[3]));
-
-    (* LOC="A18" *) (* IO_TYPE="LVCMOS33" *)
-    TRELLIS_IO #(.DIR("OUTPUT")) led_buf_4 (.B(led_pin[4]), .I(!led[4]));
-    (* LOC="B19" *) (* IO_TYPE="LVCMOS33" *)
-    TRELLIS_IO #(.DIR("OUTPUT")) led_buf_5 (.B(led_pin[5]), .I(!led[5]));
-    (* LOC="A12" *) (* IO_TYPE="LVCMOS33" *)
-    TRELLIS_IO #(.DIR("OUTPUT")) led_buf_6 (.B(led_pin[6]), .I(!led[6]));
-    (* LOC="A13" *) (* IO_TYPE="LVCMOS33" *)
-    TRELLIS_IO #(.DIR("OUTPUT")) led_buf_7 (.B(led_pin[7]), .I(!led[7]));
-
-
-
+module top(input clk, input btn, output [7:0] led);
     localparam ctr_width = 24;
     localparam ctr_max = 2**ctr_width - 1;
     reg [ctr_width-1:0] ctr = 0;
