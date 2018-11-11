@@ -80,7 +80,8 @@ def fuzz_interconnect_with_netnames(
         netname_filter_union=False,
         full_mux_style=False,
         fc_prefix="",
-        nonlocal_prefix=""):
+        nonlocal_prefix="",
+        netdir_override=dict()):
     """
     Fuzz interconnect given a list of netnames to analyse. Arcs associated these netnames will be found using the Tcl
     API and bits identified as described above.
@@ -96,8 +97,11 @@ def fuzz_interconnect_with_netnames(
     nets much pass the predicate.
     :param full_mux_style: if True, is a full mux, and all 0s is considered a valid config bit possibility
     :param fc_prefix: add a prefix to non-global fixed connections for device-specific fuzzers
+    :param netdir_override: Manually specify whether the nets in the dictionary are driven by other nets (`"sink"`,
+    specified as "-->" in ispTcl), or drive other nets (`"driver"`, specified as "<--" in ispTcl). The dictionary is
+    only consulted if ispTcl returns "---" for the direction of a given net.
     """
-    net_arcs = isptcl.get_arcs_on_wires(config.ncd_prf, netnames, not bidir)
+    net_arcs = isptcl.get_arcs_on_wires(config.ncd_prf, netnames, not bidir, netdir_override)
     baseline_bitf = config.build_design(config.ncl, {}, "base_")
     baseline_chip = pytrellis.Bitstream.read_bit(baseline_bitf).deserialise_chip()
 

@@ -84,7 +84,7 @@ def get_wires_at_position(desfiles, position):
     return wires
 
 
-def get_arcs_on_wires(desfiles, wires, drivers_only=False):
+def get_arcs_on_wires(desfiles, wires, drivers_only=False, dir_override=dict()):
     """
     Use ispTcl to get a list of arcs sinking or sourcing a list of wires
 
@@ -122,8 +122,19 @@ def get_arcs_on_wires(desfiles, wires, drivers_only=False):
                     if not drivers_only:
                         arcs.append((splitline[2].strip(), splitline[0].strip()))
                 elif splitline[1].strip() == "---":
-                    # Edge wires, currently ignored
-                    pass
+                    override = dir_override.get(wires[wire_idx], "")
+                    if override:
+                        if override == "sink":
+                            arcs.append((splitline[0].strip(), splitline[2].strip()))
+                        elif override == "driver":
+                            arcs.append((splitline[2].strip(), splitline[0].strip()))
+                        else:
+                            assert False, ("invalid override for wire {}".
+                                            format(wires[wire_idx]))
+                    else:
+                        assert False, ("'---' found in ispTcl output, and no netdir_override"
+                                       " was given for {wire}. Full line:\n{line}".
+                                       format(wire=wires[wire_idx], line=line))
                 else:
                     print (splitline)
                     assert False, "invalid output from Tcl command `dev_list_arcs`"
