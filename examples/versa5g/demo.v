@@ -1,4 +1,4 @@
-module top(input clk, output [7:0] led, output [13:0] disp, output clken);
+module top(input clk, output [7:0] led, output [13:0] disp);
 
     
     localparam div_n = 25;
@@ -25,6 +25,6 @@ module top(input clk, output [7:0] led, output [13:0] disp, output clken);
     assign led = {clk, ~pat_ctr};
     assign disp = pat_ctr[0] ? 14'h3FFF : ~(display_pat[pat_ctr[$clog2(pat_len):1]]);
 
-    assign clken = 1'b1;
+
 endmodule
 

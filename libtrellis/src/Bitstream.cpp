@@ -395,7 +395,7 @@ Chip Bitstream::deserialise_chip() {
     }
 }
 
-Bitstream Bitstream::serialise_chip(const Chip &chip) {
+Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> options) {
     BitstreamReadWriter wr;
     // Preamble
     wr.write_bytes(preamble.begin(), preamble.size());
@@ -412,7 +412,16 @@ Bitstream Bitstream::serialise_chip(const Chip &chip) {
     // Set control reg 0 to 0x40000000
     wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_CNTRL0));
     wr.insert_zeros(3);
-    wr.write_uint32(0x40000000);
+    uint32_t ctrl0  = 0x40000000;
+    if (options.count("freq")) {
+        auto freq = find_if(frequencies.begin(), frequencies.end(), [&](const pair<string, uint8_t> &fp){
+            return fp.first == options.at("freq");
+        });
+        if (freq == frequencies.end())
+            throw runtime_error("bad frequency option " + options.at("freq"));
+        ctrl0 |= freq->second;
+    }
+    wr.write_uint32(ctrl0);
     // Init address
     wr.write_byte(uint8_t(BitstreamCommand::LSC_INIT_ADDRESS));
     wr.insert_zeros(3);
@@ -494,6 +503,19 @@ void Bitstream::write_bit(ostream &out) {
     out.put(char(0xFF));
     // Dump raw bitstream
     out.write(reinterpret_cast<const char *>(&(data[0])), data.size());
+}
+
+vector<uint8_t> Bitstream::get_bytes() {
+    vector<uint8_t> bytes;
+    bytes.push_back(0xFF);
+    bytes.push_back(0x00);
+    for (const auto &str : metadata) {
+        copy(str.begin(), str.end(), back_inserter(bytes));
+        bytes.push_back(0x00);
+    }
+    bytes.push_back(0xFF);
+    copy(data.begin(), data.end(), back_inserter(bytes));
+    return bytes;
 }
 
 void Bitstream::write_bin(ostream &out) {
