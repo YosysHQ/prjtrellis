@@ -25,6 +25,8 @@ def solve_pip_delays(ncl, sdf):
             #if pipclass + "_fanout" not in variables:
             #    vid = len(variables)
             #    variables[pipclass + "_fanout"] = vid
+    kfid = len(variables)
+    variables["k_fanout"] = kfid
     A = sparse.lil_matrix((len(path_pip_classes), len(variables)))
     b = []
     i = 0
@@ -33,7 +35,9 @@ def solve_pip_delays(ncl, sdf):
         for wire, pipclass in path:
             A[i, variables[pipclass + "_delay"]] = 1
             # fixme
-            # A[i, variables[pipclass + "_fanout"]] = wire_fanout[wire, pipclass]
+            if pipclass != "slice_internal":
+                A[i, variables["k_fanout"]] += wire_fanout[wire]
+
         srcname = "{}/{}".format(src[0].replace('/', '\\/').replace('.', '\\.'), src[1])
         destname = "{}/{}".format(dest[0].replace('/', '\\/').replace('.', '\\.'), dest[1])
         b.append(top_ic[srcname, destname].rising.maxv)
