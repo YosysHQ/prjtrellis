@@ -5,6 +5,7 @@ Convert the tile grid for a given family and device to HTML format
 import sys, re
 import argparse
 import database
+import tiles as tilelib
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('family', type=str,
@@ -13,15 +14,6 @@ parser.add_argument('device', type=str,
                     help="FPGA device (e.g. LFE5U-85F)")
 parser.add_argument('outfile', type=argparse.FileType('w'),
                     help="output HTML file")
-
-rc_regex = re.compile(r"[A-Za-z0-9_]*R(\d+)C(\d+)")
-
-
-def get_rc(name):
-    rc = rc_regex.match(name)
-    row = int(rc.group(1))
-    col = int(rc.group(2))
-    return (row, col)
 
 
 def get_colour(ttype):
@@ -50,13 +42,10 @@ def get_colour(ttype):
 def main(argv):
     args = parser.parse_args(argv[1:])
     tilegrid = database.get_tilegrid(args.family, args.device)
+    device_info = database.get_devices()["families"][args.family]["devices"][args.device]
 
-    max_row = 0
-    max_col = 0
-    for name in sorted(tilegrid.keys()):
-        row, col = get_rc(name)
-        if row > max_row: max_row = row
-        if col > max_col: max_col = col
+    max_row = device_info["max_row"]
+    max_col = device_info["max_col"]
 
     tiles = []
     for i in range(max_row + 1):
@@ -67,7 +56,7 @@ def main(argv):
 
     for identifier, data in sorted(tilegrid.items()):
         name = identifier.split(":")[0]
-        row, col = get_rc(name)
+        row, col = tilelib.pos_from_name(name, (max_row, max_col), 0)
         colour = get_colour(data["type"])
         tiles[row][col].append((name, data["type"], colour))
 

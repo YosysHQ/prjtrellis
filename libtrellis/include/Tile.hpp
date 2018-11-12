@@ -2,6 +2,7 @@
 #define LIBTRELLIS_TILE_HPP
 
 #include <string>
+#include <iostream>
 #include <cstdint>
 #include <utility>
 #include <regex>
@@ -9,9 +10,7 @@
 #include "CRAM.hpp"
 
 namespace Trellis {
-
-// Regex to extract row/column from a tile name
-static const regex tile_row_col_re(R"(R(\d+)C(\d+))");
+pair<int, int> get_row_col_pair_from_chipsize(string name, pair<int, int> chip_size, int bias);
 
 // Basic information about a site
 struct SiteInfo {
@@ -28,6 +27,9 @@ struct SiteInfo {
 struct TileInfo {
     string family;
     string device;
+    size_t max_col;
+    size_t max_row;
+    int col_bias;
 
     string name;
     string type;
@@ -38,9 +40,10 @@ struct TileInfo {
     vector<SiteInfo> sites;
 
     inline pair<int, int> get_row_col() const {
-        smatch m;
-        assert(regex_search(name, m, tile_row_col_re));
-        return make_pair(stoi(m.str(1)), stoi(m.str(2)));
+        auto chip_size = make_pair(int(max_row), int(max_col));
+        auto row_col = get_row_col_pair_from_chipsize(name, chip_size, col_bias);
+        assert(row_col <= chip_size);
+        return row_col;
     };
 
     // Get the Lattice name

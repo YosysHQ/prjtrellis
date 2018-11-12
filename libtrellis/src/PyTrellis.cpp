@@ -81,7 +81,10 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def_readonly("num_frames", &ChipInfo::num_frames)
             .def_readonly("bits_per_frame", &ChipInfo::bits_per_frame)
             .def_readonly("pad_bits_before_frame", &ChipInfo::pad_bits_before_frame)
-            .def_readonly("pad_bits_after_frame", &ChipInfo::pad_bits_after_frame);
+            .def_readonly("pad_bits_after_frame", &ChipInfo::pad_bits_after_frame)
+            .def_readonly("max_row", &ChipInfo::max_row)
+            .def_readonly("max_col", &ChipInfo::max_col)
+            .def_readonly("col_bias", &ChipInfo::col_bias);
 
     class_<map<string, shared_ptr<Tile>>>("TileMap")
             .def(map_indexing_suite<map<string, shared_ptr<Tile>>, true>());
@@ -173,6 +176,8 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def(vector_indexing_suite<CRAMDelta>());
 
     // From Tile.cpp
+    def("get_row_col_pair_from_chipsize", get_row_col_pair_from_chipsize);
+
     class_<vector<SiteInfo>>("SiteInfoVector")
             .def(vector_indexing_suite<vector<SiteInfo>>());
 

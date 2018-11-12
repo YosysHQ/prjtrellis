@@ -22,6 +22,11 @@ struct ChipInfo
     int bits_per_frame;
     int pad_bits_before_frame;
     int pad_bits_after_frame;
+    // 0-based.
+    int max_row;
+    int max_col;
+    // Trellis uses 0-based indexing, but some devices don't.
+    int col_bias;
 };
 
 // Information about the global networks in a chip
