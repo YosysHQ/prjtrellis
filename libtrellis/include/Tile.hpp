@@ -2,11 +2,13 @@
 #define LIBTRELLIS_TILE_HPP
 
 #include <string>
+#include <iostream>
 #include <cstdint>
 #include <utility>
 #include <regex>
 #include <cassert>
 #include "CRAM.hpp"
+#include "Util.hpp"
 
 namespace Trellis {
 
@@ -42,8 +44,16 @@ struct TileInfo {
 
     inline pair<int, int> get_row_col() const {
         smatch m;
-        assert(regex_search(name, m, tile_row_col_re));
-        return make_pair(stoi(m.str(1)), stoi(m.str(2)));
+        bool match;
+
+        match = regex_search(name, m, tile_row_col_re);
+        if(match) {
+            auto row_col = make_pair(stoi(m.str(1)), stoi(m.str(2)));
+            assert(row_col <= make_pair(int(max_row), int(max_col)));
+            return row_col;
+        } else {
+            throw runtime_error(fmt("Could not extract position from " << name));
+        }
     };
 
     // Get the Lattice name
