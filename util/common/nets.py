@@ -196,7 +196,7 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
     return netname, wire_pos
 
 
-def normalise_name(chip_size, tile, wire):
+def normalise_name(chip_size, tile, wire, bias):
     """
     Wire name normalisation for tile wires and fuzzing
     All net names that we have access too are canonical, global names
@@ -224,13 +224,14 @@ def normalise_name(chip_size, tile, wire):
     chip_size: chip size as tuple (max_row, max_col)
     tile: name of the relevant tile
     wire: full Lattice name of the wire
+    bias: Use 1-based column indexing
 
     Returns the normalised netname
     """
     upos = wire.index("_")
     prefix = wire[:upos]
-    prefix_pos = tiles.pos_from_name(prefix)
-    tile_pos = tiles.pos_from_name(tile)
+    prefix_pos = tiles.pos_from_name(prefix, chip_size, bias)
+    tile_pos = tiles.pos_from_name(tile, chip_size, bias)
     netname = wire[upos+1:]
     if tile.startswith("TAP") and netname.startswith("H"):
         if prefix_pos[1] < tile_pos[1]:
@@ -269,7 +270,7 @@ def normalise_name(chip_size, tile, wire):
 rel_netname_re = re.compile(r'^([NS]\d+)?([EW]\d+)?_.*')
 
 
-def canonicalise_name(chip_size, tile, wire):
+def canonicalise_name(chip_size, tile, wire, bias):
     """
     Convert a normalised name in a given tile back to a canonical global name
     :param chip_size: chip size as tuple (max_row, max_col)
@@ -280,7 +281,7 @@ def canonicalise_name(chip_size, tile, wire):
     if wire.startswith("G_"):
         return wire
     m = rel_netname_re.match(wire)
-    tile_pos = tiles.pos_from_name(tile)
+    tile_pos = tiles.pos_from_name(tile, chip_size, bias)
     wire_pos = tile_pos
     if m:
         assert len(m.groups()) >= 1
@@ -314,17 +315,17 @@ def main():
     assert is_cib("R47C58_H06W0003")
     assert is_cib("R47C61_CLK0")
 
-    assert normalise_name((95, 126), "R48C26", "R48C26_B1") == "B1"
-    assert normalise_name((95, 126), "R48C26", "R48C26_HPBX0600") == "G_HPBX0600"
-    assert normalise_name((95, 126), "R48C26", "R48C25_H02E0001") == "W1_H02E0001"
-    assert normalise_name((95, 126), "R48C1", "R48C1_H02E0002") == "W1_H02E0001"
-    assert normalise_name((95, 126), "R82C90", "R79C90_V06S0003") == "N3_V06S0003"
-    assert normalise_name((95, 126), "R5C95", "R3C95_V06S0004") == "N3_V06S0003"
-    assert normalise_name((95, 126), "R1C95", "R1C95_V06S0006") == "N3_V06S0003"
-    assert normalise_name((95, 126), "R3C95", "R2C95_V06S0005") == "N3_V06S0003"
-    assert normalise_name((95, 126), "R82C95", "R85C95_V06N0303") == "S3_V06N0303"
-    assert normalise_name((95, 126), "R90C95", "R92C95_V06N0304") == "S3_V06N0303"
-    assert normalise_name((95, 126), "R93C95", "R94C95_V06N0305") == "S3_V06N0303"
+    assert normalise_name((95, 126), "R48C26", "R48C26_B1", 0) == "B1"
+    assert normalise_name((95, 126), "R48C26", "R48C26_HPBX0600", 0) == "G_HPBX0600"
+    assert normalise_name((95, 126), "R48C26", "R48C25_H02E0001", 0) == "W1_H02E0001"
+    assert normalise_name((95, 126), "R48C1", "R48C1_H02E0002", 0) == "W1_H02E0001"
+    assert normalise_name((95, 126), "R82C90", "R79C90_V06S0003", 0) == "N3_V06S0003"
+    assert normalise_name((95, 126), "R5C95", "R3C95_V06S0004", 0) == "N3_V06S0003"
+    assert normalise_name((95, 126), "R1C95", "R1C95_V06S0006", 0) == "N3_V06S0003"
+    assert normalise_name((95, 126), "R3C95", "R2C95_V06S0005", 0) == "N3_V06S0003"
+    assert normalise_name((95, 126), "R82C95", "R85C95_V06N0303", 0) == "S3_V06N0303"
+    assert normalise_name((95, 126), "R90C95", "R92C95_V06N0304", 0) == "S3_V06N0303"
+    assert normalise_name((95, 126), "R93C95", "R94C95_V06N0305", 0) == "S3_V06N0303"
 
 
 if __name__ == "__main__":

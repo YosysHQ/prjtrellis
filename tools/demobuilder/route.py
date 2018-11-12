@@ -22,8 +22,9 @@ class Autorouter:
             return self.dh_arc_cache[wire]
         else:
             drivers = []
+            chip_size = (self.chip.get_max_row(), self.chip.get_max_col())
             try:
-                npos = tiles.pos_from_name(wire)
+                npos = tiles.pos_from_name(wire, chip_size, 0)
             except AssertionError:
                 return []
             wname = wire.split("_", 1)[1]
@@ -41,20 +42,20 @@ class Autorouter:
                     tname = tinf.name
                     if tname.startswith("TAP"):
                         continue
-                    pos = tiles.pos_from_name(tname)
+                    pos = tiles.pos_from_name(tname, chip_size, 0)
 
                     if abs(pos[0] - npos[0]) not in (vspan, 0) or abs(pos[1] - npos[1]) not in (hspan, 0):
                         continue
                     if wire.startswith("G_"):
                         twire = wire
                     else:
-                        twire = nets.normalise_name(self.chip_size, tname, wire)
+                        twire = nets.normalise_name(self.chip_size, tname, wire, 0)
 
                     tdb = pytrellis.get_tile_bitdata(
                         pytrellis.TileLocator(self.chip.info.family, self.chip.info.name, tinf.type))
                     downhill = tdb.get_downhill_wires(twire)
                     for sink in downhill:
-                        nn = nets.canonicalise_name(self.chip_size, tname, sink.first)
+                        nn = nets.canonicalise_name(self.chip_size, tname, sink.first, 0)
                         if nn is not None:
                             drivers.append((nn, sink.second, tname))
             self.dh_arc_cache[wire] = drivers
@@ -72,8 +73,8 @@ class Autorouter:
         else:
             self.net_to_wire[net] = {dest_wire}
         if configurable and not exists:
-            src_wirename = nets.normalise_name(self.chip_size, tile, uphill_wire)
-            sink_wirename = nets.normalise_name(self.chip_size, tile, dest_wire)
+            src_wirename = nets.normalise_name(self.chip_size, tile, uphill_wire, 0)
+            sink_wirename = nets.normalise_name(self.chip_size, tile, dest_wire, 0)
             config[tile].add_arc(sink_wirename, src_wirename)
 
     # Bind a net to a wire (used for port connections)
@@ -88,9 +89,10 @@ class Autorouter:
     # Route a net to a wire
     def route_net_to_wire(self, net, wire, config):
         print("     Routing net '{}' to wire/pin '{}'...".format(net, wire))
-        dest_pos = tiles.pos_from_name(wire)
+        chip_size = (self.chip.get_max_row(), self.chip.get_max_col())
+        dest_pos = tiles.pos_from_name(wire, chip_size, 0)
         def get_score(x_wire):
-            pos = tiles.pos_from_name(x_wire)
+            pos = tiles.pos_from_name(x_wire, chip_size, 0)
             score = abs(pos[0] - dest_pos[0]) + abs(pos[1] - dest_pos[1])
             x_wname = x_wire.split("_", 1)[1]
             if x_wname[1:3].isdigit() and score > 3:
