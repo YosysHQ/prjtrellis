@@ -5,7 +5,7 @@ lc_output_re = re.compile(r'[FQ]\d')
 
 def get_span(wire):
     if (wire.startswith("H") or wire.startswith("V")) and wire[1:3].isdigit():
-        return "span" + wire[2]  + wire[0].lower()
+        return "span" + wire[2] + wire[0].lower() + wire[3].lower()
     return None
 
 
@@ -51,14 +51,14 @@ def get_pip_class(source, sink):
         return "slice_internal"
     if lc_input_re.match(sink_base):
         if lc_output_re.match(source_base):
-            return "slice_out_to_slice_in"
+            return "slice_{}_to_slice_{}".format(source_base[0].lower(), sink_base[0].lower())
         elif get_span(source_base) is not None:
-            return get_span(source_base)  + "_to_slice_in" + format_rel(source_loc, sink_loc)
+            return get_span(source_base)  + "_to_" + sink_base[0].lower() + format_rel(source_loc, sink_loc)
         else:
             assert False, (source, sink)
     elif get_span(sink_base) is not None:
         if lc_output_re.match(source_base):
-            return  "slice_out_to_" + get_span(sink_base) + format_rel(source_loc, sink_loc)
+            return  "slice_" + source_base[0].lower() + "_to_" + get_span(sink_base) + format_rel(source_loc, sink_loc)
         elif get_span(source_base) is not None:
             return  get_span(source_base) + "_to_" + get_span(sink_base) + format_rel(source_loc, sink_loc)
         elif source_base.startswith("HPBX"):

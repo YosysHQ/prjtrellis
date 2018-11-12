@@ -6,7 +6,7 @@ import sys
 
 def get_equations(ncl):
     signals, bels = extract_ncl_routing.parse_ncl(ncl)
-    wire_fanout = {} # (wire, pipclass) -> fanout
+    wire_fanout = {} # wire -> fanout
     path_pip_classes = {} # (src, dest) -> [(wire, pipclass)]
     for name, sig in sorted(signals.items()):
         nd = extract_ncl_routing.net_to_dict(sig, bels)
@@ -41,7 +41,7 @@ def get_equations(ncl):
                     skip = True
                     break
                 path_pip_classes[drv, load].append((pip_src, pip_class))
-                wire_fanout[pip_src, pip_class] = wire_fanout.get((pip_src, pip_class), 0) + 1
+                wire_fanout[pip_src] = wire_fanout.get((pip_src), 0) + 1
             if skip:
                 del path_pip_classes[drv, load]
                 continue
