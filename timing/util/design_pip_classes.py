@@ -4,9 +4,8 @@ import parse_sdf
 import sys
 
 
-def get_equations(ncl, sdf):
+def get_equations(ncl):
     signals, bels = extract_ncl_routing.parse_ncl(ncl)
-    sdf = parse_sdf.parse_sdf_file(sdf)
     wire_fanout = {} # (wire, pipclass) -> fanout
     path_pip_classes = {} # (src, dest) -> [(wire, pipclass)]
     for name, sig in sorted(signals.items()):
@@ -46,15 +45,15 @@ def get_equations(ncl, sdf):
             if skip:
                 del path_pip_classes[drv, load]
                 continue
+    return path_pip_classes, wire_fanout
+
+
+def main():
+    path_pip_classes, wire_fanout = get_equations(sys.argv[1])
     for k, v in sorted(path_pip_classes.items()):
         src, dst = k
         pname = "({}.{}, {}.{})".format(src[0], src[1], dst[0], dst[1])
         print("{} = {}".format(pname, " + ".join(x[1] for x in v)))
-
-
-def main():
-    get_equations(sys.argv[1], sys.argv[2])
-
 
 if __name__ == "__main__":
     main()
