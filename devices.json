@@ -9,6 +9,9 @@
                 "bits_per_frame": 592,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
+                "max_row" : 50,
+                "max_col" : 72,
+                "col_bias" : 0,
                 "fuzz": 1
             },
             "LFE5U-45F": {
@@ -18,6 +21,9 @@
                 "bits_per_frame": 846,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 2,
+                "max_row" : 71,
+                "max_col" : 90,
+                "col_bias" : 0,
                 "fuzz": 1
             },
             "LFE5U-85F": {
@@ -27,6 +33,9 @@
                 "bits_per_frame": 1136,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
+                "max_row" : 95,
+                "max_col" : 126,
+                "col_bias" : 0,
                 "fuzz": 1
             },
             "LFE5UM-25F": {
@@ -36,6 +45,9 @@
                 "bits_per_frame": 592,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
+                "max_row" : 50,
+                "max_col" : 72,
+                "col_bias" : 0,
                 "fuzz": 1
             },
             "LFE5UM-45F": {
@@ -45,6 +57,9 @@
                 "bits_per_frame": 846,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 2,
+                "max_row" : 71,
+                "max_col" : 90,
+                "col_bias" : 0,
                 "fuzz": 1
             },
             "LFE5UM-85F": {
@@ -54,6 +69,9 @@
                 "bits_per_frame": 1136,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
+                "max_row" : 95,
+                "max_col" : 126,
+                "col_bias" : 0,
                 "fuzz": 1
             },
             "LFE5UM5G-25F": {
@@ -63,6 +81,9 @@
                 "bits_per_frame": 592,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
+                "max_row" : 50,
+                "max_col" : 72,
+                "col_bias" : 0,
                 "fuzz": 1
             },
             "LFE5UM5G-45F": {
@@ -72,6 +93,9 @@
                 "bits_per_frame": 846,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 2,
+                "max_row" : 71,
+                "max_col" : 90,
+                "col_bias" : 0,
                 "fuzz": 1
             },
             "LFE5UM5G-85F": {
@@ -81,6 +105,9 @@
                 "bits_per_frame": 1136,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
+                "max_row" : 95,
+                "max_col" : 126,
+                "col_bias" : 0,
                 "fuzz": 1
             }
         }
