@@ -23,6 +23,25 @@ def get_distance(a, b):
     return abs(ra-rb) + abs(ca-cb)
 
 
+def format_rel(a, b):
+    ra, ca = tiles.pos_from_name(a)
+    rb, cb = tiles.pos_from_name(b)
+    rel = ""
+    if rb < ra:
+        rel += "n{}".format(ra-rb)
+    elif rb > ra:
+        rel += "s{}".format(rb-ra)
+
+    if cb < ca:
+        rel += "e{}".format(ca-cb)
+    elif cb > ca:
+        rel += "w{}".format(cb-ca)
+
+    if rel != "":
+        rel = "_" + rel
+    return rel
+
+
 def get_pip_class(source, sink):
     source_loc, source_base = source.split("_", 1)
     sink_loc, sink_base = sink.split("_", 1)
@@ -34,14 +53,14 @@ def get_pip_class(source, sink):
         if lc_output_re.match(source_base):
             return "slice_out_to_slice_in"
         elif get_span(source_base) is not None:
-            return get_span(source_base)  + "_to_slice_in_dist_" + str(get_distance(source_loc, sink_loc))
+            return get_span(source_base)  + "_to_slice_in" + format_rel(source_loc, sink_loc)
         else:
             assert False, (source, sink)
     elif get_span(sink_base) is not None:
         if lc_output_re.match(source_base):
-            return  "slice_out_to_" + get_span(sink_base) + "_dist" + str(get_distance(source_loc, sink_loc))
+            return  "slice_out_to_" + get_span(sink_base) + format_rel(source_loc, sink_loc)
         elif get_span(source_base) is not None:
-            return  get_span(source_base) + "_to_" + get_span(sink_base) + "_dist" + str(get_distance(source_loc, sink_loc))
+            return  get_span(source_base) + "_to_" + get_span(sink_base) + format_rel(source_loc, sink_loc)
         elif source_base.startswith("HPBX"):
             return "global_to_" + get_span(sink_base)
         else:
