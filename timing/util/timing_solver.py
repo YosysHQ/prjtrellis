@@ -4,6 +4,8 @@ import numpy
 import parse_sdf
 import design_pip_classes
 import sys
+import math
+
 
 def solve_pip_delays(ncl, sdf):
     path_pip_classes, wire_fanout = design_pip_classes.get_equations(ncl)
@@ -40,9 +42,20 @@ def solve_pip_delays(ncl, sdf):
     #print(A)
     #print(b)
     x, istop, itn, normr = linalg.lsqr(A, b)[:4]
-    for var, j in sorted(variables.items()):
-        print("{} = {}".format(var, x[j]))
+    error = b - (A * x)
+    i = 0
+    worst = 0
+    sqsum = 0
+    for arc, path in sorted(path_pip_classes.items()):
+        src, dest = arc
+        print("error {}.{} -> {}.{} = {:.01f} ps".format(src[0], src[1], dest[0], dest[1], error[i]))
+        worst = max(worst, abs(error[i]))
+        sqsum += error[i]**2
+        i = i + 1
 
+    for var, j in sorted(variables.items()):
+        print("{} = {:.01f} ps".format(var, x[j]))
+    print("Error: {:.01f} ps max, {:.01f} ps RMS".format(worst, math.sqrt(sqsum / len(path_pip_classes))))
 
 def main():
     solve_pip_delays(sys.argv[1], sys.argv[2])

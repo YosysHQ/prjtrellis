@@ -113,13 +113,15 @@ def parse_ncl(filename):
                 is_drv = True
                 while True:
                     line = f.readline().strip()
+                    if line.endswith("\","):
+                        line += f.readline().strip()
                     if "// loads" in line:
                         is_drv = False
                     elif "// drivers" in line:
                         continue
                     else:
                         m = re.match(r'\("?(?P<bel>[^,"]+)"?,\s*"?(?P<pin>[^,"]+)"?\)', line)
-                        assert m
+                        assert m, line
                         pin = (m.group("bel"), m.group("pin"))
                         if is_drv:
                             drivers.append(pin)
