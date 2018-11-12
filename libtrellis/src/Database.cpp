@@ -77,6 +77,9 @@ ChipInfo get_chip_info(const DeviceLocator &part) {
     ci.pad_bits_after_frame = dev.get<int>("pad_bits_after_frame");
     ci.pad_bits_before_frame = dev.get<int>("pad_bits_before_frame");
     ci.idcode = parse_uint32(dev.get<string>("idcode"));
+    ci.max_row = dev.get<int>("max_row");
+    ci.max_col = dev.get<int>("max_col");
+    ci.col_bias = dev.get<int>("col_bias");
     return ci;
 }
 
@@ -120,6 +123,7 @@ vector<TileInfo> get_device_tilegrid(const DeviceLocator &part) {
     assert(db_root != "");
     string tilegrid_path = db_root + "/" + part.family + "/" + part.device + "/tilegrid.json";
     {
+        ChipInfo info = get_chip_info(part);
         lock_guard <mutex> lock(tilegrid_cache_mutex);
         if (tilegrid_cache.find(part.device) == tilegrid_cache.end()) {
             pt::ptree tg_parsed;
@@ -132,6 +136,10 @@ vector<TileInfo> get_device_tilegrid(const DeviceLocator &part) {
             TileInfo ti;
             ti.family = part.family;
             ti.device = part.device;
+            ti.max_col = info.max_col;
+            ti.max_row = info.max_row;
+            ti.col_bias = info.col_bias;
+
             ti.name = tile.first;
             ti.num_frames = size_t(tile.second.get<int>("cols"));
             ti.bits_per_frame = size_t(tile.second.get<int>("rows"));

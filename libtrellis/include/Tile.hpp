@@ -28,6 +28,9 @@ struct SiteInfo {
 struct TileInfo {
     string family;
     string device;
+    size_t max_col;
+    size_t max_row;
+    int col_bias;
 
     string name;
     string type;
