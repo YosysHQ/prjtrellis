@@ -88,18 +88,12 @@ vector<shared_ptr<Tile>> Chip::get_all_tiles()
 
 int Chip::get_max_row() const
 {
-    return max_element(tiles.begin(), tiles.end(),
-                       [](const decltype(tiles)::value_type &a, const decltype(tiles)::value_type &b) {
-                           return a.second->info.get_row_col().first < b.second->info.get_row_col().first;
-                       })->second->info.get_row_col().first;
+    return info.max_row;
 }
 
 int Chip::get_max_col() const
 {
-    return max_element(tiles.begin(), tiles.end(),
-                       [](const decltype(tiles)::value_type &a, const decltype(tiles)::value_type &b) {
-                           return a.second->info.get_row_col().second < b.second->info.get_row_col().second;
-                       })->second->info.get_row_col().second;
+    return info.max_col;
 }
 
 ChipDelta operator-(const Chip &a, const Chip &b)
