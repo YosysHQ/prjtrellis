@@ -8,12 +8,9 @@
 #include <regex>
 #include <cassert>
 #include "CRAM.hpp"
-#include "Util.hpp"
 
 namespace Trellis {
-
-// Regex to extract row/column from a tile name
-static const regex tile_row_col_re(R"(R(\d+)C(\d+))");
+pair<int, int> get_row_col_pair_from_chipsize(string name, pair<int, int> chip_size, int bias);
 
 // Basic information about a site
 struct SiteInfo {
@@ -43,17 +40,10 @@ struct TileInfo {
     vector<SiteInfo> sites;
 
     inline pair<int, int> get_row_col() const {
-        smatch m;
-        bool match;
-
-        match = regex_search(name, m, tile_row_col_re);
-        if(match) {
-            auto row_col = make_pair(stoi(m.str(1)), stoi(m.str(2)));
-            assert(row_col <= make_pair(int(max_row), int(max_col)));
-            return row_col;
-        } else {
-            throw runtime_error(fmt("Could not extract position from " << name));
-        }
+        auto chip_size = make_pair(int(max_row), int(max_col));
+        auto row_col = get_row_col_pair_from_chipsize(name, chip_size, col_bias);
+        assert(row_col <= chip_size);
+        return row_col;
     };
 
     // Get the Lattice name
