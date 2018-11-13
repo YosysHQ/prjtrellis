@@ -1,5 +1,6 @@
 import re
 import tiles
+import json
 lc_input_re = re.compile(r'(J?[ABCDM]|CLK|LSR|CE)\d')
 lc_output_re = re.compile(r'J?[FQ]\d')
 
@@ -67,13 +68,11 @@ def get_pip_class(source, sink):
             return "global_to_" + get_span(sink_base)
         else:
             assert False, (source, sink)
-    elif source_base.startswith("CLK") and sink_base.startswith("MUXCLK"):
-        return "clk_to_muxclk"
     elif source_base.startswith("LSR") and sink_base.startswith("MUXLSR"):
         return "lsr_to_muxlsr"
     else:
         return None
 
 
-def force_zero_pip(name):
-    return name == "slice_internal"
+def force_zero_fanout_pip(name):
+    return name.startswith("jf") or name.startswith("jq")
