@@ -6,6 +6,7 @@ import tiles
 class Design:
     def __init__(self, family):
         self.chip = pytrellis.Chip("LFE5U-45F")
+        self.bias = self.chip.info.col_bias
         self.router = route.Autorouter(self.chip)
         self.config = {_.info.name: pytrellis.TileConfig() for _ in self.chip.get_all_tiles()}
         # TODO: load skeleton config
@@ -33,7 +34,7 @@ class Design:
             tinf = tile.info
             tname = tinf.name
             chip_size = (self.chip.get_max_row(), self.chip.get_max_col())
-            pos = tiles.pos_from_name(tname, chip_size, 0)
+            pos = tiles.pos_from_name(tname, chip_size, self.bias)
             if tinf.type == "PLC2":
                 for loc in ("A", "B", "C", "D"):
                     bel = "R{}C{}{}".format(pos[0], pos[1], loc)
@@ -62,7 +63,7 @@ class Design:
         beltype, belloc = self.bels[bel]
         tile, loc = belloc
         chip_size = (self.chip.get_max_row(), self.chip.get_max_col())
-        pos = tiles.pos_from_name(tile, chip_size, 0)
+        pos = tiles.pos_from_name(tile, chip_size, self.bias)
         net_prefix = "R{}C{}".format(pos[0], pos[1])
         slice_index = "ABCD".index(loc)
         lc0 = 2 * slice_index
