@@ -2,6 +2,8 @@
 Interface between Python fuzzer scripts and Lattice Diamond ispTcl
 """
 
+from collections import defaultdict
+
 import database
 import subprocess
 import tempfile
@@ -122,12 +124,20 @@ def get_arcs_on_wires(desfiles, wires, drivers_only=False, dir_override=dict()):
                     if not drivers_only:
                         arcs.append((splitline[2].strip(), splitline[0].strip()))
                 elif splitline[1].strip() == "---":
-                    override = dir_override.get(wires[wire_idx], "")
+                    if isinstance(dir_override, defaultdict):
+                        # get() overrides defaultdict behavior, and a user may
+                        # have a valid reason to provide a default such as
+                        # ignore.
+                        override = dir_override[wires[wire_idx]]
+                    else:
+                        override = dir_override.get(wires[wire_idx], "")
                     if override:
                         if override == "sink":
                             arcs.append((splitline[0].strip(), splitline[2].strip()))
                         elif override == "driver":
                             arcs.append((splitline[2].strip(), splitline[0].strip()))
+                        elif override == "ignore":
+                            pass
                         else:
                             assert False, ("invalid override for wire {}".
                                             format(wires[wire_idx]))

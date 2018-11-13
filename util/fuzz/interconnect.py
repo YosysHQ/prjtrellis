@@ -28,6 +28,7 @@ def fuzz_interconnect(config,
                       func_cib=False,
                       fc_prefix="",
                       nonlocal_prefix="",
+                      netdir_override=dict(),
                       bias=0):
     """
     The fully-automatic interconnect fuzzer function. This performs the fuzzing and updates the database with the
@@ -70,7 +71,7 @@ def fuzz_interconnect(config,
     if func_cib and not netname_filter_union:
         netnames = list(filter(lambda x: netname_predicate(x, netnames), netnames))
     fuzz_interconnect_with_netnames(config, netnames, netname_predicate, arc_predicate, fc_predicate, func_cib,
-                                    netname_filter_union, False, fc_prefix, nonlocal_prefix, bias)
+                                    netname_filter_union, False, fc_prefix, nonlocal_prefix, netdir_override, bias)
 
 
 def fuzz_interconnect_with_netnames(
