@@ -25,7 +25,7 @@ def main():
         and must be excluded from the CIB database.
         """
         return not (nets.general_routing_re.match(arc[0]) and nets.general_routing_re.match(arc[1]))
-    interconnect.fuzz_interconnect(config=cfg, location=(1, 4),
+    interconnect.fuzz_interconnect(config=cfg, location=(1, 5),
                                    netname_predicate=nn_filter,
                                    fc_predicate=fc_filter,
                                    netname_filter_union=True,

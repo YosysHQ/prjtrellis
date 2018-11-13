@@ -30,7 +30,8 @@ def main():
                                    fc_predicate=fc_filter,
                                    netname_filter_union=True,
                                    enable_span1_fix=True,
-                                   netdir_override=defaultdict(lambda : str("ignore")))
+                                   netdir_override=defaultdict(lambda : str("ignore")),
+                                   bias=1)
 
 
 if __name__ == "__main__":

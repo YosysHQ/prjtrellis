@@ -58,7 +58,8 @@ def main():
         cfg,
         ["R1C4_JOSC_OSC"],
         bidir=True,
-        netdir_override={"R1C4_JOSC_OSC" : "driver"}
+        netdir_override={"R1C4_JOSC_OSC" : "driver"},
+        bias=1
     )
 
 if __name__ == "__main__":
