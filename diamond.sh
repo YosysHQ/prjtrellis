@@ -17,7 +17,11 @@
 # You need to set the DIAMONDDIR environment variable to the path where you have
 # installed Lattice Diamond, unless it matches this default.
 
-WINDOWS= [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]
+if [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]; then
+	WINDOWS=true
+else
+	WINDOWS=false
+fi
 
 if $WINDOWS; then
 	diamonddir="${DIAMONDDIR:-/c/lscc/diamond/3.10_x64}"
