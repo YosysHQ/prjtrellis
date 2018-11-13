@@ -33,9 +33,9 @@ def format_rel(a, b):
         rel += "s{}".format(rb-ra)
 
     if cb < ca:
-        rel += "e{}".format(ca-cb)
+        rel += "w{}".format(ca-cb)
     elif cb > ca:
-        rel += "w{}".format(cb-ca)
+        rel += "e{}".format(cb-ca)
 
     if rel != "":
         rel = "_" + rel
