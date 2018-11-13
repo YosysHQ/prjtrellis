@@ -9,7 +9,10 @@
                 "bits_per_frame": 592,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
-                "fuzz": 1
+                "max_row" : 50,
+                "max_col" : 72,
+                "col_bias" : 0,
+                "fuzz": 0
             },
             "LFE5U-45F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
@@ -18,7 +21,10 @@
                 "bits_per_frame": 846,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 2,
-                "fuzz": 1
+                "max_row" : 71,
+                "max_col" : 90,
+                "col_bias" : 0,
+                "fuzz": 0
             },
             "LFE5U-85F": {
                 "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
@@ -27,7 +33,10 @@
                 "bits_per_frame": 1136,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
-                "fuzz": 1
+                "max_row" : 95,
+                "max_col" : 126,
+                "col_bias" : 0,
+                "fuzz": 0
             },
             "LFE5UM-25F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
@@ -36,7 +45,10 @@
                 "bits_per_frame": 592,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
-                "fuzz": 1
+                "max_row" : 50,
+                "max_col" : 72,
+                "col_bias" : 0,
+                "fuzz": 0
             },
             "LFE5UM-45F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
@@ -45,7 +57,10 @@
                 "bits_per_frame": 846,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 2,
-                "fuzz": 1
+                "max_row" : 71,
+                "max_col" : 90,
+                "col_bias" : 0,
+                "fuzz": 0
             },
             "LFE5UM-85F": {
                 "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
@@ -54,7 +69,10 @@
                 "bits_per_frame": 1136,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
-                "fuzz": 1
+                "max_row" : 95,
+                "max_col" : 126,
+                "col_bias" : 0,
+                "fuzz": 0
             },
             "LFE5UM5G-25F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
@@ -63,7 +81,10 @@
                 "bits_per_frame": 592,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
-                "fuzz": 1
+                "max_row" : 50,
+                "max_col" : 72,
+                "col_bias" : 0,
+                "fuzz": 0
             },
             "LFE5UM5G-45F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
@@ -72,7 +93,10 @@
                 "bits_per_frame": 846,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 2,
-                "fuzz": 1
+                "max_row" : 71,
+                "max_col" : 90,
+                "col_bias" : 0,
+                "fuzz": 0
             },
             "LFE5UM5G-85F": {
                 "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
@@ -81,7 +105,10 @@
                 "bits_per_frame": 1136,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
-                "fuzz": 1
+                "max_row" : 95,
+                "max_col" : 126,
+                "col_bias" : 0,
+                "fuzz": 0
             }
         }
     },
@@ -95,6 +122,9 @@
                 "bits_per_frame": 1080,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
+                "max_row" : 12,
+                "max_col" : 21,
+                "col_bias" : 1,
                 "fuzz": 1
             }
         }
