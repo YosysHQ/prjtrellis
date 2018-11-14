@@ -50,10 +50,18 @@ def get_equations(ncl):
 
 def main():
     path_pip_classes, wire_fanout = get_equations(sys.argv[1])
+    """
     for k, v in sorted(path_pip_classes.items()):
         src, dst = k
         pname = "({}.{}, {}.{})".format(src[0], src[1], dst[0], dst[1])
         print("{} = {}".format(pname, " + ".join(x[1] for x in v)))
-
+    """
+    pip_class_count = {}
+    for pips in path_pip_classes.values():
+        for pip in pips:
+            src, pip_class = pip
+            pip_class_count[pip_class] = pip_class_count.get(pip_class, 0) + 1
+    for pip_class, count in sorted(pip_class_count.items()):
+        print("{} = {}".format(pip_class, count))
 if __name__ == "__main__":
     main()
