@@ -13,8 +13,9 @@ design top
    ${comment} {
    ${comment}    logical {
    ${comment}       cellmodel-name OSC;
-   ${comment}       program "MODE:OSCH "
-   ${using_non_default_freq} ${comment}               "OSCH::::STDBY=0 ";
+   ${comment}       program "${program}"
+   ${using_non_default_freq} ${stdby} ${comment}               "OSCH:#ON ";
+   ${using_non_default_freq} ${stdby_0} ${comment}               "OSCH::::STDBY=0 ";
    ${using_default_freq} ${comment}               "OSCH:::NOM_FREQ=${nom_freq}:STDBY=0 ";
    ${comment}    }
    ${comment}    site OSC;

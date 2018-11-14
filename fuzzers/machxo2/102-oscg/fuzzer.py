@@ -14,11 +14,18 @@ cfg = FuzzConfig(job="OSCH", family="MachXO2", device="LCMXO2-1200HC", ncl="empt
                                                 "CIB_R1C5:CIB_CFG1"])
 
 
-def get_substs(mode="OSCH", nom_freq="2.08"):
+def get_substs(mode="OSCH", nom_freq="2.08", stdby="0"):
     if mode == "NONE":
         comment = "//"
     else:
         comment = ""
+
+    if stdby == "1":
+        stdby = ""
+        stdby_0 = "//"
+    else:
+        stdby = "//"
+        stdby_0 = ""
 
     if nom_freq == "2.08":
         using_non_default_freq = ""
@@ -29,6 +36,8 @@ def get_substs(mode="OSCH", nom_freq="2.08"):
 
     return dict(comment=comment,
                 nom_freq=nom_freq,
+                stdby=stdby,
+                stdby_0=stdby_0,
                 using_non_default_freq=using_non_default_freq,
                 using_default_freq=using_default_freq)
 
@@ -38,10 +47,13 @@ def main():
     empty_bitfile = cfg.build_design(cfg.ncl, {})
     cfg.ncl = "osc.ncl"
 
+    nonrouting.fuzz_enum_setting(cfg, "OSCH.STDBY", ["0", "1"],
+                                 lambda x: get_substs(stdby=x), empty_bitfile)
+    nonrouting.fuzz_enum_setting(cfg, "OSCH.MODE", ["NONE", "OSCH"],
+                                 lambda x: get_substs(mode=x), empty_bitfile)
+
     # Takes a long time, so permit opt-out.
     if "-s" not in sys.argv:
-        nonrouting.fuzz_enum_setting(cfg, "OSCH.MODE", ["NONE", "OSCH"],
-                                     lambda x: get_substs(mode=x), empty_bitfile)
         nonrouting.fuzz_enum_setting(cfg, "OSCH.NOM_FREQ",
             ["{}".format(i) for i in [
                 2.08, 2.15, 2.22, 2.29, 2.38, 2.46, 2.56, 2.66, 2.77, 2.89,
