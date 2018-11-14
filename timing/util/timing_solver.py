@@ -21,7 +21,7 @@ def solve_pip_delays(ncl, sdf, debug=False):
     variables = {}
     for path in sorted(path_pip_classes.values()):
         for wire, pipclass in path:
-            if (pipclass, "delay") not in variables:
+            if (pipclass, "delay") not in variables and not pip_classes.force_zero_delay_pip(pipclass):
                 vid = len(variables)
                 variables[pipclass, "delay"] = vid
             if not pip_classes.force_zero_fanout_pip(pipclass):
@@ -35,9 +35,15 @@ def solve_pip_delays(ncl, sdf, debug=False):
     A = numpy.zeros((len(path_pip_classes), len(variables)))
     for arc, path in sorted(path_pip_classes.items()):
         for wire, pipclass in path:
-            A[i, variables[pipclass, "delay"]] += 1
+            if not pip_classes.force_zero_delay_pip(pipclass):
+                A[i, variables[pipclass, "delay"]] += 1
             if not pip_classes.force_zero_fanout_pip(pipclass):
                 A[i, variables[pipclass, "fanout"]] += wire_fanout[wire, pipclass]
+            if pipclass not in data:
+                data[pipclass] = {
+                    "delay": [0, 0, 0],
+                    "fanout": [0, 0, 0],
+                }
         i += 1
 
     for corner in corners:
@@ -53,11 +59,6 @@ def solve_pip_delays(ncl, sdf, debug=False):
         x, rnorm = optimize.nnls(A, b)
         for var, j in sorted(variables.items()):
             pipclass, vartype = var
-            if pipclass not in data:
-                data[pipclass] = {
-                    "delay": [0, 0, 0],
-                    "fanout": [0, 0, 0],
-                }
             data[pipclass][vartype][corners.index(corner)] = x[j]
     if debug:
         error = numpy.matmul(A, x) - b
@@ -82,7 +83,7 @@ def solve_pip_delays(ncl, sdf, debug=False):
     return data
 
 def main():
-    data = solve_pip_delays(sys.argv[1], sys.argv[2])
+    data = solve_pip_delays(sys.argv[1], sys.argv[2], debug=True)
     with open("out.json", "w") as f:
         json.dump(data, f, indent=4, sort_keys=True)
 

@@ -73,6 +73,102 @@ def get_pip_class(source, sink):
     else:
         return None
 
+# Force these pip classes to have a 0 fanout adder for a better solution
+zero_fanout_classes = {
+    "span0hr_to_ce",
+    "span0vt_to_lsr",
+    "span1he_to_m",
+    "span1he_to_m_w1",
+    "span1he_to_span2vn_n1",
+    "span1he_to_span6he_e3",
+    "span1hw_to_m",
+    "span1hw_to_m_w1",
+    "span1hw_to_span6hw_w4",
+    "span1vn_to_span2vn_n1",
+    "span1vn_to_span6he_e3",
+    "span1vn_to_span6hw_w3",
+    "span2he_to_lsr",
+    "span2he_to_lsr_e1",
+    "span2he_to_m",
+    "span2he_to_span2vn_n1",
+    "span2he_to_span2vn_n1e1",
+    "span2he_to_span6he_e4",
+    "span2hw_to_lsr",
+    "span2hw_to_lsr_w1",
+    "span2hw_to_m",
+    "span2hw_to_m_w1",
+    "span2hw_to_span2vn_n1",
+    "span2hw_to_span2vn_n1w1",
+    "span2hw_to_span6hw_w4",
+    "span6vs_to_span1vs_s3",
+    "span6vn_to_span6he_e3",
+    "span6vn_to_span6he_n3e3",
+    "span6vn_to_span6hw_w3",
+    "span6vs_to_span2vn_s2",
+    "span6vs_to_span6he_e3",
+    "span6vs_to_span6hw_s3w3",
+}
+
 
 def force_zero_fanout_pip(name):
-    return name.startswith("jf") or name.startswith("jq")
+    return name.startswith("jf") or name.startswith("jq") or "to_j" in name or name.startswith("q_to_") or name == "slice_internal" or name == "ebr_internal" or name in zero_fanout_classes
+
+# Force these pip classes to have zero delay to avoid linear dependence and unstable results
+
+zero_delay_classes = {
+    "ebr_internal",
+    "f_to_span1he_e1",
+    "f_to_span1hw",
+    "f_to_span1vs",
+    "f_to_span2vn_n1",
+    "f_to_span6hw_w3",
+    "jf_to_span1he_e1",
+    "jf_to_span1hw",
+    "jf_to_span2vn_n1",
+    "jq_to_span1hw",
+    "jq_to_span6hw_w3",
+    "lsr_to_muxlsr",
+    "q_to_span1hw",
+    "q_to_span1vs",
+    "q_to_span2vn_n1",
+    "q_to_span6he_e3",
+    "q_to_span6hw_w3",
+    "span0hl_to_c"
+    "span0hl_to_ce",
+    "span0hl_to_d",
+    "span0hl_to_m",
+    "span0vt_to_lsr",
+    "span1he_to_span2vn_n1",
+    "span1he_to_span6he_e3",
+    "span1hw_to_span6hw_w4",
+    "span1vn_to_span2vn_n1",
+    "span1vn_to_span6he_e3",
+    "span1vn_to_span6hw_w3",
+    "span2he_to_lsr",
+    "span2he_to_lsr_e1",
+    "span2he_to_span2vn_n1",
+    "span2he_to_span2vn_n1e1",
+    "span2he_to_span6he_e4",
+    "span2hw_to_lsr",
+    "span2hw_to_lsr_w1",
+    "span2hw_to_span2vn_n1",
+    "span2hw_to_span2vn_n1w1",
+    "span2hw_to_span6hw_w4",
+    "span2vs_to_c",
+    "span2vs_to_d",
+    "span2vs_to_span0hr",
+    "span2vs_to_span0vb",
+    "span6vn_to_span1vs_n3",
+    "span6vs_to_span1vs_s3",
+    "span6vs_to_span2vn_s2",
+    "span6vs_to_span6hw_w3",
+    "span6vn_to_span6he_e3",
+    "span6vn_to_span6he_n3e3",
+    "span6vn_to_span6hw_w3",
+    "span6vs_to_span2vn_s2",
+    "span6vs_to_span6he_e3",
+    "span6vs_to_span6hw_s3w3"
+}
+
+def force_zero_delay_pip(name):
+    return name in zero_delay_classes
