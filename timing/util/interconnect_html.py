@@ -4,7 +4,7 @@ import timing_dbs
 import pip_classes
 
 
-def make_cell_timing_html(dbfile, family, grade, htmlfile):
+def make_interconn_timing_html(dbfile, family, grade, htmlfile):
     with open(dbfile, 'r') as f:
         db = json.load(f)
     with open(htmlfile, 'w') as html:
