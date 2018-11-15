@@ -19,14 +19,14 @@ def is_denorm(wire):
 
 
 def get_distance(a, b):
-    ra, ca = tiles.pos_from_name(a)
-    rb, cb = tiles.pos_from_name(b)
+    ra, ca = tiles.pos_from_name(a, (126, 95), 0)
+    rb, cb = tiles.pos_from_name(b, (126, 95), 0)
     return abs(ra-rb) + abs(ca-cb)
 
 
 def format_rel(a, b):
-    ra, ca = tiles.pos_from_name(a)
-    rb, cb = tiles.pos_from_name(b)
+    ra, ca = tiles.pos_from_name(a, (126, 95), 0)
+    rb, cb = tiles.pos_from_name(b, (126, 95), 0)
     rel = ""
     if rb < ra:
         rel += "n{}".format(ra-rb)
@@ -107,6 +107,12 @@ zero_fanout_classes = {
     "span6vs_to_span2vn_s2",
     "span6vs_to_span6he_e3",
     "span6vs_to_span6hw_s3w3",
+    "span1he_to_span1hw",
+    "span1vn_to_m_s1",
+    "span1vs_to_m",
+    "span6he_to_span1he_e3",
+    "span2vs_to_c",
+    "span0hr_to_m",
 }
 
 
@@ -154,7 +160,6 @@ zero_delay_classes = {
     "span2hw_to_span2vn_n1",
     "span2hw_to_span2vn_n1w1",
     "span2hw_to_span6hw_w4",
-    "span2vs_to_c",
     "span2vs_to_d",
     "span2vs_to_span0hr",
     "span2vs_to_span0vb",
@@ -167,7 +172,10 @@ zero_delay_classes = {
     "span6vn_to_span6hw_w3",
     "span6vs_to_span2vn_s2",
     "span6vs_to_span6he_e3",
-    "span6vs_to_span6hw_s3w3"
+    "span6vs_to_span6hw_s3w3",
+    "span1he_to_span1hw",
+    "span6he_to_span1he_e3",
+
 }
 
 def force_zero_delay_pip(name):
