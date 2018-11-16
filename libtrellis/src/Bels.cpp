@@ -1,5 +1,7 @@
 #include "Bels.hpp"
 #include "Util.hpp"
+#include "Database.hpp"
+#include "BitDatabase.hpp"
 namespace Trellis {
 namespace Bels {
 
@@ -290,6 +292,78 @@ void add_pll(RoutingGraph &graph, std::string quad, int x, int y) {
     add_output("CLKOS2");
     add_output("CLKOS3");
 
+    graph.add_bel(bel);
+}
+
+void add_dcu(RoutingGraph &graph, int x, int y) {
+    // Just import from routing db
+    auto tdb = get_tile_bitdata(TileLocator{"ECP5", "LFE5UM5G-45F", "DCU0"});
+    string name = string("DCU");
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("DCUA");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    bel.z = 0;
+
+    auto endswith = [](const std::string &net, const std::string &ending) {
+        return net.substr(net.size()-ending.size(), ending.size()) == ending;
+    };
+
+    auto is_pin = [endswith](const std::string &net) {
+        if(!endswith(net, "_DCU"))
+            return false;
+        char c = net.front();
+        return c != 'N' && c != 'E' && c != 'W' && c != 'S';
+    };
+
+    auto net_to_pin = [endswith](std::string net) {
+        if (endswith(net, "_DCU"))
+            net.erase(net.size()-4, 4);
+        if (net.front() == 'J')
+            net.erase(0, 1);
+        return net;
+    };
+
+    for (const auto &conn : tdb->get_fixed_conns()) {
+        if (is_pin(conn.source))
+            graph.add_bel_output(bel, graph.ident(net_to_pin(conn.source)), x, y, graph.ident(conn.source));
+        if (is_pin(conn.sink))
+            graph.add_bel_input(bel, graph.ident(net_to_pin(conn.sink)), x, y, graph.ident(conn.sink));
+    }
+
+    graph.add_bel(bel);
+}
+
+void add_extref(RoutingGraph &graph, int x, int y) {
+    string name = string("EXTREF");
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("EXTREFB");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    bel.z = 1;
+    graph.add_bel_input(bel, graph.ident("REFCLKP"), x, y, graph.ident("REFCLKP_EXTREF"));
+    graph.add_bel_input(bel, graph.ident("REFCLKN"), x, y, graph.ident("REFCLKN_EXTREF"));
+    graph.add_bel_output(bel, graph.ident("REFCLKO"), x, y, graph.ident("JREFCLKO_EXTREF"));
+    graph.add_bel(bel);
+}
+
+void add_pcsclkdiv(RoutingGraph &graph, int x, int y, int z) {
+    string name = string("PCSCLKDIV" + std::to_string(z));
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("PCSCLKDIV");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    bel.z = z;
+    graph.add_bel_input(bel, graph.ident("CLKI"), x, y, graph.ident("CLKI_" + name));
+    graph.add_bel_input(bel, graph.ident("RST"), x, y, graph.ident("JRST_" + name));
+    graph.add_bel_input(bel, graph.ident("SEL0"), x, y, graph.ident("JSEL0_" + name));
+    graph.add_bel_input(bel, graph.ident("SEL1"), x, y, graph.ident("JSEL1_" + name));
+    graph.add_bel_input(bel, graph.ident("SEL2"), x, y, graph.ident("JSEL2_" + name));
+    graph.add_bel_output(bel, graph.ident("CDIV1"), x, y, graph.ident("CDIV1_" + name));
+    graph.add_bel_output(bel, graph.ident("CDIVX"), x, y, graph.ident("CDIVX_" + name));
     graph.add_bel(bel);
 }
 
