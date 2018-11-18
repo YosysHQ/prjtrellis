@@ -17,9 +17,7 @@ Install the dependencies for Project Trellis:
  
 Clone the Project Trellis repository and download the latest database:
 
-     git clone https://github.com/SymbiFlow/prjtrellis
-     cd prjtrellis
-     ./download-latest-db.sh
+     git clone --recursive https://github.com/SymbiFlow/prjtrellis
      
 Install _libtrellis_ and associated tools. You _must_ run `cmake` from the libtrellis directory.
 Out-of-tree builds are currently unsupported when coupled with `nextpnr`:
@@ -94,18 +92,6 @@ For a generic environment:
     source environment.sh
 
 Optionally, modify `user_environment.sh` and rerun the above command if needed.
-
-Get a head start by downloading current database:
-
-    # Give the argument;
-    # - https if you to use the https protocol (default)
-    # - git+ssh if you want to use git+ssh protocol
-    # - git if you want to use the git protocol
-    ./download-latest-db.sh
-
-Alternatively, if you want to start from scratch:
-
-    ./create-empty-db.sh
 
 Build libtrellis:
 
