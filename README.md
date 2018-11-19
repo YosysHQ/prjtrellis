@@ -71,7 +71,7 @@ this includes;
  * [Overview of DB Development Process](http://prjtrellis.readthedocs.io/en/latest/db_dev_process/overview.html)
  * [libtrellis Documentation](http://prjtrellis.readthedocs.io/en/latest/libtrellis/overview.html)
 
-This follows follows the lead of
+This follows the lead of
 [Project X-Ray](https://github.com/SymbiFlow/prjxray) - which is documenting
 the bitstream format for the Xilinx Series 7 devices.
 
