@@ -146,7 +146,7 @@ Boost::Python so that fuzzers and utilities can be written in Python.
 ### Database
 
 Running the all fuzzers in order will produce a database which documents the
-bitstream format in the [database](database) directory.
+bitstream format in the database directory.
 
 
 ## Credits
