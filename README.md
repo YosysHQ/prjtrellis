@@ -102,7 +102,7 @@ Build libtrellis:
 
 (Re-)creating parts of the database, for example LUT interconnect:
 
-    cd fuzzers/001-plc2_routing
+    cd fuzzers/ECP5/001-plc2_routing
     TRELLIS_JOBS=`nproc` python3 fuzzer.py
 
 ## Process
