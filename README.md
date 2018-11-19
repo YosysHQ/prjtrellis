@@ -68,8 +68,8 @@ More documentation can be found published on
 [prjtrellis ReadTheDocs site](http://prjtrellis.readthedocs.io/en/latest/) -
 this includes;
  * [Highlevel Bitstream Architecture](http://prjtrellis.readthedocs.io/en/latest/architecture/overview.html)
- * [Overview of DB Development Process](http://prjrellis.readthedocs.io/en/latest/db_dev_process/overview.html)
- * [libtrellis Documentation](http://prjrellis.readthedocs.io/en/latest/libtrellis/overview.html)
+ * [Overview of DB Development Process](http://prjtrellis.readthedocs.io/en/latest/db_dev_process/overview.html)
+ * [libtrellis Documentation](http://prjtrellis.readthedocs.io/en/latest/libtrellis/overview.html)
 
 This follows follows the lead of
 [Project X-Ray](https://github.com/SymbiFlow/prjxray) - which is documenting
