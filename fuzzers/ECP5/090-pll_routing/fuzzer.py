@@ -43,7 +43,7 @@ def main():
         def arc_filter(arc, netnames):
             # Skip broken PLL route-throughs
             src, dest = arc
-            return "JREFCLK_PLL" not in src or "JQ" not in dest
+            return ("JREFCLK_PLL" not in src or "JQ" not in dest) and ("CLKI_PLL" not in src or "CLKO" not in dest)
 
         interconnect.fuzz_interconnect(config=cfg, location=loc,
                                        netname_predicate=nn_filter,
