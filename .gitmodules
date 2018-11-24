@@ -1,0 +1,4 @@
+[submodule "database"]
+	path = database
+	url = git@git.ds0.me:cr1901/facade-db.git 
+	branch = facade

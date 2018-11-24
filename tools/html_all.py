@@ -17,6 +17,7 @@ import fuzzloops
 import pytrellis
 import cell_html
 import timing_dbs
+import interconnect_html
 
 trellis_docs_index = """
 <html>
@@ -124,7 +125,20 @@ def main(argv):
                 )
                 cell_html.make_cell_timing_html(timing_dbs.cells_db_path(fam, spgrade), fam, spgrade,
                                                 path.join(tdir, 'cell_timing_{}.html'.format(spgrade)))
-        docs_toc += "</ul>"
+            docs_toc += "</ul>"
+            docs_toc += "<h4>Interconnect Timing Documentation</h4>"
+            docs_toc += "<ul>"
+            for spgrade in ["6", "7", "8", "8_5G"]:
+                tdir = path.join(fdir, "timing")
+                if not path.exists(tdir):
+                    os.mkdir(tdir)
+                docs_toc += '<li><a href="{}">Speed Grade -{}</a></li>'.format(
+                    '{}/timing/interconn_timing_{}.html'.format(fam, spgrade),
+                    spgrade
+                )
+                interconnect_html.make_interconn_timing_html(timing_dbs.interconnect_db_path(fam, spgrade), fam, spgrade,
+                                                path.join(tdir, 'interconn_timing_{}.html'.format(spgrade)))
+            docs_toc += "</ul>"
 
     index_html = Template(trellis_docs_index).substitute(
         datetime=build_dt,

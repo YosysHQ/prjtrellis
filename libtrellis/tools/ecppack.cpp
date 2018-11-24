@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     options.add_options()("usercode", po::value<uint32_t>(), "USERCODE to set in bitstream");
     options.add_options()("idcode", po::value<uint32_t>(), "IDCODE to override in bitstream");
     options.add_options()("freq", po::value<std::string>(), "config frequency in MHz");
-    options.add_options()("svf", po::value<std::string>(), "SVF file to write");
+    options.add_options()("svf", po::value<std::string>(), "output SVF file");
     options.add_options()("svf-rowsize", po::value<int>(), "SVF row size in bits (default 8000)");
 
     po::positional_options_description pos;
