@@ -302,6 +302,16 @@ def canonicalise_name(chip_size, tile, wire, bias):
     return "R{}C{}_{}".format(wire_pos[0], wire_pos[1], wire)
 
 
+# Useful functions for constructing nets.
+def char_range(c1, c2):
+    """Generates the characters from `c1` to `c2`, exclusive."""
+    for c in range(ord(c1), ord(c2)):
+        yield chr(c)
+
+def net_product(net_list, range_iter):
+    return [n.format(*i) for i in range_iter for n in net_list]
+
+
 def main():
     assert is_global("R2C7_HPBX0100")
     assert is_global("R24C12_VPTX0700")
