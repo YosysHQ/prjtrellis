@@ -6,7 +6,7 @@ module top(input clk, input btn, output [7:0] led);
     reg dir = 0;
 
     always@(posedge clk) begin
-    ctr <= btn ? ctr : (dir ? ctr - 1'b1 : ctr + 1'b1);
+    ctr <= dir ? ctr - 1'b1 - btn: ctr + 1'b1 + btn;
         if (ctr[ctr_width-1 : ctr_width-3] == 0 && dir == 1)
             dir <= 1'b0;
         else if (ctr[ctr_width-1 : ctr_width-3] == 7 && dir == 0)
