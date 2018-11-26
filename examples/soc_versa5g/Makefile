@@ -13,11 +13,11 @@ attosoc_tb.vvp: attosoc_tb.v attosoc.v picorv32.v simpleuart.v
 attosoc_sim: attosoc_tb.vvp firmware.hex
 	vvp -N $<
 
-attosoc.json: io_wrapper.v attosoc.v picorv32.v firmware.hex
-	yosys -p "synth_ecp5 -nomux -json $@ -top top" io_wrapper.v attosoc.v picorv32.v simpleuart.v
+attosoc.json: top.v pll.v attosoc.v picorv32.v firmware.hex
+	yosys -p "synth_ecp5 -json $@ -top top" top.v pll.v attosoc.v picorv32.v simpleuart.v
 
-attosoc_out.config: attosoc.json
-	nextpnr-ecp5 --json $< --basecfg ../../misc/basecfgs/empty_lfe5um5g-45f.config --textcfg $@ --um5g-45k
+attosoc_out.config: attosoc.json versa.lpf
+	nextpnr-ecp5 --json attosoc.json --lpf versa.lpf --basecfg ../../misc/basecfgs/empty_lfe5um5g-45f.config --textcfg $@ --um5g-45k --freq 50
 
 attosoc.bit: attosoc_out.config
 	ecppack $< $@
