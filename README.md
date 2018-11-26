@@ -68,10 +68,10 @@ More documentation can be found published on
 [prjtrellis ReadTheDocs site](http://prjtrellis.readthedocs.io/en/latest/) -
 this includes;
  * [Highlevel Bitstream Architecture](http://prjtrellis.readthedocs.io/en/latest/architecture/overview.html)
- * [Overview of DB Development Process](http://prjrellis.readthedocs.io/en/latest/db_dev_process/overview.html)
- * [libtrellis Documentation](http://prjrellis.readthedocs.io/en/latest/libtrellis/overview.html)
+ * [Overview of DB Development Process](http://prjtrellis.readthedocs.io/en/latest/db_dev_process/overview.html)
+ * [libtrellis Documentation](http://prjtrellis.readthedocs.io/en/latest/libtrellis/overview.html)
 
-This follows follows the lead of
+This follows the lead of
 [Project X-Ray](https://github.com/SymbiFlow/prjxray) - which is documenting
 the bitstream format for the Xilinx Series 7 devices.
 
@@ -102,7 +102,7 @@ Build libtrellis:
 
 (Re-)creating parts of the database, for example LUT interconnect:
 
-    cd fuzzers/001-plc2_routing
+    cd fuzzers/ECP5/001-plc2_routing
     TRELLIS_JOBS=`nproc` python3 fuzzer.py
 
 ## Process
@@ -145,9 +145,25 @@ Boost::Python so that fuzzers and utilities can be written in Python.
 
 ### Database
 
-Running the all fuzzers in order will produce a database which documents the
-bitstream format in the [database](database) directory.
+Instead of downloading the
+[compiled part database](https://github.com/SymbiFlow/prjtrellis-db),
+it can also be created from scratch. However, this procedure
+takes several hours, even on a decent workstation.
+First, the empty reference bitstreams and the tile layout must be created
+based on the initial knowledge provided in the [metadata](metadata)
+directory.
+Then, running all fuzzers in order will produce a database which
+documents the bitstream format in the database directory.
 
+UMG and UM5G devices may be stripped from [devices.json](devices.json)
+to ceate the database only for non-SERDES chip variants.
+Obviously, SERDES related fuzzers are not able to run in this case.
+
+    source environment.sh
+    ./create-empty-db.sh
+    cd fuzzers/ECP5/001-plc2_routing
+    TRELLIS_JOBS=`nproc` python3 fuzzer.py
+    ... (run more fuzzers)
 
 ## Credits
 
