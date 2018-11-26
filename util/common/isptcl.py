@@ -10,6 +10,26 @@ import tempfile
 from os import path
 import re
 
+
+# Arc whose direction is ambiguous "---"
+class AmbiguousArc:
+    # I
+    def __init__(self, lhs, rhs):
+        self.lhs = lhs
+        self.rhs = rhs
+
+    def __getitem__(self, idx):
+        if idx == 0:
+            return self.lhs
+        elif idx == 1:
+            return self.rhs
+        else:
+            raise IndexError("AmbiguousArc only connects two nets")
+
+    def __repr__(self):
+        return "{} --- {}".format(self.lhs, self.rhs)
+
+
 def run(commands):
     """Run a list of Tcl commands, returning the output as a string"""
     dtcl_path = path.join(database.get_trellis_root(), "diamond_tcl.sh")
@@ -136,6 +156,8 @@ def get_arcs_on_wires(desfiles, wires, drivers_only=False, dir_override=dict()):
                             arcs.append((splitline[0].strip(), splitline[2].strip()))
                         elif override == "driver":
                             arcs.append((splitline[2].strip(), splitline[0].strip()))
+                        elif override == "mark":
+                            arcs.append(AmbiguousArc(splitline[0].strip(), splitline[2].strip()))
                         elif override == "ignore":
                             pass
                         else:
