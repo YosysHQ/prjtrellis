@@ -309,7 +309,7 @@ def char_range(c1, c2):
         yield chr(c)
 
 def net_product(net_list, range_iter):
-    return [n.format(*i) for i in range_iter for n in net_list]
+    return [n.format(i) for i in range_iter for n in net_list]
 
 
 def main():
