@@ -17,6 +17,7 @@ void add_pll(RoutingGraph &graph, std::string quad, int x, int y);
 void add_dcu(RoutingGraph &graph, int x, int y);
 void add_extref(RoutingGraph &graph, int x, int y);
 void add_pcsclkdiv(RoutingGraph &graph, int x, int y, int z);
+void add_iologic(RoutingGraph &graph, int x, int y, int z, bool s);
 }
 }
 
