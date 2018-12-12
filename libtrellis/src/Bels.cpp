@@ -367,6 +367,81 @@ void add_pcsclkdiv(RoutingGraph &graph, int x, int y, int z) {
     graph.add_bel(bel);
 }
 
+void add_iologic(RoutingGraph &graph, int x, int y, int z, bool s) {
+    char l = "ABCD"[z];
+    std::string ss = s ? "S" : "";
+    string name = ss + string("IOLOGIC") + l;
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident(ss + "IOLOGIC");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    bel.z = z;
+
+    auto add_input = [&](const std::string &pin, bool j = true) {
+        graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << l << "_" << ss << "IOLOGIC")));
+    };
+    auto add_output = [&](const std::string &pin, bool j = true) {
+        graph.add_bel_output(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << l << "_" << ss << "IOLOGIC")));
+    };
+
+    add_input("DI", false);
+    add_output("IOLDO", false);
+    add_output("IOLDOD", false);
+    add_input("IOLDOI", false);
+    add_output("IOLTO", false);
+    add_output("INDD", false);
+
+    add_input("PADDI", false);
+
+    add_input("CLK");
+    add_input("CE");
+    add_input("LSR");
+
+    add_input("LOADN");
+    add_input("MOVE");
+    add_input("DIRECTION");
+
+    add_input("TSDATA0");
+    add_input("TXDATA0");
+    add_input("TXDATA1");
+
+    add_output("RXDATA0");
+    add_output("RXDATA1");
+    add_output("INFF");
+    add_output("CFLAG");
+
+    if (!s) {
+        add_input("ECLK", false);
+
+        add_input("TSDATA1");
+        add_input("TXDATA2");
+        add_input("TXDATA3");
+        add_output("RXDATA2");
+        add_output("RXDATA3");
+        if (z % 2 == 0) {
+            add_input("TXDATA4");
+            add_input("TXDATA5");
+            add_input("TXDATA6");
+            add_output("RXDATA4");
+            add_output("RXDATA5");
+            add_output("RXDATA6");
+        }
+
+        add_input("DQSR90", false);
+        add_input("DQSW270", false);
+        add_input("DQSW", false);
+
+        add_input("RDPNTR0", false);
+        add_input("RDPNTR1", false);
+        add_input("RDPNTR2", false);
+        add_input("WRPNTR0", false);
+        add_input("WRPNTR1", false);
+        add_input("WRPNTR2", false);
+    }
+
+    graph.add_bel(bel);
+}
 
 }
 }

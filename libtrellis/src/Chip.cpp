@@ -125,11 +125,15 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
         }
         // PIO Bels
         if (tile->info.type.find("PICL0") != string::npos || tile->info.type.find("PICR0") != string::npos)
-            for (int z = 0; z < 4; z++)
+            for (int z = 0; z < 4; z++) {
                 Bels::add_pio(*rg, x, y, z);
+                Bels::add_iologic(*rg, x, y, z, false);
+            }
         if (tile->info.type.find("PIOT0") != string::npos || (tile->info.type.find("PICB0") != string::npos && tile->info.type != "SPICB0"))
-            for (int z = 0; z < 2; z++)
+            for (int z = 0; z < 2; z++) {
                 Bels::add_pio(*rg, x, y, z);
+                Bels::add_iologic(*rg, x, y, z, true);
+            }
         // DCC Bels
         if (tile->info.type == "LMID_0")
             for (int z = 0; z < 14; z++)
