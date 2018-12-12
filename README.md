@@ -81,7 +81,7 @@ Currently Project Trellis is tested on Arch Linux, Ubuntu 17.10 and
 Ubuntu 16.04.
 
 Install the dependencies:
- - Lattice Diamond 3.10
+ - Lattice Diamond 3.10  **(only required if you want to run fuzzers, not required as an end user or to explore the database)**
  - Python 3.5 or later, including development libraries (`python3-dev` on Ubuntu)
  - A modern C++14 compiler (Clang is recommended)
  - CMake 3.5 or later
