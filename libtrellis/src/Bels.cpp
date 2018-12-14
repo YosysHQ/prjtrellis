@@ -379,7 +379,7 @@ void add_iologic(RoutingGraph &graph, int x, int y, int z, bool s) {
     bel.type = graph.ident(ss + "IOLOGIC");
     bel.loc.x = x;
     bel.loc.y = y;
-    bel.z = z + 4;
+    bel.z = z + (s ? 2 : 4);
 
     auto add_input = [&](const std::string &pin, bool j = true) {
         graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << l << "_" << ss << "IOLOGIC")));
