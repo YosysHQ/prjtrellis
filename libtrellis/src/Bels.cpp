@@ -97,6 +97,9 @@ void add_pio(RoutingGraph &graph, int x, int y, int z) {
     graph.add_bel_input(bel, graph.ident("T"), x, y, graph.ident(fmt("PADDT" << l << "_PIO")));
     graph.add_bel_output(bel, graph.ident("O"), x, y, graph.ident(fmt("JPADDI" << l << "_PIO")));
 
+    graph.add_bel_input(bel, graph.ident("IOLDO"), x, y, graph.ident(fmt("IOLDO" << l << "_PIO")));
+    graph.add_bel_input(bel, graph.ident("IOLTO"), x, y, graph.ident(fmt("IOLTO" << l << "_PIO")));
+
     graph.add_bel(bel);
 }
 
@@ -376,7 +379,7 @@ void add_iologic(RoutingGraph &graph, int x, int y, int z, bool s) {
     bel.type = graph.ident(ss + "IOLOGIC");
     bel.loc.x = x;
     bel.loc.y = y;
-    bel.z = z;
+    bel.z = z + 4;
 
     auto add_input = [&](const std::string &pin, bool j = true) {
         graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << l << "_" << ss << "IOLOGIC")));
