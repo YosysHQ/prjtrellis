@@ -12,6 +12,7 @@ using namespace std;
 
 namespace Trellis {
 enum class BitstreamCommand : uint8_t {
+    SPI_MODE = 0b01111001,
     LSC_RESET_CRC = 0b00111011,
     VERIFY_ID = 0b11100010,
     LSC_WRITE_COMP_DIC = 0b00000010,
