@@ -35,10 +35,21 @@ f_out = f_vco / output
 #define VCO_MIN 400.0f
 #define VCO_MAX 800.0f
 #include <iostream>
+#include <limits>
 #include <boost/program_options.hpp>
 using namespace std;
 
 
+struct pll_params{
+  int refclk_div;
+  int feedback_div;
+  int output_div;
+
+  float fout;
+  float fvco;
+};
+
+pll_params calc_pll_params(float input, float output);
 
 int main(int argc, char** argv){
   namespace po = boost::program_options;
@@ -73,5 +84,47 @@ int main(int argc, char** argv){
 	    outputf, OUTPUT_MIN, OUTPUT_MAX);
     return 1;
   }
+  pll_params params = calc_pll_params(inputf, outputf);
 
+  fprintf(stdout, "Pll parameters:\n");
+  fprintf(stdout, "Refclk divisor: %d\n", params.refclk_div);
+  fprintf(stdout, "Feedback divisor: %d\n", params.feedback_div);
+  fprintf(stdout, "Output divisor: %d\n", params.output_div);
+  fprintf(stdout, "VCO frequency: %f\n", params.fvco);
+  fprintf(stdout, "Output frequency: %f\n", params.fout);
+
+}
+
+pll_params calc_pll_params(float input, float output){
+  float error = std::numeric_limits<float>::max();
+  pll_params params = {0};
+  for(int input_div=1;input_div <= 128; input_div++){
+
+    float fpfd = input / (float)input_div;
+    if(fpfd < PFD_MIN || fpfd > PFD_MAX)
+      continue;
+    for(int feedback_div=1;feedback_div <= 80; feedback_div++){
+      for(int output_div=1;output_div <= 128; output_div++){
+	float fvco = fpfd * (float)feedback_div * (float) output_div;
+	
+	if(fvco < VCO_MIN || fvco > VCO_MAX)
+	  continue;
+
+	float fout = fvco / (float) output_div;
+	if(fabsf(fout - output) < error ||
+	   (fabsf(fout-output) == error && fabsf(fvco - 600) < fabsf(params.fvco - 600))){
+	  error = fabsf(fout-output);
+	  params.refclk_div = input_div;
+	  params.feedback_div = feedback_div;
+	  params.output_div = output_div;
+	  params.fout = fout;
+	  params.fvco = fvco;
+
+	}
+
+      }
+    }
+  }
+  return params;
+  
 }
