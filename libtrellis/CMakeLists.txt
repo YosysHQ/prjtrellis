@@ -131,10 +131,15 @@ target_compile_definitions(ecpunpack PRIVATE TRELLIS_PREFIX="${CMAKE_INSTALL_PRE
 target_link_libraries(ecpunpack trellis ${Boost_LIBRARIES} ${link_param})
 setup_rpath(ecpunpack)
 
+add_executable(ecppll ${INCLUDE_FILES} tools/ecppll.cpp)
+target_compile_definitions(ecppll PRIVATE TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
+target_link_libraries(ecppll trellis ${Boost_LIBRARIES} ${link_param})
+setup_rpath(ecppll)
+
 if (BUILD_SHARED)
-    install(TARGETS trellis ecppack ecpunpack LIBRARY DESTINATION lib  RUNTIME DESTINATION bin)
+    install(TARGETS trellis ecppack ecppll ecpunpack LIBRARY DESTINATION lib  RUNTIME DESTINATION bin)
 else()
-    install(TARGETS ecppack ecpunpack RUNTIME DESTINATION bin)
+    install(TARGETS ecppack ecpunpack ecppll RUNTIME DESTINATION bin)
 endif()
 install(DIRECTORY ../database DESTINATION share/trellis PATTERN ".git" EXCLUDE)
 install(DIRECTORY ../misc DESTINATION share/trellis)
