@@ -50,6 +50,7 @@ struct pll_params{
 };
 
 pll_params calc_pll_params(float input, float output);
+void write_pll_config(pll_params params, const char* name, FILE* file);
 
 int main(int argc, char** argv){
   namespace po = boost::program_options;
@@ -58,6 +59,7 @@ int main(int argc, char** argv){
   options.add_options()("help,h", "show help");
   options.add_options()("input,i", po::value<float>()->required(), "Input frequency in MHz");
   options.add_options()("output,o", po::value<float>()->required(), "Output frequency in MHz");
+  options.add_options()("file,f", po::value<string>(), "Output to file");
 
   po::variables_map vm;
   po::parsed_options parsed = po::command_line_parser(argc, argv).options(options).run();
@@ -92,6 +94,18 @@ int main(int argc, char** argv){
   fprintf(stdout, "Output divisor: %d\n", params.output_div);
   fprintf(stdout, "VCO frequency: %f\n", params.fvco);
   fprintf(stdout, "Output frequency: %f\n", params.fout);
+  if(vm.count("file")){
+    FILE *f = NULL;
+
+    if(vm["file"].as<string>() == "-")
+      f = stdout;
+    else
+      f = fopen(vm["file"].as<string>().c_str(), "w");
+
+    
+    write_pll_config(params, "pll", f);
+
+  }
 
 }
 
@@ -126,5 +140,37 @@ pll_params calc_pll_params(float input, float output){
     }
   }
   return params;
-  
+}
+
+void write_pll_config(pll_params params, const char* name,  FILE* file){
+  fprintf(file, "module %s(input clki, output clko);\n", name);
+  fprintf(file, "(* ICP_CURRENT=\"12\" *) (* LPF_RESISTOR=\"8\" *) (* MFG_ENABLE_FILTEROPAMP=\"1\" *) (* MFG_GMCREF_SEL=\"2\" *)\n");
+  fprintf(file, "EHXPLLL #(\n");
+  fprintf(file, "        .PLLRST_ENA(\"DISABLED\"),\n");
+  fprintf(file, "        .INTFB_WAKE(\"DISABLED\"),\n");
+  fprintf(file, "        .STDBY_ENABLE(\"DISABLED\"),\n");
+  fprintf(file, "        .DPHASE_SOURCE(\"DISABLED\"),\n");
+  fprintf(file, "        .CLKOP_FPHASE(0),\n");
+  fprintf(file, "        .CLKOP_CPHASE(11),\n");
+  fprintf(file, "        .OUTDIVIDER_MUXA(\"DIVA\"),\n");
+  fprintf(file, "        .CLKOP_ENABLE(\"ENABLED\")\n");
+  fprintf(file, "        .CLKOP_DIV(%d),\n", params.output_div);
+  fprintf(file, "        .CLKFB_DIV(%d),\n", params.feedback_div);
+  fprintf(file, "        .CLKI_DIV(%d),\n", params.refclk_div);
+  fprintf(file, "        .FEEDBK_PATH(\"CLKOP\")\n");
+  fprintf(file, "    ) pll_i (\n");
+  fprintf(file, "        .CLKI(clki),\n");
+  fprintf(file, "        .CLKFB(clko),\n");
+  fprintf(file, "        .CLKOP(clko),\n");
+  fprintf(file, "        .RST(1'b0),\n");
+  fprintf(file, "        .STDBY(1'b0),\n");
+  fprintf(file, "        .PHASESEL0(1'b0),\n");
+  fprintf(file, "        .PHASESEL1(1'b0),\n");
+  fprintf(file, "        .PHASEDIR(1'b0),\n");
+  fprintf(file, "        .PHASESTEP(1'b0),\n");
+  fprintf(file, "        .PLLWAKESYNC(1'b0),\n");
+  fprintf(file, "        .ENCLKOP(1'b0),\n");
+  fprintf(file, "	);\n");
+  fprintf(file, "endmodule\n");
+
 }
