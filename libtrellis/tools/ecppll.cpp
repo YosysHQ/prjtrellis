@@ -36,6 +36,7 @@ f_out = f_vco / output
 #define VCO_MAX 800.0f
 #include <iostream>
 #include <limits>
+#include <fstream>
 #include <boost/program_options.hpp>
 using namespace std;
 
@@ -50,7 +51,7 @@ struct pll_params{
 };
 
 pll_params calc_pll_params(float input, float output);
-void write_pll_config(pll_params params, const char* name, FILE* file);
+void write_pll_config(pll_params params, const char* name, ofstream& file);
 
 int main(int argc, char** argv){
   namespace po = boost::program_options;
@@ -95,16 +96,17 @@ int main(int argc, char** argv){
   fprintf(stdout, "VCO frequency: %f\n", params.fvco);
   fprintf(stdout, "Output frequency: %f\n", params.fout);
   if(vm.count("file")){
-    FILE *f = NULL;
+    ofstream f;
 
-    if(vm["file"].as<string>() == "-")
-      f = stdout;
-    else
-      f = fopen(vm["file"].as<string>().c_str(), "w");
+    // if(vm["file"].as<string>() == "-")
+    //   f = stdout;
+    // else
+    f.open(vm["file"].as<string>().c_str());
 
     
     write_pll_config(params, "pll", f);
 
+    f.close();
   }
 
 }
@@ -142,35 +144,35 @@ pll_params calc_pll_params(float input, float output){
   return params;
 }
 
-void write_pll_config(pll_params params, const char* name,  FILE* file){
-  fprintf(file, "module %s(input clki, output clko);\n", name);
-  fprintf(file, "(* ICP_CURRENT=\"12\" *) (* LPF_RESISTOR=\"8\" *) (* MFG_ENABLE_FILTEROPAMP=\"1\" *) (* MFG_GMCREF_SEL=\"2\" *)\n");
-  fprintf(file, "EHXPLLL #(\n");
-  fprintf(file, "        .PLLRST_ENA(\"DISABLED\"),\n");
-  fprintf(file, "        .INTFB_WAKE(\"DISABLED\"),\n");
-  fprintf(file, "        .STDBY_ENABLE(\"DISABLED\"),\n");
-  fprintf(file, "        .DPHASE_SOURCE(\"DISABLED\"),\n");
-  fprintf(file, "        .CLKOP_FPHASE(0),\n");
-  fprintf(file, "        .CLKOP_CPHASE(11),\n");
-  fprintf(file, "        .OUTDIVIDER_MUXA(\"DIVA\"),\n");
-  fprintf(file, "        .CLKOP_ENABLE(\"ENABLED\")\n");
-  fprintf(file, "        .CLKOP_DIV(%d),\n", params.output_div);
-  fprintf(file, "        .CLKFB_DIV(%d),\n", params.feedback_div);
-  fprintf(file, "        .CLKI_DIV(%d),\n", params.refclk_div);
-  fprintf(file, "        .FEEDBK_PATH(\"CLKOP\")\n");
-  fprintf(file, "    ) pll_i (\n");
-  fprintf(file, "        .CLKI(clki),\n");
-  fprintf(file, "        .CLKFB(clko),\n");
-  fprintf(file, "        .CLKOP(clko),\n");
-  fprintf(file, "        .RST(1'b0),\n");
-  fprintf(file, "        .STDBY(1'b0),\n");
-  fprintf(file, "        .PHASESEL0(1'b0),\n");
-  fprintf(file, "        .PHASESEL1(1'b0),\n");
-  fprintf(file, "        .PHASEDIR(1'b0),\n");
-  fprintf(file, "        .PHASESTEP(1'b0),\n");
-  fprintf(file, "        .PLLWAKESYNC(1'b0),\n");
-  fprintf(file, "        .ENCLKOP(1'b0),\n");
-  fprintf(file, "	);\n");
-  fprintf(file, "endmodule\n");
+void write_pll_config(pll_params params, const char* name,  ofstream& file){
+  file << "module " << name << "(input clki, output clko);\n";
+  file << "(* ICP_CURRENT=\"12\" *) (* LPF_RESISTOR=\"8\" *) (* MFG_ENABLE_FILTEROPAMP=\"1\" *) (* MFG_GMCREF_SEL=\"2\" *)\n";
+  file << "EHXPLLL #(\n";
+  file << "        .PLLRST_ENA(\"DISABLED\"),\n";
+  file << "        .INTFB_WAKE(\"DISABLED\"),\n";
+  file << "        .STDBY_ENABLE(\"DISABLED\"),\n";
+  file << "        .DPHASE_SOURCE(\"DISABLED\"),\n";
+  file << "        .CLKOP_FPHASE(0),\n";
+  file << "        .CLKOP_CPHASE(11),\n";
+  file << "        .OUTDIVIDER_MUXA(\"DIVA\"),\n";
+  file << "        .CLKOP_ENABLE(\"ENABLED\"),\n";
+  file << "        .CLKOP_DIV(" << params.output_div << "),\n";
+  file << "        .CLKFB_DIV(" << params.feedback_div << "),\n";
+  file << "        .CLKI_DIV(" << params.refclk_div <<"),\n";
+  file << "        .FEEDBK_PATH(\"CLKOP\")\n";
+  file << "    ) pll_i (\n";
+  file << "        .CLKI(clki),\n";
+  file << "        .CLKFB(clko),\n";
+  file << "        .CLKOP(clko),\n";
+  file << "        .RST(1'b0),\n";
+  file << "        .STDBY(1'b0),\n";
+  file << "        .PHASESEL0(1'b0),\n";
+  file << "        .PHASESEL1(1'b0),\n";
+  file << "        .PHASEDIR(1'b0),\n";
+  file << "        .PHASESTEP(1'b0),\n";
+  file << "        .PLLWAKESYNC(1'b0),\n";
+  file << "        .ENCLKOP(1'b0),\n";
+  file << "	);\n";
+  file << "endmodule\n";
 
 }
