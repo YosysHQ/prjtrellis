@@ -45,12 +45,14 @@ struct pll_params{
   int refclk_div;
   int feedback_div;
   int output_div;
+  int secondary_div;
 
   float fout;
   float fvco;
 };
 
 pll_params calc_pll_params(float input, float output);
+pll_params calc_pll_params_highres(float input, float output);
 void write_pll_config(pll_params params, const char* name, ofstream& file);
 
 int main(int argc, char** argv){
@@ -58,9 +60,10 @@ int main(int argc, char** argv){
   po::options_description options("Allowed options");
 
   options.add_options()("help,h", "show help");
-  options.add_options()("input,i", po::value<float>()->required(), "Input frequency in MHz");
-  options.add_options()("output,o", po::value<float>()->required(), "Output frequency in MHz");
+  options.add_options()("input,i", po::value<float>(), "Input frequency in MHz");
+  options.add_options()("output,o", po::value<float>(), "Output frequency in MHz");
   options.add_options()("file,f", po::value<string>(), "Output to file");
+  options.add_options()("highres", "Use secondary PLL output for higher frequency resolution");
 
   po::variables_map vm;
   po::parsed_options parsed = po::command_line_parser(argc, argv).options(options).run();
@@ -74,6 +77,11 @@ int main(int argc, char** argv){
     cerr << "Copyright (C) 2018 David Shah <david@symbioticeda.com>" << endl;
     cerr << endl;
     cerr << options << endl;
+    return 1;
+  }
+  if(vm.count("input") != 1 || vm.count("output") != 1){
+    cerr << "Error: missing input or output frequency!\n";
+    return 1;
   }
   float inputf = vm["input"].as<float>();
   float outputf = vm["output"].as<float>();
@@ -85,12 +93,21 @@ int main(int argc, char** argv){
     cerr << "Output frequency " << outputf << "MHz not in range (" << OUTPUT_MIN << "MHz, " << OUTPUT_MAX << "MHz)\n";
     return 1;
   }
-  pll_params params = calc_pll_params(inputf, outputf);
+  pll_params params;
+  if(vm.count("highres")){
+    params = calc_pll_params_highres(inputf, outputf);
+  }
+  else{
+    params = calc_pll_params(inputf, outputf);
+  }
 
   cout << "Pll parameters:" << endl;
   cout << "Refclk divisor: " << params.refclk_div << endl;
   cout << "Feedback divisor: " << params.feedback_div << endl;
   cout << "Output divisor: " << params.output_div << endl;
+  if(params.secondary_div != 0){
+    cout << "Secondary divisor: " << params.secondary_div << endl;
+  }
   cout << "VCO frequency: " << params.fvco << endl;
   cout << "Output frequency: " << params.fout << endl;
   if(vm.count("file")){
@@ -139,8 +156,45 @@ pll_params calc_pll_params(float input, float output){
   return params;
 }
 
+pll_params calc_pll_params_highres(float input, float output){
+  float error = std::numeric_limits<float>::max();
+  pll_params params = {0};
+  for(int input_div=1;input_div <= 128; input_div++){
+
+    float fpfd = input / (float)input_div;
+    if(fpfd < PFD_MIN || fpfd > PFD_MAX)
+      continue;
+    for(int feedback_div=1;feedback_div <= 80; feedback_div++){
+      for(int output_div=1;output_div <= 128; output_div++){
+	float fvco = fpfd * (float)feedback_div * (float) output_div;
+	
+	if(fvco < VCO_MIN || fvco > VCO_MAX)
+	  continue;
+	for(int secondary_div = 1; secondary_div <= 128; secondary_div++){
+	  float fout = fvco / (float) secondary_div;
+	  if(fabsf(fout - output) < error ||
+	     (fabsf(fout-output) == error && fabsf(fvco - 600) < fabsf(params.fvco - 600))){
+	    error = fabsf(fout-output);
+	    params.refclk_div = input_div;
+	    params.feedback_div = feedback_div;
+	    params.output_div = output_div;
+	    params.secondary_div = secondary_div;
+	    params.fout = fout;
+	    params.fvco = fvco;
+
+	  }
+	}
+
+      }
+    }
+  }
+  return params;
+}
+
 void write_pll_config(pll_params params, const char* name,  ofstream& file){
   file << "module " << name << "(input clki, output clko);\n";
+  file << "wire clkfb;\n";
+  file << "wire clkos;\n";
   file << "(* ICP_CURRENT=\"12\" *) (* LPF_RESISTOR=\"8\" *) (* MFG_ENABLE_FILTEROPAMP=\"1\" *) (* MFG_GMCREF_SEL=\"2\" *)\n";
   file << "EHXPLLL #(\n";
   file << "        .PLLRST_ENA(\"DISABLED\"),\n";
@@ -152,13 +206,18 @@ void write_pll_config(pll_params params, const char* name,  ofstream& file){
   file << "        .OUTDIVIDER_MUXA(\"DIVA\"),\n";
   file << "        .CLKOP_ENABLE(\"ENABLED\"),\n";
   file << "        .CLKOP_DIV(" << params.output_div << "),\n";
+  if(params.secondary_div != 0){
+    file << "        .CLKOS_ENABLE(\"ENABLED\"),\n";
+    file << "        .CLKOS_DIV(" << params.secondary_div << "),\n";
+  }
   file << "        .CLKFB_DIV(" << params.feedback_div << "),\n";
   file << "        .CLKI_DIV(" << params.refclk_div <<"),\n";
   file << "        .FEEDBK_PATH(\"CLKOP\")\n";
   file << "    ) pll_i (\n";
   file << "        .CLKI(clki),\n";
-  file << "        .CLKFB(clko),\n";
-  file << "        .CLKOP(clko),\n";
+  file << "        .CLKFB(clkfb),\n";
+  file << "        .CLKOP(clkfb),\n";
+  file << "        .CLKOS(clkos),\n";
   file << "        .RST(1'b0),\n";
   file << "        .STDBY(1'b0),\n";
   file << "        .PHASESEL0(1'b0),\n";
@@ -168,6 +227,12 @@ void write_pll_config(pll_params params, const char* name,  ofstream& file){
   file << "        .PLLWAKESYNC(1'b0),\n";
   file << "        .ENCLKOP(1'b0),\n";
   file << "	);\n";
+  if(params.secondary_div == 0){
+    file << "assign clko = clkfb;\n";
+  }
+  else {
+    file << "assign clko = clkos;\n";
+  }
   file << "endmodule\n";
 
 }
