@@ -78,29 +78,24 @@ int main(int argc, char** argv){
   float inputf = vm["input"].as<float>();
   float outputf = vm["output"].as<float>();
   if(inputf < INPUT_MIN || inputf > INPUT_MAX){
-    fprintf(stderr, "Input frequency %.3fMHz not in range (%.3fMHz, %.3fMHz)\n",
-	    inputf, INPUT_MIN, INPUT_MAX);
+    cerr << "Input frequency " << inputf << "MHz not in range (" << INPUT_MIN << "MHz, " << INPUT_MAX << "MHz)\n";
     return 1;
   }
   if(outputf < OUTPUT_MIN || outputf > OUTPUT_MAX){
-    fprintf(stderr, "Output frequency %.3fMHz not in range (%.3fMHz, %.3fMHz)\n",
-	    outputf, OUTPUT_MIN, OUTPUT_MAX);
+    cerr << "Output frequency " << outputf << "MHz not in range (" << OUTPUT_MIN << "MHz, " << OUTPUT_MAX << "MHz)\n";
     return 1;
   }
   pll_params params = calc_pll_params(inputf, outputf);
 
-  fprintf(stdout, "Pll parameters:\n");
-  fprintf(stdout, "Refclk divisor: %d\n", params.refclk_div);
-  fprintf(stdout, "Feedback divisor: %d\n", params.feedback_div);
-  fprintf(stdout, "Output divisor: %d\n", params.output_div);
-  fprintf(stdout, "VCO frequency: %f\n", params.fvco);
-  fprintf(stdout, "Output frequency: %f\n", params.fout);
+  cout << "Pll parameters:" << endl;
+  cout << "Refclk divisor: " << params.refclk_div << endl;
+  cout << "Feedback divisor: " << params.feedback_div << endl;
+  cout << "Output divisor: " << params.output_div << endl;
+  cout << "VCO frequency: " << params.fvco << endl;
+  cout << "Output frequency: " << params.fout << endl;
   if(vm.count("file")){
     ofstream f;
 
-    // if(vm["file"].as<string>() == "-")
-    //   f = stdout;
-    // else
     f.open(vm["file"].as<string>().c_str());
 
     
