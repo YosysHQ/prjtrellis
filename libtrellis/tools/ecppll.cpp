@@ -170,6 +170,9 @@ pll_params calc_pll_params_highres(float input, float output){
 	
 	if(fvco < VCO_MIN || fvco > VCO_MAX)
 	  continue;
+	float ffeedback = fvco / (float) output_div;
+	if(ffeedback < OUTPUT_MIN || ffeedback > OUTPUT_MAX)
+	  continue;
 	for(int secondary_div = 1; secondary_div <= 128; secondary_div++){
 	  float fout = fvco / (float) secondary_div;
 	  if(fabsf(fout - output) < error ||
@@ -195,6 +198,7 @@ void write_pll_config(pll_params params, const char* name,  ofstream& file){
   file << "module " << name << "(input clki, output clko);\n";
   file << "wire clkfb;\n";
   file << "wire clkos;\n";
+  file << "wire clkop;\n";
   file << "(* ICP_CURRENT=\"12\" *) (* LPF_RESISTOR=\"8\" *) (* MFG_ENABLE_FILTEROPAMP=\"1\" *) (* MFG_GMCREF_SEL=\"2\" *)\n";
   file << "EHXPLLL #(\n";
   file << "        .PLLRST_ENA(\"DISABLED\"),\n";
@@ -202,7 +206,7 @@ void write_pll_config(pll_params params, const char* name,  ofstream& file){
   file << "        .STDBY_ENABLE(\"DISABLED\"),\n";
   file << "        .DPHASE_SOURCE(\"DISABLED\"),\n";
   file << "        .CLKOP_FPHASE(0),\n";
-  file << "        .CLKOP_CPHASE(11),\n";
+  file << "        .CLKOP_CPHASE(9),\n";
   file << "        .OUTDIVIDER_MUXA(\"DIVA\"),\n";
   file << "        .CLKOP_ENABLE(\"ENABLED\"),\n";
   file << "        .CLKOP_DIV(" << params.output_div << "),\n";
@@ -212,11 +216,12 @@ void write_pll_config(pll_params params, const char* name,  ofstream& file){
   }
   file << "        .CLKFB_DIV(" << params.feedback_div << "),\n";
   file << "        .CLKI_DIV(" << params.refclk_div <<"),\n";
-  file << "        .FEEDBK_PATH(\"CLKOP\")\n";
+  file << "        .FEEDBK_PATH(\"INT_OP\")\n";
   file << "    ) pll_i (\n";
   file << "        .CLKI(clki),\n";
   file << "        .CLKFB(clkfb),\n";
-  file << "        .CLKOP(clkfb),\n";
+  file << "        .CLKINTFB(clkfb),\n";
+  file << "        .CLKOP(clkop),\n";
   file << "        .CLKOS(clkos),\n";
   file << "        .RST(1'b0),\n";
   file << "        .STDBY(1'b0),\n";
@@ -228,7 +233,7 @@ void write_pll_config(pll_params params, const char* name,  ofstream& file){
   file << "        .ENCLKOP(1'b0),\n";
   file << "	);\n";
   if(params.secondary_div == 0){
-    file << "assign clko = clkfb;\n";
+    file << "assign clko = clkop;\n";
   }
   else {
     file << "assign clko = clkos;\n";
