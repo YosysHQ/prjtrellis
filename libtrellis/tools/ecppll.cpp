@@ -40,19 +40,45 @@ f_out = f_vco / output
 #include <boost/program_options.hpp>
 using namespace std;
 
+enum class mode{
+  SIMPLE,
+  HIGHRES
+};
+
+struct secondary_params{
+  bool enabled;
+  int div;
+  int cphase;
+  int fphase;
+
+  float freq;
+  float phase;
+};
+  
 
 struct pll_params{
+  enum mode mode;
   int refclk_div;
   int feedback_div;
   int output_div;
-  int secondary_div;
+  int primary_cphase;
+
+  secondary_params secondary[3];
 
   float fout;
   float fvco;
+
+  pll_params() :mode(mode::SIMPLE) {
+    for(int i=0;i<3;i++){
+      secondary[i].enabled = false;
+      primary_cphase = 9;
+    }
+  }
 };
 
 pll_params calc_pll_params(float input, float output);
 pll_params calc_pll_params_highres(float input, float output);
+void generate_secondary_output(pll_params &params, int channel, float frequency, float phase);
 void write_pll_config(pll_params params, const char* name, ofstream& file);
 
 int main(int argc, char** argv){
@@ -62,6 +88,12 @@ int main(int argc, char** argv){
   options.add_options()("help,h", "show help");
   options.add_options()("input,i", po::value<float>(), "Input frequency in MHz");
   options.add_options()("output,o", po::value<float>(), "Output frequency in MHz");
+  options.add_options()("s1", po::value<float>(), "Secondary Output frequency in MHz");
+  options.add_options()("p1", po::value<float>()->default_value(0), "Secondary Output frequency in MHz");
+  options.add_options()("s2", po::value<float>(), "Secondary Output(2) frequency in MHz");
+  options.add_options()("p2", po::value<float>()->default_value(0), "Secondary Output(2) frequency in MHz");
+  options.add_options()("s3", po::value<float>(), "Secondary Output(3) frequency in MHz");
+  options.add_options()("p3", po::value<float>()->default_value(0), "Secondary Output(3) frequency in MHz");
   options.add_options()("file,f", po::value<string>(), "Output to file");
   options.add_options()("highres", "Use secondary PLL output for higher frequency resolution");
 
@@ -95,18 +127,35 @@ int main(int argc, char** argv){
   }
   pll_params params;
   if(vm.count("highres")){
+    if(vm.count("s1") > 0){
+      cerr << "Cannot specify secondary frequency in highres mode\n";
+    }
     params = calc_pll_params_highres(inputf, outputf);
   }
   else{
     params = calc_pll_params(inputf, outputf);
+    if(vm.count("s1"))
+      generate_secondary_output(params, 0, vm["s1"].as<float>(), vm["p1"].as<float>());
+    if(vm.count("s2"))
+      generate_secondary_output(params, 1, vm["s2"].as<float>(), vm["p2"].as<float>());
+    if(vm.count("s3"))
+      generate_secondary_output(params, 2, vm["s3"].as<float>(), vm["p3"].as<float>());
+      
   }
 
   cout << "Pll parameters:" << endl;
   cout << "Refclk divisor: " << params.refclk_div << endl;
   cout << "Feedback divisor: " << params.feedback_div << endl;
   cout << "Output divisor: " << params.output_div << endl;
-  if(params.secondary_div != 0){
-    cout << "Secondary divisor: " << params.secondary_div << endl;
+  if(params.secondary[0].enabled){
+    cout << "Secondary divisor: " << params.secondary[0].div << endl;
+    cout << "Secondary freq: " << params.secondary[0].freq << endl;
+    cout << "Secondary phase shift: " << params.secondary[0].phase << endl;
+  }
+  if(params.secondary[1].enabled){
+    cout << "Secondary(2) divisor: " << params.secondary[1].div << endl;
+    cout << "Secondary(2) freq: " << params.secondary[1].freq << endl;
+    cout << "Secondary(2) phase shift: " << params.secondary[1].phase << endl;
   }
   cout << "VCO frequency: " << params.fvco << endl;
   cout << "Output frequency: " << params.fout << endl;
@@ -125,7 +174,7 @@ int main(int argc, char** argv){
 
 pll_params calc_pll_params(float input, float output){
   float error = std::numeric_limits<float>::max();
-  pll_params params = {0};
+  pll_params params;
   for(int input_div=1;input_div <= 128; input_div++){
 
     float fpfd = input / (float)input_div;
@@ -147,6 +196,10 @@ pll_params calc_pll_params(float input, float output){
 	  params.output_div = output_div;
 	  params.fout = fout;
 	  params.fvco = fvco;
+	  
+	  // shift the primary by 180 degrees. Lattice seems to do this
+	  float ns_phase = 1/(fout * 1e6) * 0.5;
+	  params.primary_cphase = ns_phase * (fvco * 1e6);
 
 	}
 
@@ -158,7 +211,7 @@ pll_params calc_pll_params(float input, float output){
 
 pll_params calc_pll_params_highres(float input, float output){
   float error = std::numeric_limits<float>::max();
-  pll_params params = {0};
+  pll_params params;
   for(int input_div=1;input_div <= 128; input_div++){
 
     float fpfd = input / (float)input_div;
@@ -178,10 +231,13 @@ pll_params calc_pll_params_highres(float input, float output){
 	  if(fabsf(fout - output) < error ||
 	     (fabsf(fout-output) == error && fabsf(fvco - 600) < fabsf(params.fvco - 600))){
 	    error = fabsf(fout-output);
+	    params.mode = mode::HIGHRES;
 	    params.refclk_div = input_div;
 	    params.feedback_div = feedback_div;
 	    params.output_div = output_div;
-	    params.secondary_div = secondary_div;
+	    params.secondary[0].div = secondary_div;
+	    params.secondary[0].enabled = true;
+	    params.secondary[0].freq = fout;
 	    params.fout = fout;
 	    params.fvco = fvco;
 
@@ -194,8 +250,41 @@ pll_params calc_pll_params_highres(float input, float output){
   return params;
 }
 
+
+void generate_secondary_output(pll_params &params, int channel, float frequency, float phase){
+  int div = params.fvco/frequency;
+  float freq = params.fvco/div;
+  cout << "sdiv " << div << endl;
+
+  float ns_shift = 1/(freq * 1e6) * phase /  360.0;
+  float phase_count = ns_shift * (params.fvco * 1e6);
+  int cphase = (int) phase_count;
+  int fphase = (int) ((phase_count - cphase) * 8);
+
+  float ns_actual = 1/(params.fvco * 1e6) * (cphase + fphase/8.0);
+  float phase_shift = 360 * ns_actual/ (1/(freq * 1e6));
+  
+
+  params.secondary[channel].enabled = true;
+  params.secondary[channel].div = div;
+  params.secondary[channel].freq = freq;
+  params.secondary[channel].phase = phase_shift;
+  params.secondary[channel].cphase = cphase + params.primary_cphase;
+  params.secondary[channel].fphase = fphase;
+  
+  
+
+}
+
 void write_pll_config(pll_params params, const char* name,  ofstream& file){
-  file << "module " << name << "(input clki, output clko);\n";
+  file << "module " << name << "(input clki, \n";
+  for(int i=0;i<3;i++){
+    if(!(i==0 && params.mode == mode::HIGHRES) && params.secondary[i].enabled){
+      file << "    output clks" << i+1 <<",\n";
+    }
+  }
+  file << "    output clko\n";
+  file << ");\n";
   file << "wire clkfb;\n";
   file << "wire clkos;\n";
   file << "wire clkop;\n";
@@ -206,13 +295,27 @@ void write_pll_config(pll_params params, const char* name,  ofstream& file){
   file << "        .STDBY_ENABLE(\"DISABLED\"),\n";
   file << "        .DPHASE_SOURCE(\"DISABLED\"),\n";
   file << "        .CLKOP_FPHASE(0),\n";
-  file << "        .CLKOP_CPHASE(9),\n";
+  file << "        .CLKOP_CPHASE(" << params.primary_cphase << "),\n";
   file << "        .OUTDIVIDER_MUXA(\"DIVA\"),\n";
   file << "        .CLKOP_ENABLE(\"ENABLED\"),\n";
   file << "        .CLKOP_DIV(" << params.output_div << "),\n";
-  if(params.secondary_div != 0){
+  if(params.secondary[0].enabled){
     file << "        .CLKOS_ENABLE(\"ENABLED\"),\n";
-    file << "        .CLKOS_DIV(" << params.secondary_div << "),\n";
+    file << "        .CLKOS_DIV(" << params.secondary[0].div << "),\n";
+    file << "        .CLKOS_CPHASE(" << params.secondary[0].cphase << "),\n";
+    file << "        .CLKOS_FPHASE(" << params.secondary[0].fphase << "),\n";
+  }
+  if(params.secondary[1].enabled){
+    file << "        .CLKOS2_ENABLE(\"ENABLED\"),\n";
+    file << "        .CLKOS2_DIV(" << params.secondary[1].div << "),\n";
+    file << "        .CLKOS2_CPHASE(" << params.secondary[1].cphase << "),\n";
+    file << "        .CLKOS2_FPHASE(" << params.secondary[1].fphase << "),\n";
+  }
+  if(params.secondary[2].enabled){
+    file << "        .CLKOS3_ENABLE(\"ENABLED\"),\n";
+    file << "        .CLKOS3_DIV(" << params.secondary[2].div << "),\n";
+    file << "        .CLKOS3_CPHASE(" << params.secondary[2].cphase << "),\n";
+    file << "        .CLKOS3_FPHASE(" << params.secondary[2].fphase << "),\n";
   }
   file << "        .CLKFB_DIV(" << params.feedback_div << "),\n";
   file << "        .CLKI_DIV(" << params.refclk_div <<"),\n";
@@ -222,7 +325,19 @@ void write_pll_config(pll_params params, const char* name,  ofstream& file){
   file << "        .CLKFB(clkfb),\n";
   file << "        .CLKINTFB(clkfb),\n";
   file << "        .CLKOP(clkop),\n";
-  file << "        .CLKOS(clkos),\n";
+  if(params.secondary[0].enabled){
+    if(params.mode == mode::HIGHRES)
+      file << "        .CLKOS(clkos),\n";
+    else
+      file << "        .CLKOS(clks1),\n";
+
+  }
+  if(params.secondary[1].enabled){
+    file << "        .CLKOS2(clks2),\n";
+  }
+  if(params.secondary[2].enabled){
+    file << "        .CLKOS3(clks3),\n";
+  }
   file << "        .RST(1'b0),\n";
   file << "        .STDBY(1'b0),\n";
   file << "        .PHASESEL0(1'b0),\n";
@@ -232,7 +347,7 @@ void write_pll_config(pll_params params, const char* name,  ofstream& file){
   file << "        .PLLWAKESYNC(1'b0),\n";
   file << "        .ENCLKOP(1'b0),\n";
   file << "	);\n";
-  if(params.secondary_div == 0){
+  if(params.mode == mode::SIMPLE){
     file << "assign clko = clkop;\n";
   }
   else {
