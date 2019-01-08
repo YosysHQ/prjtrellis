@@ -283,6 +283,7 @@ void write_pll_config(pll_params params, const char* name,  ofstream& file){
       file << "    output clks" << i+1 <<",\n";
     }
   }
+  file << "    output locked,\n";
   file << "    output clko\n";
   file << ");\n";
   file << "wire clkfb;\n";
@@ -346,6 +347,7 @@ void write_pll_config(pll_params params, const char* name,  ofstream& file){
   file << "        .PHASESTEP(1'b0),\n";
   file << "        .PLLWAKESYNC(1'b0),\n";
   file << "        .ENCLKOP(1'b0),\n";
+  file << "        .LOCK(locked),\n";
   file << "	);\n";
   if(params.mode == mode::SIMPLE){
     file << "assign clko = clkop;\n";
