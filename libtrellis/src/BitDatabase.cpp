@@ -267,8 +267,19 @@ boost::optional<string> EnumSettingBits::get_value(const CRAMView &tile, boost::
 void EnumSettingBits::set_value(Trellis::CRAMView &tile, const string &value) const
 {
     if (value != "_NONE_") {
-        auto grp = options.at(value);
-        grp.set_group(tile);
+        if(options.find(value) != options.end()) {
+            auto grp = options.at(value);
+            grp.set_group(tile);
+	}
+	else {
+	    cerr << "EnumSettingBits::set_value: cannot set " << value  << endl;
+	    cerr << "In Options: " << endl;
+	    for(auto it = options.begin(); it != options.end(); ++it){
+	      cerr << it->first << " -> " << it->second << endl;
+	    }
+
+	    exit(1);
+	}
     }
 }
 
