@@ -104,7 +104,9 @@ int main(int argc, char** argv){
 
   if(vm.count("help")){
     cerr << "Project Trellis - Open Source Tools for ECP5 FPGAs" << endl;
-    cerr << "ecpunpack: ECP5 bitstream to text config converter" << endl;
+    cerr << "ecppll: ECP5 PLL Configuration Calculator" << endl;
+    cerr << endl;
+    cerr << "This tool is experimental! Use at your own risk!" << endl;
     cerr << endl;
     cerr << "Copyright (C) 2018 David Shah <david@symbioticeda.com>" << endl;
     cerr << endl;
