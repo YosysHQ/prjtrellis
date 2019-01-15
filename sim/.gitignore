@@ -1,0 +1,5 @@
+*~
+lattice/
+*.exe
+*.vcd 
+a.out
