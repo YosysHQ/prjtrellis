@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 module gsr_pur_assign(/*AUTOARG*/
     // Outputs
     GSR, PUR

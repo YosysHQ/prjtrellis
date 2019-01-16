@@ -1,7 +1,7 @@
-FILES:= ODDRX1F.v BB.v
+FILES:= ODDRX1F.v BB.v IDDRX1F.v
 TESTBENCHES:= $(patsubst %.v, tests/test_%.v, $(FILES))
 VCDS:= $(patsubst %.v, %.vcd, $(FILES))
-VFLAGS:=-Dmixed_hdl -Wtimescale
+VFLAGS:=-Dmixed_hdl -Wtimescale -Wall 
 
 all: $(VCDS)
 

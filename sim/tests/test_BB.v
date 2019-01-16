@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 module test_BB;
     wire B_sim, B_lat;
     wire O_sim, O_lat;
