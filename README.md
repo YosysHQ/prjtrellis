@@ -40,12 +40,13 @@ The following features are currently working in the Yosys/nextpnr/Trellis flow.
  - Logic slice functionality, including carries
  - Distributed RAM inside logic slices
  - All internal interconnect
- - Basic IO, including tristate, using `TRELLIS_IO` primitives. Pin location and IO type
- must be specified as attributes on these primitives, separate IO constraint files are not yet implemented.
+ - Basic IO, including tristate, using `TRELLIS_IO` primitives; LPF files and DDR inputs/outputs
  - Block RAM, using either inference in Yosys or manual instantiation of the DP16KD primitive
  - Multipliers using manual instantiation of the MULT18X18D primitive. Inference and more advanced DSP features
  are not yet supported.
  - Global networks (automatically promoted and routed in nextpnr)
+ - PLLs
+ - Transcievers (DCUs)
 
 ### Development Boards
 Project Trellis supports all ECP5 devices and should work with any development board. The following
