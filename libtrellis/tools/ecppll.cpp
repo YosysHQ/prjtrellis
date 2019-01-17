@@ -89,11 +89,11 @@ int main(int argc, char** argv){
   options.add_options()("input,i", po::value<float>(), "Input frequency in MHz");
   options.add_options()("output,o", po::value<float>(), "Output frequency in MHz");
   options.add_options()("s1", po::value<float>(), "Secondary Output frequency in MHz");
-  options.add_options()("p1", po::value<float>()->default_value(0), "Secondary Output frequency in MHz");
+  options.add_options()("p1", po::value<float>()->default_value(0), "Secondary Output phase in degrees");
   options.add_options()("s2", po::value<float>(), "Secondary Output(2) frequency in MHz");
-  options.add_options()("p2", po::value<float>()->default_value(0), "Secondary Output(2) frequency in MHz");
+  options.add_options()("p2", po::value<float>()->default_value(0), "Secondary Output(2) phase in degrees");
   options.add_options()("s3", po::value<float>(), "Secondary Output(3) frequency in MHz");
-  options.add_options()("p3", po::value<float>()->default_value(0), "Secondary Output(3) frequency in MHz");
+  options.add_options()("p3", po::value<float>()->default_value(0), "Secondary Output(3) phase in degrees");
   options.add_options()("file,f", po::value<string>(), "Output to file");
   options.add_options()("highres", "Use secondary PLL output for higher frequency resolution");
 
@@ -108,7 +108,7 @@ int main(int argc, char** argv){
     cerr << endl;
     cerr << "This tool is experimental! Use at your own risk!" << endl;
     cerr << endl;
-    cerr << "Copyright (C) 2018 David Shah <david@symbioticeda.com>" << endl;
+    cerr << "Copyright (C) 2018-2019 David Shah <david@symbioticeda.com>" << endl;
     cerr << endl;
     cerr << options << endl;
     return 1;
@@ -120,12 +120,10 @@ int main(int argc, char** argv){
   float inputf = vm["input"].as<float>();
   float outputf = vm["output"].as<float>();
   if(inputf < INPUT_MIN || inputf > INPUT_MAX){
-    cerr << "Input frequency " << inputf << "MHz not in range (" << INPUT_MIN << "MHz, " << INPUT_MAX << "MHz)\n";
-    return 1;
+    cerr << "Warning: Input frequency " << inputf << "MHz not in range (" << INPUT_MIN << "MHz, " << INPUT_MAX << "MHz)\n";
   }
   if(outputf < OUTPUT_MIN || outputf > OUTPUT_MAX){
-    cerr << "Output frequency " << outputf << "MHz not in range (" << OUTPUT_MIN << "MHz, " << OUTPUT_MAX << "MHz)\n";
-    return 1;
+    cerr << "Warning: Output frequency " << outputf << "MHz not in range (" << OUTPUT_MIN << "MHz, " << OUTPUT_MAX << "MHz)\n";
   }
   pll_params params;
   if(vm.count("highres")){
