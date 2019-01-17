@@ -40,7 +40,7 @@ f_out = f_vco / output
 #include <boost/program_options.hpp>
 using namespace std;
 
-enum class mode{
+enum class pll_mode{
   SIMPLE,
   HIGHRES
 };
@@ -57,7 +57,7 @@ struct secondary_params{
   
 
 struct pll_params{
-  enum mode mode;
+  pll_mode mode;
   int refclk_div;
   int feedback_div;
   int output_div;
@@ -68,7 +68,7 @@ struct pll_params{
   float fout;
   float fvco;
 
-  pll_params() :mode(mode::SIMPLE) {
+  pll_params() :mode(pll_mode::SIMPLE) {
     for(int i=0;i<3;i++){
       secondary[i].enabled = false;
       primary_cphase = 9;
@@ -233,7 +233,7 @@ pll_params calc_pll_params_highres(float input, float output){
 	  if(fabsf(fout - output) < error ||
 	     (fabsf(fout-output) == error && fabsf(fvco - 600) < fabsf(params.fvco - 600))){
 	    error = fabsf(fout-output);
-	    params.mode = mode::HIGHRES;
+	    params.mode = pll_mode::HIGHRES;
 	    params.refclk_div = input_div;
 	    params.feedback_div = feedback_div;
 	    params.output_div = output_div;
@@ -281,7 +281,7 @@ void generate_secondary_output(pll_params &params, int channel, float frequency,
 void write_pll_config(pll_params params, const char* name,  ofstream& file){
   file << "module " << name << "(input clki, \n";
   for(int i=0;i<3;i++){
-    if(!(i==0 && params.mode == mode::HIGHRES) && params.secondary[i].enabled){
+    if(!(i==0 && params.mode == pll_mode::HIGHRES) && params.secondary[i].enabled){
       file << "    output clks" << i+1 <<",\n";
     }
   }
@@ -329,7 +329,7 @@ void write_pll_config(pll_params params, const char* name,  ofstream& file){
   file << "        .CLKINTFB(clkfb),\n";
   file << "        .CLKOP(clkop),\n";
   if(params.secondary[0].enabled){
-    if(params.mode == mode::HIGHRES)
+    if(params.mode == pll_mode::HIGHRES)
       file << "        .CLKOS(clkos),\n";
     else
       file << "        .CLKOS(clks1),\n";
@@ -351,7 +351,7 @@ void write_pll_config(pll_params params, const char* name,  ofstream& file){
   file << "        .ENCLKOP(1'b0),\n";
   file << "        .LOCK(locked),\n";
   file << "	);\n";
-  if(params.mode == mode::SIMPLE){
+  if(params.mode == pll_mode::SIMPLE){
     file << "assign clko = clkop;\n";
   }
   else {
