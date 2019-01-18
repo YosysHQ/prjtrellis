@@ -446,5 +446,73 @@ void add_iologic(RoutingGraph &graph, int x, int y, int z, bool s) {
     graph.add_bel(bel);
 }
 
+void add_misc(RoutingGraph &graph, const std::string &name, int x, int y) {
+    std::string postfix;
+    RoutingBel bel;
+
+    auto add_input = [&](const std::string &pin, bool j = true) {
+        graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << "_" << postfix)));
+    };
+    auto add_output = [&](const std::string &pin, bool j = true) {
+        graph.add_bel_output(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << "_" << postfix)));
+    };
+    bel.name = graph.ident(name);
+    bel.type = graph.ident(name);
+    bel.loc.x = x;
+    bel.loc.y = y;
+
+    if (name == "GSR") {
+        postfix = "GSR";
+        bel.z = 0;
+        add_input("GSR");
+        add_input("CLK");
+    } else if (name == "JTAGG") {
+        postfix = "JTAG";
+        bel.z = 1;
+        add_input("TCK");
+        add_input("TMS");
+        add_input("TDI");
+        add_input("JTDO2");
+        add_input("JTDO1");
+        add_output("TDO");
+        add_output("JTDI");
+        add_output("JTCK");
+        add_output("JRTI2");
+        add_output("JRTI1");
+        add_output("JSHIFT");
+        add_output("JUPDATE");
+        add_output("JRSTN");
+        add_output("JCE2");
+        add_output("JCE1");
+    } else if (name == "OSCG") {
+        postfix = "OSC";
+        bel.z = 2;
+        graph.add_bel_output(bel, graph.ident("OSC"), 0, 0, graph.ident("G_JOSC_OSC"));
+        add_output("SEDSTDBY", false);
+    } else if (name == "SEDGA") {
+        postfix = "SED";
+        bel.z = 3;
+        add_input("SEDENABLE");
+        add_input("SEDSTART");
+        add_input("SEDFRCERR");
+        add_output("SEDDONE");
+        add_output("SEDINPROG");
+        add_output("SEDERR");
+        add_input("SEDSTDBY", false);
+    } else if (name == "DTR") {
+        postfix = "DTR";
+        bel.z = 0;
+        add_input("STARTPULSE");
+        for (int i = 0; i < 8; i++)
+            add_output("DTROUT" + std::to_string(i));
+    } else if (name == "USRMCLK") {
+        postfix = "CCLK";
+        bel.z = 0;
+        add_input("PADDO");
+        add_input("PADDT");
+        add_output("PADDI");
+    }
+    graph.add_bel(bel);
+}
 }
 }
