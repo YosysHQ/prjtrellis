@@ -18,6 +18,8 @@ void add_dcu(RoutingGraph &graph, int x, int y);
 void add_extref(RoutingGraph &graph, int x, int y);
 void add_pcsclkdiv(RoutingGraph &graph, int x, int y, int z);
 void add_iologic(RoutingGraph &graph, int x, int y, int z, bool s);
+void add_misc(RoutingGraph &graph, const std::string &name, int x, int y);
+void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, int i);
 }
 }
 

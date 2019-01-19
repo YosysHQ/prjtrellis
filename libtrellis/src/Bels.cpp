@@ -511,8 +511,105 @@ void add_misc(RoutingGraph &graph, const std::string &name, int x, int y) {
         add_input("PADDO");
         add_input("PADDT");
         add_output("PADDI");
+    } else {
+        throw runtime_error("unknown Bel " + name);
     }
     graph.add_bel(bel);
 }
+
+void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, int i) {
+    std::string postfix;
+    RoutingBel bel;
+
+    auto add_input = [&](const std::string &pin, bool j = true) {
+        graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << "_" << postfix)));
+    };
+    auto add_output = [&](const std::string &pin, bool j = true) {
+        graph.add_bel_output(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << "_" << postfix)));
+    };
+    bel.type = graph.ident(name);
+    bel.loc.x = x;
+    bel.loc.y = y;
+
+    if (name == "CLKDIVF") {
+        postfix = "CLKDIV" + std::to_string(i);
+        bel.name = graph.ident(postfix);
+        bel.z = i;
+        add_input("CLKI", false);
+        add_input("RST");
+        add_input("ALIGNWD");
+        add_output("CDIVX");
+    } else if (name == "ECLKSYNCB") {
+        postfix = "ECLKSYNC" + std::to_string(i);
+        bel.name = graph.ident(postfix);
+        bel.z = 2 + i;
+        add_input("ECLKI", false);
+        add_input("STOP");
+        add_output("ECLKO");
+    } else if (name == "DLLDELD") {
+        postfix = "DLLDEL";
+        bel.name = graph.ident(postfix);
+        bel.z = 4;
+        add_input("A");
+        add_input("DDRDEL", false);
+        add_input("LOADN");
+        add_input("MOVE");
+        add_input("DIRECTION");
+        add_output("Z", false);
+        add_output("CFLAG");
+    } else if (name == "DDRDLL") {
+        postfix = "DDRDLL";
+        bel.name = graph.ident(postfix);
+        bel.z = 0;
+        add_input("CLK");
+        add_input("RST");
+        add_input("UDDCNTLN");
+        add_input("FREEZE");
+        add_output("DDRDEL", false);
+        add_output("LOCK");
+        add_output("DIVOSC");
+        for (int j = 0; j < 8; j++)
+            add_output("DCNTL" + std::to_string(j));
+    } else if (name == "DQSBUFM") {
+        postfix = "DQS";
+        bel.name = graph.ident("DQSBUF");
+        bel.z = 8;
+        add_input("DQSI");
+        add_input("READ1");
+        add_input("READ0");
+        add_input("READCLKSEL2");
+        add_input("READCLKSEL1");
+        add_input("READCLKSEL0");
+        add_input("DDRDEL", false);
+        add_input("ECLK", false);
+        add_input("SCLK");
+        add_input("RST");
+        for (int j = 0; j < 8; j++)
+            add_input("DYNDELAY" + std::to_string(j));
+        add_input("PAUSE");
+        add_input("RDLOADN");
+        add_input("RDMOVE");
+        add_input("RDDIRECTION");
+        add_input("WRLOADN");
+        add_input("WRMOVE");
+        add_input("WRDIRECTION");
+        add_output("DQSR90");
+        add_output("DQSW");
+        add_output("DQSW270");
+        for (int j = 0; j < 3; j++) {
+            add_output("RDPNTR" + std::to_string(j), false);
+            add_output("WRPNTR" + std::to_string(j), false);
+        }
+        add_output("DATAVALID");
+        add_output("BURSTDET");
+        add_output("RDCFLAG");
+        add_output("WRCFLAG");
+    } else {
+        throw runtime_error("unknown Bel " + name);
+    }
+    graph.add_bel(bel);
+}
+
+
 }
 }
