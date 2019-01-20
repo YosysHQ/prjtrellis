@@ -157,6 +157,11 @@ int main(int argc, char** argv){
     cout << "Secondary(2) freq: " << params.secondary[1].freq << endl;
     cout << "Secondary(2) phase shift: " << params.secondary[1].phase << endl;
   }
+  if(params.secondary[2].enabled){
+    cout << "Secondary(3) divisor: " << params.secondary[2].div << endl;
+    cout << "Secondary(3) freq: " << params.secondary[2].freq << endl;
+    cout << "Secondary(3) phase shift: " << params.secondary[2].phase << endl;
+  }
   cout << "VCO frequency: " << params.fvco << endl;
   cout << "Output frequency: " << params.fout << endl;
   if(vm.count("file")){
@@ -347,7 +352,7 @@ void write_pll_config(pll_params params, const char* name,  ofstream& file){
   file << "        .PHASESTEP(1'b0),\n";
   file << "        .PLLWAKESYNC(1'b0),\n";
   file << "        .ENCLKOP(1'b0),\n";
-  file << "        .LOCK(locked),\n";
+  file << "        .LOCK(locked)\n";
   file << "	);\n";
   if(params.mode == pll_mode::SIMPLE){
     file << "assign clko = clkop;\n";
