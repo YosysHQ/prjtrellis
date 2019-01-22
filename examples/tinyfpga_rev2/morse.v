@@ -1,12 +1,5 @@
-module top(input clk_pin, output led_pin);
+module top(input clk, output led);
 
-    wire clk, led;
-
-    (* LOC="B17" *) (* IO_TYPE="LVCMOS33" *)
-    TRELLIS_IO #(.DIR("INPUT")) clk_buf (.B(clk_pin), .O(clk));
-
-    (* LOC="A7" *) (* IO_TYPE="LVCMOS33" *)
-    TRELLIS_IO #(.DIR("OUTPUT")) led_buf_0 (.B(led_pin), .I(led));
 	// HELLO
 	// .... . .-.. .-.. ---
     // 10101 000 1 000 101110101 000 101110101 000 11101110111 00000000
