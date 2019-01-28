@@ -22,7 +22,7 @@
 // `define DEBUGNETS
 // `define DEBUGREGS
 // `define DEBUGASM
-// `define DEBUG
+`define DEBUG
 
 `ifdef DEBUG
   `define debug(debug_command) debug_command
@@ -122,6 +122,7 @@ module picorv32 #(
 	output reg        rvfi_trap,
 	output reg        rvfi_halt,
 	output reg        rvfi_intr,
+	output reg [ 1:0] rvfi_mode,
 	output reg [ 4:0] rvfi_rs1_addr,
 	output reg [ 4:0] rvfi_rs2_addr,
 	output reg [31:0] rvfi_rs1_rdata,
@@ -1533,7 +1534,7 @@ module picorv32 #(
 						do_waitirq <= 1;
 				end else
 				if (decoder_trigger) begin
-					`debug($display("-- %-0t", $time);)
+					`debug($display("-- %-0t pending:%b", $time, irq_pending);)
 					irq_delay <= irq_active;
 					reg_next_pc <= current_pc + (compressed_instr ? 2 : 4);
 					if (ENABLE_TRACE)
@@ -1962,6 +1963,7 @@ module picorv32 #(
 		rvfi_trap <= trap;
 		rvfi_halt <= trap;
 		rvfi_intr <= dbg_irq_enter;
+		rvfi_mode <= 3;
 
 		if (!resetn) begin
 			dbg_irq_call <= 0;

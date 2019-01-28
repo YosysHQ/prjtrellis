@@ -123,6 +123,7 @@ module simpleuart (
 				send_dummy <= 0;
 			end else
 			if (reg_dat_we && !send_bitcnt) begin
+				$display("OUT: %c", reg_dat_di[7:0]);
 				send_pattern <= {1'b1, reg_dat_di[7:0], 1'b0};
 				send_bitcnt <= 10;
 				send_divcnt <= 0;

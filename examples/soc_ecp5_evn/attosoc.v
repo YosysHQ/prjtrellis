@@ -28,7 +28,7 @@ module attosoc (
 	input clk,
 	output reg [7:0] led,
 	output uart_tx,
-	input uart_rx,
+	input uart_rx
 );
 
 	reg [5:0] reset_cnt = 0;
@@ -38,7 +38,8 @@ module attosoc (
 		reset_cnt <= reset_cnt + !resetn;
 	end
 
-	parameter integer MEM_WORDS = 8192;
+	// parameter integer MEM_WORDS = 8192;
+	parameter integer MEM_WORDS = 16384;
 	parameter [31:0] STACKADDR = 32'h 0000_0000 + (4*MEM_WORDS);       // end of memory
 	parameter [31:0] PROGADDR_RESET = 32'h 0000_0000;       // start of memory
 
@@ -47,6 +48,9 @@ module attosoc (
 	reg [31:0] ram_rdata;
 	reg ram_ready;
 
+	reg [31:0] irq = 32'h 0000_0000;
+	wire [31:0] eoi;
+
 	wire mem_valid;
 	wire mem_instr;
 	wire mem_ready;
@@ -54,6 +58,14 @@ module attosoc (
 	wire [31:0] mem_wdata;
 	wire [3:0] mem_wstrb;
 	wire [31:0] mem_rdata;
+	wire [31:0] mem_la_addr;
+	wire mem_la_read;
+
+	always @(posedge clk)
+        begin
+		if (mem_la_read)
+			ram_rdata <= ram[mem_la_addr[23:2]];
+	end
 
 	always @(posedge clk)
         begin
@@ -64,7 +76,7 @@ module attosoc (
 			if (mem_wstrb[2]) ram[mem_addr[23:2]][23:16] <= mem_wdata[23:16];
 			if (mem_wstrb[3]) ram[mem_addr[23:2]][31:24] <= mem_wdata[31:24];
 
-			ram_rdata <= ram[mem_addr[23:2]];
+			// ram_rdata <= ram[mem_addr[23:2]];
 			ram_ready <= 1'b1;
 		end
         end
@@ -107,13 +119,13 @@ module attosoc (
 	picorv32 #(
 		.STACKADDR(STACKADDR),
 		.PROGADDR_RESET(PROGADDR_RESET),
-		.PROGADDR_IRQ(32'h 0000_0000),
+		.PROGADDR_IRQ(32'h 0000_0010),
 		.BARREL_SHIFTER(0),
-		.COMPRESSED_ISA(0),
-		.ENABLE_MUL(0),
-		.ENABLE_DIV(0),
-		.ENABLE_IRQ(0),
-		.ENABLE_IRQ_QREGS(0)
+		.COMPRESSED_ISA(1),
+		.ENABLE_MUL(1),
+		.ENABLE_DIV(1),
+		.ENABLE_IRQ(1),
+		.ENABLE_IRQ_QREGS(1)
 	) cpu (
 		.clk         (clk        ),
 		.resetn      (resetn     ),
@@ -123,7 +135,11 @@ module attosoc (
 		.mem_addr    (mem_addr   ),
 		.mem_wdata   (mem_wdata  ),
 		.mem_wstrb   (mem_wstrb  ),
-		.mem_rdata   (mem_rdata  )
+		.mem_rdata   (mem_rdata  ),
+		.irq         (irq        ),
+		.eoi         (eoi        ),
+	        .mem_la_read (mem_la_read),
+	        .mem_la_addr (mem_la_addr)
 	);
 
 	simpleuart simpleuart (

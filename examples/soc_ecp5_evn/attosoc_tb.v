@@ -5,10 +5,10 @@ module testbench();
 	always #5 clk = (clk === 1'b0);
 
 	initial begin
-		$dumpfile("testbench.vcd");
-		$dumpvars(0, testbench);
+		// $dumpfile("testbench.vcd");
+		// $dumpvars(0, testbench);
 
-		repeat (10) begin
+		repeat (4) begin
 			repeat (50000) @(posedge clk);
 			$display("+50000 cycles");
 		end
@@ -18,7 +18,7 @@ module testbench();
 	wire [7:0] led;
 
 	always @(led) begin
-		#1 $display("%b", led);
+		#1 $display("LED: %b", led);
 	end
 
 	attosoc uut (

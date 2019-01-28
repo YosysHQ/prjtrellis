@@ -1,21 +1,32 @@
 #include <stdint.h>
+#include <stdlib.h>
+#include <math.h>
+
+#include "printf.h"
 
 #define LED (*(volatile uint32_t*)0x02000000)
 
 #define reg_uart_clkdiv (*(volatile uint32_t*)0x02000004)
 #define reg_uart_data (*(volatile uint32_t*)0x02000008)
 
-void putchar(char c)
+void _putchar(char c)
 {
     if (c == '\n')
-        putchar('\r');
+        _putchar('\r');
     reg_uart_data = c;
 }
+
+#define uartchar _putchar
 
 void print(const char *p)
 {
     while (*p)
-        putchar(*(p++));
+        uartchar(*(p++));
+}
+
+void trap()
+{
+    print("TRAP\r\n");
 }
 
 void delay() {
@@ -25,11 +36,18 @@ void delay() {
 
 int main() {
     reg_uart_clkdiv = 416;
+    int count = 0;
     while (1) {
-        LED = 0xFF;
-        print("hello world\n");
-        delay();
-        LED = 0x00;
+	char s[20];
+        LED = ++count;
+#if 0
+	asm("ebreak");
+	//*((int*)0xf000000f) = 1;
+#endif
+        //print("hello world\n");
+        //printf("hello world %d\n", count);
+        printf("hello printf: %d %f\n", count, sqrt(count));
+
         delay();
     }
 }

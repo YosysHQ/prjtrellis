@@ -1,3 +1,4 @@
+
 module top(
     input clkin,
     output [7:0] led,
@@ -18,7 +19,7 @@ attosoc soc(
     .clk(clk),
     .led(int_led),
     .uart_tx(uart_tx),
-    .uart_rx(uart_rx),
+    .uart_rx(uart_rx)
 );
 
 assign led = ~int_led;

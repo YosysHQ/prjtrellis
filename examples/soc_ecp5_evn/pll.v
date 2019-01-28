@@ -24,6 +24,6 @@ module pll_12_50(input clki, output clko);
         .PHASEDIR(1'b0),
         .PHASESTEP(1'b0),
         .PLLWAKESYNC(1'b0),
-        .ENCLKOP(1'b0),
+        .ENCLKOP(1'b0)
     );
 endmodule

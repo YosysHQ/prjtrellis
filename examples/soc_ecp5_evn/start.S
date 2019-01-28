@@ -1,7 +1,19 @@
+#include "custom_ops.S"
+
 .section .text
 
 start:
+// no more than 16 bytes here !
+picorv32_maskirq_insn(zero, zero)
 
+j start2
+
+.balign 16
+trapvec:
+call trap
+j loop
+
+start2:
 # zero-initialize register file
 addi x1, zero, 0
 # x2 (sp) is initialized by reset
@@ -43,5 +55,7 @@ sw a1, 0(a0)
 call main
 
 loop:
+// Halt (wait for interrupt)
+picorv32_waitirq_insn(zero)
 j loop
 
