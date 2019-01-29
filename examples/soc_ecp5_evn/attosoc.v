@@ -106,7 +106,7 @@ module attosoc (
 
 	assign mem_ready = (iomem_valid && iomem_ready) ||
 	                   simpleuart_reg_div_sel || (simpleuart_reg_dat_sel && !simpleuart_reg_dat_wait)
-			   || (!simpleuart_reg_dat_sel);
+			   || mem_addr < STACKADDR;
 
 	assign mem_rdata = simpleuart_reg_div_sel ? simpleuart_reg_div_do :
 										 simpleuart_reg_dat_sel ? simpleuart_reg_dat_do :
