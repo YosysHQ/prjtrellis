@@ -46,7 +46,6 @@ module attosoc (
 	reg [31:0] ram [0:MEM_WORDS-1];
 	initial $readmemh("firmware.hex", ram);
 	reg [31:0] ram_rdata;
-	reg ram_ready;
 
 	reg [31:0] irq = 32'h 0000_0000;
 	wire [31:0] eoi;
@@ -69,15 +68,11 @@ module attosoc (
 
 	always @(posedge clk)
         begin
-		ram_ready <= 1'b0;
 		if (mem_addr[31:24] == 8'h00 && mem_valid) begin
 			if (mem_wstrb[0]) ram[mem_addr[23:2]][7:0] <= mem_wdata[7:0];
 			if (mem_wstrb[1]) ram[mem_addr[23:2]][15:8] <= mem_wdata[15:8];
 			if (mem_wstrb[2]) ram[mem_addr[23:2]][23:16] <= mem_wdata[23:16];
 			if (mem_wstrb[3]) ram[mem_addr[23:2]][31:24] <= mem_wdata[31:24];
-
-			// ram_rdata <= ram[mem_addr[23:2]];
-			ram_ready <= 1'b1;
 		end
         end
 
@@ -110,8 +105,8 @@ module attosoc (
 
 
 	assign mem_ready = (iomem_valid && iomem_ready) ||
-	                   simpleuart_reg_div_sel || (simpleuart_reg_dat_sel && !simpleuart_reg_dat_wait) ||
-										 ram_ready;
+	                   simpleuart_reg_div_sel || (simpleuart_reg_dat_sel && !simpleuart_reg_dat_wait)
+			   || (!simpleuart_reg_dat_sel);
 
 	assign mem_rdata = simpleuart_reg_div_sel ? simpleuart_reg_div_do :
 										 simpleuart_reg_dat_sel ? simpleuart_reg_dat_do :
@@ -120,7 +115,7 @@ module attosoc (
 		.STACKADDR(STACKADDR),
 		.PROGADDR_RESET(PROGADDR_RESET),
 		.PROGADDR_IRQ(32'h 0000_0010),
-		.BARREL_SHIFTER(0),
+		.BARREL_SHIFTER(1),
 		.COMPRESSED_ISA(1),
 		.ENABLE_MUL(1),
 		.ENABLE_DIV(1),
