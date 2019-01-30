@@ -38,11 +38,10 @@ int main() {
     reg_uart_clkdiv = 416;
     int count = 0;
     while (1) {
-	char s[20];
         LED = ++count;
 #if 0
 	asm("ebreak");
-	//*((int*)0xf000000f) = 1;
+	*((int*)0x0000700f) = 1;
 #endif
         //print("hello world\n");
         //printf("hello world %d\n", count);
