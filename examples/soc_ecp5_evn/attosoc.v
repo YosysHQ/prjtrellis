@@ -58,16 +58,10 @@ module attosoc (
 	wire [3:0] mem_wstrb;
 	wire [31:0] mem_rdata;
 	wire [31:0] mem_la_addr;
-	wire mem_la_read;
 
 	always @(posedge clk)
         begin
-		if (mem_la_read)
-			ram_rdata <= ram[mem_la_addr[23:2]];
-	end
-
-	always @(posedge clk)
-        begin
+		ram_rdata <= ram[mem_la_addr[23:2]];
 		if (mem_addr[31:24] == 8'h00 && mem_valid) begin
 			if (mem_wstrb[0]) ram[mem_addr[23:2]][7:0] <= mem_wdata[7:0];
 			if (mem_wstrb[1]) ram[mem_addr[23:2]][15:8] <= mem_wdata[15:8];
@@ -133,7 +127,6 @@ module attosoc (
 		.mem_rdata   (mem_rdata  ),
 		.irq         (irq        ),
 		.eoi         (eoi        ),
-	        .mem_la_read (mem_la_read),
 	        .mem_la_addr (mem_la_addr)
 	);
 
