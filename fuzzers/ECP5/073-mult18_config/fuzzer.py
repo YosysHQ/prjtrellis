@@ -44,8 +44,20 @@ def main():
         empty_bitfile = cfg.build_design(cfg.ncl, {})
         cfg.ncl = "dspconfig.ncl"
 
+        def rclk(x):
+            return "CLK3" if x == "COVER_CLK3" else "NONE"
+
         nonrouting.fuzz_enum_setting(cfg, "{}.MODE".format(mult), ["NONE", "MULT18X18D"],
-                                     lambda x: get_substs(settings={}, mode=x), empty_bitfile, False)
+                                     lambda x: get_substs(settings={"GSR": "ENABLED",
+                                        "REG_INPUTA_RST": "RST3", "REG_INPUTB_RST": "RST3", "REG_INPUTC_RST": "RST3",
+                                        "REG_PIPELINE_RST": "RST3", "REG_OUTPUT_RST": "RST3",
+                                        "REG_INPUTA_CLK": rclk(x), "REG_INPUTB_CLK": rclk(x), "REG_INPUTC_CLK": rclk(x), 
+                                        "REG_PIPELINE_CLK": rclk(x), "REG_OUTPUT_CLK": rclk(x),
+                                        "REG_INPUTA_CE": "CE3", "REG_INPUTB_CE": "CE3", "REG_INPUTC_CE": "CE3",
+                                        "REG_PIPELINE_CE": "CE3", "REG_OUTPUT_CE": "CE3",
+                                        "SOURCEB_MODE": ("B_C_DYNAMIC" if x == "COVER_SRC" else "B_SHIFT")
+                                    }, mode=("NONE" if x == "NONE" else "MULT18X18D")),
+                                     empty_bitfile, False, ["COVER_CLK3", "COVER_SRC"])
 
         regs = ["INPUTA", "INPUTB", "INPUTC", "PIPELINE", "OUTPUT"]
         clks = ["NONE", "CLK0", "CLK1", "CLK2", "CLK3"]
