@@ -517,7 +517,7 @@ void add_misc(RoutingGraph &graph, const std::string &name, int x, int y) {
     graph.add_bel(bel);
 }
 
-void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, int i) {
+void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, int i, int bank) {
     std::string postfix;
     RoutingBel bel;
 
@@ -546,6 +546,11 @@ void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, i
         add_input("ECLKI", false);
         add_input("STOP");
         add_output("ECLKO");
+    } else if (name == "TRELLIS_ECLKBUF") {
+        bel.z = 6;
+        bel.name = graph.ident("ECLKBUF" + std::to_string(i));
+        graph.add_bel_input(bel, graph.ident("ECLKI"), x, y, graph.ident(fmt("JECLK" << i)));
+        graph.add_bel_output(bel, graph.ident("ECLKO"), 0, 0, graph.ident(fmt("G_BANK" << bank << "ECLK" << i)));
     } else if (name == "DLLDELD") {
         postfix = "DLLDEL";
         bel.name = graph.ident(postfix);
