@@ -28,7 +28,7 @@ module attosoc (
 	input clk,
 	output reg [7:0] led,
 	output uart_tx,
-	input uart_rx,
+	input uart_rx
 );
 
 	reg [5:0] reset_cnt = 0;
@@ -38,14 +38,17 @@ module attosoc (
 		reset_cnt <= reset_cnt + !resetn;
 	end
 
-	parameter integer MEM_WORDS = 8192;
+	// parameter integer MEM_WORDS = 8192;
+	parameter integer MEM_WORDS = 16384;
 	parameter [31:0] STACKADDR = 32'h 0000_0000 + (4*MEM_WORDS);       // end of memory
 	parameter [31:0] PROGADDR_RESET = 32'h 0000_0000;       // start of memory
 
 	reg [31:0] ram [0:MEM_WORDS-1];
 	initial $readmemh("firmware.hex", ram);
 	reg [31:0] ram_rdata;
-	reg ram_ready;
+
+	reg [31:0] irq = 32'h 0000_0000;
+	wire [31:0] eoi;
 
 	wire mem_valid;
 	wire mem_instr;
@@ -54,18 +57,16 @@ module attosoc (
 	wire [31:0] mem_wdata;
 	wire [3:0] mem_wstrb;
 	wire [31:0] mem_rdata;
+	wire [31:0] mem_la_addr;
 
 	always @(posedge clk)
         begin
-		ram_ready <= 1'b0;
+		ram_rdata <= ram[mem_la_addr[23:2]];
 		if (mem_addr[31:24] == 8'h00 && mem_valid) begin
 			if (mem_wstrb[0]) ram[mem_addr[23:2]][7:0] <= mem_wdata[7:0];
 			if (mem_wstrb[1]) ram[mem_addr[23:2]][15:8] <= mem_wdata[15:8];
 			if (mem_wstrb[2]) ram[mem_addr[23:2]][23:16] <= mem_wdata[23:16];
 			if (mem_wstrb[3]) ram[mem_addr[23:2]][31:24] <= mem_wdata[31:24];
-
-			ram_rdata <= ram[mem_addr[23:2]];
-			ram_ready <= 1'b1;
 		end
         end
 
@@ -98,8 +99,8 @@ module attosoc (
 
 
 	assign mem_ready = (iomem_valid && iomem_ready) ||
-	                   simpleuart_reg_div_sel || (simpleuart_reg_dat_sel && !simpleuart_reg_dat_wait) ||
-										 ram_ready;
+	                   simpleuart_reg_div_sel || (simpleuart_reg_dat_sel && !simpleuart_reg_dat_wait)
+			   || mem_addr < STACKADDR;
 
 	assign mem_rdata = simpleuart_reg_div_sel ? simpleuart_reg_div_do :
 										 simpleuart_reg_dat_sel ? simpleuart_reg_dat_do :
@@ -107,13 +108,13 @@ module attosoc (
 	picorv32 #(
 		.STACKADDR(STACKADDR),
 		.PROGADDR_RESET(PROGADDR_RESET),
-		.PROGADDR_IRQ(32'h 0000_0000),
-		.BARREL_SHIFTER(0),
-		.COMPRESSED_ISA(0),
-		.ENABLE_MUL(0),
-		.ENABLE_DIV(0),
-		.ENABLE_IRQ(0),
-		.ENABLE_IRQ_QREGS(0)
+		.PROGADDR_IRQ(32'h 0000_0010),
+		.BARREL_SHIFTER(1),
+		.COMPRESSED_ISA(1),
+		.ENABLE_MUL(1),
+		.ENABLE_DIV(1),
+		.ENABLE_IRQ(1),
+		.ENABLE_IRQ_QREGS(1)
 	) cpu (
 		.clk         (clk        ),
 		.resetn      (resetn     ),
@@ -123,7 +124,10 @@ module attosoc (
 		.mem_addr    (mem_addr   ),
 		.mem_wdata   (mem_wdata  ),
 		.mem_wstrb   (mem_wstrb  ),
-		.mem_rdata   (mem_rdata  )
+		.mem_rdata   (mem_rdata  ),
+		.irq         (irq        ),
+		.eoi         (eoi        ),
+	        .mem_la_addr (mem_la_addr)
 	);
 
 	simpleuart simpleuart (
@@ -158,11 +162,11 @@ module picosoc_regs (
 	output [31:0] rdata1,
 	output [31:0] rdata2
 );
-	reg [31:0] regs [0:31];
+	reg [31:0] regs [0:35]; // 32 + 4 QREGS
 
 	always @(posedge clk)
-		if (wen) regs[waddr[4:0]] <= wdata;
+		if (wen) regs[waddr] <= wdata;
 
-	assign rdata1 = regs[raddr1[4:0]];
-	assign rdata2 = regs[raddr2[4:0]];
+	assign rdata1 = regs[raddr1];
+	assign rdata2 = regs[raddr2];
 endmodule
