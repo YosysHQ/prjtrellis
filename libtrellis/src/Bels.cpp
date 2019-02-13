@@ -541,7 +541,7 @@ void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, i
         add_output("CDIVX");
     } else if (name == "ECLKSYNCB") {
         postfix = "ECLKSYNC" + std::to_string(i);
-        bel.name = graph.ident(postfix);
+        bel.name = graph.ident(postfix + "_BK" + std::to_string(bank));
         bel.z = 8 + i;
         add_input("ECLKI", false);
         add_input("STOP");
