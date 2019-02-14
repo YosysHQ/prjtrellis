@@ -17,10 +17,9 @@ attosoc_out.config: attosoc.json
 	nextpnr-ecp5 --json $< --basecfg ../../misc/basecfgs/empty_lfe5um5g-45f.config --textcfg $@ --um5g-45k
 
 attosoc.bit: attosoc_out.config
-	ecppack $< $@
+	ecppack --svf-rowsize 100000 --svf attosoc.svf $< $@
 
-%.svf: %.bit
-	../../tools/bit_to_svf.py $< $@
+attosoc.svf: attosoc.bit
 
 prog: attosoc.svf
 	openocd -f ../../misc/openocd/ecp5-versa5g.cfg -c "transport select jtag; init; svf $<; exit"
