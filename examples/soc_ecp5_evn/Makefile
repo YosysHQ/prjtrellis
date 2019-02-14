@@ -1,3 +1,5 @@
+TRELLIS=/usr/share/trellis
+
 firmware.elf: sections.lds start.s firmware.c
 	riscv32-unknown-elf-gcc -march=rv32i -Wl,-Bstatic,-T,sections.lds,--strip-debug -ffreestanding -nostdlib -o firmware.elf start.s firmware.c
 
@@ -25,7 +27,7 @@ attosoc.bit: attosoc_out.config
 %.svf: %.bit
 
 prog: attosoc.svf
-	openocd -f ../../misc/openocd/ecp5-evn.cfg -c "transport select jtag; init; svf $<; exit"
+	openocd -f ${TRELLIS}/misc/openocd/ecp5-evn.cfg -c "transport select jtag; init; svf $<; exit"
 
 .PHONY: attosoc_sim clean prog
 .PRECIOUS: attosoc.json attosoc_out.config attosoc.bit
