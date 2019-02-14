@@ -1,4 +1,5 @@
 PROJ=blinky
+TRELLIS=/usr/share/trellis
 
 all: ${PROJ}.bit
 
@@ -14,7 +15,7 @@ all: ${PROJ}.bit
 ${PROJ}.svf : ${PROJ}.bit
 
 prog: ${PROJ}.svf
-	openocd -f ../../misc/openocd/ecp5-evn.cfg -c "transport select jtag; init; svf $<; exit"
+	openocd -f ${TRELLIS}/misc/openocd/ecp5-evn.cfg -c "transport select jtag; init; svf $<; exit"
 
 clean:
 	rm -f *.svf *.bit *.config *.json
