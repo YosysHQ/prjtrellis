@@ -11,10 +11,10 @@ attosoc_sim: attosoc_tb.vvp firmware.hex
 	vvp -N $<
 
 attosoc.json: io_wrapper.v attosoc.v picorv32.v firmware.hex
-	yosys -p "synth_ecp5 -noccu2 -nomux -nodram -json $@" io_wrapper.v attosoc.v picorv32.v
+	yosys -p "synth_ecp5 -json $@" io_wrapper.v attosoc.v picorv32.v
 
 attosoc_out.config: attosoc.json
-	nextpnr-ecp5 --json $< --basecfg ../../misc/basecfgs/empty_lfe5u-45f.config --textcfg $@ --45k --no-tmdriv
+	nextpnr-ecp5 --json $< --textcfg $@ --45k --no-tmdriv
 
 attosoc.bit: attosoc_out.config
 	ecppack $< $@
