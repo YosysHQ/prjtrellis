@@ -1,5 +1,6 @@
 PROJ=demo
 CONSTR=versa.lpf
+TRELLIS=/usr/share/trellis
 
 all: ${PROJ}.bit
 
@@ -18,7 +19,7 @@ pattern.vh: make_14seg.py text.in
 ${PROJ}.svf: ${PROJ}.bit
 
 prog: ${PROJ}.svf
-	openocd -f ../../misc/openocd/ecp5-versa5g.cfg -c "transport select jtag; init; svf $<; exit"
+	openocd -f ${TRELLIS}/misc/openocd/ecp5-versa5g.cfg -c "transport select jtag; init; svf $<; exit"
 
 .PHONY: prog
 .PRECIOUS: ${PROJ}.json ${PROJ}_out.config
