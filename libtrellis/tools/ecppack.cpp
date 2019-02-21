@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
     options.add_options()("freq", po::value<std::string>(), "config frequency in MHz");
     options.add_options()("svf", po::value<std::string>(), "output SVF file");
     options.add_options()("svf-rowsize", po::value<int>(), "SVF row size in bits (default 8000)");
+    options.add_options()("spimode", po::value<std::string>(), "SPI Mode to use (fast-read, dual-spi, qspi)");
 
     po::positional_options_description pos;
     options.add_options()("input", po::value<std::string>()->required(), "input textual configuration");
@@ -109,6 +110,9 @@ help:
 
     if (vm.count("freq"))
         bitopts["freq"] = vm["freq"].as<string>();
+
+    if (vm.count("spimode"))
+        bitopts["spimode"] = vm["spimode"].as<string>();
 
     Bitstream b = Bitstream::serialise_chip(c, bitopts);
     if (vm.count("bit")) {

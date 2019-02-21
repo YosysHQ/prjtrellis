@@ -23,6 +23,11 @@ static const vector<pair<std::string, uint8_t>> frequencies =
      {"38.8", 0x38},
      {"62.0", 0x3b}};
 
+static const vector<pair<std::string, uint8_t>> spi_modes =
+    {{"fast-read", 0x49},
+     {"dual-spi", 0x51},
+     {"qspi", 0x59}};
+
 // The BitstreamReadWriter class stores state (including CRC16) whilst reading
 // the bitstream
 class BitstreamReadWriter {
@@ -356,6 +361,20 @@ Chip Bitstream::deserialise_chip() {
                 rd.check_crc16();
             }
                 break;
+            case BitstreamCommand::SPI_MODE: {
+                uint8_t spi_mode;
+                rd.get_bytes(&spi_mode, 1);
+                rd.skip_bytes(2);
+
+                auto spimode = find_if(spi_modes.begin(), spi_modes.end(), [&](const pair<string, uint8_t> &fp){
+                    return fp.second == spi_mode;
+                });
+                if (spimode == spi_modes.end())
+                    throw runtime_error("bad SPI mode" + std::to_string(spi_mode));
+
+                BITSTREAM_NOTE("SPI Mode " <<  spimode->first);
+            }
+                break;
             case BitstreamCommand::DUMMY:
                 break;
             default: BITSTREAM_FATAL("unsupported command 0x" << hex << setw(2) << setfill('0') << int(cmd),
@@ -375,6 +394,19 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
     wr.write_bytes(preamble.begin(), preamble.size());
     // Padding
     wr.insert_dummy(4);
+
+    if (options.count("spimode")) {
+        auto spimode = find_if(spi_modes.begin(), spi_modes.end(), [&](const pair<string, uint8_t> &fp){
+            return fp.first == options.at("spimode");
+        });
+        if (spimode == spi_modes.end())
+            throw runtime_error("bad spimode option " + options.at("spimode"));
+
+        wr.write_byte(uint8_t(BitstreamCommand::SPI_MODE));
+        wr.write_byte(uint8_t(spimode->second));
+        wr.insert_zeros(2);
+    }
+
     // Reset CRC
     wr.write_byte(uint8_t(BitstreamCommand::LSC_RESET_CRC));
     wr.insert_zeros(3);
