@@ -382,6 +382,11 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
 
                 BITSTREAM_NOTE("SPI Mode " <<  spimode->first);
             }
+            case BitstreamCommand::JUMP:
+                rd.skip_bytes(3);
+                BITSTREAM_DEBUG("Jump command");
+                /* TODO: Parse address and SPI Flash read speed */
+                rd.skip_bytes(4);
                 break;
             case BitstreamCommand::DUMMY:
                 break;
@@ -394,6 +399,36 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
     } else {
         throw BitstreamParseError("failed to parse bitstream, no valid payload found");
     }
+}
+
+Bitstream Bitstream::generate_jump(uint32_t address) {
+    BitstreamReadWriter wr;
+
+    // Dummy bytes
+    wr.insert_dummy(16);
+    // Preamble
+    wr.write_bytes(preamble.begin(), preamble.size());
+
+    // Padding
+    wr.insert_dummy(4);
+
+    // Dummy control register
+    wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_CNTRL0));
+    wr.insert_zeros(3);
+    wr.insert_zeros(4);
+
+    // Jump command
+    wr.write_byte(uint8_t(BitstreamCommand::JUMP));
+    wr.insert_zeros(3);
+    wr.write_byte(0x03); // TODO: Allow specifying SPI Flash read speed
+
+    wr.write_byte(uint8_t((address >> 16UL) & 0xFF));
+    wr.write_byte(uint8_t((address >> 8UL) & 0xFF));
+    wr.write_byte(uint8_t(address & 0xFF));
+
+    wr.insert_dummy(18);
+
+    return Bitstream(wr.get(), std::vector<string>());
 }
 
 Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> options) {
