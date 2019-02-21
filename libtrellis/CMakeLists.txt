@@ -143,10 +143,15 @@ target_compile_definitions(ecppll PRIVATE TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX
 target_link_libraries(ecppll trellis ${Boost_LIBRARIES} ${link_param})
 setup_rpath(ecppll)
 
+add_executable(ecpmulti ${INCLUDE_FILES} tools/ecpmulti.cpp)
+target_compile_definitions(ecpmulti PRIVATE TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
+target_link_libraries(ecpmulti trellis ${Boost_LIBRARIES} ${link_param})
+setup_rpath(ecpmulti)
+
 if (BUILD_SHARED)
-    install(TARGETS trellis ecppack ecppll ecpunpack LIBRARY DESTINATION ${LIBDIR}/trellis  RUNTIME DESTINATION bin)
+    install(TARGETS trellis ecppack ecppll ecpunpack ecpmulti LIBRARY DESTINATION ${LIBDIR}/trellis  RUNTIME DESTINATION bin)
 else()
-    install(TARGETS ecppack ecpunpack ecppll RUNTIME DESTINATION bin)
+    install(TARGETS ecppack ecpunpack ecppll ecpmulti RUNTIME DESTINATION bin)
 endif()
 install(DIRECTORY ../database DESTINATION share/trellis PATTERN ".git" EXCLUDE)
 install(DIRECTORY ../misc DESTINATION share/trellis)
