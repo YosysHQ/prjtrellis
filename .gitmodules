@@ -1,4 +1,4 @@
 [submodule "database"]
 	path = database
-	url = git@git.ds0.me:cr1901/facade-db.git 
+	url = https://github.com/cr1901/prjtrellis-db.git 
 	branch = facade
