@@ -269,6 +269,7 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
             case BitstreamCommand::LSC_PROG_CNTRL0: {
                 rd.skip_bytes(3);
                 uint32_t cfg = rd.get_uint32();
+                chip->ctrl0 = cfg;
                 BITSTREAM_DEBUG("set control reg 0 to 0x" << hex << setw(8) << setfill('0') << cfg);
             }
                 break;
@@ -423,7 +424,7 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
     // Set control reg 0 to 0x40000000
     wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_CNTRL0));
     wr.insert_zeros(3);
-    uint32_t ctrl0  = 0x40000000;
+    uint32_t ctrl0  = chip.ctrl0;
     if (options.count("freq")) {
         auto freq = find_if(frequencies.begin(), frequencies.end(), [&](const pair<string, uint8_t> &fp){
             return fp.first == options.at("freq");
