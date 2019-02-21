@@ -28,6 +28,8 @@ static const vector<pair<std::string, uint8_t>> spi_modes =
      {"dual-spi", 0x51},
      {"qspi", 0x59}};
 
+static const uint32_t multiboot_flag = 1 << 20;
+
 // The BitstreamReadWriter class stores state (including CRC16) whilst reading
 // the bitstream
 class BitstreamReadWriter {
@@ -432,6 +434,12 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
         if (freq == frequencies.end())
             throw runtime_error("bad frequency option " + options.at("freq"));
         ctrl0 |= freq->second;
+    }
+    if (options.count("multiboot")) {
+        if (options.at("multiboot") == "yes")
+            ctrl0 |= multiboot_flag;
+        else
+            ctrl0 &= ~multiboot_flag;
     }
     wr.write_uint32(ctrl0);
     // Init address
