@@ -9,6 +9,7 @@
 #include <boost/optional.hpp>
 #include <iomanip>
 #include <fstream>
+#include <array>
 
 namespace Trellis {
 
@@ -75,6 +76,83 @@ public:
             *out = get_byte();
             ++out;
         }
+    }
+
+    // Decompress and copy multiple bytes into an OutputIterator and update CRC
+    template<typename T>
+    void get_compressed_bytes(T out, size_t count, array<uint8_t, 8> compression_dict) {
+        // Here we store data already read by read_byte(), it may be more than 1 byte at times!!
+        uint16_t read_data = 0;
+        size_t remaining_bits = 0;
+        bool next_bit;
+
+        uint8_t udata;
+
+        //
+        // Every byte can be encoded by on of 4 cases
+        // It's a prefix-free code so we can identify each one just by looking at the first bits:
+        // 0 -> Byte zero (0000 0000)
+        // 100 xxx -> Stored byte in compression_dict, xxx is the index (0-7)
+        // 101 xxx -> Byte with a single bit set, xxx is the index of the set bit (0 is lsb, 7 is msb)
+        // 11 xxxxxxxx -> Literal byte, xxxxxxxx is the encoded byte
+        //
+        for (size_t i = 0; i < count; i++) {
+            // Make sure we have at least one bit in the buffer
+            if (!remaining_bits) {
+                read_data = (uint32_t) get_byte();
+                remaining_bits = 8;
+            }
+            next_bit = (bool) (read_data >> (remaining_bits-1) & 1);
+            remaining_bits--;
+
+            // Check the 4 cases leaving the uncompressed byte in udata
+            if (next_bit) {
+                // Starts with 1, so check next bit/bits
+                // For each of the 3 remaining cases we will need at least 5 more bits,
+                // so if we have less than that it's ok to read another byte
+                if (remaining_bits < 5) {
+                    read_data = (read_data << 8) | ((uint32_t) get_byte());
+                    remaining_bits += 8;
+                }
+                next_bit = (bool) (read_data >> (remaining_bits-1) & 1);
+                remaining_bits--;
+
+                if (next_bit) {
+                    // 11 xxxx xxxx: Literal byte, just read the next 8 bits & use that
+                    // we consumed 10 bits total
+                    if (remaining_bits < 8) {
+                        read_data = (read_data << 8) | ((uint32_t) get_byte());
+                        remaining_bits += 8;
+                    }
+                    udata = (uint8_t) ((read_data >> (remaining_bits - 8)) & 0xff);
+                    remaining_bits -= 8;
+                } else {
+                    // Starts with 10, it could be a stored literal or a single-bit-set byte
+                    // 10 ? xxx: In both cases we need the index xxx, so extract it now
+                    // We already have all the bits we need buffered
+                    next_bit = (bool) (read_data >> (remaining_bits-1) & 1);
+                    remaining_bits--;
+                    size_t idx = (size_t) ((read_data >> (remaining_bits-3)) & 0x7);
+                    remaining_bits -= 3;
+                    if (next_bit) {
+                        // 101 xxx: Stored byte.  Just use xxx as index in the dictionary,
+                        // we consumed 6 bits
+                        udata = compression_dict[idx];
+                    } else {
+                        // 100 xxx: Single-bit-set byte, xxx is the index of the set bit
+                        // we consumed 6 bits
+                        udata = (uint8_t) (1 << idx);
+                    }
+                }
+            } else {
+                // 0: the uncompressed byte is zero
+                // we consumed just one bit
+                udata = 0;
+            }
+            *out = udata;
+            ++out;
+        }
+        // if remaining bits > 0 they are just padding bits added to the end so we can ignore them
     }
 
     // Write multiple bytes from an InputIterator and update CRC
@@ -234,6 +312,8 @@ Chip Bitstream::deserialise_chip() {
     BitstreamReadWriter rd(data);
     boost::optional<Chip> chip;
     bool found_preamble = rd.find_preamble(preamble);
+    boost::optional<array<uint8_t, 8>> compression_dict;
+
     if (!found_preamble)
         throw BitstreamParseError("preamble not found in bitstream");
 
@@ -280,6 +360,28 @@ Chip Bitstream::deserialise_chip() {
                     rd.check_crc16();
             }
                 break;
+            case BitstreamCommand::LSC_WRITE_COMP_DIC: {
+                bool check_crc = (rd.get_byte() & 0x80) != 0;
+                rd.skip_bytes(2);
+                compression_dict = boost::make_optional(array<uint8_t, 8>());
+                // patterns are stored in the bitstream in reverse order: pattern7 to pattern0
+                for (int i = 7; i >= 0; i--) {
+                  uint8_t pattern = rd.get_byte();
+                  compression_dict.get()[i] = pattern;
+                }
+                BITSTREAM_DEBUG("write compression dictionary: " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[0]) << " " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[1]) << " " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[2]) << " " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[3]) << " " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[4]) << " " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[5]) << " " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[6]) << " " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[7]));;
+                if (check_crc)
+                  rd.check_crc16();
+            }
+                break;
             case BitstreamCommand::LSC_INIT_ADDRESS:
                 rd.skip_bytes(3);
                 BITSTREAM_DEBUG("init address");
@@ -308,6 +410,51 @@ Chip Bitstream::deserialise_chip() {
                                 (frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] >> (ofs % 8)) & 0x01);
                     }
                     rd.check_crc16();
+                    rd.skip_bytes(dummy_bytes);
+                }
+                // Post-bitstream space for SECURITY and SED
+                // TODO: process SECURITY and SED
+                rd.skip_possible_dummy(8);
+                rd.skip_possible_dummy(4);
+            }
+                break;
+            case BitstreamCommand::LSC_PROG_INCR_CMP: {
+                // This is the main bitstream payload (compressed)
+                if (!chip)
+                    throw BitstreamParseError("start of compressed bitstream data before chip was identified", rd.get_offset());
+                if (!compression_dict)
+                    throw BitstreamParseError("start of compressed bitstream data before compression dictionary was stored", rd.get_offset());
+                uint8_t params[3];
+                rd.get_bytes(params, 3);
+                BITSTREAM_DEBUG("compressed settings: " << hex << setw(2) << int(params[0]) << " " << int(params[1]) << " "
+                                << int(params[2]));
+                // I've only seen 0x81 for the ecp5 and 0x8e for the xo2 so far...
+                bool check_crc = params[0] & 0x80U;
+                // inverted value: a 0 means check after every frame
+                bool crc_after_each_frame = check_crc && !(params[0] & 0x40U);
+                // I don't know what this is for... I've seen 1s and 0s in compressed streams
+                // bool include_dummy_bits = params[0] & 0x20U;
+                // It's not completely clear from the docs but I am assuming this flag in 0 means
+                // no dummy bytes, i.e. ignore the following byte count
+                bool include_dummy_bytes = params[0] & 0x10U;
+                size_t dummy_bytes = include_dummy_bytes? (params[0] & 0x0FU) : 0;
+                size_t frame_count = (params[1] << 8U) | params[2];
+                BITSTREAM_NOTE("reading " << std::dec << frame_count << " compressed config frames (with " << std::dec << dummy_bytes << " dummy bytes)");
+                size_t bytes_per_frame = (chip->info.bits_per_frame + chip->info.pad_bits_after_frame +
+                                          chip->info.pad_bits_before_frame) / 8U;
+                // 0 bits are added to the stream before compression to make it 64 bit bounded, so
+                // we should consider that space here but they shouldn't be copied to the output
+                bytes_per_frame += (7 - ((bytes_per_frame - 1) % 8));
+                unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
+                for (size_t i = 0; i < frame_count; i++) {
+                    rd.get_compressed_bytes(frame_bytes.get(), bytes_per_frame, compression_dict.get());
+                    for (int j = 0; j < chip->info.bits_per_frame; j++) {
+                        size_t ofs = j + chip->info.pad_bits_after_frame;
+                        chip->cram.bit((chip->info.num_frames - 1) - i, j) = (char) (
+                                (frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] >> (ofs % 8)) & 0x01);
+                    }
+                    if (crc_after_each_frame || (check_crc && (i == frame_count-1)))
+                      rd.check_crc16();
                     rd.skip_bytes(dummy_bytes);
                 }
                 // Post-bitstream space for SECURITY and SED
