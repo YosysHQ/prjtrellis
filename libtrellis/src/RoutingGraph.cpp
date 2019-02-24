@@ -62,8 +62,6 @@ RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_na
             return RoutingId();
         }
     }
-    if (stripped_name.find("BNK_") == 0 || stripped_name.find("DQSG_") == 0) // Not yet implemented
-        return RoutingId();
     // Workaround for PCSA/B sharing tile dbs
     if (col >= 69) {
         size_t pcsa_pos = stripped_name.find("PCSA");
