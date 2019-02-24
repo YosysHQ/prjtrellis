@@ -234,7 +234,7 @@ Bitstream Bitstream::read_bit(istream &in) {
 
 static const vector<uint8_t> preamble = {0xFF, 0xFF, 0xBD, 0xB3};
 
-Chip Bitstream::deserialise_chip() {
+Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
     cerr << "bitstream size: " << data.size() * 8 << " bits" << endl;
     BitstreamReadWriter rd(data);
     boost::optional<Chip> chip;
@@ -256,6 +256,11 @@ Chip Bitstream::deserialise_chip() {
             case BitstreamCommand::VERIFY_ID: {
                 rd.skip_bytes(3);
                 uint32_t id = rd.get_uint32();
+                if (idcode) {
+                    BITSTREAM_NOTE("Overriding device ID from 0x" << hex << setw(8) << setfill('0') << id << " to 0x" << *idcode);
+                    id = *idcode;
+                }
+
                 BITSTREAM_NOTE("device ID: 0x" << hex << setw(8) << setfill('0') << id);
                 chip = boost::make_optional(Chip(id));
                 chip->metadata = metadata;
