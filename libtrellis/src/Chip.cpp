@@ -199,12 +199,16 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
         if (tile->info.type == "EFB1_PICB1")
             Bels::add_misc(*rg, "USRMCLK", x-5, y);
         if (tile->info.type == "ECLK_L") {
-            Bels::add_ioclk_bel(*rg, "CLKDIVF", x-2, y, 0);
-            Bels::add_ioclk_bel(*rg, "CLKDIVF", x-2, y, 1);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y, 0);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y, 1);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y+1, 0);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y+1, 1);
+            Bels::add_ioclk_bel(*rg, "CLKDIVF", x-2, y, 0, 7);
+            Bels::add_ioclk_bel(*rg, "CLKDIVF", x-2, y, 1, 6);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y, 0, 7);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y, 1, 7);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y+1, 0, 6);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y+1, 1, 6);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y, 0, 7);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y, 1, 7);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y+1, 0, 6);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y+1, 1, 6);
             Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y-1, 0);
             Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y, 0);
             Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y+1, 0);
@@ -213,10 +217,14 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
         if (tile->info.type == "ECLK_R") {
             Bels::add_ioclk_bel(*rg, "CLKDIVF", x+2, y, 0);
             Bels::add_ioclk_bel(*rg, "CLKDIVF", x+2, y, 1);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y, 0);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y, 1);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y+1, 0);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y+1, 1);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y, 0, 2);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y, 1, 2);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y+1, 0, 3);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y+1, 1, 3);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y, 0, 2);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y, 1, 2);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y+1, 0, 3);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y+1, 1, 3);
             Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y-1, 0);
             Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y, 0);
             Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y+1, 0);
