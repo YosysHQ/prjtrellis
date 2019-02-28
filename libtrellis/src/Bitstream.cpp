@@ -382,6 +382,7 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
 
                 BITSTREAM_NOTE("SPI Mode " <<  spimode->first);
             }
+                break;
             case BitstreamCommand::JUMP:
                 rd.skip_bytes(3);
                 BITSTREAM_DEBUG("Jump command");
