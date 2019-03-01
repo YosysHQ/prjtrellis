@@ -63,6 +63,15 @@ public:
         return val;
     }
 
+    // like get_byte but don't update CRC if it's a dummy
+    inline uint8_t get_byte_maybe_dummy() {
+        assert(iter < data.end());
+        uint8_t val = *(iter++);
+        if (val != 0xff)
+            update_crc16(val);
+        return val;
+    }
+
     // Write a single byte and update CRC
     inline void write_byte(uint8_t b) {
         data.push_back(b);
@@ -170,18 +179,6 @@ public:
     // Insert zeros while updating CRC
     void insert_zeros(size_t count) {
         for (size_t i = 0; i < count; i++) write_byte(0x00);
-    }
-
-    // Skip over a possible-dummy command section of N bytes, updating CRC only if command is not 0xFF
-    uint8_t skip_possible_dummy(int size) {
-        uint8_t cmd = *(iter++);
-        if (cmd == 0xFF) {
-            iter += (size - 1);
-        } else {
-            update_crc16(cmd);
-            skip_bytes(size - 1);
-        }
-        return cmd;
     }
 
     // Insert dummy bytes into the bitstream, without updating CRC
@@ -321,7 +318,7 @@ Chip Bitstream::deserialise_chip() {
     int addr_in_ebr = 0;
 
     while (!rd.is_end()) {
-        uint8_t cmd = rd.get_byte();
+        uint8_t cmd = rd.get_byte_maybe_dummy();
         switch ((BitstreamCommand) cmd) {
             case BitstreamCommand::LSC_RESET_CRC:
                 BITSTREAM_DEBUG("reset crc");
@@ -386,81 +383,62 @@ Chip Bitstream::deserialise_chip() {
                 rd.skip_bytes(3);
                 BITSTREAM_DEBUG("init address");
                 break;
+            case BitstreamCommand::LSC_PROG_INCR_CMP:
+                // This is the main bitstream payload (compressed)
+                BITSTREAM_DEBUG("Compressed bitstream found");
+                if (!compression_dict)
+                    throw BitstreamParseError("start of compressed bitstream data before compression dictionary was stored", rd.get_offset());
+                // fall through
             case BitstreamCommand::LSC_PROG_INCR_RTI: {
                 // This is the main bitstream payload
                 if (!chip)
                     throw BitstreamParseError("start of bitstream data before chip was identified", rd.get_offset());
+                bool reversed_frames;
+                if (chip->family == "MachXO2")
+                    reversed_frames = false;
+                else if (chip->family == "ECP5")
+                    reversed_frames = true;
+                else
+                    throw BitstreamParseError("Unknown chip family: " << chip->family);
+
                 uint8_t params[3];
                 rd.get_bytes(params, 3);
                 BITSTREAM_DEBUG("settings: " << hex << setw(2) << int(params[0]) << " " << int(params[1]) << " "
                                              << int(params[2]));
-                size_t dummy_bytes = (params[0] & 0x0FU);
-                size_t frame_count = (params[1] << 8U) | params[2];
-                BITSTREAM_NOTE(
-                        "reading " << std::dec << frame_count << " config frames (with " << std::dec << dummy_bytes
-                                   << " dummy bytes)");
-                size_t bytes_per_frame = (chip->info.bits_per_frame + chip->info.pad_bits_after_frame +
-                                          chip->info.pad_bits_before_frame) / 8U;
-                unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
-                for (size_t i = 0; i < frame_count; i++) {
-                    rd.get_bytes(frame_bytes.get(), bytes_per_frame);
-                    for (int j = 0; j < chip->info.bits_per_frame; j++) {
-                        size_t ofs = j + chip->info.pad_bits_after_frame;
-                        chip->cram.bit((chip->info.num_frames - 1) - i, j) = (char) (
-                                (frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] >> (ofs % 8)) & 0x01);
-                    }
-                    rd.check_crc16();
-                    rd.skip_bytes(dummy_bytes);
-                }
-                // Post-bitstream space for SECURITY and SED
-                // TODO: process SECURITY and SED
-                rd.skip_possible_dummy(8);
-                rd.skip_possible_dummy(4);
-            }
-                break;
-            case BitstreamCommand::LSC_PROG_INCR_CMP: {
-                // This is the main bitstream payload (compressed)
-                if (!chip)
-                    throw BitstreamParseError("start of compressed bitstream data before chip was identified", rd.get_offset());
-                if (!compression_dict)
-                    throw BitstreamParseError("start of compressed bitstream data before compression dictionary was stored", rd.get_offset());
-                uint8_t params[3];
-                rd.get_bytes(params, 3);
-                BITSTREAM_DEBUG("compressed settings: " << hex << setw(2) << int(params[0]) << " " << int(params[1]) << " "
-                                << int(params[2]));
                 // I've only seen 0x81 for the ecp5 and 0x8e for the xo2 so far...
                 bool check_crc = params[0] & 0x80U;
                 // inverted value: a 0 means check after every frame
                 bool crc_after_each_frame = check_crc && !(params[0] & 0x40U);
-                // I don't know what this is for... I've seen 1s and 0s in compressed streams
+                // I don't know what these two are for I've seen both 1s (XO2) and both 0s (ECP5)
+                // The names are from the ECP5 docs
                 // bool include_dummy_bits = params[0] & 0x20U;
-                // It's not completely clear from the docs but I am assuming this flag in 0 means
-                // no dummy bytes, i.e. ignore the following byte count
-                bool include_dummy_bytes = params[0] & 0x10U;
-                size_t dummy_bytes = include_dummy_bytes? (params[0] & 0x0FU) : 0;
+                // bool include_dummy_bytes = params[0] & 0x10U;
+                size_t dummy_bytes = params[0] & 0x0FU;
                 size_t frame_count = (params[1] << 8U) | params[2];
-                BITSTREAM_NOTE("reading " << std::dec << frame_count << " compressed config frames (with " << std::dec << dummy_bytes << " dummy bytes)");
+                BITSTREAM_NOTE("reading " << std::dec << frame_count << " config frames (with " << std::dec << dummy_bytes << " dummy bytes)");
                 size_t bytes_per_frame = (chip->info.bits_per_frame + chip->info.pad_bits_after_frame +
                                           chip->info.pad_bits_before_frame) / 8U;
-                // 0 bits are added to the stream before compression to make it 64 bit bounded, so
+                // If compressed 0 bits are added to the stream before compression to make it 64 bit bounded, so
                 // we should consider that space here but they shouldn't be copied to the output
-                bytes_per_frame += (7 - ((bytes_per_frame - 1) % 8));
+                if ((BitstreamCommand) cmd == BitstreamCommand::LSC_PROG_INCR_CMP)
+                    bytes_per_frame += (7 - ((bytes_per_frame - 1) % 8));
                 unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
                 for (size_t i = 0; i < frame_count; i++) {
-                    rd.get_compressed_bytes(frame_bytes.get(), bytes_per_frame, compression_dict.get());
+                    size_t idx = reversed_frames? (chip->info.num_frames - 1) - i : i;
+                    if ((BitstreamCommand) cmd == BitstreamCommand::LSC_PROG_INCR_CMP)
+                        rd.get_compressed_bytes(frame_bytes.get(), bytes_per_frame, compression_dict.get());
+                    else
+                        rd.get_bytes(frame_bytes.get(), bytes_per_frame);
+
                     for (int j = 0; j < chip->info.bits_per_frame; j++) {
                         size_t ofs = j + chip->info.pad_bits_after_frame;
-                        chip->cram.bit((chip->info.num_frames - 1) - i, j) = (char) (
-                                (frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] >> (ofs % 8)) & 0x01);
+                        chip->cram.bit(idx, j) = (char)
+                            ((frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] >> (ofs % 8)) & 0x01);
                     }
                     if (crc_after_each_frame || (check_crc && (i == frame_count-1)))
                       rd.check_crc16();
                     rd.skip_bytes(dummy_bytes);
                 }
-                // Post-bitstream space for SECURITY and SED
-                // TODO: process SECURITY and SED
-                rd.skip_possible_dummy(8);
-                rd.skip_possible_dummy(4);
             }
                 break;
             case BitstreamCommand::LSC_EBR_ADDRESS: {
