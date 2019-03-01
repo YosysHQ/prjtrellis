@@ -309,6 +309,10 @@ Bitstream Bitstream::read_bit(istream &in) {
 
 static const vector<uint8_t> preamble = {0xFF, 0xFF, 0xBD, 0xB3};
 
+Chip Bitstream::deserialise_chip() {
+    return deserialise_chip(boost::none);
+}
+
 Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
     cerr << "bitstream size: " << data.size() * 8 << " bits" << endl;
     BitstreamReadWriter rd(data);
@@ -404,12 +408,12 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                 if (!chip)
                     throw BitstreamParseError("start of bitstream data before chip was identified", rd.get_offset());
                 bool reversed_frames;
-                if (chip->family == "MachXO2")
+                if (chip->info.family == "MachXO2")
                     reversed_frames = false;
-                else if (chip->family == "ECP5")
+                else if (chip->info.family == "ECP5")
                     reversed_frames = true;
                 else
-                    throw BitstreamParseError("Unknown chip family: " << chip->family);
+                    throw BitstreamParseError("Unknown chip family: " + chip->info.family);
 
                 uint8_t params[3];
                 rd.get_bytes(params, 3);

@@ -63,7 +63,7 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def("write_bit", &Bitstream::write_bit_py)
             .def_readwrite("metadata", &Bitstream::metadata)
             .def_readwrite("data", &Bitstream::data)
-            .def("deserialise_chip", &Bitstream::deserialise_chip);
+        .def("deserialise_chip", static_cast<Chip (Bitstream::*)()>(&Bitstream::deserialise_chip));
 
     class_<DeviceLocator>("DeviceLocator")
             .def_readwrite("family", &DeviceLocator::family)
