@@ -17,7 +17,6 @@ and creates a JSON file as output
 
 import sys, re
 import json, argparse
-import machxo2_tiles
 
 tile_re = re.compile(
     r'^Tile\s+([A-Z0-9a-z_/]+)\s+\((\d+), (\d+)\)\s+bitmap offset\s+\((\d+), (\d+)\)\s+\<([A-Z0-9a-z_/]+)>\s*$')
@@ -26,10 +25,6 @@ site_re = re.compile(
     r'^\s+([A-Z0-9_]+) \((-?\d+), (-?\d+)\)')
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('family', type=str,
-                    help="device family")
-parser.add_argument('device', type=str,
-                    help="device name")
 parser.add_argument('infile', type=argparse.FileType('r'),
                     help="input file from bstool")
 parser.add_argument('outfile', type=argparse.FileType('w'),
@@ -39,38 +34,19 @@ def main(argv):
     args = parser.parse_args(argv[1:])
     tiles = {}
     current_tile = None
-    family = args.family
-    device = args.device
     for line in args.infile:
         tile_m = tile_re.match(line)
         if tile_m:
             name = tile_m.group(6)
-            if (family == "ECP5"):
-                current_tile = {
-                    "type": tile_m.group(1),
-                    "start_bit": int(tile_m.group(4)),
-                    "start_frame": int(tile_m.group(5)),
-                    "rows": int(tile_m.group(2)),
-                    "cols": int(tile_m.group(3)),
-                    "sites": []
-                }
-                identifier = name + ":" + tile_m.group(1)
-            elif (family == "MachXO2"):
-                # MachXO2 has the frames/bit and the rows/cols index reversed
-                # compared to ECP5
-                current_tile = {
-                    "type": tile_m.group(1),
-                    "start_bit": int(tile_m.group(5)),
-                    "start_frame": int(tile_m.group(4)),
-                    "rows": int(tile_m.group(3)),
-                    "cols": int(tile_m.group(2)),
-                    "sites": []
-                }
-                identifier = machxo2_tiles.fix_name(name, device) + ":" + tile_m.group(1)
-            else:
-                print("Unknown family: " + family)
-                sys.exit(1)
-
+            current_tile = {
+                "type": tile_m.group(1),
+                "start_bit": int(tile_m.group(4)),
+                "start_frame": int(tile_m.group(5)),
+                "rows": int(tile_m.group(2)),
+                "cols": int(tile_m.group(3)),
+                "sites": []
+            }
+            identifier = name + ":" + tile_m.group(1)
             assert identifier not in tiles
             tiles[identifier] = current_tile
         else:
