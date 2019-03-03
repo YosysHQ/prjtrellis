@@ -49,6 +49,7 @@ public:
     static Bitstream serialise_chip(const Chip &chip, const map<string, string> options);
 
     // Deserialise a bitstream to a Chip
+    Chip deserialise_chip();
     Chip deserialise_chip(boost::optional<uint32_t> idcode = boost::optional<uint32_t>());
 
     // Write a Lattice .bit file (metadata + bitstream)

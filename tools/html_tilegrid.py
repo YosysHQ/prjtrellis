@@ -46,6 +46,7 @@ def main(argv):
 
     max_row = device_info["max_row"]
     max_col = device_info["max_col"]
+    col_bias = device_info["col_bias"]
 
     tiles = []
     for i in range(max_row + 1):
@@ -71,10 +72,10 @@ def main(argv):
     for trow in tiles:
         print("<tr>", file=f)
         row_max_height = 0
-        for tloc in trow:
+        for tloc in trow[col_bias:]:
             row_max_height = max(row_max_height, len(tloc))
         row_height = max(75, 30 * row_max_height)
-        for tloc in trow:
+        for tloc in trow[col_bias:]:
             print("<td style='border: 2px solid black; height: {}px'>".format(row_height), file=f)
             for tile in tloc:
                 print(
