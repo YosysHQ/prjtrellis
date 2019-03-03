@@ -116,7 +116,7 @@ public:
                 read_data = (uint32_t) get_byte();
                 remaining_bits = 8;
             }
-            next_bit = (bool) (read_data >> (remaining_bits-1) & 1);
+            next_bit = bool(read_data >> (remaining_bits-1) & 1);
             remaining_bits--;
 
             // Check the 4 cases leaving the uncompressed byte in udata
@@ -128,7 +128,7 @@ public:
                     read_data = (read_data << 8) | ((uint32_t) get_byte());
                     remaining_bits += 8;
                 }
-                next_bit = (bool) (read_data >> (remaining_bits-1) & 1);
+                next_bit = bool(read_data >> (remaining_bits-1) & 1);
                 remaining_bits--;
 
                 if (next_bit) {
@@ -138,13 +138,13 @@ public:
                         read_data = (read_data << 8) | ((uint32_t) get_byte());
                         remaining_bits += 8;
                     }
-                    udata = (uint8_t) ((read_data >> (remaining_bits - 8)) & 0xff);
+                    udata = uint8_t((read_data >> (remaining_bits - 8)) & 0xff);
                     remaining_bits -= 8;
                 } else {
                     // Starts with 10, it could be a stored literal or a single-bit-set byte
                     // 10 ? xxx: In both cases we need the index xxx, so extract it now
                     // We already have all the bits we need buffered
-                    next_bit = (bool) (read_data >> (remaining_bits-1) & 1);
+                    next_bit = bool(read_data >> (remaining_bits-1) & 1);
                     remaining_bits--;
                     size_t idx = (size_t) ((read_data >> (remaining_bits-3)) & 0x7);
                     remaining_bits -= 3;
@@ -155,7 +155,7 @@ public:
                     } else {
                         // 100 xxx: Single-bit-set byte, xxx is the index of the set bit
                         // we consumed 6 bits
-                        udata = (uint8_t) (1 << idx);
+                        udata = uint8_t(1 << idx);
                     }
                 }
             } else {
