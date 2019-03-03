@@ -68,13 +68,16 @@ public:
         return val;
     }
 
-    // like get_byte but don't update CRC if it's a dummy
-    inline uint8_t get_byte_maybe_dummy() {
+    // The command opcode is a byte so this works like get_byte
+    // but doesn't update the CRC if it's a dummy, because the docs
+    // says that dummy commands don't update the crc
+    inline BitstreamCommand get_command_opcode() {
         assert(iter < data.end());
         uint8_t val = *(iter++);
-        if (val != 0xff)
+        BitstreamCommand cmd = BitstreamCommand(val);
+        if (cmd != BitstreamCommand::DUMMY)
             update_crc16(val);
-        return val;
+        return cmd;
     }
 
     // Write a single byte and update CRC
@@ -327,8 +330,8 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
     int addr_in_ebr = 0;
 
     while (!rd.is_end()) {
-        uint8_t cmd = rd.get_byte_maybe_dummy();
-        switch ((BitstreamCommand) cmd) {
+        BitstreamCommand cmd = rd.get_command_opcode();
+        switch (cmd) {
             case BitstreamCommand::LSC_RESET_CRC:
                 BITSTREAM_DEBUG("reset crc");
                 rd.skip_bytes(3);
@@ -434,12 +437,12 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                                           chip->info.pad_bits_before_frame) / 8U;
                 // If compressed 0 bits are added to the stream before compression to make it 64 bit bounded, so
                 // we should consider that space here but they shouldn't be copied to the output
-                if ((BitstreamCommand) cmd == BitstreamCommand::LSC_PROG_INCR_CMP)
+                if (cmd == BitstreamCommand::LSC_PROG_INCR_CMP)
                     bytes_per_frame += (7 - ((bytes_per_frame - 1) % 8));
                 unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
                 for (size_t i = 0; i < frame_count; i++) {
                     size_t idx = reversed_frames? (chip->info.num_frames - 1) - i : i;
-                    if ((BitstreamCommand) cmd == BitstreamCommand::LSC_PROG_INCR_CMP)
+                    if (cmd == BitstreamCommand::LSC_PROG_INCR_CMP)
                         rd.get_compressed_bytes(frame_bytes.get(), bytes_per_frame, compression_dict.get());
                     else
                         rd.get_bytes(frame_bytes.get(), bytes_per_frame);
