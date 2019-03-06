@@ -51,6 +51,7 @@ public:
     static Bitstream generate_jump(uint32_t address);
 
     // Deserialise a bitstream to a Chip
+    Chip deserialise_chip();
     Chip deserialise_chip(boost::optional<uint32_t> idcode = boost::optional<uint32_t>());
 
     // Write a Lattice .bit file (metadata + bitstream)
