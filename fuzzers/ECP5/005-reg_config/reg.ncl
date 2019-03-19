@@ -15,7 +15,7 @@ design top
       {
          cellmodel-name SLICE;
          program "MODE:LOGIC "
-                 "REG${r}:::REGSET=${regset}:SD=${sd} "
+                 "REG${r}:::REGSET=${regset},LSRMODE=${lsrmode}:SD=${sd} "
                  "Q${r}:Q "
                  "GSR:${gsr} "
                  "CLKMUX:CLK "

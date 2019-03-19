@@ -125,11 +125,15 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
         }
         // PIO Bels
         if (tile->info.type.find("PICL0") != string::npos || tile->info.type.find("PICR0") != string::npos)
-            for (int z = 0; z < 4; z++)
+            for (int z = 0; z < 4; z++) {
                 Bels::add_pio(*rg, x, y, z);
+                Bels::add_iologic(*rg, x, y, z, false);
+            }
         if (tile->info.type.find("PIOT0") != string::npos || (tile->info.type.find("PICB0") != string::npos && tile->info.type != "SPICB0"))
-            for (int z = 0; z < 2; z++)
+            for (int z = 0; z < 2; z++) {
                 Bels::add_pio(*rg, x, y, z);
+                Bels::add_iologic(*rg, x, y, z, true);
+            }
         // DCC Bels
         if (tile->info.type == "LMID_0")
             for (int z = 0; z < 14; z++)
@@ -183,6 +187,63 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
         if (tile->info.type == "BMID_0H")
             for (int z = 0; z < 2; z++)
                 Bels::add_pcsclkdiv(*rg, x, y-1, z);
+        // Config/system Bels
+        if (tile->info.type == "EFB0_PICB0") {
+            Bels::add_misc(*rg, "GSR", x, y-1);
+            Bels::add_misc(*rg, "JTAGG", x, y-1);
+            Bels::add_misc(*rg, "OSCG", x, y-1);
+            Bels::add_misc(*rg, "SEDGA", x, y-1);
+        }
+        if (tile->info.type == "DTR")
+            Bels::add_misc(*rg, "DTR", x, y-1);
+        if (tile->info.type == "EFB1_PICB1")
+            Bels::add_misc(*rg, "USRMCLK", x-5, y);
+        if (tile->info.type == "ECLK_L") {
+            Bels::add_ioclk_bel(*rg, "CLKDIVF", x-2, y, 0, 7);
+            Bels::add_ioclk_bel(*rg, "CLKDIVF", x-2, y, 1, 6);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y, 0, 7);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y, 1, 7);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y+1, 0, 6);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y+1, 1, 6);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y, 0, 7);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y, 1, 7);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y+1, 0, 6);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y+1, 1, 6);
+            Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y-1, 0);
+            Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y, 0);
+            Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y+1, 0);
+            Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y+2, 0);
+        }
+        if (tile->info.type == "ECLK_R") {
+            Bels::add_ioclk_bel(*rg, "CLKDIVF", x+2, y, 0);
+            Bels::add_ioclk_bel(*rg, "CLKDIVF", x+2, y, 1);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y, 0, 2);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y, 1, 2);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y+1, 0, 3);
+            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y+1, 1, 3);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y, 0, 2);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y, 1, 2);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y+1, 0, 3);
+            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y+1, 1, 3);
+            Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y-1, 0);
+            Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y, 0);
+            Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y+1, 0);
+            Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y+2, 0);
+        }
+        if (tile->info.type == "DDRDLL_UL")
+            Bels::add_ioclk_bel(*rg, "DDRDLL", x-2, y-10, 0);
+        if (tile->info.type == "DDRDLL_ULA")
+            Bels::add_ioclk_bel(*rg, "DDRDLL", x-2, y-13, 0);
+        if (tile->info.type == "DDRDLL_UR")
+            Bels::add_ioclk_bel(*rg, "DDRDLL", x+2, y-10, 0);
+        if (tile->info.type == "DDRDLL_URA")
+            Bels::add_ioclk_bel(*rg, "DDRDLL", x+2, y-13, 0);
+        if (tile->info.type == "DDRDLL_LL")
+            Bels::add_ioclk_bel(*rg, "DDRDLL", x-2, y+13, 0);
+        if (tile->info.type == "DDRDLL_LR")
+            Bels::add_ioclk_bel(*rg, "DDRDLL", x+2, y+13, 0);
+        if (tile->info.type == "PICL0_DQS2" || tile->info.type == "PICR0_DQS2")
+            Bels::add_ioclk_bel(*rg, "DQSBUFM", x, y, 0);
 
     }
     return rg;

@@ -7,29 +7,30 @@
 
 void putchar(char c)
 {
-	if (c == '\n')
-		putchar('\r');
-	reg_uart_data = c;
+    if (c == '\n')
+        putchar('\r');
+    reg_uart_data = c;
 }
 
 void print(const char *p)
 {
-	while (*p)
-		putchar(*(p++));
+    while (*p)
+        putchar(*(p++));
 }
 
 void delay() {
-   for (volatile int i = 0; i < 50000; i++)
-	   ;
+    for (volatile int i = 0; i < 250000; i++)
+        ;
 }
 
 int main() {
-  	reg_uart_clkdiv = 509;
-   while (1) {
-	LED = 0xFF;
-  print("hello world\n");
-	delay();
-	LED = 0x00;
-	delay();
-   }
+    // 9600 baud at 50MHz
+    reg_uart_clkdiv = 5208;
+    while (1) {
+        LED = 0xFF;
+        print("hello world\n");
+        delay();
+        LED = 0x00;
+        delay();
+    }
 }

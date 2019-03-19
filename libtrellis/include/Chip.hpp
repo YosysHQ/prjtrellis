@@ -132,6 +132,7 @@ public:
 
     // Miscellaneous information
     uint32_t usercode = 0x0;
+    uint32_t ctrl0 = 0x40000000;
     vector<string> metadata;
 
     // Get max row and column

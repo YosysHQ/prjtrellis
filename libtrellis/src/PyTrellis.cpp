@@ -1,5 +1,6 @@
 #include "Bitstream.hpp"
 #include "Chip.hpp"
+#include "ChipConfig.hpp"
 #include "Database.hpp"
 #include "Tile.hpp"
 #include "BitDatabase.hpp"
@@ -62,7 +63,7 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def("write_bit", &Bitstream::write_bit_py)
             .def_readwrite("metadata", &Bitstream::metadata)
             .def_readwrite("data", &Bitstream::data)
-            .def("deserialise_chip", &Bitstream::deserialise_chip);
+        .def("deserialise_chip", static_cast<Chip (Bitstream::*)()>(&Bitstream::deserialise_chip));
 
     class_<DeviceLocator>("DeviceLocator")
             .def_readwrite("family", &DeviceLocator::family)
@@ -340,6 +341,28 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def("to_string", &TileConfig::to_string)
             .def("from_string", &TileConfig::from_string)
             .staticmethod("from_string");
+
+    // From ChipConfig.hpp
+    class_<map<string, TileConfig>>("TileConfigMap")
+            .def(map_indexing_suite<map<string, TileConfig>>());
+    class_<vector<uint16_t>>("Uint16Vector")
+            .def(vector_indexing_suite<vector<uint16_t>>());
+    class_<map<uint16_t, vector<uint16_t>>>("Uint16VMap")
+            .def(map_indexing_suite<map<uint16_t, vector<uint16_t>>>());
+
+    class_<ChipConfig>("ChipConfig")
+            .def_readwrite("chip_name", &ChipConfig::chip_name)
+            .def_readwrite("metadata", &ChipConfig::metadata)
+            .def_readwrite("tiles", &ChipConfig::tiles)
+            .def_readwrite("tilegroups", &ChipConfig::tilegroups)
+            .def_readwrite("bram_data", &ChipConfig::bram_data)
+            .def("to_string", &ChipConfig::to_string)
+            .def("from_string", &ChipConfig::from_string)
+            .staticmethod("from_string")
+            .def("to_chip", &ChipConfig::to_chip)
+            .def("from_chip", &ChipConfig::from_chip)
+            .staticmethod("from_chip");
+
     // From RoutingGraph.hpp
     class_<Location>("Location", init<int, int>())
             .def_readwrite("x", &Location::x)

@@ -8,10 +8,14 @@
 #include <string>
 #include <stdexcept>
 #include <map>
+#include <boost/optional.hpp>
+
 using namespace std;
 
 namespace Trellis {
 enum class BitstreamCommand : uint8_t {
+    SPI_MODE = 0b01111001,
+    JUMP = 0b01111110,
     LSC_RESET_CRC = 0b00111011,
     VERIFY_ID = 0b11100010,
     LSC_WRITE_COMP_DIC = 0b00000010,
@@ -44,9 +48,11 @@ public:
 
     // Serialise a Chip back to a bitstream
     static Bitstream serialise_chip(const Chip &chip, const map<string, string> options);
+    static Bitstream generate_jump(uint32_t address);
 
     // Deserialise a bitstream to a Chip
     Chip deserialise_chip();
+    Chip deserialise_chip(boost::optional<uint32_t> idcode = boost::optional<uint32_t>());
 
     // Write a Lattice .bit file (metadata + bitstream)
     void write_bit(ostream &out);

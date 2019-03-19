@@ -31,10 +31,11 @@ int main(int argc, char *argv[])
     options.add_options()("verbose,v", "verbose output");
     options.add_options()("db", po::value<std::string>(), "Trellis database folder location");
     options.add_options()("usercode", po::value<uint32_t>(), "USERCODE to set in bitstream");
-    options.add_options()("idcode", po::value<uint32_t>(), "IDCODE to override in bitstream");
+    options.add_options()("idcode", po::value<std::string>(), "IDCODE to override in bitstream");
     options.add_options()("freq", po::value<std::string>(), "config frequency in MHz");
     options.add_options()("svf", po::value<std::string>(), "output SVF file");
     options.add_options()("svf-rowsize", po::value<int>(), "SVF row size in bits (default 8000)");
+    options.add_options()("spimode", po::value<std::string>(), "SPI Mode to use (fast-read, dual-spi, qspi)");
 
     po::positional_options_description pos;
     options.add_options()("input", po::value<std::string>()->required(), "input textual configuration");
@@ -94,13 +95,24 @@ help:
     Chip c = cc.to_chip();
     if (vm.count("usercode"))
         c.usercode = vm["usercode"].as<uint32_t>();
-    if (vm.count("idcode"))
-        c.info.idcode = vm["idcode"].as<uint32_t>();
+
+    if (vm.count("idcode")) {
+        string idcode_str = vm["idcode"].as<string>();
+        uint32_t idcode = uint32_t(strtoul(idcode_str.c_str(), nullptr, 0));
+        if (idcode == 0) {
+            cerr << "Invalid idcode: " << idcode_str << endl;
+            return 1;
+        }
+        c.info.idcode = idcode;
+    }
 
     map<string, string> bitopts;
 
     if (vm.count("freq"))
         bitopts["freq"] = vm["freq"].as<string>();
+
+    if (vm.count("spimode"))
+        bitopts["spimode"] = vm["spimode"].as<string>();
 
     Bitstream b = Bitstream::serialise_chip(c, bitopts);
     if (vm.count("bit")) {
