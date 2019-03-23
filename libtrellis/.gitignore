@@ -18,6 +18,7 @@ Testing
 install_manifest.txt
 ecppack
 ecpunpack
+ecpmulti
 ecppll
 libtrellis.dylib
 *~
