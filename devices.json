@@ -115,6 +115,18 @@
 
     "MachXO2" : {
         "devices" : {
+            "LCMXO2-256HC": {
+                "packages": ["QFN32"],
+                "idcode": "0x012b8043",
+                "frames": 186,
+                "bits_per_frame": 504,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 7,
+                "max_col" : 9,
+                "col_bias" : 1,
+                "fuzz": 1
+            },
             "LCMXO2-1200HC": {
                 "packages": ["QFN32"],
                 "idcode": "0x012ba043",
