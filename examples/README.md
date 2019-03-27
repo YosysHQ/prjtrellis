@@ -5,7 +5,7 @@ with more features to be implemented shortly.
 
 ## Disclaimer
 
-Project Trellis is currently **highly** experimental. Do not use it for anything mission critical like avionics, nuclear power or automatic cat feeders!
+Project Trellis is currently experimental. Do not use it for anything mission critical like avionics, nuclear power or automatic cat feeders!
 Although I have not managed to destroy any FPGAs, there is a non-zero chance that the tools could produce a bitstream that destroys or degrades the FPGA. Do not
 use with a development board that you cannot afford to lose!
 
@@ -16,18 +16,18 @@ installed **from the latest Git master** to use the flow. Refer to the READMEs o
 
 ## Included Projects
 
- - **tinyfpga**: morse blink example for the TinyFPGA Ex rev1 prototype with an 85k ECP5
+ - **tinyfpga_rev1/rev2**: morse blink example for the TinyFPGA Ex rev1/2 prototypes with an 85k ECP5
  - **ulx3s**: "Night Rider" example for the 45k ULX3S board
- - **versa**: 14-segment display example for the ECP5 Versa Board
+ - **picorv32_ulx3s**: Small picorv32-based SoC for the 45k ULX3S board that displays prime numbers
+ on the LEDs.
+ - **versa5g**: 14-segment display example for the ECP5 Versa-5G board
+ - **picorv32_versa5g**: Small picorv32-based SoC for the ECP5 Versa-5G board that displays prime numbers
+ on the LEDs.
+ - **soc_versa5g**: Small picorv32-based SoC with RAM and UART for the ECP5 Versa-5G board
+ - **ecp5_evn**: "Night Rider" example for the ECP5 Evaluation Board
+ - **ecp5_evn_multiboot**: multiboot example for the ECP5 Evaluation Board
+ - **soc_ecp5_evn**: Small picorv32-based SoC with RAM and UART for the ECP5 Evaluation Board
 
-All projects include a Makefile for building (and programming in the case of the TinyFPGA example).
+All projects include a Makefile for building and programming.
 
-## Notes
 
-In all cases there are a handful of constant bits (that remain the same in all ECP5 designs), whose detailed function
-is unknown - even if the low-level purpose, such as tying an internal signal low, is known. This is why there is a
-"_empty.config" file in all examples. These files are also located in the `misc/basecfgs` folder. If you need to
-change any of the examples to a different ECP5 device, you will also need to pick the appropriate base config.
-
-IO constraints are currently specified as attributes on `TRELLIS_IO` primitives, reading IO constraint files
-is not yet implemented.
