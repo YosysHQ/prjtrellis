@@ -14,7 +14,8 @@ Install the dependencies for Project Trellis:
  - CMake 3.5 or later
  - Boost including boost-python
  - Git
- 
+ - Recent OpenOCD for device programming (`--enable-ftdi` required if building from source)
+
 Clone the Project Trellis repository and download the latest database:
 
      git clone --recursive https://github.com/SymbiFlow/prjtrellis
