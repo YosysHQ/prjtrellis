@@ -10,8 +10,8 @@ set(CMAKE_CXX_FLAGS "-Wall -pedantic -Wextra -O3")
 set(CMAKE_DEFIN)
 set(link_param "")
 if (STATIC_BUILD)
-    set(Boost_USE_STATIC_LIBS   ON)
-    if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(Boost_USE_STATIC_LIBS ON)
+    if (NOT APPLE)
         set(link_param "-static")
     endif()
 endif()
@@ -109,23 +109,23 @@ endif()
 find_package(Boost REQUIRED COMPONENTS program_options)
 
 get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
-if ("${LIB64}" STREQUAL "TRUE")
+if (NOT APPLE AND "${LIB64}" STREQUAL "TRUE")
     set(LIBDIR "lib64")
 else()
     set(LIBDIR "lib")
 endif()
 
 function(setup_rpath name)
-  if(APPLE)
-    set_target_properties(${name} PROPERTIES
-                          BUILD_WITH_INSTALL_RPATH ON
-                          INSTALL_RPATH "@loader_path/../${LIBDIR}/trellis"
-                          INSTALL_NAME_DIR "@rpath")
-  elseif(UNIX)
-    set_target_properties(${name} PROPERTIES
-                          BUILD_WITH_INSTALL_RPATH ON
-                          INSTALL_RPATH "\$ORIGIN/../${LIBDIR}/trellis")
-  endif()
+    if(APPLE)
+        set_target_properties(${name} PROPERTIES
+                              BUILD_WITH_INSTALL_RPATH ON
+                              INSTALL_RPATH "@loader_path/../${LIBDIR}/trellis"
+                              INSTALL_NAME_DIR "@rpath")
+    elseif(UNIX)
+        set_target_properties(${name} PROPERTIES
+                              BUILD_WITH_INSTALL_RPATH ON
+                              INSTALL_RPATH "\$ORIGIN/../${LIBDIR}/trellis")
+    endif()
 endfunction()
 
 add_executable(ecppack ${INCLUDE_FILES} tools/ecppack.cpp)
@@ -149,7 +149,7 @@ target_link_libraries(ecpmulti trellis ${Boost_LIBRARIES} ${link_param})
 setup_rpath(ecpmulti)
 
 if (BUILD_SHARED)
-    install(TARGETS trellis ecppack ecppll ecpunpack ecpmulti LIBRARY DESTINATION ${LIBDIR}/trellis  RUNTIME DESTINATION bin)
+    install(TARGETS trellis ecppack ecppll ecpunpack ecpmulti pytrellis LIBRARY DESTINATION ${LIBDIR}/trellis  RUNTIME DESTINATION bin)
 else()
     install(TARGETS ecppack ecpunpack ecppll ecpmulti RUNTIME DESTINATION bin)
 endif()
@@ -157,6 +157,3 @@ install(DIRECTORY ../database DESTINATION share/trellis PATTERN ".git" EXCLUDE)
 install(DIRECTORY ../misc DESTINATION share/trellis)
 install(DIRECTORY ../util/common DESTINATION share/trellis/util)
 install(DIRECTORY ../timing/util DESTINATION share/trellis/timing USE_SOURCE_PERMISSIONS)
-if (BUILD_SHARED)
-   install(TARGETS pytrellis DESTINATION ${LIBDIR}/trellis)
-endif()
