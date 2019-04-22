@@ -24,7 +24,7 @@ Install _libtrellis_ and associated tools. You _must_ run `cmake` from the libtr
 Out-of-tree builds are currently unsupported when coupled with `nextpnr`:
 
     cd libtrellis
-    cmake -DCMAKE_INSTALL_PREFIX=/usr .
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local .
     make
     sudo make install
 
@@ -158,7 +158,7 @@ Then, running all fuzzers in order will produce a database which
 documents the bitstream format in the database directory.
 
 UMG and UM5G devices may be stripped from [devices.json](devices.json)
-to ceate the database only for non-SERDES chip variants.
+to create the database only for non-SERDES chip variants.
 Obviously, SERDES related fuzzers are not able to run in this case.
 
     source environment.sh
