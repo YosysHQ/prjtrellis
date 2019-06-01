@@ -32,18 +32,18 @@ if (BUILD_PYTHON)
     # Original source: https://github.com/BVLC/caffe/blob/master/cmake/Dependencies.cmake#L148
     set(version ${PYTHONLIBS_VERSION_STRING})
 
-    STRING(REGEX REPLACE "[^0-9]" "" boost_py_version ${version})
+    STRING(REGEX REPLACE "[^0-9]" "" boost_py_version "${version}")
     find_package(Boost COMPONENTS "python-py${boost_py_version}" ${boost_libs})
     set(Boost_PYTHON_FOUND ${Boost_PYTHON-PY${boost_py_version}_FOUND})
 
     while (NOT "${version}" STREQUAL "" AND NOT Boost_PYTHON_FOUND)
-        STRING(REGEX REPLACE "([0-9.]+).[0-9]+" "\\1" version ${version})
+        STRING(REGEX REPLACE "([0-9.]+).[0-9]+" "\\1" version "${version}")
 
-        STRING(REGEX REPLACE "[^0-9]" "" boost_py_version ${version})
+        STRING(REGEX REPLACE "[^0-9]" "" boost_py_version "${version}")
         find_package(Boost COMPONENTS "python-py${boost_py_version}" ${boost_libs})
         set(Boost_PYTHON_FOUND ${Boost_PYTHON-PY${boost_py_version}_FOUND})
 
-        STRING(REGEX MATCHALL "([0-9.]+).[0-9]+" has_more_version ${version})
+        STRING(REGEX MATCHALL "([0-9.]+).[0-9]+" has_more_version "${version}")
         if ("${has_more_version}" STREQUAL "")
             break()
         endif ()
