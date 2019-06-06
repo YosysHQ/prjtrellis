@@ -108,23 +108,20 @@ endif()
 
 find_package(Boost REQUIRED COMPONENTS program_options)
 
-get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
-if (NOT APPLE AND "${LIB64}" STREQUAL "TRUE")
-    set(LIBDIR "lib64")
-else()
-    set(LIBDIR "lib")
-endif()
+include(GNUInstallDirs)
+
+file(RELATIVE_PATH TRELLIS_RPATH_LIBDIR /${CMAKE_INSTALL_BINDIR} /${CMAKE_INSTALL_LIBDIR})
 
 function(setup_rpath name)
     if(APPLE)
         set_target_properties(${name} PROPERTIES
                               BUILD_WITH_INSTALL_RPATH ON
-                              INSTALL_RPATH "@loader_path/../${LIBDIR}/trellis"
+                              INSTALL_RPATH "@loader_path/${TRELLIS_RPATH_LIBDIR}/trellis"
                               INSTALL_NAME_DIR "@rpath")
     elseif(UNIX)
         set_target_properties(${name} PROPERTIES
                               BUILD_WITH_INSTALL_RPATH ON
-                              INSTALL_RPATH "\$ORIGIN/../${LIBDIR}/trellis")
+                              INSTALL_RPATH "\$ORIGIN/${TRELLIS_RPATH_LIBDIR}/trellis")
     endif()
 endfunction()
 
@@ -149,11 +146,14 @@ target_link_libraries(ecpmulti trellis ${Boost_LIBRARIES} ${link_param})
 setup_rpath(ecpmulti)
 
 if (BUILD_SHARED)
-    install(TARGETS trellis ecppack ecppll ecpunpack ecpmulti pytrellis LIBRARY DESTINATION ${LIBDIR}/trellis  RUNTIME DESTINATION bin)
+    install(TARGETS trellis ecppack ecppll ecpunpack ecpmulti pytrellis
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/trellis
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 else()
-    install(TARGETS ecppack ecpunpack ecppll ecpmulti RUNTIME DESTINATION bin)
+    install(TARGETS ecppack ecpunpack ecppll ecpmulti
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
-install(DIRECTORY ../database DESTINATION share/trellis PATTERN ".git" EXCLUDE)
-install(DIRECTORY ../misc DESTINATION share/trellis)
-install(DIRECTORY ../util/common DESTINATION share/trellis/util)
-install(DIRECTORY ../timing/util DESTINATION share/trellis/timing USE_SOURCE_PERMISSIONS)
+install(DIRECTORY ../database DESTINATION ${CMAKE_INSTALL_DATADIR}/trellis PATTERN ".git" EXCLUDE)
+install(DIRECTORY ../misc DESTINATION ${CMAKE_INSTALL_DATADIR}/trellis)
+install(DIRECTORY ../util/common DESTINATION ${CMAKE_INSTALL_DATADIR}/trellis/util)
+install(DIRECTORY ../timing/util DESTINATION ${CMAKE_INSTALL_DATADIR}/trellis/timing USE_SOURCE_PERMISSIONS)
