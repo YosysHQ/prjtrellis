@@ -34,4 +34,6 @@ pll_%.v:
 		-o $(subst pll_,,$(basename $@)) \
 		-f $@
 
+clean:
+	$(RM) *.config *.bit .*.d *.svf
 -include .*.d
