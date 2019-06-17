@@ -1,5 +1,32 @@
 `ifndef _uart_v_
 `define _uart_v_
+ /*
+  * This module is designed a 3 Mbaud serial port.
+  * This is the highest data rate supported by
+  * the popular FT232 USB-to-serial chip.
+  *
+  * Copyright (C) 2009 Micah Dowty
+  *           (C) 2018 Trammell Hudson
+  *
+  * Permission is hereby granted, free of charge, to any person obtaining a copy
+  * of this software and associated documentation files (the "Software"), to deal
+  * in the Software without restriction, including without limitation the rights
+  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  * copies of the Software, and to permit persons to whom the Software is
+  * furnished to do so, subject to the following conditions:
+  *
+  * The above copyright notice and this permission notice shall be included in
+  * all copies or substantial portions of the Software.
+  *
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  * THE SOFTWARE.
+  */
+
 
 `include "util.v"
 
@@ -60,9 +87,10 @@ module uart_rx(
    divide_by_n #(.N(DIVISOR)) baud_x4_div(clk, reset, baud_x4);
 
    // Clock crossing into clk domain
-   reg [2:0] serial_sync;
+   reg [1:0] serial_buf;
+   wire serial_sync = serial_buf[1];
    always @(posedge clk)
-	serial_sync <= { serial_sync[1:0], serial };
+	serial_buf <= { serial_buf[0], serial };
 
    /*
     * State machine: Four clocks per bit, 10 total bits.
@@ -97,7 +125,7 @@ module uart_rx(
           state <= state + 1;
 
         if (bit_phase == 1)
-          shiftreg <= { serial_sync[2], shiftreg[8:1] };
+          shiftreg <= { serial_sync, shiftreg[8:1] };
 
         data_strobe <= stop_bit && !error;
 
