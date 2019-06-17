@@ -33,3 +33,5 @@ pll_%.v:
 		-i 25 \
 		-o $(subst pll_,,$(basename $@)) \
 		-f $@
+
+-include .*.d
