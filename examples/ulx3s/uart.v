@@ -48,17 +48,21 @@ module uart_tx(
 endmodule
 
 
-module uart_rx(clk, reset, baud_x4,
-                      serial, data, data_strobe);
-
-   input        clk, reset, baud_x4, serial;
-   output [7:0] data;
-   output       data_strobe;
+module uart_rx(
+	input clk,
+	input reset,
+	input serial,
+	output [7:0] data,
+	output data_strobe
+);
+   parameter DIVISOR = 25; // should the 1/4 the uart_tx divisor
+   wire baud_x4;
+   divide_by_n #(.N(DIVISOR)) baud_x4_div(clk, reset, baud_x4);
 
    // Clock crossing into clk domain
-   reg [1:0] serial_sync;
+   reg [2:0] serial_sync;
    always @(posedge clk)
-	serial_sync <= { serial_sync[0], serial };
+	serial_sync <= { serial_sync[1:0], serial };
 
    /*
     * State machine: Four clocks per bit, 10 total bits.
@@ -93,7 +97,7 @@ module uart_rx(clk, reset, baud_x4,
           state <= state + 1;
 
         if (bit_phase == 1)
-          shiftreg <= { serial_sync[1], shiftreg[8:1] };
+          shiftreg <= { serial_sync[2], shiftreg[8:1] };
 
         data_strobe <= stop_bit && !error;
 
@@ -103,3 +107,5 @@ module uart_rx(clk, reset, baud_x4,
      end
 
 endmodule
+
+`endif

@@ -11,12 +11,15 @@ module top(
 	output [7:0] led_pin,
 	output gpio0_pin,
 	output serial_txd_pin,
-	input serial_rxd_pin
+	input serial_rxd_pin,
+	output serial_dtr_pin,
+	output serial_txden_pin,
+	output serial_cts_pin,
+	output serial_dsr_pin,
 );
     wire clk_in;
     wire [7:0] led;
     wire btn;
-    wire gpio0;
     wire serial_txd, serial_rxd;
 
     (* LOC="G2" *) (* IO_TYPE="LVCMOS33" *)
@@ -43,21 +46,25 @@ module top(
     (* LOC="H3" *) (* IO_TYPE="LVCMOS33" *)
     TRELLIS_IO #(.DIR("OUTPUT")) led_buf_7 (.B(led_pin[7]), .I(led[7]));
 
+    // gpio0 must be tied high to prevent board from rebooting
     (* LOC="L2" *) (* IO_TYPE="LVCMOS33" *)
-    TRELLIS_IO #(.DIR("OUTPUT")) gpio0_buf (.B(gpio0_pin), .I(gpio0));
+    TRELLIS_IO #(.DIR("OUTPUT")) gpio0_buf (.B(gpio0_pin), .I(1));
 
     // The FTDI pins are on the ft231x and go to USB port 1
     (* LOC="L4" *) (* IO_TYPE="LVCMOS33" *)
     TRELLIS_IO #(.DIR("OUTPUT")) ftdi_txd_buf (.B(serial_txd_pin), .I(serial_txd));
     (* LOC="M1" *) (* IO_TYPE="LVCMOS33" *)
     TRELLIS_IO #(.DIR("INPUT")) ftdi_rxd_buf (.B(serial_rxd_pin), .O(serial_rxd));
+    (* LOC="L3" *) (* IO_TYPE="LVCMOS33" *)
+    TRELLIS_IO #(.DIR("OUTPUT")) ftdi_txden_buf (.B(serial_txden_pin), .I(1));
+    //(* LOC="V4" *) (* IO_TYPE="LVCMOS33" *) // also JTAG_TDO
+    //TRELLIS_IO #(.DIR("OUTPUT")) ftdi_cts_buf (.B(serial_cts_pin), .I(0));
+    //(* LOC="T5" *) (* IO_TYPE="LVCMOS33" *) // also JTAG_TCK
+    //TRELLIS_IO #(.DIR("OUTPUT")) ftdi_dsr_buf (.B(serial_dsr_pin), .I(0));
 
 
     reg [7:0] led_reg;
     assign led = led_reg;
-
-    // Tie GPIO0, keep board from rebooting
-    assign gpio0 = 1'b1;
 
     // Generate a 120 MHz clock from the 25 MHz reference
     wire clk, locked, reset = !locked;
@@ -77,18 +84,39 @@ module top(
 	.data_strobe(uart_txd_strobe),
     );
 
-    reg [23:0] counter;
+    // input from the serial port
+    wire uart_rxd_strobe;
+    wire [7:0] uart_rxd;
+
+    uart_rx #(.DIVISOR(10)) uart_rx_i(
+	.clk(clk),
+	.reset(reset),
+	.serial(uart_rxd),
+	.data(uart_rxd),
+	.data_strobe(uart_rxd_strobe),
+    );
+
+    reg [31:0] counter;
 
     always @(posedge clk)
     begin
 	uart_txd_strobe <= 0;
+	counter <= counter + 1;
+	led_reg[0] <= serial_rxd;
 
-	if (uart_txd_ready
-	&& !uart_txd_strobe) begin
-		uart_txd <= "A" + counter[4:0];
+	if (uart_rxd_strobe)
+	begin
+		led_reg <= uart_rxd;
+		uart_txd <= uart_rxd;
 		uart_txd_strobe <= 1;
-		counter <= counter + 1;
-		led_reg <= counter[23:15];
+	end else
+	if (counter[26:0] == 0
+	&& uart_txd_ready
+	&& !uart_txd_strobe)
+	begin
+		led_reg <= counter[31:23];
+		uart_txd <= "0" + counter[31:27];
+		uart_txd_strobe <= 1;
 	end
     end
 endmodule
