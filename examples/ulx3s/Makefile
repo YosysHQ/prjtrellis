@@ -1,10 +1,28 @@
-all: blinky.bit
+all: blinky.bit hello.bit
 
-blinky.json: blinky.v
-	yosys -p "synth_ecp5 -json blinky.json" blinky.v
+hello.json: pll_120.v
 
-blinky_out.config: blinky.json
-	nextpnr-ecp5 --json blinky.json --textcfg blinky_out.config --45k
+IDCODE ?= 0x21111043 # 12f
 
-blinky.bit: blinky_out.config
-	ecppack blinky_out.config blinky.bit
+%.json: %.v
+	yosys -p "synth_ecp5 -json $@" $<
+
+%.config: %.json
+	nextpnr-ecp5 --json $< --textcfg $@ --25k
+
+%.bit: %.config
+	ecppack --idcode $(IDCODE) $< $@
+
+%.svf: %.config
+	ecppack --idcode $(IDCODE) --input $< --svf $@
+
+%.flash: %.bit
+	sudo ujprog $<
+%.terminal: %.bit
+	sudo ujprog -t -b 3000000 $<
+
+pll_%.v:
+	ecppll \
+		-i 25 \
+		-o $(subst pll_,,$(basename $@)) \
+		-f $@
