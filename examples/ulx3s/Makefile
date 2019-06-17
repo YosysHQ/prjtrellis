@@ -5,10 +5,17 @@ hello.json: pll_120.v
 IDCODE ?= 0x21111043 # 12f
 
 %.json: %.v
-	yosys -p "synth_ecp5 -json $@" $<
+	yosys \
+		-p "synth_ecp5 -json $@" \
+		-E .$(basename $@).d \
+		$<
 
 %.config: %.json
-	nextpnr-ecp5 --json $< --textcfg $@ --25k
+	nextpnr-ecp5 \
+		--json $< \
+		--textcfg $@ \
+		--lpf ulx3s_v20.lpf \
+		--25k
 
 %.bit: %.config
 	ecppack --idcode $(IDCODE) $< $@
@@ -17,9 +24,9 @@ IDCODE ?= 0x21111043 # 12f
 	ecppack --idcode $(IDCODE) --input $< --svf $@
 
 %.flash: %.bit
-	sudo ujprog $<
+	ujprog $<
 %.terminal: %.bit
-	sudo ujprog -t -b 3000000 $<
+	ujprog -t -b 3000000 $<
 
 pll_%.v:
 	ecppll \
