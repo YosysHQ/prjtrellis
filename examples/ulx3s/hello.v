@@ -20,32 +20,28 @@ module top(
 
     // Generate a 120 MHz clock from the 25 MHz reference
     wire clk, locked, reset = !locked;
-    pll_120 pll_120_i(clk_25mhz, locked, clk);
+    pll_120 pll_120_i(clk_25mhz, clk, locked);
 
-    // Output data to the serial port
+    // send/recv data at on the FTDI port
+    // 120 MHz / 40 == 3 megabaud
     wire uart_txd_ready;
     reg [7:0] uart_txd;
     reg uart_txd_strobe;
-
-    uart_tx #(.DIVISOR(40)) uart_tx_i(
-	.clk(clk),
-	.reset(reset),
-	.serial(ftdi_rxd), // fpga --> ftdi
-	.data(uart_txd),
-	.ready(uart_txd_ready),
-	.data_strobe(uart_txd_strobe),
-    );
-
-    // input from the serial port
     wire uart_rxd_strobe;
     wire [7:0] uart_rxd;
 
-    uart_rx #(.DIVISOR(10)) uart_rx_i(
+    uart #(.DIVISOR(40)) uart_i(
 	.clk(clk),
 	.reset(reset),
-	.serial(ftdi_txd), // fpga <-- ftdi
-	.data(uart_rxd),
-	.data_strobe(uart_rxd_strobe),
+	// physical interface
+	.serial_txd(ftdi_rxd), // fpga --> ftdi
+	.serial_rxd(ftdi_txd), // fpga <-- ftdi
+	// logical interface
+	.txd(uart_txd),
+	.txd_ready(uart_txd_ready),
+	.txd_strobe(uart_txd_strobe),
+	.rxd(uart_rxd),
+	.rxd_strobe(uart_rxd_strobe),
     );
 
     reg [31:0] counter;

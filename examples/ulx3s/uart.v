@@ -136,4 +136,40 @@ module uart_rx(
 
 endmodule
 
+
+module uart(
+	input clk,
+	input reset,
+	// physical interface
+	input serial_rxd,
+	output serial_txd,
+
+	// logical interface
+	output [7:0] rxd,
+	output rxd_strobe,
+	input [7:0] txd,
+	input txd_strobe,
+	output txd_ready
+);
+	// todo: rx/tx could share a single clock
+	parameter DIVISOR = 40; // must be divisible by 4 for rx clock
+
+	uart_rx #(.DIVISOR(DIVISOR/4)) rx(
+		.clk(clk),
+		.reset(reset),
+		.serial(serial_rxd),
+		.data_strobe(rxd_strobe),
+		.data(rxd),
+	);
+
+	uart_tx #(.DIVISOR(DIVISOR)) tx(
+		.clk(clk),
+		.reset(reset),
+		.serial(serial_txd),
+		.data(txd),
+		.data_strobe(txd_strobe),
+		.ready(txd_ready),
+	);
+endmodule
+
 `endif
