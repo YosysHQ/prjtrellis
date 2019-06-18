@@ -34,6 +34,7 @@ f_out = f_vco / output
 #include <iostream>
 #include <limits>
 #include <fstream>
+#include <string>
 #include <boost/program_options.hpp>
 using namespace std;
 
@@ -47,7 +48,7 @@ struct secondary_params{
   int div;
   int cphase;
   int fphase;
-  const char *name;
+  string name;
 
   float freq;
   float phase;
@@ -59,8 +60,8 @@ struct pll_params{
   int feedback_div;
   int output_div;
   int primary_cphase;
-  const char *clkin_name, *clkout0_name;
-  int output_named;
+  string clkin_name;
+  string clkout0_name;
   
   float clkin_frequency;
 
@@ -77,17 +78,17 @@ struct pll_params{
   }
 };
 
-pll_params calc_pll_params(float input, float output);
-pll_params calc_pll_params_highres(float input, float output);
-void generate_secondary_output(pll_params &params, int channel, const char *name, float frequency, float phase);
-void write_pll_config(pll_params params, const char* name, ofstream& file);
+void calc_pll_params(pll_params &params, float input, float output);
+void calc_pll_params_highres(pll_params &params, float input, float output);
+void generate_secondary_output(pll_params &params, int channel, string name, float frequency, float phase);
+void write_pll_config(const pll_params & params, const string &name, ofstream& file);
 
 int main(int argc, char** argv){
   namespace po = boost::program_options;
   po::options_description options("Allowed options");
 
   options.add_options()("help,h", "show help");
-  options.add_options()("module", po::value<string>(), "module name");
+  options.add_options()("module,n", po::value<string>(), "module name");
   options.add_options()("clkin_name", po::value<string>(), "Input signal name");
   options.add_options()("clkin,i", po::value<float>(), "Input frequency in MHz");
   options.add_options()("clkout0_name", po::value<string>(), "Primary Output(0) signal name");
@@ -132,21 +133,26 @@ int main(int argc, char** argv){
   if(outputf < OUTPUT_MIN || outputf > OUTPUT_MAX){
     cerr << "Warning: Output frequency " << outputf << "MHz not in range (" << OUTPUT_MIN << "MHz, " << OUTPUT_MAX << "MHz)\n";
   }
-  pll_params params;
-  params.output_named = 0;
-  const char *module_name = "pll";
+
+  pll_params params = {};
+
+  string module_name = "pll";
   if(vm.count("module"))
-    module_name = vm["module"].as<string>().c_str();
+    module_name = vm["module"].as<string>();
   params.clkin_frequency = inputf;
+
   params.clkin_name = "clkin";
   if(vm.count("clkin_name"))
-    params.clkin_name = vm["clkin_name"].as<string>().c_str();
+    params.clkin_name = vm["clkin_name"].as<string>();
+
   params.clkout0_name = "clkout0";
   if(vm.count("clkout0_name"))
-  {
-    params.clkout0_name = vm["clkout0_name"].as<string>().c_str();
-    params.output_named = 1;
-  }
+    params.clkout0_name = vm["clkout0_name"].as<string>();
+
+  params.secondary[0].name = "clkout[1]";
+  params.secondary[1].name = "clkout[2]";
+  params.secondary[2].name = "clkout[3]";
+
   if(vm.count("highres"))
   {
     if(vm.count("clkout1") > 0)
@@ -154,49 +160,36 @@ int main(int argc, char** argv){
       cerr << "Cannot specify secondary frequency in highres mode\n";
     }
     params.secondary[0].name = "clkout1";
-    params = calc_pll_params_highres(inputf, outputf);
+    if(vm.count("clkout1_name"))
+      params.secondary[0].name = vm["clkout1_name"].as<string>();
+    calc_pll_params_highres(params, inputf, outputf);
   }
   else
   {
-    params = calc_pll_params(inputf, outputf);
+    calc_pll_params(params, inputf, outputf);
     if(vm.count("clkout1"))
     {
-      const char *clkout1_name = "clkout1";
+      string clkout1_name = "clkout1";
       if(vm.count("clkout1_name"))
-      {
-        clkout1_name = vm["clkout1_name"].as<string>().c_str();
-        params.output_named = 1;
-      }
+        clkout1_name = vm["clkout1_name"].as<string>();
       generate_secondary_output(params, 0, clkout1_name, vm["clkout1"].as<float>(), vm["phase1"].as<float>());
     }
     if(vm.count("clkout2"))
     {
-      const char *clkout2_name = "clkout2";
+      string clkout2_name = "clkout2";
       if(vm.count("clkout2_name"))
-      {
-        clkout2_name = vm["clkout2_name"].as<string>().c_str();
-        params.output_named = 1;
-      }
+        clkout2_name = vm["clkout2_name"].as<string>();
       generate_secondary_output(params, 1, clkout2_name, vm["clkout2"].as<float>(), vm["phase2"].as<float>());
     }
     if(vm.count("clkout3"))
     {
-      const char *clkout3_name = "clkout3";
+      string clkout3_name = "clkout3";
       if(vm.count("clkout3_name"))
-      {
-        clkout3_name = vm["clkout3_name"].as<string>().c_str();
-        params.output_named = 1;
-      }
+        clkout3_name = vm["clkout3_name"].as<string>();
       generate_secondary_output(params, 2, clkout3_name, vm["clkout3"].as<float>(), vm["phase3"].as<float>());
     }
   }
-  if(params.output_named == 0)
-  {
-    params.clkout0_name = "clkout[0]";
-    params.secondary[0].name = "clkout[1]";
-    params.secondary[1].name = "clkout[2]";
-    params.secondary[2].name = "clkout[3]";
-  }
+
   cout << "Pll parameters:" << endl;
   cout << "Refclk divisor: " << params.refclk_div << endl;
   cout << "Feedback divisor: " << params.feedback_div << endl;
@@ -226,9 +219,8 @@ int main(int argc, char** argv){
   }
 }
 
-pll_params calc_pll_params(float input, float output){
+void calc_pll_params(pll_params &params, float input, float output){
   float error = std::numeric_limits<float>::max();
-  pll_params params;
   for(int input_div=1;input_div <= 128; input_div++){
 
     float fpfd = input / (float)input_div;
@@ -257,12 +249,10 @@ pll_params calc_pll_params(float input, float output){
       }
     }
   }
-  return params;
 }
 
-pll_params calc_pll_params_highres(float input, float output){
+void calc_pll_params_highres(pll_params &params, float input, float output){
   float error = std::numeric_limits<float>::max();
-  pll_params params;
   for(int input_div=1;input_div <= 128; input_div++){
 
     float fpfd = input / (float)input_div;
@@ -288,7 +278,6 @@ pll_params calc_pll_params_highres(float input, float output){
 	    params.output_div = output_div;
 	    params.secondary[0].div = secondary_div;
 	    params.secondary[0].enabled = true;
-	    params.secondary[0].name = "clkout1";
 	    params.secondary[0].freq = fout;
 	    params.fout = fout;
 	    params.fvco = fvco;
@@ -297,11 +286,10 @@ pll_params calc_pll_params_highres(float input, float output){
       }
     }
   }
-  return params;
 }
 
 
-void generate_secondary_output(pll_params &params, int channel, const char *name, float frequency, float phase){
+void generate_secondary_output(pll_params &params, int channel, string name, float frequency, float phase){
   int div = params.fvco/frequency;
   float freq = params.fvco/div;
   cout << "sdiv " << div << endl;
@@ -323,27 +311,18 @@ void generate_secondary_output(pll_params &params, int channel, const char *name
   params.secondary[channel].name = name;
 }
 
-void write_pll_config(pll_params params, const char* name,  ofstream& file)
+void write_pll_config(const pll_params & params, const string &name, ofstream& file)
 {
   file << "module " << name << "\n(\n";
   file << "    input " << params.clkin_name << ", // " << params.clkin_frequency << " MHz, 0 deg\n";
-  if(params.output_named)
-  { // named outputs
-    file << "    output " << params.clkout0_name << ", // " << params.fout << " MHz, 0 deg\n";
-    for(int i=0;i<3;i++){
-      if(!(i==0 && params.mode == pll_mode::HIGHRES) && params.secondary[i].enabled){
-        file << "    output " << params.secondary[i].name << ", // " << params.secondary[i].freq << " MHz, " << params.secondary[i].phase << " deg\n";
-      }
+  file << "    output " << params.clkout0_name << ", // " << params.fout << " MHz, 0 deg\n";
+
+  for(int i=0;i<3;i++){
+    if(!(i==0 && params.mode == pll_mode::HIGHRES) && params.secondary[i].enabled){
+      file << "    output " << params.secondary[i].name << ", // " << params.secondary[i].freq << " MHz, " << params.secondary[i].phase << " deg\n";
     }
   }
-  else
-  { // unnamed outputs
-    file << "    output [3:0] " << "clkout" << ", // 0: " << params.fout << " MHz, 0 deg";
-    for(int i=0;i<3;i++)
-      if(!(i==0 && params.mode == pll_mode::HIGHRES) && params.secondary[i].enabled)
-        file << "; " << i+1 << ": " << params.secondary[i].freq << " MHz, " << params.secondary[i].phase << " deg";
-    file << "\n";
-  }
+
   file << "    output locked\n";
   file << ");\n";
   file << "wire clkfb;\n";
