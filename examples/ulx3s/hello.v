@@ -20,7 +20,7 @@ module top(
 
     // Generate a 120 MHz clock from the 25 MHz reference
     wire clk, locked, reset = !locked;
-    pll pll_120_i(clk_25mhz, locked, clk);
+    pll_120 pll_120_i(clk_25mhz, locked, clk);
 
     // Output data to the serial port
     wire uart_txd_ready;
