@@ -125,6 +125,14 @@ help:
     }
 
     if (vm.count("svf")) {
+
+        // Create JTAG bitstream without SPI flash related settings, as these
+        // seem to confuse the chip sometimes when configuring over JTAG
+        if (!bitopts.empty()) {
+            bitopts.clear();
+             b = Bitstream::serialise_chip(c, bitopts);
+        }
+
         vector<uint8_t> bitstream = b.get_bytes();
         int max_row_size = 8000;
         if (vm.count("svf-rowsize"))
