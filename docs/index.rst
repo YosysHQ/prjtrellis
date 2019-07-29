@@ -32,3 +32,9 @@ to develop a free and open Verilog to bitstream toolchain for these devices.
 
    libtrellis/overview
    libtrellis/textconfig
+
+.. toctree::
+   :maxdepth: 1
+   :caption: DSP Support
+
+   dsp_support/dsp_support
