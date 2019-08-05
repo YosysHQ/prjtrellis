@@ -2,6 +2,7 @@
 #include "Bitstream.hpp"
 #include "Chip.hpp"
 #include "Database.hpp"
+#include "version.hpp"
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <stdexcept>
@@ -57,6 +58,7 @@ int main(int argc, char *argv[])
     if (vm.count("help")) {
 help:
         cerr << "Project Trellis - Open Source Tools for ECP5 FPGAs" << endl;
+        cerr << "Version " << git_describe_str << endl;
         cerr << "ecppack: ECP5 bitstream packer" << endl;
         cerr << endl;
         cerr << "Copyright (C) 2018 David Shah <david@symbioticeda.com>" << endl;
