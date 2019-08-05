@@ -37,8 +37,12 @@ int main(int argc, char *argv[])
         po::store(parsed, vm);
         po::notify(vm);
     }
+    catch (po::required_option &e) {
+        cerr << "Error: input file is mandatory." << endl << endl;
+        goto help;
+    }
     catch (std::exception &e) {
-        cerr << e.what() << endl << endl;
+        cerr << "Error: " << e.what() << endl << endl;
         goto help;
     }
 
@@ -50,6 +54,7 @@ help:
         cerr << endl;
         cerr << "Copyright (C) 2018 David Shah <david@symbioticeda.com>" << endl;
         cerr << endl;
+        cerr << "Usage: ecpunpack input.bit [output.config] [options]" << endl;
         cerr << options << endl;
         return vm.count("help") ? 0 : 1;
     }
