@@ -15,7 +15,8 @@ IDCODE ?= 0x21111043 # 12f
 		--json $< \
 		--textcfg $@ \
 		--lpf ulx3s_v20.lpf \
-		--25k
+		--25k \
+		--package CABGA381
 
 %.bit: %.config
 	ecppack --idcode $(IDCODE) $< $@

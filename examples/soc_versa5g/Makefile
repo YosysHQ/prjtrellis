@@ -19,7 +19,7 @@ attosoc.json: top.v pll.v attosoc.v picorv32.v firmware.hex
 	yosys -p "synth_ecp5 -json $@ -top top" top.v pll.v attosoc.v picorv32.v simpleuart.v
 
 attosoc_out.config: attosoc.json versa.lpf
-	nextpnr-ecp5 --json attosoc.json --lpf versa.lpf --textcfg $@ --um5g-45k --freq 50
+	nextpnr-ecp5 --json attosoc.json --lpf versa.lpf --textcfg $@ --um5g-45k --freq 50 --package CABGA381
 
 attosoc.bit: attosoc_out.config
 	ecppack --svf-rowsize 100000 --svf attosoc.svf $< $@
