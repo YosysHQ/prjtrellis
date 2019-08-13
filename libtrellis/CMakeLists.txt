@@ -98,7 +98,7 @@ endif()
 find_package(Boost REQUIRED COMPONENTS program_options)
 
 get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
-if (NOT APPLE AND "${LIB64}" STREQUAL "TRUE")
+if (NOT APPLE AND "${LIB64}" STREQUAL "TRUE" AND NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
     set(LIBDIR "lib64")
 else()
     set(LIBDIR "lib")
