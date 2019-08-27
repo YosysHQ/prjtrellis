@@ -98,6 +98,9 @@ help:
         }
         out_file << cc.to_string();
         return 0;
+    } catch (BitstreamParseError &e) {
+        cerr << "Failed to process input bitstream: " << e.what() << endl;
+        return 1;
     } catch (runtime_error &e) {
         cerr << "Failed to process input bitstream: " << e.what() << endl;
         return 1;
