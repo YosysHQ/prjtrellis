@@ -3,7 +3,10 @@
 #include "Chip.hpp"
 #include "Database.hpp"
 #include "DatabasePath.hpp"
+#include "Tile.hpp"
+#include "BitDatabase.hpp"
 #include "version.hpp"
+
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <stdexcept>
@@ -38,6 +41,7 @@ int main(int argc, char *argv[])
     options.add_options()("svf", po::value<std::string>(), "output SVF file");
     options.add_options()("svf-rowsize", po::value<int>(), "SVF row size in bits (default 8000)");
     options.add_options()("spimode", po::value<std::string>(), "SPI Mode to use (fast-read, dual-spi, qspi)");
+    options.add_options()("background", "enable background reconfiguration in bitstream");
     options.add_options()("delta", po::value<std::string>(), "create a delta partial bitstream given a reference config");
     po::positional_options_description pos;
     options.add_options()("input", po::value<std::string>()->required(), "input textual configuration");
@@ -122,6 +126,14 @@ help:
     if (vm.count("spimode"))
         bitopts["spimode"] = vm["spimode"].as<string>();
 
+    if (vm.count("background")) {
+        auto tile_db = get_tile_bitdata(TileLocator{c.info.family, c.info.name, "EFB0_PICB0"});
+        auto esb = tile_db->get_data_for_enum("SYSCONFIG.BACKGROUND_RECONFIG");
+        auto tile = c.get_tiles_by_type("EFB0_PICB0");
+        for (const auto &bit : esb.options["ON"].bits)
+            tile[0]->cram.set_bit(bit.frame, bit.bit, bit.inv ? 0 : 1);
+        bitopts["background"] = "yes";
+    }
 
     bool partial_mode = false;
     vector<uint32_t> partial_frames;
@@ -142,8 +154,9 @@ help:
         }
         Chip ref_c = ref_cc.to_chip();
         for (int frame = 0; frame < c.cram.frames(); frame++) {
-            if (ref_c.cram.data->at(frame) != c.cram.data->at(frame))
+            if (ref_c.cram.data->at(frame) != c.cram.data->at(frame)) {
                 partial_frames.push_back(frame);
+            }
         }
 
         partial_mode = true;

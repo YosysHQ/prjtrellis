@@ -30,6 +30,7 @@ static const vector<pair<std::string, uint8_t>> spi_modes =
      {"qspi", 0x59}};
 
 static const uint32_t multiboot_flag = 1 << 20;
+static const uint32_t background_flag = 0x2E000000;
 
 // The BitstreamReadWriter class stores state (including CRC16) whilst reading
 // the bitstream
@@ -609,6 +610,12 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
         else
             ctrl0 &= ~multiboot_flag;
     }
+    if (options.count("background")) {
+        if (options.at("background") == "yes")
+            ctrl0 |= background_flag;
+        else
+            ctrl0 &= ~background_flag;
+    }
     wr.write_uint32(ctrl0);
     // Init address
     wr.write_byte(uint8_t(BitstreamCommand::LSC_INIT_ADDRESS));
@@ -739,7 +746,7 @@ Bitstream Bitstream::serialise_chip_partial(const Chip &chip, const vector<uint3
         // Init address
         wr.write_byte(uint8_t(BitstreamCommand::LSC_WRITE_ADDRESS));
         wr.insert_zeros(3);
-        wr.write_uint32(encode_frame_address(frame));
+        wr.write_uint32(encode_frame_address((chip.info.num_frames - 1) - frame));
         // Bitstream data
         wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_INCR_RTI));
         wr.write_byte(0x91); //CRC check, 1 dummy byte
@@ -755,7 +762,7 @@ Bitstream Bitstream::serialise_chip_partial(const Chip &chip, const vector<uint3
                 size_t ofs = j + chip.info.pad_bits_after_frame;
                 assert(((bytes_per_frame - 1) - (ofs / 8)) < bytes_per_frame);
                 frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] |=
-                        (chip.cram.bit((chip.info.num_frames - 1) - frame, j) & 0x01) << (ofs % 8);
+                        (chip.cram.bit(frame, j) & 0x01) << (ofs % 8);
             }
             wr.write_bytes(frame_bytes.get(), bytes_per_frame);
             wr.insert_crc16();
