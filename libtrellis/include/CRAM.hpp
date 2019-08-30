@@ -81,7 +81,6 @@ public:
     // Make a view to the CRAM given frame and bit offset; and frames and bits per frame in the view
     CRAMView make_view(int frame_offset, int bit_offset, int frame_count, int bit_count);
 
-private:
     // Using a shared_ptr so views are not invalidated even if the CRAM itself is deleted
     // A vector of type char is used as the optimisations in vector<bool> are not worth the loss of bool& etc
     shared_ptr<vector<vector<char>>> data;

@@ -680,6 +680,98 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
     return Bitstream(wr.get(), chip.metadata);
 }
 
+Bitstream Bitstream::serialise_chip_partial(const Chip &chip, const vector<uint32_t> &frames, const map<string, string> options)
+{
+    BitstreamReadWriter wr;
+    
+    // Address encoding for partial frame writes
+    static const map<uint32_t, uint32_t> msb_weights_45k = {
+        {{0x0000}, { 0*106}},
+        {{0x1000}, {12*106}},
+        {{0x2000}, {30*106}},
+        {{0x3000}, {49*106}},
+        {{0x4000}, {68*106}},
+        {{0x5000}, {95*106}},
+    };
+
+    auto encode_frame_address = [&](uint32_t frame) {
+        if (chip.info.name.find("45F") == std::string::npos)
+            throw runtime_error("FIXME: partial bitstreams only supported for ECP5-45k");
+        uint32_t msbw = 0x0000;
+        while (msb_weights_45k.count(msbw + 0x1000) && frame >= msb_weights_45k.at(msbw + 0x1000))
+            msbw += 0x1000;
+        frame -= msb_weights_45k.at(msbw);
+        uint32_t num_106s = 0;
+        while (frame >= 106) {
+            num_106s += 1;
+            frame -= 106;
+        }
+        return msbw | (num_106s << 7) | frame;
+    };
+
+    // Preamble
+    wr.write_bytes(preamble.begin(), preamble.size());
+    // Padding
+    wr.insert_dummy(4);
+
+    if (options.count("spimode")) {
+        auto spimode = find_if(spi_modes.begin(), spi_modes.end(), [&](const pair<string, uint8_t> &fp){
+            return fp.first == options.at("spimode");
+        });
+        if (spimode == spi_modes.end())
+            throw runtime_error("bad spimode option " + options.at("spimode"));
+
+        wr.write_byte(uint8_t(BitstreamCommand::SPI_MODE));
+        wr.write_byte(uint8_t(spimode->second));
+        wr.insert_zeros(2);
+    }
+
+    // Reset CRC
+    wr.write_byte(uint8_t(BitstreamCommand::LSC_RESET_CRC));
+    wr.insert_zeros(3);
+    wr.reset_crc16();
+    // Verify ID
+    wr.write_byte(uint8_t(BitstreamCommand::VERIFY_ID));
+    wr.insert_zeros(3);
+    wr.write_uint32(chip.info.idcode);
+
+    for (auto frame : frames) {
+        // Init address
+        wr.write_byte(uint8_t(BitstreamCommand::LSC_WRITE_ADDRESS));
+        wr.insert_zeros(3);
+        wr.write_uint32(encode_frame_address(frame));
+        // Bitstream data
+        wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_INCR_RTI));
+        wr.write_byte(0x91); //CRC check, 1 dummy byte
+        uint16_t num_frames = 1;
+        wr.write_byte(uint8_t((num_frames >> 8) & 0xFF));
+        wr.write_byte(uint8_t(num_frames & 0xFF));
+        size_t bytes_per_frame = (chip.info.bits_per_frame + chip.info.pad_bits_after_frame +
+                                  chip.info.pad_bits_before_frame) / 8U;
+        unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
+        for (size_t i = 0; i < num_frames; i++) {
+            fill(frame_bytes.get(), frame_bytes.get() + bytes_per_frame, 0x00);
+            for (int j = 0; j < chip.info.bits_per_frame; j++) {
+                size_t ofs = j + chip.info.pad_bits_after_frame;
+                assert(((bytes_per_frame - 1) - (ofs / 8)) < bytes_per_frame);
+                frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] |=
+                        (chip.cram.bit((chip.info.num_frames - 1) - frame, j) & 0x01) << (ofs % 8);
+            }
+            wr.write_bytes(frame_bytes.get(), bytes_per_frame);
+            wr.insert_crc16();
+            wr.write_byte(0xFF);
+        }
+    }
+
+
+    // Program DONE
+    wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_DONE));
+    wr.insert_zeros(3);
+    // Trailing padding
+    wr.insert_dummy(4);
+    return Bitstream(wr.get(), chip.metadata);
+}
+
 void Bitstream::write_bit(ostream &out) {
     // Write metadata header
     out.put(char(0xFF));
