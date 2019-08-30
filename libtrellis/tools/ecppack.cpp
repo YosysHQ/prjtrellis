@@ -178,7 +178,9 @@ help:
         // seem to confuse the chip sometimes when configuring over JTAG
         if (!bitopts.empty()) {
             bitopts.clear();
-             b = Bitstream::serialise_chip(c, bitopts);
+            if (vm.count("background"))
+                bitopts["background"] = "yes";
+            b = Bitstream::serialise_chip(c, bitopts);
         }
 
         vector<uint8_t> bitstream = b.get_bytes();
@@ -213,6 +215,10 @@ help:
             svf_file << endl;
             svf_file << "SIR\t8\tTDI  (C6);" << endl;
             svf_file << "SDR\t8\tTDI  (00);" << endl;
+            svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
+            svf_file << endl;
+            svf_file << "SIR\t8\tTDI  (0E);" << endl;
+            svf_file << "SDR\t8\tTDI  (01);" << endl;
             svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
             svf_file << endl;
             svf_file << "SIR\t8\tTDI  (3C);" << endl;
