@@ -2,6 +2,7 @@
 #include "Bitstream.hpp"
 #include "Chip.hpp"
 #include "Database.hpp"
+#include "DatabasePath.hpp"
 #include "version.hpp"
 #include <iostream>
 #include <boost/optional.hpp>
@@ -18,7 +19,7 @@ int main(int argc, char *argv[])
     namespace po = boost::program_options;
     boost::optional<uint32_t> idcode;
 
-    std::string database_folder = TRELLIS_PREFIX "/share/trellis/database";
+    std::string database_folder = get_database_path();
 
     po::options_description options("Allowed options");
     options.add_options()("help,h", "show help");

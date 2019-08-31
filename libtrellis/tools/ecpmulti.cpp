@@ -3,6 +3,7 @@
 #include "Bitstream.hpp"
 #include "Chip.hpp"
 #include "Database.hpp"
+#include "DatabasePath.hpp"
 #include "Tile.hpp"
 #include "version.hpp"
 #include <iostream>
@@ -40,7 +41,8 @@ int main(int argc, char *argv[])
     using namespace Trellis;
     namespace po = boost::program_options;
 
-    std::string database_folder = TRELLIS_PREFIX "/share/trellis/database";
+    std::string database_folder = get_database_path();
+
     uint32_t flash_size_bytes = 0;
     boost::optional<uint32_t> input_idcode;
     boost::optional<uint32_t> output_idcode;
