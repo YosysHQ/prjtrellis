@@ -36,6 +36,7 @@ f_out = f_vco / output
 #include <fstream>
 #include <string>
 #include <boost/program_options.hpp>
+#include "version.hpp"
 using namespace std;
 
 enum class pll_mode{
@@ -113,6 +114,7 @@ int main(int argc, char** argv){
   if(vm.count("help")){
     cerr << "Project Trellis - Open Source Tools for ECP5 FPGAs" << endl;
     cerr << "ecppll: ECP5 PLL Configuration Calculator" << endl;
+    cerr << "Version " << git_describe_str << endl;
     cerr << endl;
     cerr << "This tool is experimental! Use at your own risk!" << endl;
     cerr << endl;

@@ -4,6 +4,7 @@
 #include "Chip.hpp"
 #include "Database.hpp"
 #include "Tile.hpp"
+#include "version.hpp"
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <stdexcept>
@@ -78,6 +79,7 @@ int main(int argc, char *argv[])
     if (vm.count("help")) {
         help:
         cerr << "Project Trellis - Open Source Tools for ECP5 FPGAs" << endl;
+        cerr << "Version " << git_describe_str << endl;
         cerr << "ecpmulti: ECP5 multiboot bitstream assembler" << endl;
         cerr << endl;
         cerr << "Copyright (C) 2019 Jens Andersen <jens.andersen@gmail.com>" << endl;
