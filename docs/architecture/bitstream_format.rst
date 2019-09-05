@@ -2,9 +2,9 @@ Bitstream format
 ================
 
 Some documentation on the ECP5 bitstream format is published by Lattice themselves
-in th ECP5 sysCONFIG Usage Guide (TN1260_).
+in the ECP5 sysCONFIG Usage Guide (FPGA-TN-02039_).
 
-.. _TN1260: http://www.latticesemi.com/~/media/LatticeSemi/Documents/ApplicationNotes/EH/TN1260.pdf
+.. _FPGA-TN-02039: https://www.latticesemi.com/-/media/LatticeSemi/Documents/ApplicationNotes/EH/FPGA-TN-02039-1-7-ECP5-and-ECP5-5G-sysCONFIG.pdf
 
 Basic Structure
 ----------------
