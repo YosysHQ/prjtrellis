@@ -1,2 +1,2 @@
-#include <string>
-std::string git_describe_str = "@CURRENT_GIT_VERSION@";
+#include "version.hpp"
+const std::string git_describe_str = "@CURRENT_GIT_VERSION@";
