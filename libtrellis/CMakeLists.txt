@@ -136,24 +136,27 @@ endif()
 file(WRITE "${CMAKE_BINARY_DIR}/generated/last_git_version" CURRENT_GIT_VERSION)
 
 add_executable(ecppack ${INCLUDE_FILES} tools/ecppack.cpp "${CMAKE_BINARY_DIR}/generated/version.cpp")
+target_include_directories(ecppack PRIVATE tools)
 target_compile_definitions(ecppack PRIVATE TRELLIS_RPATH_DATADIR="${TRELLIS_RPATH_DATADIR}" TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
 target_link_libraries(ecppack trellis ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} ${link_param})
 setup_rpath(ecppack)
 
 add_executable(ecpunpack ${INCLUDE_FILES} tools/ecpunpack.cpp "${CMAKE_BINARY_DIR}/generated/version.cpp")
+target_include_directories(ecpunpack PRIVATE tools)
 target_compile_definitions(ecpunpack PRIVATE TRELLIS_RPATH_DATADIR="${TRELLIS_RPATH_DATADIR}" TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
 target_link_libraries(ecpunpack trellis ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} ${link_param})
 setup_rpath(ecpunpack)
 
 add_executable(ecppll ${INCLUDE_FILES} tools/ecppll.cpp "${CMAKE_BINARY_DIR}/generated/version.cpp")
+target_include_directories(ecppll PRIVATE tools)
 target_compile_definitions(ecppll PRIVATE TRELLIS_RPATH_DATADIR="${TRELLIS_RPATH_DATADIR}" TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
 target_link_libraries(ecppll trellis ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} ${link_param})
 setup_rpath(ecppll)
 
 add_executable(ecpmulti ${INCLUDE_FILES} tools/ecpmulti.cpp "${CMAKE_BINARY_DIR}/generated/version.cpp")
+target_include_directories(ecpmulti PRIVATE tools)
 target_compile_definitions(ecpmulti PRIVATE TRELLIS_RPATH_DATADIR="${TRELLIS_RPATH_DATADIR}" TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
 target_link_libraries(ecpmulti trellis ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} ${link_param})
-
 setup_rpath(ecpmulti)
 
 if (BUILD_SHARED)
