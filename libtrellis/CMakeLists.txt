@@ -119,7 +119,7 @@ function(setup_rpath name)
 endfunction()
 
 
-# Avoid peturbing build if git version hasn't changed 
+# Avoid perturbing build if git version hasn't changed
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/generated")
 set(LAST_GIT_VERSION "")
 execute_process(COMMAND git describe --tags OUTPUT_VARIABLE CURRENT_GIT_VERSION)
