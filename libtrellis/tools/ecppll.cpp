@@ -63,7 +63,9 @@ struct pll_params{
   int primary_cphase;
   string clkin_name;
   string clkout0_name;
-  
+  int dynamic;
+  int reset, standby;
+
   float clkin_frequency;
 
   secondary_params secondary[3];
@@ -105,6 +107,9 @@ int main(int argc, char** argv){
   options.add_options()("phase3", po::value<float>()->default_value(0), "Secondary Output(3) phase in degrees");
   options.add_options()("file,f", po::value<string>(), "Output to file");
   options.add_options()("highres", "Use secondary PLL output for higher frequency resolution");
+  options.add_options()("dynamic", "Use dynamic clock control");
+  options.add_options()("reset", "Enable reset input");
+  options.add_options()("standby", "Enable standby input");
 
   po::variables_map vm;
   po::parsed_options parsed = po::command_line_parser(argc, argv).options(options).run();
@@ -191,6 +196,16 @@ int main(int argc, char** argv){
       generate_secondary_output(params, 2, clkout3_name, vm["clkout3"].as<float>(), vm["phase3"].as<float>());
     }
   }
+
+  params.dynamic = 0;
+  if(vm.count("dynamic"))
+    params.dynamic = 1;
+  params.reset = 0;
+  if(vm.count("reset"))
+    params.reset = 1;
+  params.standby = 0;
+  if(vm.count("standby"))
+    params.standby = 1;
 
   cout << "Pll parameters:" << endl;
   cout << "Refclk divisor: " << params.refclk_div << endl;
@@ -316,6 +331,17 @@ void generate_secondary_output(pll_params &params, int channel, string name, flo
 void write_pll_config(const pll_params & params, const string &name, ofstream& file)
 {
   file << "module " << name << "\n(\n";
+  if(params.reset)
+    file << "    input reset, // 0:inactive, 1:reset\n";
+  if(params.standby)
+    file << "    input standby, // 0:inactive, 1:standby\n";
+  if(params.dynamic)
+  {
+    file << "    input [1:0] phasesel, // clkout[] index affected by dynamic phase shift (except clkfb), 5 ns min before apply\n";
+    file << "    input phasedir, // 0:delayed (lagging), 1:advence (leading), 5 ns min before apply\n";
+    file << "    input phasestep, // 45 deg step, high for 5 ns min, falling edge = apply\n";
+    file << "    input phaseloadreg, // high for 10 ns min, falling edge = apply\n";
+  }
   file << "    input " << params.clkin_name << ", // " << params.clkin_frequency << " MHz, 0 deg\n";
   file << "    output " << params.clkout0_name << ", // " << params.fout << " MHz, 0 deg\n";
 
@@ -328,17 +354,26 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
   file << "    output locked\n";
   file << ");\n";
   file << "wire clkfb;\n";
+  file << "assign clkfb = clkop;\n";
   file << "wire clkos;\n";
   file << "wire clkop;\n";
+  if(params.dynamic)
+  {
+    file << "wire [1:0] phasesel_hw;\n";
+    file << "assign phasesel_hw = phasesel - 1;\n";
+  }
   file << "(* ICP_CURRENT=\"12\" *) (* LPF_RESISTOR=\"8\" *) (* MFG_ENABLE_FILTEROPAMP=\"1\" *) (* MFG_GMCREF_SEL=\"2\" *)\n";
   file << "EHXPLLL #(\n";
-  file << "        .PLLRST_ENA(\"DISABLED\"),\n";
+  file << "        .PLLRST_ENA(\"" << (params.reset ? "EN" :"DIS") << "ABLED\"),\n";
   file << "        .INTFB_WAKE(\"DISABLED\"),\n";
   file << "        .STDBY_ENABLE(\"DISABLED\"),\n";
-  file << "        .DPHASE_SOURCE(\"DISABLED\"),\n";
+  file << "        .DPHASE_SOURCE(\"" << (params.dynamic ? "EN" :"DIS") << "ABLED\"),\n";
   file << "        .CLKOP_FPHASE(0),\n";
   file << "        .CLKOP_CPHASE(" << params.primary_cphase << "),\n";
   file << "        .OUTDIVIDER_MUXA(\"DIVA\"),\n";
+  file << "        .OUTDIVIDER_MUXB(\"DIVB\"),\n";
+  file << "        .OUTDIVIDER_MUXC(\"DIVC\"),\n";
+  file << "        .OUTDIVIDER_MUXD(\"DIVD\"),\n";
   file << "        .CLKOP_ENABLE(\"ENABLED\"),\n";
   file << "        .CLKOP_DIV(" << params.output_div << "),\n";
   if(params.secondary[0].enabled){
@@ -361,11 +396,11 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
   }
   file << "        .CLKFB_DIV(" << params.feedback_div << "),\n";
   file << "        .CLKI_DIV(" << params.refclk_div <<"),\n";
-  file << "        .FEEDBK_PATH(\"INT_OP\")\n";
+  file << "        .FEEDBK_PATH(\"CLKOP\")\n";
   file << "    ) pll_i (\n";
   file << "        .CLKI(" << params.clkin_name << "),\n";
   file << "        .CLKFB(clkfb),\n";
-  file << "        .CLKINTFB(clkfb),\n";
+  file << "        .CLKINTFB(),\n";
   file << "        .CLKOP(clkop),\n";
   if(params.secondary[0].enabled){
     if(params.mode == pll_mode::HIGHRES)
@@ -379,12 +414,30 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
   if(params.secondary[2].enabled){
     file << "        .CLKOS3(" << params.secondary[2].name << "),\n";
   }
-  file << "        .RST(1'b0),\n";
-  file << "        .STDBY(1'b0),\n";
-  file << "        .PHASESEL0(1'b0),\n";
-  file << "        .PHASESEL1(1'b0),\n";
-  file << "        .PHASEDIR(1'b0),\n";
-  file << "        .PHASESTEP(1'b0),\n";
+  if(params.reset)
+    file << "        .RST(reset),\n";
+  else
+    file << "        .RST(1'b0),\n";
+  if(params.standby)
+    file << "        .STDBY(standby),\n";
+  else
+    file << "        .STDBY(1'b0),\n";
+  if(params.dynamic)
+  {
+    file << "        .PHASESEL0(phasesel_hw[0]),\n";
+    file << "        .PHASESEL1(phasesel_hw[1]),\n";
+    file << "        .PHASEDIR(phasedir),\n";
+    file << "        .PHASESTEP(phasestep),\n";
+    file << "        .PHASELOADREG(phaseloadreg),\n";
+  }
+  else
+  {
+    file << "        .PHASESEL0(1'b0),\n";
+    file << "        .PHASESEL1(1'b0),\n";
+    file << "        .PHASEDIR(1'b1),\n";
+    file << "        .PHASESTEP(1'b1),\n";
+    file << "        .PHASELOADREG(1'b1),\n";
+  }
   file << "        .PLLWAKESYNC(1'b0),\n";
   file << "        .ENCLKOP(1'b0),\n";
   file << "        .LOCK(locked)\n";
