@@ -65,6 +65,7 @@ struct pll_params{
   string clkout0_name;
   int dynamic;
   int reset, standby;
+  int internal_feedback, internal_feedback_wake;
 
   float clkin_frequency;
 
@@ -110,6 +111,8 @@ int main(int argc, char** argv){
   options.add_options()("dynamic", "Use dynamic clock control");
   options.add_options()("reset", "Enable reset input");
   options.add_options()("standby", "Enable standby input");
+  options.add_options()("internal_feedback", "Use internal feedback (instead of external)");
+  options.add_options()("internal_feedback wake", "Wake internal feedback");
 
   po::variables_map vm;
   po::parsed_options parsed = po::command_line_parser(argc, argv).options(options).run();
@@ -206,6 +209,12 @@ int main(int argc, char** argv){
   params.standby = 0;
   if(vm.count("standby"))
     params.standby = 1;
+  params.internal_feedback = 0;
+  if(vm.count("internal_feedback"))
+    params.internal_feedback = 1;
+  params.internal_feedback_wake = 0;
+  if(vm.count("internal_feedback_wake"))
+    params.internal_feedback_wake = 1;
 
   cout << "Pll parameters:" << endl;
   cout << "Refclk divisor: " << params.refclk_div << endl;
@@ -354,7 +363,8 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
   file << "    output locked\n";
   file << ");\n";
   file << "wire clkfb;\n";
-  file << "assign clkfb = clkop;\n";
+  if(params.internal_feedback == 0)
+    file << "assign clkfb = clkop;\n";
   file << "wire clkos;\n";
   file << "wire clkop;\n";
   if(params.dynamic)
@@ -365,8 +375,8 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
   file << "(* ICP_CURRENT=\"12\" *) (* LPF_RESISTOR=\"8\" *) (* MFG_ENABLE_FILTEROPAMP=\"1\" *) (* MFG_GMCREF_SEL=\"2\" *)\n";
   file << "EHXPLLL #(\n";
   file << "        .PLLRST_ENA(\"" << (params.reset ? "EN" :"DIS") << "ABLED\"),\n";
-  file << "        .INTFB_WAKE(\"DISABLED\"),\n";
-  file << "        .STDBY_ENABLE(\"DISABLED\"),\n";
+  file << "        .INTFB_WAKE(\"" << (params.internal_feedback_wake ? "EN" :"DIS") << "ABLED\"),\n";
+  file << "        .STDBY_ENABLE(\"" << (params.standby ? "EN" :"DIS") << "ABLED\"),\n";
   file << "        .DPHASE_SOURCE(\"" << (params.dynamic ? "EN" :"DIS") << "ABLED\"),\n";
   file << "        .CLKOP_FPHASE(0),\n";
   file << "        .CLKOP_CPHASE(" << params.primary_cphase << "),\n";
@@ -396,11 +406,17 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
   }
   file << "        .CLKFB_DIV(" << params.feedback_div << "),\n";
   file << "        .CLKI_DIV(" << params.refclk_div <<"),\n";
-  file << "        .FEEDBK_PATH(\"CLKOP\")\n";
+  if(params.internal_feedback)
+    file << "        .FEEDBK_PATH(\"INT_OP\")\n";
+  else
+    file << "        .FEEDBK_PATH(\"CLKOP\")\n";
   file << "    ) pll_i (\n";
   file << "        .CLKI(" << params.clkin_name << "),\n";
   file << "        .CLKFB(clkfb),\n";
-  file << "        .CLKINTFB(),\n";
+  if(params.internal_feedback)
+    file << "        .CLKINTFB(clkfb),\n";
+  else
+    file << "        .CLKINTFB(),\n";
   file << "        .CLKOP(clkop),\n";
   if(params.secondary[0].enabled){
     if(params.mode == pll_mode::HIGHRES)
