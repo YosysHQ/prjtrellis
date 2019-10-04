@@ -3,7 +3,10 @@
 #include "Chip.hpp"
 #include "Database.hpp"
 #include "DatabasePath.hpp"
+#include "Tile.hpp"
+#include "BitDatabase.hpp"
 #include "version.hpp"
+
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <stdexcept>
@@ -38,7 +41,8 @@ int main(int argc, char *argv[])
     options.add_options()("svf", po::value<std::string>(), "output SVF file");
     options.add_options()("svf-rowsize", po::value<int>(), "SVF row size in bits (default 8000)");
     options.add_options()("spimode", po::value<std::string>(), "SPI Mode to use (fast-read, dual-spi, qspi)");
-
+    options.add_options()("background", "enable background reconfiguration in bitstream");
+    options.add_options()("delta", po::value<std::string>(), "create a delta partial bitstream given a reference config");
     po::positional_options_description pos;
     options.add_options()("input", po::value<std::string>()->required(), "input textual configuration");
     pos.add("input", 1);
@@ -122,7 +126,43 @@ help:
     if (vm.count("spimode"))
         bitopts["spimode"] = vm["spimode"].as<string>();
 
-    Bitstream b = Bitstream::serialise_chip(c, bitopts);
+    if (vm.count("background")) {
+        auto tile_db = get_tile_bitdata(TileLocator{c.info.family, c.info.name, "EFB0_PICB0"});
+        auto esb = tile_db->get_data_for_enum("SYSCONFIG.BACKGROUND_RECONFIG");
+        auto tile = c.get_tiles_by_type("EFB0_PICB0");
+        for (const auto &bit : esb.options["ON"].bits)
+            tile[0]->cram.set_bit(bit.frame, bit.bit, bit.inv ? 0 : 1);
+        bitopts["background"] = "yes";
+    }
+
+    bool partial_mode = false;
+    vector<uint32_t> partial_frames;
+    if (vm.count("delta")) {
+        ifstream delta_file(vm["delta"].as<string>());
+        if (!delta_file) {
+            cerr << "Failed to open reference config file" << endl;
+            return 1;
+        }
+        string refcfg((std::istreambuf_iterator<char>(delta_file)), std::istreambuf_iterator<char>());
+
+        ChipConfig ref_cc;
+        try {
+            ref_cc = ChipConfig::from_string(refcfg);
+        } catch (runtime_error &e) {
+            cerr << "Failed to process reference config: " << e.what() << endl;
+            return 1;
+        }
+        Chip ref_c = ref_cc.to_chip();
+        for (int frame = 0; frame < c.cram.frames(); frame++) {
+            if (ref_c.cram.data->at(frame) != c.cram.data->at(frame)) {
+                partial_frames.push_back(frame);
+            }
+        }
+
+        partial_mode = true;
+    }
+
+    Bitstream b = partial_mode ? Bitstream::serialise_chip_partial(c, partial_frames, bitopts) : Bitstream::serialise_chip(c, bitopts);
     if (vm.count("bit")) {
         ofstream bit_file(vm["bit"].as<string>(), ios::binary);
         if (!bit_file) {
@@ -138,7 +178,9 @@ help:
         // seem to confuse the chip sometimes when configuring over JTAG
         if (!bitopts.empty()) {
             bitopts.clear();
-             b = Bitstream::serialise_chip(c, bitopts);
+            if (vm.count("background"))
+                bitopts["background"] = "yes";
+            b = Bitstream::serialise_chip(c, bitopts);
         }
 
         vector<uint8_t> bitstream = b.get_bytes();
@@ -166,19 +208,31 @@ help:
         svf_file << "\t\t\tTDO  (" << setw(8) << hex << uppercase << setfill('0') << c.info.idcode << ")" << endl;
         svf_file << "\t\t\tMASK (FFFFFFFF);" << endl;
         svf_file << endl;
-        svf_file << "SIR\t8\tTDI  (1C);" << endl;
-        svf_file << "SDR\t510\tTDI  (3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << endl;
-        svf_file << "\t\t\t\tFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);" << endl;
-        svf_file << endl;
-        svf_file << "SIR\t8\tTDI  (C6);" << endl;
-        svf_file << "SDR\t8\tTDI  (00);" << endl;
-        svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
-        svf_file << endl;
-        svf_file << "SIR\t8\tTDI  (3C);" << endl;
-        svf_file << "SDR\t32\tTDI  (00000000)" << endl;
-        svf_file << "\t\t\tTDO  (00000000)" << endl;
-        svf_file << "\t\t\tMASK (0000B000);" << endl;
-        svf_file << endl;
+        if (!partial_mode) {
+            svf_file << "SIR\t8\tTDI  (1C);" << endl;
+            svf_file << "SDR\t510\tTDI  (3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << endl;
+            svf_file << "\t\t\t\tFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);" << endl;
+            svf_file << endl;
+            svf_file << "SIR\t8\tTDI  (C6);" << endl;
+            svf_file << "SDR\t8\tTDI  (00);" << endl;
+            svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
+            svf_file << endl;
+            svf_file << "SIR\t8\tTDI  (0E);" << endl;
+            svf_file << "SDR\t8\tTDI  (01);" << endl;
+            svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
+            svf_file << endl;
+            svf_file << "SIR\t8\tTDI  (3C);" << endl;
+            svf_file << "SDR\t32\tTDI  (00000000)" << endl;
+            svf_file << "\t\t\tTDO  (00000000)" << endl;
+            svf_file << "\t\t\tMASK (0000B000);" << endl;
+            svf_file << endl;
+        } else {
+            svf_file << "SIR\t8\tTDI  (79);" << endl;
+            svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
+            svf_file << "SIR\t8\tTDI  (74);" << endl;
+            svf_file << "SDR\t8\tTDI  (00);" << endl;
+            svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
+        }
         svf_file << "SIR\t8\tTDI  (46);" << endl;
         svf_file << "SDR\t8\tTDI  (01);" << endl;
         svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
@@ -200,26 +254,30 @@ help:
            svf_file << ");" << endl;
            i += len;
         }
-        svf_file << endl;
-        svf_file << "SIR\t8\tTDI  (FF);" << endl;
-        svf_file << "RUNTEST\tIDLE\t100 TCK\t1.00E-02 SEC;" << endl;
-        svf_file << endl;
-        svf_file << "SIR\t8\tTDI  (C0);" << endl;
-        svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-03 SEC;" << endl;
-        svf_file << "SDR\t32\tTDI  (00000000)" << endl;
-        svf_file << "\t\t\tTDO  (00000000)" << endl;
-        svf_file << "\t\t\tMASK (FFFFFFFF);" << endl;
-        svf_file << endl;
+        if (!partial_mode) {
+            svf_file << endl;
+            svf_file << "SIR\t8\tTDI  (FF);" << endl;
+            svf_file << "RUNTEST\tIDLE\t100 TCK\t1.00E-02 SEC;" << endl;
+            svf_file << endl;
+            svf_file << "SIR\t8\tTDI  (C0);" << endl;
+            svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-03 SEC;" << endl;
+            svf_file << "SDR\t32\tTDI  (00000000)" << endl;
+            svf_file << "\t\t\tTDO  (00000000)" << endl;
+            svf_file << "\t\t\tMASK (FFFFFFFF);" << endl;
+            svf_file << endl;
+        }
         svf_file << "SIR\t8\tTDI  (26);" << endl;
         svf_file << "RUNTEST\tIDLE\t2 TCK\t2.00E-01 SEC;" << endl;
         svf_file << endl;
         svf_file << "SIR\t8\tTDI  (FF);" << endl;
         svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-03 SEC;" << endl;
         svf_file << endl;
-        svf_file << "SIR\t8\tTDI  (3C);" << endl;
-        svf_file << "SDR\t32\tTDI  (00000000)" << endl;
-        svf_file << "\t\t\tTDO  (00000100)" << endl;
-        svf_file << "\t\t\tMASK (00002100);" << endl;
+        if (!partial_mode) {
+            svf_file << "SIR\t8\tTDI  (3C);" << endl;
+            svf_file << "SDR\t32\tTDI  (00000000)" << endl;
+            svf_file << "\t\t\tTDO  (00000100)" << endl;
+            svf_file << "\t\t\tMASK (00002100);" << endl;
+        }
     }
 
     return 0;
