@@ -13,6 +13,8 @@ jobs = [(FuzzConfig(job="ECLKSYNC0_BK6", family="ECP5", device="LFE5U-45F", ncl=
                     tiles=["CIB_R34C2:ECLK_L"]), "ECLKSYNC0_BK7"),
         (FuzzConfig(job="ECLKSYNC1_BK7", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
                     tiles=["CIB_R34C2:ECLK_L"]), "ECLKSYNC1_BK7"),
+        (FuzzConfig(job="BRGECLKSYNC1", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
+                    tiles=["CIB_R34C2:ECLK_L"]), "BRGECLKSYNC1"),
 
         (FuzzConfig(job="ECLKSYNC0_BK3", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
                     tiles=["CIB_R34C88:ECLK_R"]), "ECLKSYNC0_BK3"),
@@ -21,7 +23,9 @@ jobs = [(FuzzConfig(job="ECLKSYNC0_BK6", family="ECP5", device="LFE5U-45F", ncl=
         (FuzzConfig(job="ECLKSYNC0_BK2", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
                     tiles=["CIB_R34C88:ECLK_R"]), "ECLKSYNC0_BK2"),
         (FuzzConfig(job="ECLKSYNC1_BK2", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
-                    tiles=["CIB_R34C88:ECLK_R"]), "ECLKSYNC1_BK2")
+                    tiles=["CIB_R34C88:ECLK_R"]), "ECLKSYNC1_BK2"),
+        (FuzzConfig(job="BRGECLKSYNC0", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
+                    tiles=["CIB_R34C88:ECLK_R"]), "BRGECLKSYNC0"),
         ]
 
 
