@@ -23,8 +23,8 @@ else()
         set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
     endif()
 endif()
-set(boost_libs filesystem thread)
-
+set(boost_libs filesystem thread program_options)
+set(Boost_NO_BOOST_CMAKE ON)
 find_package(PythonInterp 3.5 REQUIRED)
 
 if (BUILD_PYTHON)
@@ -41,14 +41,14 @@ if (BUILD_PYTHON)
     set(version ${PYTHONLIBS_VERSION_STRING})
 
     STRING(REGEX REPLACE "[^0-9]" "" boost_py_version "${version}")
-    find_package(Boost COMPONENTS "python-py${boost_py_version}" ${boost_libs})
+    find_package(Boost QUIET COMPONENTS "python-py${boost_py_version}" ${boost_libs})
     set(Boost_PYTHON_FOUND ${Boost_PYTHON-PY${boost_py_version}_FOUND})
 
     while (NOT "${version}" STREQUAL "" AND NOT Boost_PYTHON_FOUND)
         STRING(REGEX REPLACE "([0-9.]+).[0-9]+" "\\1" version "${version}")
 
         STRING(REGEX REPLACE "[^0-9]" "" boost_py_version "${version}")
-        find_package(Boost COMPONENTS "python-py${boost_py_version}" ${boost_libs})
+        find_package(Boost QUIET COMPONENTS "python-py${boost_py_version}" ${boost_libs})
         set(Boost_PYTHON_FOUND ${Boost_PYTHON-PY${boost_py_version}_FOUND})
 
         STRING(REGEX MATCHALL "([0-9.]+).[0-9]+" has_more_version "${version}")
@@ -59,7 +59,7 @@ if (BUILD_PYTHON)
 
     if (NOT Boost_PYTHON_FOUND)
         foreach (PyVer 3 36 37 38)
-            find_package(Boost COMPONENTS python${PyVer} ${boost_libs})
+            find_package(Boost QUIET COMPONENTS python${PyVer} ${boost_libs})
             if ("${Boost_LIBRARIES}" MATCHES ".*(python|PYTHON).*" )
                 set(Boost_PYTHON_FOUND TRUE)
                 break()
@@ -68,8 +68,8 @@ if (BUILD_PYTHON)
     endif ()
 
     if (NOT Boost_PYTHON_FOUND)
-        STRING(REGEX REPLACE "([0-9]+\\.[0-9]+).*" "\\1" gentoo_version ${PYTHONLIBS_VERSION_STRING})
-        find_package(Boost COMPONENTS python-${gentoo_version} ${boost_libs})
+        STRING(REGEX REPLACE "([0-9]+\\.[0-9]+).*" "\\1" gentoo_version "${PYTHONLIBS_VERSION_STRING}")
+        find_package(Boost QUIET COMPONENTS python-${gentoo_version} ${boost_libs})
         if ("${Boost_LIBRARIES}" MATCHES ".*(python|PYTHON).*" )
             set(Boost_PYTHON_FOUND TRUE)
         endif ()
@@ -101,8 +101,6 @@ if (BUILD_PYTHON)
     target_compile_definitions(pytrellis PRIVATE INCLUDE_PYTHON=1)
     target_link_libraries(pytrellis LINK_PUBLIC ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 endif()
-
-find_package(Boost REQUIRED COMPONENTS program_options)
 
 include(GNUInstallDirs)
 
