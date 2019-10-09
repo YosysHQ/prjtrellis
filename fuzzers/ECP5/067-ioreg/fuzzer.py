@@ -93,7 +93,7 @@ def main():
     pytrellis.load_database("../../../database")
 
     def per_job(job):
-        def get_substs(regtype="", regen="OFF", regset="RESET", srmode="ASYNC", regmode="FF", ceimux="1", ceomux="1", datamux="PADDO"):
+        def get_substs(regtype="", regen="OFF", regset="RESET", srmode="ASYNC", regmode="FF", cemux="CE", ceimux="1", ceomux="1", datamux="PADDO", trimux="PADDT"):
             clkimux = "CLK"
             clkomux = "CLK"
             if regen == "ON":
@@ -109,7 +109,9 @@ def main():
                 s = "S"
             else:
                 s = ""
-            return dict(loc=loc, reg=reg, s=s, pin=pin, srmode=srmode, clkimux=clkimux, clkomux=clkomux, ceimux=ceimux, ceomux=ceomux, datamux=datamux)
+            if cemux == "INV":
+                cemux = "CE:::CE=#INV"
+            return dict(loc=loc, reg=reg, s=s, pin=pin, srmode=srmode, clkimux=clkimux, clkomux=clkomux, cemux=cemux, ceimux=ceimux, ceomux=ceomux, datamux=datamux, trimux=trimux)
 
         cfg = job["cfg"]
         loc = job["site"]
@@ -143,10 +145,14 @@ def main():
                                      lambda x: get_substs(srmode=x), empty_bitfile, False)
         nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.CEIMUX".format(iol), ["CEMUX", "1"],
                                      lambda x: get_substs(ceimux=x), empty_bitfile, False)
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.CEMUX".format(iol), ["CE", "INV"],
+                                     lambda x: get_substs(cemux=x), empty_bitfile, False)
         nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.CEOMUX".format(iol), ["CEMUX", "1"],
                                      lambda x: get_substs(ceomux=x), empty_bitfile, False)
         nonrouting.fuzz_enum_setting(cfg, "PIO{}.DATAMUX_OREG".format(iol), ["PADDO", "IOLDO"],
                                      lambda x: get_substs(datamux=x), empty_bitfile, False)
+        nonrouting.fuzz_enum_setting(cfg, "PIO{}.TRIMUX_TSREG".format(iol), ["PADDT", "IOLTO"],
+                                     lambda x: get_substs(trimux=x), empty_bitfile, False)
     fuzzloops.parallel_foreach(jobs, per_job)
 
 
