@@ -426,6 +426,7 @@ void add_iologic(RoutingGraph &graph, int x, int y, int z, bool s) {
             add_input("TXDATA4");
             add_input("TXDATA5");
             add_input("TXDATA6");
+            add_input("SLIP");
             add_output("RXDATA4");
             add_output("RXDATA5");
             add_output("RXDATA6");
