@@ -551,6 +551,22 @@ void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, i
         bel.name = graph.ident("ECLKBUF" + std::to_string(i));
         graph.add_bel_input(bel, graph.ident("ECLKI"), x, y, graph.ident(fmt("JECLK" << i)));
         graph.add_bel_output(bel, graph.ident("ECLKO"), 0, 0, graph.ident(fmt("G_BANK" << bank << "ECLK" << i)));
+    } else if (name == "ECLKBRIDGECS") {
+        postfix = "ECLKBRIDGECS" + std::to_string(i);
+        bel.name = graph.ident(postfix);
+        bel.z = 14;
+        add_input("CLK0");
+        add_input("CLK1");
+        add_input("SEL");
+        add_output("ECSOUT", true);
+    } else if (name == "BRGECLKSYNC") {
+        postfix = "BRGECLKSYNC" + std::to_string(i);
+        bel.name = graph.ident(postfix);
+        bel.type = graph.ident("ECLKSYNCB");
+        bel.z = 15;
+        add_input("ECLKI", false);
+        add_input("STOP");
+        add_output("ECLKO");
     } else if (name == "DLLDELD") {
         postfix = "DLLDEL";
         bel.name = graph.ident(postfix);
