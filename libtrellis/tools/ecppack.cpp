@@ -24,6 +24,11 @@ uint8_t reverse_byte(uint8_t byte) {
     return rev;
 }
 
+uint32_t convert_hexstring(std::string value_str)
+{
+    return uint32_t(strtoul(value_str.c_str(), nullptr, 0));
+}
+
 int main(int argc, char *argv[])
 {
     using namespace Trellis;
@@ -43,6 +48,7 @@ int main(int argc, char *argv[])
     options.add_options()("spimode", po::value<std::string>(), "SPI Mode to use (fast-read, dual-spi, qspi)");
     options.add_options()("background", "enable background reconfiguration in bitstream");
     options.add_options()("delta", po::value<std::string>(), "create a delta partial bitstream given a reference config");
+    options.add_options()("bootaddr", po::value<std::string>(), "set next BOOTADDR in bitstream and enable multi-boot");
     po::positional_options_description pos;
     options.add_options()("input", po::value<std::string>()->required(), "input textual configuration");
     pos.add("input", 1);
@@ -135,6 +141,36 @@ help:
         bitopts["background"] = "yes";
     }
 
+    if (vm.count("bootaddr")) {
+        uint32_t bootaddr = convert_hexstring(vm["bootaddr"].as<string>());
+
+        if (bootaddr & 0xffff) {
+            cerr << "Error: Boot Address must be 64k aligned !" << endl;
+            return 1;
+        }
+
+        bootaddr = (bootaddr & 0x00ff0000) >> 16;
+
+        auto tile_db = get_tile_bitdata(TileLocator{c.info.family, c.info.name, "EFB1_PICB1"});
+        WordSettingBits wsb = tile_db->get_data_for_setword("BOOTADDR");
+        auto tile = c.get_tiles_by_type("EFB1_PICB1");
+
+        if (tile.size() != 1) {
+            cerr << "EFB1_PICB1 Frame is wrong size. Can't proceed" << endl;
+            return 1;
+        }
+
+        for(uint32_t j=0; j < wsb.bits.size(); j++) {
+            auto bg = wsb.bits.at(j);
+            for (auto bit :  bg.bits) {
+                bool value = (bootaddr & (1 << j)) > 0;
+                tile[0]->cram.set_bit(bit.frame, bit.bit, value);
+            }
+        }
+
+        bitopts["multiboot"] = "yes";
+    }
+
     bool partial_mode = false;
     vector<uint32_t> partial_frames;
     if (vm.count("delta")) {
@@ -180,6 +216,8 @@ help:
             bitopts.clear();
             if (vm.count("background"))
                 bitopts["background"] = "yes";
+            if (vm.count("bootaddr"))
+                bitopts["multiboot"] = "yes";
             b = Bitstream::serialise_chip(c, bitopts);
         }
 
