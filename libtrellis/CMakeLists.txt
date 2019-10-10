@@ -139,6 +139,12 @@ if (NOT ("${LAST_GIT_VERSION}" STREQUAL "${CURRENT_GIT_VERSION}"))
 endif()
 file(WRITE "${CMAKE_BINARY_DIR}/generated/last_git_version" CURRENT_GIT_VERSION)
 
+add_executable(ecpbram ${INCLUDE_FILES} tools/ecpbram.cpp "${CMAKE_BINARY_DIR}/generated/version.cpp")
+target_include_directories(ecpbram PRIVATE tools)
+target_compile_definitions(ecpbram PRIVATE TRELLIS_RPATH_DATADIR="${TRELLIS_RPATH_DATADIR}" TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
+target_link_libraries(ecpbram trellis ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} ${link_param})
+setup_rpath(ecpbram)
+
 add_executable(ecppack ${INCLUDE_FILES} tools/ecppack.cpp "${CMAKE_BINARY_DIR}/generated/version.cpp")
 target_include_directories(ecppack PRIVATE tools)
 target_compile_definitions(ecppack PRIVATE TRELLIS_RPATH_DATADIR="${TRELLIS_RPATH_DATADIR}" TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}")
@@ -164,11 +170,11 @@ target_link_libraries(ecpmulti trellis ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} ${lin
 setup_rpath(ecpmulti)
 
 if (BUILD_SHARED)
-    install(TARGETS trellis ecppack ecppll ecpunpack ecpmulti pytrellis
+    install(TARGETS trellis ecpbram ecppack ecppll ecpunpack ecpmulti pytrellis
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/trellis
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 else()
-    install(TARGETS ecppack ecpunpack ecppll ecpmulti
+    install(TARGETS ecpbram ecppack ecpunpack ecppll ecpmulti
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 install(DIRECTORY ../database DESTINATION ${CMAKE_INSTALL_DATADIR}/trellis PATTERN ".git" EXCLUDE)
