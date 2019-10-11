@@ -559,7 +559,7 @@ void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, i
         add_input("CLK0");
         add_input("CLK1");
         add_input("SEL");
-        add_output("ECSOUT", true);
+        add_output("ECSOUT", false);
     } else if (name == "BRGECLKSYNC") {
         postfix = "BRGECLKSYNC" + std::to_string(i);
         bel.name = graph.ident(postfix);
