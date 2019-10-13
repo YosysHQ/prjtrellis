@@ -16,6 +16,7 @@ design top
          cellmodel-name ${s}IOLOGIC;
          program "GSR:ENABLED "
                  "MODE:IREG_OREG "
+                 "CEMUX:${cemux} "
                  "CEIMUX:${ceimux} "
                  "SRMODE:${srmode} "
                  "CEOMUX:${ceomux} "
@@ -34,7 +35,8 @@ design top
       logical
       {
          cellmodel-name PIO;
-         program "DATAMUX:${datamux}";
+         program "DATAMUX:${datamux} "
+                 "TRIMUX:${trimux}";
          primitive IOBUF Q_pad;
          primitive PAD Q;
       }
