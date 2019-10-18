@@ -17,11 +17,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <assert.h>
 #include <stdint.h>
+#ifdef _WIN32
+#define NOMINMAX
+#include "Windows.h"
+#undef NOMINMAX
+#else
+#include <unistd.h>
 #include <sys/time.h>
+#endif
 
 #include <map>
 #include <vector>
@@ -97,8 +103,11 @@ error:
 int main(int argc, char **argv)
 {
     bool verbose = false;
+#ifdef _WIN32
+    uint32_t seed_nr = GetCurrentProcessId();
+#else
     uint32_t seed_nr = getpid();
-
+#endif
     namespace po = boost::program_options;
 
     std::string database_folder = get_database_path();;
@@ -186,10 +195,20 @@ int main(int argc, char **argv)
         xorshift64star();
 
         if (!vm.count("seed")) {
+#ifdef _WIN32
+            SYSTEMTIME system_time;
+            FILETIME file_time;
+            uint64_t time;
+            GetSystemTime(&system_time);
+            SystemTimeToFileTime(&system_time, &file_time);
+            x ^= uint64_t(file_time.dwLowDateTime);
+            x ^= uint64_t(file_time.dwHighDateTime) << 32;
+#else
             struct timeval tv;
             gettimeofday(&tv, NULL);
             x ^= uint64_t(tv.tv_sec) << 20;
             x ^= uint64_t(tv.tv_usec);
+#endif
         }
 
         xorshift64star();
