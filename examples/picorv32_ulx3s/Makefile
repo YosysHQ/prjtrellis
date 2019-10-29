@@ -14,7 +14,7 @@ attosoc.json: io_wrapper.v attosoc.v picorv32.v firmware.hex
 	yosys -p "synth_ecp5 -json $@" io_wrapper.v attosoc.v picorv32.v
 
 attosoc_out.config: attosoc.json
-	nextpnr-ecp5 --json $< --textcfg $@ --45k --no-tmdriv
+	nextpnr-ecp5 --45k --package CABGA381 --json $< --textcfg $@ --no-tmdriv
 
 attosoc.bit: attosoc_out.config
 	ecppack $< $@

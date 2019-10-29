@@ -1,5 +1,6 @@
 #include "CRAM.hpp"
 #include <cassert>
+#include <stdexcept>
 
 namespace Trellis {
 char &CRAMView::bit(int frame, int bit) const {

@@ -49,7 +49,16 @@ bnk_eclk_re = re.compile('R\d+C\d+_BANK\d+(ECLK\d+)')
 # CIB ECLK inputs
 cib_eclk_re = re.compile(r'R\d+C\d+_J?[ULTB][LR][QCM]ECLKCIB\d+')
 
+brg_eclk_re = re.compile(r'R\d+C(\d+)_JBRGECLK\d+')
 
+
+def is_global_brgeclk(wire):
+    m = brg_eclk_re.match(wire)
+    if not m:
+        return False
+    if m:
+        x = int(m.group(1))
+        return x > 5 and x < 67
 
 def is_global(wire):
     """Return true if a wire is part of the global clock network"""
@@ -69,7 +78,8 @@ def is_global(wire):
                 dcs_clk_re.match(wire) or
                 pcs_clk_re.match(wire) or
                 center_clk_re.match(wire) or
-                cib_eclk_re.match(wire))
+                cib_eclk_re.match(wire) or
+                is_global_brgeclk(wire))
 
 
 # General inter-tile routing

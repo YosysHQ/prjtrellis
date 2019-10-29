@@ -3,7 +3,9 @@
 #include "Bitstream.hpp"
 #include "Chip.hpp"
 #include "Database.hpp"
+#include "DatabasePath.hpp"
 #include "Tile.hpp"
+#include "version.hpp"
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <stdexcept>
@@ -39,7 +41,8 @@ int main(int argc, char *argv[])
     using namespace Trellis;
     namespace po = boost::program_options;
 
-    std::string database_folder = TRELLIS_PREFIX "/share/trellis/database";
+    std::string database_folder = get_database_path();
+
     uint32_t flash_size_bytes = 0;
     boost::optional<uint32_t> input_idcode;
     boost::optional<uint32_t> output_idcode;
@@ -78,6 +81,7 @@ int main(int argc, char *argv[])
     if (vm.count("help")) {
         help:
         cerr << "Project Trellis - Open Source Tools for ECP5 FPGAs" << endl;
+        cerr << "Version " << git_describe_str << endl;
         cerr << "ecpmulti: ECP5 multiboot bitstream assembler" << endl;
         cerr << endl;
         cerr << "Copyright (C) 2019 Jens Andersen <jens.andersen@gmail.com>" << endl;

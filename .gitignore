@@ -1,9 +1,23 @@
+#python
 __pycache__/
 *.pyc
+
+#Environments
 /user_environment.sh
+*..DS_Store
+
+#logs
 ispTcl.log
 ispTcl.log.*
 ispTcl.tcl
 ispTcl.tcl.*
 .ispTcl.lock
 work_*/
+
+#Editors and IDEs
+.*.d
+.*.swp
+.*.swo
+.*.swn
+.*.swm
+*.log

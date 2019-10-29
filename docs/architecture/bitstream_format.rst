@@ -2,9 +2,9 @@ Bitstream format
 ================
 
 Some documentation on the ECP5 bitstream format is published by Lattice themselves
-in th ECP5 sysCONFIG Usage Guide (TN1260_).
+in the ECP5 sysCONFIG Usage Guide (FPGA-TN-02039_).
 
-.. _TN1260: http://www.latticesemi.com/~/media/LatticeSemi/Documents/ApplicationNotes/EH/TN1260.pdf
+.. _FPGA-TN-02039: https://www.latticesemi.com/-/media/LatticeSemi/Documents/ApplicationNotes/EH/FPGA-TN-02039-1-7-ECP5-and-ECP5-5G-sysCONFIG.pdf
 
 Basic Structure
 ----------------
@@ -54,6 +54,9 @@ Control commands seen in a typical uncompressed, unencrypted bitstream are:
 |                               |     | - 32 bit CtlReg0 value   | Normally 0x40000000                               |
 +-------------------------------+-----+--------------------------+---------------------------------------------------+
 | ``LSC_INIT_ADDRESS``          | 46  | 24 bit info: all 0       | Resets the frame address register                 |
++-------------------------------+-----+--------------------------+---------------------------------------------------+
+| ``LSC_WRITE_ADDRESS``         | B4  | - 24 bit info: all 0     | Loads the frame address register                  |
+|                               |     | - 32 bit frame address   |                                                   |
 +-------------------------------+-----+--------------------------+---------------------------------------------------+
 | ``ISC_PROGRAM_SECURITY``      | CE  | 24 bit info: all 0       | Program the security bit (prevents readback (?) ) |
 +-------------------------------+-----+--------------------------+---------------------------------------------------+
@@ -131,6 +134,21 @@ After padding, every byte in the bitstream is compressed by a simple prefix-free
 - The fourth case is for all remaining bytes.  In that case after a ``11`` the complete byte is copied.  For example
   byte ``11001010`` would be encoded as ``1111001010``.
 
+Partial Bitstreams
+------------------------------
+
+``LSC_WRITE_ADDRESS`` can be used to make partial bitstreams. Combined with background reconfiguration and
+the ability to reload frames glitchlessly; partial reconfiguration is possible on ECP5.
+
+``LSC_WRITE_ADDRESS`` takes a frame address; however frame addressing is not strictly linear. It has only
+been fully documented for the 45k device and is as follows:
+ - the first 7 bits are always between 0 and 105 (each group of 106 frames is a column)
+ - the next 5 bits are the column index within a tap region
+ - the MSBs from bit 12 onwards are the tap region index
+
+To enable loading of partial bitstreams the ``BACKGROUND_RECONFIG`` sysCONFIG option must be set. Then, to
+avoid reinitialising the whole device, instructions 0x79 with no data and 0x74 followed by 0x00 must be
+sent over JTAG before the partial bitstream data. 
 
 Device-Specific Information
 ------------------------------

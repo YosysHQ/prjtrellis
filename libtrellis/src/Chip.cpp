@@ -213,6 +213,8 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
             Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y, 0);
             Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y+1, 0);
             Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y+2, 0);
+            Bels::add_ioclk_bel(*rg, "ECLKBRIDGECS", x-2, y, 1);
+            Bels::add_ioclk_bel(*rg, "BRGECLKSYNC", x-2, y, 1);
         }
         if (tile->info.type == "ECLK_R") {
             Bels::add_ioclk_bel(*rg, "CLKDIVF", x+2, y, 0);
@@ -229,6 +231,8 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
             Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y, 0);
             Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y+1, 0);
             Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y+2, 0);
+            Bels::add_ioclk_bel(*rg, "ECLKBRIDGECS", x+2, y, 0);
+            Bels::add_ioclk_bel(*rg, "BRGECLKSYNC", x+2, y, 0);
         }
         if (tile->info.type == "DDRDLL_UL")
             Bels::add_ioclk_bel(*rg, "DDRDLL", x-2, y-10, 0);

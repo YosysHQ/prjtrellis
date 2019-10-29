@@ -16,9 +16,12 @@ Testing
 *.a
 *.cbp
 install_manifest.txt
+ecpbram
 ecppack
 ecpunpack
 ecpmulti
 ecppll
 libtrellis.dylib
 *~
+ecpmulti
+generated/

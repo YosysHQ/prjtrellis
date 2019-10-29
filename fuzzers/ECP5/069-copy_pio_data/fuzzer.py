@@ -26,8 +26,8 @@ def main():
         "PICR0": ["PICR0_DQS2"],
         "PICR1": ["PICR1_DQS0", "PICR1_DQS3"],
         "PICR2": ["PICR2_DQS1", "MIB_CIB_LR_A"],
-        "EFB2_PICB0": ["EFB0_PICB0"],
-        "EFB3_PICB1": ["EFB1_PICB1"],
+        "PICB0": ["EFB0_PICB0", "EFB2_PICB0"],
+        "PICB1": ["EFB1_PICB1", "EFB3_PICB1"],
     }
 
     for src, dest_tiles in sorted(copy_config_rules.items()):
