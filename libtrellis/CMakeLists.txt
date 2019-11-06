@@ -27,7 +27,7 @@ else()
         set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
     endif()
 endif()
-set(boost_libs filesystem thread program_options)
+set(boost_libs filesystem thread program_options system)
 set(Boost_NO_BOOST_CMAKE ON)
 find_package(PythonInterp 3.5 REQUIRED)
 
