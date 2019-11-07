@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
     options.add_options()("freq", po::value<std::string>(), "config frequency in MHz");
     options.add_options()("svf", po::value<std::string>(), "output SVF file");
     options.add_options()("svf-rowsize", po::value<int>(), "SVF row size in bits (default 8000)");
+    options.add_options()("compress", "compress bitstream to reduce size");
     options.add_options()("spimode", po::value<std::string>(), "SPI Mode to use (fast-read, dual-spi, qspi)");
     options.add_options()("background", "enable background reconfiguration in bitstream");
     options.add_options()("delta", po::value<std::string>(), "create a delta partial bitstream given a reference config");
@@ -132,6 +133,9 @@ help:
     if (vm.count("spimode"))
         bitopts["spimode"] = vm["spimode"].as<string>();
 
+    if (vm.count("compress"))
+        bitopts["compress"] = "yes";
+
     if (vm.count("background")) {
         auto tile_db = get_tile_bitdata(TileLocator{c.info.family, c.info.name, "EFB0_PICB0"});
         auto esb = tile_db->get_data_for_enum("SYSCONFIG.BACKGROUND_RECONFIG");
@@ -209,15 +213,16 @@ help:
     }
 
     if (vm.count("svf")) {
-
         // Create JTAG bitstream without SPI flash related settings, as these
         // seem to confuse the chip sometimes when configuring over JTAG
-        if (!bitopts.empty()) {
+        if (!bitopts.empty() && !(bitopts.size() == 1 && bitopts.count("compress"))) {
             bitopts.clear();
             if (vm.count("background"))
                 bitopts["background"] = "yes";
             if (vm.count("bootaddr"))
                 bitopts["multiboot"] = "yes";
+            if (vm.count("compress"))
+                bitopts["compress"] = "yes";
             b = Bitstream::serialise_chip(c, bitopts);
         }
 
