@@ -1,4 +1,4 @@
-TRELLIS=/usr/share/trellis
+TRELLIS?=/usr/share/trellis
 
 firmware.elf: sections.lds start.s firmware.c
 	riscv32-unknown-elf-gcc -march=rv32i -Wl,-Bstatic,-T,sections.lds,--strip-debug -ffreestanding -nostdlib -o firmware.elf start.s firmware.c
