@@ -153,7 +153,9 @@ def main():
                                                           settings={"DEL_VALUE": todecstr(x),
                                                                     "WAIT_FOR_EDGE": "DISABLED"}),
                                      empty_bitfile)
-
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.LOADNMUX".format(iol), ["1", "LOADN"],
+                                     lambda x: get_substs(program=({"LOADNMUX": "LOADN"} if x == "LOADN" else {})),
+                                     empty_bitfile, False)
 
     fuzzloops.parallel_foreach(jobs, per_job)
 
