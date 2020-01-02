@@ -681,6 +681,10 @@ Bitstream Bitstream::generate_jump(uint32_t address) {
     return Bitstream(wr.get(), std::vector<string>());
 }
 
+Bitstream Bitstream::serialise_chip_py(const Chip &chip) {
+    return serialise_chip(chip, map<string, string>());
+}
+
 Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> options) {
     BitstreamReadWriter wr;
     // Preamble
@@ -823,6 +827,18 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
     // Trailing padding
     wr.insert_dummy(4);
     return Bitstream(wr.get(), chip.metadata);
+}
+
+Bitstream Bitstream::serialise_chip_delta_py(const Chip &chip1, const Chip &chip2)
+{
+    vector<uint32_t> frames;
+    for (int frame = 0; frame < chip2.cram.frames(); frame++) {
+        if (chip1.cram.data->at(frame) != chip2.cram.data->at(frame)) {
+            frames.push_back(frame);
+        }
+    }
+
+    return serialise_chip_partial(chip2, frames, map<string, string>());
 }
 
 Bitstream Bitstream::serialise_chip_partial(const Chip &chip, const vector<uint32_t> &frames, const map<string, string> options)
