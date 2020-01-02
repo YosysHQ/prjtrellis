@@ -52,6 +52,9 @@ public:
     static Bitstream serialise_chip_partial(const Chip &chip, const vector<uint32_t> &frames, const map<string, string> options);
     static Bitstream generate_jump(uint32_t address);
 
+    static Bitstream serialise_chip_py(const Chip &chip);
+    static Bitstream serialise_chip_delta_py(const Chip &chip1, const Chip &chip2);
+
     // Deserialise a bitstream to a Chip
     Chip deserialise_chip();
     Chip deserialise_chip(boost::optional<uint32_t> idcode = boost::optional<uint32_t>());
