@@ -1,5 +1,5 @@
 PROJ=blinky
-TRELLIS=/usr/share/trellis
+TRELLIS?=/usr/share/trellis
 
 all: ${PROJ}.bit
 

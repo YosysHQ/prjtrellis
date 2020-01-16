@@ -75,6 +75,14 @@ def get_io_types(dir, pio, side):
         "LVCMOS15",
         "LVCMOS12"
     ]
+    if pio == "A" and side == "T" and dir == "OUTPUT":
+        types += [
+            "LVCMOS33D",
+            "LVCMOS25D",
+            "LVCMOS18D",
+            "LVCMOS15D",
+            "LVCMOS12D"
+        ]
     if side in ('L', 'R'):
         types += [
             "SSTL18_I",
