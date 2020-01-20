@@ -24,7 +24,12 @@ jobs = [
         "pos": [(71, 11), (71, 12), (70, 11), (70, 12)],
         "cfg": FuzzConfig(job="PIOROUTET", family="ECP5", device="LFE5U-45F", ncl="pioroute.ncl",
                           tiles=["MIB_R71C11:PICB0", "MIB_R71C12:PICB1"])
-    }
+    },
+    {
+        "pos": [(71, 18), (70, 18)],
+        "cfg": FuzzConfig(job="PIOROUTESB", family="ECP5", device="LFE5U-45F", ncl="pioroute.ncl",
+                          tiles=["MIB_R71C18:SPICB0"])
+    },
 ]
 
 
