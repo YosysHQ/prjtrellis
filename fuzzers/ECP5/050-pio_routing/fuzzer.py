@@ -5,29 +5,29 @@ import pytrellis
 import re
 
 jobs = [
-    {
-        "pos": [(47, 0), (48, 0), (49, 0)],
-        "cfg": FuzzConfig(job="PIOROUTEL", family="ECP5", device="LFE5U-45F", ncl="pioroute.ncl",
-                          tiles=["MIB_R47C0:PICL0", "MIB_R48C0:PICL1", "MIB_R49C0:PICL2"])
-    },
-    {
-        "pos": [(47, 90), (48, 90), (49, 90)],
-        "cfg": FuzzConfig(job="PIOROUTER", family="ECP5", device="LFE5U-45F", ncl="pioroute.ncl",
-                          tiles=["MIB_R47C90:PICR0", "MIB_R48C90:PICR1", "MIB_R49C90:PICR2"])
-    },
-    {
-        "pos": [(0, 22), (1, 23), (0, 22), (1, 23)],
-        "cfg": FuzzConfig(job="PIOROUTET", family="ECP5", device="LFE5U-45F", ncl="pioroute.ncl",
-                          tiles=["MIB_R0C22:PIOT0", "MIB_R0C23:PIOT1", "MIB_R1C22:PICT0", "MIB_R1C23:PICT1"])
-    },
-    {
-        "pos": [(71, 11), (71, 12), (70, 11), (70, 12)],
-        "cfg": FuzzConfig(job="PIOROUTET", family="ECP5", device="LFE5U-45F", ncl="pioroute.ncl",
-                          tiles=["MIB_R71C11:PICB0", "MIB_R71C12:PICB1"])
-    },
+    # {
+    #     "pos": [(47, 0), (48, 0), (49, 0)],
+    #     "cfg": FuzzConfig(job="PIOROUTEL", family="ECP5", device="LFE5U-45F", ncl="pioroute.ncl",
+    #                       tiles=["MIB_R47C0:PICL0", "MIB_R48C0:PICL1", "MIB_R49C0:PICL2"])
+    # },
+    # {
+    #     "pos": [(47, 90), (48, 90), (49, 90)],
+    #     "cfg": FuzzConfig(job="PIOROUTER", family="ECP5", device="LFE5U-45F", ncl="pioroute.ncl",
+    #                       tiles=["MIB_R47C90:PICR0", "MIB_R48C90:PICR1", "MIB_R49C90:PICR2"])
+    # },
+    # {
+    #     "pos": [(0, 22), (1, 23), (0, 22), (1, 23)],
+    #     "cfg": FuzzConfig(job="PIOROUTET", family="ECP5", device="LFE5U-45F", ncl="pioroute.ncl",
+    #                       tiles=["MIB_R0C22:PIOT0", "MIB_R0C23:PIOT1", "MIB_R1C22:PICT0", "MIB_R1C23:PICT1"])
+    # },
+    # {
+    #     "pos": [(71, 11), (71, 12), (70, 11), (70, 12)],
+    #     "cfg": FuzzConfig(job="PIOROUTET", family="ECP5", device="LFE5U-45F", ncl="pioroute.ncl",
+    #                       tiles=["MIB_R71C11:PICB0", "MIB_R71C12:PICB1"])
+    # },
     {
         "pos": [(71, 18), (70, 18)],
-        "cfg": FuzzConfig(job="PIOROUTESB", family="ECP5", device="LFE5U-45F", ncl="pioroute.ncl",
+        "cfg": FuzzConfig(job="PIOROUTESB", family="ECP5", device="LFE5U-45F", ncl="pioroute_spicb.ncl",
                           tiles=["MIB_R71C18:SPICB0"])
     },
 ]
