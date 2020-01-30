@@ -11,8 +11,9 @@
 #  - lfe5u-85
 #  - lfe5u-45
 #  - lfe5u-25
+#  - LCMXO2-1200HC
 
-# Currently this script supports Linux only.
+# Currently this script supports Linux and Windows using a MINGW64 bash shell.
 
 # You need to set the DIAMONDDIR environment variable to the path where you have
 # installed Lattice Diamond, unless it matches this default.
@@ -23,10 +24,16 @@ else
 	WINDOWS=false
 fi
 
-if $WINDOWS; then
-	diamonddir="${DIAMONDDIR:-/c/lscc/diamond/3.10_x64}"
+if [ -z "$DIAMONDVER" ]; then
+	diamondver="3.10"
 else
-	diamonddir="${DIAMONDDIR:-/usr/local/diamond/3.10_x64}"
+	diamondver="$DIAMONDVER"
+fi
+
+if $WINDOWS; then
+	diamonddir="${DIAMONDDIR:-/c/lscc/diamond/${diamondver}_x64}"
+else
+	diamonddir="${DIAMONDDIR:-/usr/local/diamond/${diamondver}_x64}"
 fi
 export FOUNDRY="${diamonddir}/ispfpga"
 
@@ -238,6 +245,10 @@ echo "SYSCONFIG COMPRESS_CONFIG=OFF ;" >> synth_impl.prf
 # make bitmap
 "$fpgabindir"/bitgen -d par_impl.ncd $BITARGS output.bit synth_impl.prf
 
+if [ -n "$JEDEC_BITSTREAM" ]; then
+"$fpgabindir"/bitgen -d par_impl.ncd -jedec output.jed synth_impl.prf
+fi
+
 # dump bitmap
 "$fpgabindir"/bstool -d output.bit > output.dump
 
@@ -274,6 +285,9 @@ cp "$2.tmp"/par_impl.twr "$2.twr"
 fi
 if [ -z "$USE_NCL" ]; then
 cp "$2.tmp"/output.ncl "$2_out.ncl"
+fi
+if [ -n "$JEDEC_BITSTREAM" ]; then
+cp "$2.tmp"/output.jed "$2.jed"
 fi
 if [ -n "$BACKANNO" ]; then
 cp "$2.tmp"/par_impl.sdf "$2.sdf"
