@@ -17,7 +17,13 @@
 # You need to set the DIAMONDDIR environment variable to the path where you have
 # installed Lattice Diamond, unless it matches this default.
 
-diamonddir="${DIAMONDDIR:-/usr/local/diamond/3.10_x64}"
+if [ -z "$DIAMONDVER" ]; then
+	diamondver="3.10"
+else
+	diamondver="$DIAMONDVER"
+fi
+
+diamonddir="${DIAMONDDIR:-/usr/local/diamond/${diamondver}_x64}"
 export FOUNDRY="${diamonddir}/ispfpga"
 bindir="${diamonddir}/bin/lin64"
 LSC_DIAMOND=true
@@ -194,6 +200,10 @@ fi
 # make bitmap
 "$fpgabindir"/bitgen -d par_impl.ncd $BITARGS output.bit synth_impl.prf
 
+if [ -n "$JEDEC_BITSTREAM" ]; then
+"$fpgabindir"/bitgen -d par_impl.ncd -jedec output.jed synth_impl.prf
+fi
+
 # dump bitmap
 "$fpgabindir"/bstool -d output.bit > output.dump
 
@@ -225,6 +235,9 @@ cp "$2.tmp"/par_impl.twr "$2.twr"
 fi
 if [ -z "$USE_NCL" ]; then
 cp "$2.tmp"/output.ncl "$2_out.ncl"
+fi
+if [ -n "$JEDEC_BITSTREAM" ]; then
+cp "$2.tmp"/output.jed "$2.jed"
 fi
 if [ -n "$BACKANNO" ]; then
 cp "$2.tmp"/par_impl.sdf "$2.sdf"
