@@ -7,10 +7,16 @@ else
 	WINDOWS=false
 fi
 
-if $WINDOWS; then
-	diamonddir="${DIAMONDDIR:-/c/lscc/diamond/3.10_x64}"
+if [ -z "$DIAMONDVER" ]; then
+	diamondver="3.10"
 else
-	diamonddir="${DIAMONDDIR:-/usr/local/diamond/3.10_x64}"
+	diamondver="$DIAMONDVER"
+fi
+
+if $WINDOWS; then
+	diamonddir="${DIAMONDDIR:-/c/lscc/diamond/${diamondver}_x64}"
+else
+	diamonddir="${DIAMONDDIR:-/usr/local/diamond/${diamondver}_x64}"
 fi
 export FOUNDRY="${diamonddir}/ispfpga"
 
