@@ -23,7 +23,7 @@ def main(row, col):
                 # ISPTcl always puts queried net on RHS
                 ambiguous_arcs.append(c)
 
-    with open("r{}c{}.txt".format(row, col), "w") as fp:
+    with open("r{}c{}_out.txt".format(row, col), "w") as fp:
         for a in ambiguous_arcs:
             fp.write(str(a) + "\n")
 
