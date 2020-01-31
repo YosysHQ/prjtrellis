@@ -134,6 +134,10 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
                 Bels::add_pio(*rg, x, y, z);
                 Bels::add_iologic(*rg, x, y, z, true);
             }
+        if (tile->info.type == "SPICB0") {
+            Bels::add_pio(*rg, x, y, 0);
+            Bels::add_iologic(*rg, x, y, 0, true);
+        }
         // DCC Bels
         if (tile->info.type == "LMID_0")
             for (int z = 0; z < 14; z++)
