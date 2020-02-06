@@ -10,7 +10,7 @@ jobs = [
         # Global mux connections. The relevant tiles were inferred from the
         # center_mux experiment.
         ("global_mux.txt", FuzzConfig(job="GLOBAL_MUX", family="MachXO2", device="LCMXO2-1200HC", ncl="center-ebr-cib_1200.ncl",
-                  tiles=["CENTER9:CENTER8", "CENTER8:CENTER7"])),
+                  tiles=["CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER5:CENTER5"])),
 
         # Fixed connections within the global mux (as well as
         # direction select).
