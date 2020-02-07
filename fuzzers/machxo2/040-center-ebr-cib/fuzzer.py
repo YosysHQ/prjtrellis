@@ -10,12 +10,13 @@ jobs = [
         # Global mux connections. The relevant tiles were inferred from the
         # center_mux experiment.
         ("global_mux.txt", FuzzConfig(job="GLOBAL_MUX", family="MachXO2", device="LCMXO2-1200HC", ncl="center-ebr-cib_1200.ncl",
-                  tiles=["CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER5:CENTER5"])),
+                  tiles=["CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER7:CENTER6",
+                         "CENTER6:CENTER_EBR_CIB", "CENTER5:CENTER5"])),
 
         # Fixed connections within the global mux (as well as
         # direction select).
-        # ("global_fixed.txt", FuzzConfig(job="GLOBAL_FIXED", family="MachXO2", device="LCMXO2-1200HC", ncl="center-ebr-cib_1200.ncl",
-        #           tiles=["CENTER6:CENTER_EBR_CIB"])),
+        ("global_fixed.txt", FuzzConfig(job="GLOBAL_FIXED", family="MachXO2", device="LCMXO2-1200HC", ncl="center-ebr-cib_1200.ncl",
+                  tiles=["CENTER6:CENTER_EBR_CIB"])),
 ]
 
 
@@ -35,6 +36,8 @@ def main():
 
     # TODO: R6C13_JA0 --> R6C13_JCE0_DCC. But TCL also claims
     # R6C13_CLKI0_DCC --> R6C13_CLKO0_DCC (pseudo = 1). Contradiction?
+    # From talking to Dave: No it's not a contradiction. A
+    # config bit controls whether JCE0 has any effect.
     # interconnect.fuzz_interconnect_with_netnames(config=cfg, netnames=["R6C13_CLKI0_DCC", "R6C13_CLKO0_DCC", "R6C13_JCE0_DCC"],
     #                                              netname_filter_union=False,
     #                                              netdir_override = {
