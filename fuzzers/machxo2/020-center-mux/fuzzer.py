@@ -13,6 +13,9 @@ jobs = [
                   tiles=["CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER7:CENTER6",
                          "CENTER6:CENTER_EBR_CIB", "CENTER5:CENTER5"])),
 
+        # ("global_mux2.txt", FuzzConfig(job="GLOBAL_MUX", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
+        #           tiles=["CENTER6:CENTER_EBR_CIB", "CENTER5:CENTER5", "CENTER4:CENTER4"])),
+
         # Fixed connections within the global mux (as well as
         # direction select).
         ("global_fixed.txt", FuzzConfig(job="GLOBAL_FIXED", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",

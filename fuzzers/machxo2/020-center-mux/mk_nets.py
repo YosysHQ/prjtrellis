@@ -41,8 +41,7 @@ inputs_1 = mk_numbered_nets(["R6C13_JSNETCIBMID{0}"], range(8)) + \
            ["R6C13_JPCLKT10"]
 
 # Mux selects on the outputs.
-sels = mk_numbered_nets(["R6C13_JSEL{0}_ECLKBRIDGECS"], range(2)) + \
-       mk_numbered_nets(["R6C13_JCE{0}_DCC"], range(8)) + \
+sels = mk_numbered_nets(["R6C13_JCE{0}_DCC"], range(8)) + \
        mk_numbered_nets(["R6C13_JSEL{0}_DCM"], range(6,8))
 
 # Unfortunately, same deal w/ concatenated nets also applies to the output.
@@ -78,6 +77,10 @@ muxed =  mk_numbered_nets(["R6C13_VSRX0{0}00"], range(8)) + \
          mk_numbered_nets(["R6C13_EBRG0CLK{0}",
                            "R6C13_EBRG1CLK{0}"], range(2))
 
+# CLK{0,1}_{0,1}_ECLKBRIDGECS do not in fact drive R6C13_JSEL{0}_ECLKBRIDGECS.
+# R6C13_JSEL{0}_ECLKBRIDGECS is driven from elsewhere. Ignore for now.
+muxed2 = mk_numbered_nets(["R6C13_JSEL{0}_ECLKBRIDGECS"], range(2))
+
 def main():
     print("inputs_2a:", len(inputs_2a))
     print("inputs_2b:", len(inputs_2b))
@@ -87,13 +90,14 @@ def main():
     print("outputs_3c:", len(outputs_3c))
     print("outputs_2a:", len(outputs_2a))
     print("outputs_2b:", len(outputs_2b))
-    print("muxed (not included):", len(muxed))
+    print("muxed:", len(muxed))
+    print("alternate muxed:", len(muxed2))
 
     all_fixed = inputs_2a + inputs_2b + inputs_1 + sels + \
                 outputs_3b + outputs_3c + outputs_2a + outputs_2b
 
     print("total fixed:", len(all_fixed))
-    print("grand total:", len(all_fixed) + len(muxed))
+    print("grand total:", len(all_fixed) + len(muxed) + len(muxed2))
 
     with open("global_fixed.txt", "w") as fp:
         fp.write("\n".join(all_fixed))
@@ -101,6 +105,8 @@ def main():
     with open("global_mux.txt", "w") as fp:
         fp.write("\n".join(muxed))
 
+    with open("global_mux2.txt", "w") as fp:
+        fp.write("\n".join(muxed2))
 
 if __name__ == "__main__":
     main()
