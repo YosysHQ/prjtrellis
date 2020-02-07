@@ -29,8 +29,8 @@ f_out = f_vco / output
 #define OUTPUT_MAX 400.0f
 #define PFD_MIN 3.125f
 #define PFD_MAX 400.0f
-#define VCO_MIN 400.0f
-#define VCO_MAX 800.0f
+#define VCO_MIN 60.0f //Experimentally determined 30 MHz, spurious lock at 28 MHz. 60 MHz for safety. Frequency should be kept low to attain lock when using low input frequencies. (VCO = 600 MHz, IN = 12 MHz / 6 = 2 MHz doesn't lock)
+#define VCO_MAX 800.0f //Experimentally determined 948 MHz (CLKOP_DIV=79, CLKFB_FIV=25 CLKI_DIV=6)
 #include <iostream>
 #include <limits>
 #include <fstream>
@@ -277,14 +277,16 @@ void calc_pll_params(pll_params &params, float input, float output){
       continue;
     for(int feedback_div=1;feedback_div <= 80; feedback_div++){
       for(int output_div=1;output_div <= 128; output_div++){
-	float fvco = fpfd * (float)feedback_div * (float) output_div;
+	float fvco = fpfd * (float)feedback_div * (float)output_div;
 	
 	if(fvco < VCO_MIN || fvco > VCO_MAX)
 	  continue;
 
 	float fout = fvco / (float) output_div;
 	if(fabsf(fout - output) < error ||
-	   (fabsf(fout-output) == error && fabsf(fvco - 600) < fabsf(params.fvco - 600))){
+	   (fabsf(fout - output) == error &&
+	   (((fpfd < 4) && fabsf(fvco - 200) < fabsf(params.fvco - 200)) ||
+	   ((fpfd >= 4) && fabsf(fvco - 600) < fabsf(params.fvco - 600))))){
 	  error = fabsf(fout-output);
 	  params.refclk_div = input_div;
 	  params.feedback_div = feedback_div;
@@ -319,7 +321,9 @@ void calc_pll_params_highres(pll_params &params, float input, float output){
 	for(int secondary_div = 1; secondary_div <= 128; secondary_div++){
 	  float fout = fvco / (float) secondary_div;
 	  if(fabsf(fout - output) < error ||
-	     (fabsf(fout-output) == error && fabsf(fvco - 600) < fabsf(params.fvco - 600))){
+	     (fabsf(fout-output) == error &&
+	     (((fpfd < 4) && fabsf(fvco - 200) < fabsf(params.fvco - 200)) ||
+	     ((fpfd >= 4) && fabsf(fvco - 600) < fabsf(params.fvco - 600))))){
 	    error = fabsf(fout-output);
 	    params.mode = pll_mode::HIGHRES;
 	    params.refclk_div = input_div;
