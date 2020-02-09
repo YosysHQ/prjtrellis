@@ -34,7 +34,6 @@ def main():
         interconnect.fuzz_interconnect_with_netnames(config=cfg, netnames=netnames,
                                                      netname_filter_union=False,
                                                      netdir_override=defaultdict(lambda : str("sink")),
-                                                     full_mux_style=True,
                                                      bias=1)
 
     # TODO: R6C13_JA0 --> R6C13_JCE0_DCC. But TCL also claims
