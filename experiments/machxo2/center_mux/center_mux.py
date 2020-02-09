@@ -7,16 +7,18 @@ import os
 device = "LCMXO2-1200HC"
 
 routes = [
-    # ("R1C13_JCLK0", "R6C13_JPCLKCIBVIQT0"),
-    # ("R6C13_JPCLKCIBVIQT0", "R6C13_PCLKCIBVIQT0"),
-    # ("R6C13_PCLKCIBVIQT0", "R6C13_VPRXCLKI0"),
-    # ("R6C13_VPRXCLKI0", "R6C13_CLKI0_DCC"),
-    # ("R6C13_CLKI0_DCC", "R6C13_CLKO0_DCC"),
-    # ("R6C13_CLKO0_DCC", "R6C13_VPRX0000"),
-    # ("R6C13_VPRX0000", "R6C8_HPSX0000"),
-    ("R6C13_VPRX0000", "R6C18_HPSX0000")
-    # ("R6C13_JLPLLCLK1", "R6C13_VPRXCLKI0"),
-    # ("R6C13_PCLKCIBVIQT0", "R6C13_VPRXCLKI0")
+    ("R1C13_JCLK0", "R6C13_JPCLKCIBVIQT0"),
+    ("R6C13_JPCLKCIBVIQT0", "R6C13_PCLKCIBVIQT0"),
+    ("R6C13_PCLKCIBVIQT0", "R6C13_VPRXCLKI0"),
+    ("R6C13_VPRXCLKI0", "R6C13_CLKI0_DCC"),
+    ("R6C13_CLKI0_DCC", "R6C13_CLKO0_DCC"),
+    ("R6C13_CLKO0_DCC", "R6C13_VPRX0000"),
+    ("R6C13_VPRX0000", "R6C8_HPSX0000"),
+    ("R6C13_VPRX0000", "R6C18_HPSX0000"),
+    ("R6C13_JLPLLCLK1", "R6C13_VPRXCLKI0"),
+    ("R6C8_HPSX0000", "R6C10_CLKI0B_DCC"),
+    ("R6C10_CLKI0B_DCC", "R6C10_CLKO0B_DCC"),
+    ("R6C14_CLKI0B_DCC", "R6C14_CLKO0B_DCC")
 ]
 
 def run_get_tiles(mux_driver, sink):
@@ -53,7 +55,7 @@ def main():
                 diff_str = ["{}F{}B{}".format("!" if b.delta < 0 else "", b.frame, b.bit) for b in diff]
                 if not diff_str:
                     continue
-                print("{0: <18}{1}".format(k, " ".join(diff_str)), file=f)
+                print("{0: <30}{1}".format(k, " ".join(diff_str)), file=f)
                 f.flush()
             print("", file=f)
 
