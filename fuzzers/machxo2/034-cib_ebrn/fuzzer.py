@@ -9,6 +9,12 @@ import argparse
 
 jobs = [
         {
+            "cfg": FuzzConfig(job="CIBEBR0ROUTE", family="MachXO2", device="LCMXO2-1200HC",
+                        ncl="cibroute.ncl", tiles=["CIB_R6C10:CIB_EBR0"]),
+            "location": (6, 10),
+            "nn_filter_extra": []
+        },
+        {
             "cfg": FuzzConfig(job="CIBEBR0END0ROUTE", family="MachXO2", device="LCMXO2-1200HC",
                         ncl="cibroute.ncl", tiles=["CIB_R6C1:CIB_EBR0_END0"]),
             "location": (6, 1),
@@ -55,7 +61,7 @@ def main(args):
                                        bias=1)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Edge CIB_EBR Fuzzer.")
+    parser = argparse.ArgumentParser(description="CIB_EBRn Fuzzer.")
     parser.add_argument(dest="ids", metavar="N", type=int, nargs="*",
                     default=range(0, len(jobs)), help="Job (indices) to run.")
     args = parser.parse_args()
