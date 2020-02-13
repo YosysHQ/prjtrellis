@@ -15,7 +15,9 @@ Install the dependencies for Project Trellis:
  - Boost including boost-python
  - Git
  - Recent OpenOCD for device programming (`--enable-ftdi` required if building from source)
- - ``brew install coreutils`` Mac has deprecated readlink, needed when sourcing environment.sh
+ - Mac has deprecated BSD readlink by default,so do ``brew install coreutils``
+    needed when sourcing environment.sh to build nextPNR then do 
+    ``PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"`` or update your ``.bash_profile``
 
 Clone the Project Trellis repository and download the latest database:
 
