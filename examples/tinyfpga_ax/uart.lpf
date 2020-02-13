@@ -1,0 +1,10 @@
+BLOCK RESETPATHS ;
+BLOCK ASYNCPATHS ;
+LOCATE COMP "serial_rx" SITE "13" ;
+LOCATE COMP "serial_tx" SITE "14" ;
+LOCATE COMP "user_led" SITE "16" ;
+LOCATE COMP "user_led_1" SITE "17" ;
+LOCATE COMP "user_led_2" SITE "20" ;
+LOCATE COMP "user_led_3" SITE "21" ;
+LOCATE COMP "user_led_4" SITE "23" ;
+LOCATE COMP "clk12" SITE "25" ;
