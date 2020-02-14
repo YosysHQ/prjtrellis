@@ -14,7 +14,7 @@ stats:
 
 # Diamond rules.
 %.bit: %.v %.lpf
-	${TRELLIS_ROOT}/diamond.sh LCMXO2-1200HC ${PROJ}.v
+	DEV_PACKAGE=TQFP100 ${TRELLIS_ROOT}/diamond.sh LCMXO2-1200HC ${PROJ}.v
 
 # FOSS rules.
 # yosys
@@ -30,4 +30,4 @@ ${PROJ}-nextpnr.txt: ${PROJ}.json
 	@true
 
 clean:
-	rm -rf ${PROJ}.tmp *.ncl *.bit *.dump *.twr *.txt *.json
+	rm -rf ${PROJ}.tmp ${PROJ}_out.ncl ${PROJ}.bit ${PROJ}.dump ${PROJ}.twr ${PROJ}.txt ${PROJ}.json ${PROJ}-nextpnr.*
