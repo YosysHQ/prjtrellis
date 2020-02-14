@@ -11,10 +11,19 @@ import nonrouting
 
 jobs = [
         {
-            "cfg": FuzzConfig(job="PICB0", family="MachXO2", device="LCMXO2-1200HC",
+            "cfg": FuzzConfig(job="PICB0_AB", family="MachXO2", device="LCMXO2-1200HC",
                         ncl="empty.ncl", tiles=["PB11:PIC_B0"]),
             "side": "B",
-            "pins": [("13", "A"), ("14", "B"), ("PB11C", "C"), ("PB11D", "D")]
+            "pins": [("13", "A"), ("14", "B")]
+        },
+
+        # Split into multiple jobs, because Diamond chokes if the I/Os don't
+        # actually physically exist (QFN32 is default).
+        {
+            "cfg": FuzzConfig(job="PICB0_CD", family="MachXO2", device="LCMXO2-1200HC",
+                        ncl="empty.ncl", tiles=["PB6:PIC_B0"]),
+            "side": "B",
+            "pins": [("9", "C"), ("10", "D")]
         },
 ]
 
@@ -25,18 +34,9 @@ def get_io_types(dir, pio, side):
         "LVTTL33",
         "LVCMOS33",
         "LVCMOS25",
-        "LVCMOS25R33",
         "LVCMOS18",
-        "LVCMOS18R33",
-        "LVCMOS18R25",
         "LVCMOS15",
-        "LVCMOS15R33",
-        "LVCMOS15R25",
         "LVCMOS12",
-        "LVCMOS12R33",
-        "LVCMOS12R25",
-        "LVCMOS10R33",
-        "LVCMOS10R25",
         "SSTL25_I",
         "SSTL18_I",
         "HSTL18_I"
@@ -66,7 +66,20 @@ def get_io_types(dir, pio, side):
             "LVCMOS25D",
             "LVCMOS18D",
             "LVCMOS15D",
-            "LVCMOS12D"
+            "LVCMOS12D",
+
+            # FIXME: I don't understand this one, but it results in:
+            # ERROR - par: chipcheck: Differential comp pad is not placed on
+            # a true pad of the true/complementary pair.
+            "LVCMOS25R33",
+            "LVCMOS18R33",
+            "LVCMOS18R25",
+            "LVCMOS15R33",
+            "LVCMOS15R25",
+            "LVCMOS12R33",
+            "LVCMOS12R25",
+            "LVCMOS10R33",
+            "LVCMOS10R25",
         ]
 
         if dir == "INPUT":
