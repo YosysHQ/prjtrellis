@@ -1,5 +1,6 @@
 PROJ ?= blinky
 TRELLIS_ROOT ?= ../..
+DEV_PACKAGE ?= QFN32
 
 all: ${PROJ}.bit ${PROJ}-nextpnr.bit ${PROJ}.txt ${PROJ}-nextpnr.txt
 
@@ -14,7 +15,7 @@ stats:
 
 # Diamond rules.
 %.bit: %.v %.lpf
-	DEV_PACKAGE=TQFP100 ${TRELLIS_ROOT}/diamond.sh LCMXO2-1200HC ${PROJ}.v
+	DEV_PACKAGE=${DEV_PACKAGE} ${TRELLIS_ROOT}/diamond.sh LCMXO2-1200HC ${PROJ}.v
 
 # FOSS rules.
 # yosys
