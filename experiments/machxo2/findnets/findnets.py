@@ -4,32 +4,72 @@ from collections import defaultdict
 from fuzzconfig import FuzzConfig
 import pytrellis
 import isptcl
+import argparse
 
 
-def main(row, col):
+def net_mode(args):
     pytrellis.load_database("../../../database")
 
-    cfg = FuzzConfig(job="FINDNETS_R{}C{}".format(row, col), family="MachXO2", device="LCMXO2-1200HC", ncl="plc2route.ncl", tiles=[])
+    cfg = FuzzConfig(job="FINDNETS_NETS_{}".format(args.nets[0]), family="MachXO2", device="LCMXO2-1200HC", ncl="plc2route.ncl", tiles=[])
     cfg.setup()
 
-    netdata = isptcl.get_wires_at_position(cfg.ncd_prf, (row, col))
+    arcs = isptcl.get_arcs_on_wires(cfg.ncd_prf, args.nets, False, defaultdict(lambda : str("mark")))
+
+    with open("{}_out.txt".format(args.nets[0]), "w") as fp:
+        for (k, v) in arcs.items():
+            print("{}:".format(k), file=fp)
+            for c in v:
+                if isinstance(c, isptcl.AmbiguousArc):
+                    print(str(c), file=fp)
+                else:
+                    print("{} --> {}".format(c[0], c[1]), file=fp)
+
+            fp.flush()
+            print("", file=fp)
+
+def pos_mode(args):
+    pytrellis.load_database("../../../database")
+
+    cfg = FuzzConfig(job="FINDNETS_R{}C{}".format(args.row, args.col), family="MachXO2", device="LCMXO2-1200HC", ncl="plc2route.ncl", tiles=[])
+    cfg.setup()
+
+    netdata = isptcl.get_wires_at_position(cfg.ncd_prf, (args.row, args.col))
     netnames = [x[0] for x in netdata]
     arcs = isptcl.get_arcs_on_wires(cfg.ncd_prf, netnames, False, defaultdict(lambda : str("mark")))
 
-    ambiguous_arcs = list()
-    for (k, v) in arcs.items():
-        for c in v:
-            if isinstance(c, isptcl.AmbiguousArc):
-                # ISPTcl always puts queried net on RHS
-                ambiguous_arcs.append(c)
+    with open("r{}c{}_out.txt".format(args.row, args.col), "w")  as fp:
+        for (k, v) in arcs.items():
+            print("{}:".format(k), file=fp)
+            for c in v:
+                if isinstance(c, isptcl.AmbiguousArc):
+                    print(str(c), file=fp)
+                else:
+                    if not args.a:
+                        print("{} --> {}".format(c[0], c[1]), file=fp)
 
-    with open("r{}c{}_out.txt".format(row, col), "w") as fp:
-        for a in ambiguous_arcs:
-            fp.write(str(a) + "\n")
+            fp.flush()
+            print("", file=fp)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: {} [row] [col]".format(sys.argv[0]))
-    else:
-        main(sys.argv[1], sys.argv[2])
+    parser = argparse.ArgumentParser(description="Find which nets IspTcl returns in various ways.")
+    subparsers = parser.add_subparsers(required=True)
+
+    parser_pos = subparsers.add_parser("pos", help="Return all nets based on position.")
+    parser_net = subparsers.add_parser("net", help="Return connections to one (or more) nets.")
+
+    parser_pos.add_argument("-a", action="store_true", help="Return arcs with ambiguous direction only.")
+    parser_pos.add_argument("row", type=int, help="Tile row.")
+    parser_pos.add_argument("col", type=int, help="Tile column.")
+    parser_pos.set_defaults(func=pos_mode)
+
+    parser_net.add_argument("nets", type=str, nargs="+", help="List of nets to find connections.")
+    parser_net.set_defaults(func=net_mode)
+    args = parser.parse_args()
+
+    if len(args.__dict__) <= 1:
+        # No arguments or subcommands were given.
+        parser.print_help()
+        parser.exit()
+
+    args.func(args)
