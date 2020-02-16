@@ -5,20 +5,21 @@ import interconnect
 import nets
 import pytrellis
 import re
+import mk_nets
 
 jobs = [
         # Global mux connections. The relevant tiles were inferred from the
         # center_mux experiment.
-        ("global_mux.txt", FuzzConfig(job="GLOBAL_MUX", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
+        ("fixed", FuzzConfig(job="GLOBAL_MUX", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
                   tiles=["CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER7:CENTER6",
                          "CENTER6:CENTER_EBR_CIB", "CENTER5:CENTER5"])),
 
-        # ("global_mux2.txt", FuzzConfig(job="GLOBAL_MUX", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
+        # ("ignored", FuzzConfig(job="GLOBAL_MUX", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
         #           tiles=["CENTER6:CENTER_EBR_CIB", "CENTER5:CENTER5", "CENTER4:CENTER4"])),
 
         # Fixed connections within the global mux (as well as
         # direction select).
-        ("global_fixed.txt", FuzzConfig(job="GLOBAL_FIXED", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
+        ("muxed", FuzzConfig(job="GLOBAL_FIXED", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
                   tiles=["CENTER6:CENTER_EBR_CIB"])),
 ]
 
@@ -27,10 +28,10 @@ def main():
     pytrellis.load_database("../../../database")
 
     for job in jobs:
-        net_file, cfg = job
+        net_id, cfg = job
         cfg.setup()
 
-        netnames = [l.rstrip("\n") for l in open(net_file, "r")]
+        netnames = mk_nets.nets[net_id]
         interconnect.fuzz_interconnect_with_netnames(config=cfg, netnames=netnames,
                                                      netname_filter_union=False,
                                                      netdir_override=defaultdict(lambda : str("sink")),
