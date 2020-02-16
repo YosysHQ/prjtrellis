@@ -37,7 +37,7 @@ def pos_mode(args):
     netnames = [x[0] for x in netdata]
     arcs = isptcl.get_arcs_on_wires(cfg.ncd_prf, netnames, False, defaultdict(lambda : str("mark")))
 
-    with open("r{}c{}_out.txt".format(args.row, args.col), "w")  as fp:
+    with open("r{}c{}_{}out.txt".format(args.row, args.col, "a_" if args.a else ""), "w")  as fp:
         for (k, v) in arcs.items():
             print("{}:".format(k), file=fp)
             for c in v:
@@ -53,7 +53,7 @@ def pos_mode(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Find which nets IspTcl returns in various ways.")
-    subparsers = parser.add_subparsers(required=True)
+    subparsers = parser.add_subparsers()
 
     parser_pos = subparsers.add_parser("pos", help="Return all nets based on position.")
     parser_net = subparsers.add_parser("net", help="Return connections to one (or more) nets.")
