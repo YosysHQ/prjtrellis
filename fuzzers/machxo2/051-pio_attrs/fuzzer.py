@@ -8,6 +8,7 @@ import re
 import argparse
 import fuzzloops
 import nonrouting
+import os
 
 jobs = [
         {
@@ -24,6 +25,30 @@ jobs = [
                         ncl="empty.ncl", tiles=["PB6:PIC_B0"]),
             "side": "B",
             "pins": [("9", "C"), ("10", "D")]
+        },
+
+        {
+            "cfg": FuzzConfig(job="PICL0_IO", family="MachXO2", device="LCMXO2-1200HC",
+                        ncl="empty.ncl", tiles=["PL5:PIC_L0"]),
+            "side": "L",
+            "pins": [("12", "A"), ("13", "B"), ("14", "C"), ("15", "D")],
+            "package": "TQFP100"
+        },
+
+        {
+            "cfg": FuzzConfig(job="PICR0_IO", family="MachXO2", device="LCMXO2-1200HC",
+                        ncl="empty.ncl", tiles=["PR5:PIC_R0"]),
+            "side": "R",
+            "pins": [("65", "A"), ("64", "B"), ("63", "C"), ("62", "D")],
+            "package": "TQFP100"
+        },
+
+        {
+            "cfg": FuzzConfig(job="PICT0_IO", family="MachXO2", device="LCMXO2-1200HC",
+                        ncl="empty.ncl", tiles=["PT11:PIC_T0"]),
+            "side": "T",
+            "pins": [("97", "A"), ("96", "B"), ("95", "C"), ("94", "D")],
+            "package": "TQFP100"
         },
 ]
 
@@ -128,6 +153,9 @@ def main(args):
         cfg = job["cfg"]
         side = job["side"]
         pins = job["pins"]
+
+        os.environ['DEV_PACKAGE'] = job.get("package", "QFN32")
+
         cfg.setup()
         empty_bitfile = cfg.build_design(cfg.ncl, {})
         cfg.ncl = "pio.v"
