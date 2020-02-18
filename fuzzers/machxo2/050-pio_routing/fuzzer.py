@@ -27,6 +27,7 @@ jobs = [
                                   tiles=["PB11:PIC_B0"]),
            "nn_filter" : nn_filterb,
            "override_id" : "b",
+           "missing_nets" : []
         },
         {
            "pos" : [(11, 11)],
@@ -34,6 +35,9 @@ jobs = [
                                   tiles=["CIB_R11C11:CIB_PIC_B0"]),
            "nn_filter" : nn_filterb,
            "override_id" : "b_cib",
+           # A bug in the span1 fix prevents span1 nets from being included.
+           # Just fuzz manually for now.
+           "missing_nets" : ["R10C11_V01N0001", "R10C11_V01N0101"]
         },
         {
            "pos" : [(10, 1)],
@@ -41,6 +45,7 @@ jobs = [
                                   tiles=["PL10:PIC_L0"]),
            "nn_filter" : nn_filterl,
            "override_id" : "l",
+           "missing_nets" : []
         },
 
         # Probably the same thing as PIC_L0 plus some additional fixed connections?
@@ -50,6 +55,7 @@ jobs = [
                                   tiles=["PL11:LLC0"]),
            "nn_filter" : nn_filterl,
            "override_id" : "llc",
+           "missing_nets" : []
         },
 
         {
@@ -58,6 +64,7 @@ jobs = [
                                    tiles=["PR10:PIC_R0"]),
             "nn_filter" : nn_filterl,
             "override_id" : "r",
+            "missing_nets" : []
         },
 ]
 
@@ -74,6 +81,14 @@ def main(args):
                                        netname_filter_union=False,
                                        enable_span1_fix=True,
                                        bias=1)
+
+        if job["missing_nets"]:
+            interconnect.fuzz_interconnect_with_netnames(config=cfg,
+                                                         netnames=job["missing_nets"],
+                                                         netname_filter_union=False,
+                                                         bidir=True,
+                                                         netdir_override=defaultdict(lambda : str("sink")),
+                                                         bias=1)
 
 
 if __name__ == "__main__":
