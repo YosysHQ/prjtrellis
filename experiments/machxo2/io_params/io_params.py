@@ -22,6 +22,7 @@ def main(args):
     pytrellis.load_database("../../../database")
     shutil.rmtree("work", ignore_errors=True)
     os.mkdir("work")
+    os.environ['DEV_PACKAGE'] = args.p
     baseline = run_get_tiles("NONE", args.io_type, args.loc)
 
     dirs = []
@@ -56,6 +57,7 @@ if __name__ == "__main__":
     parser.add_argument("-b", help="Test bidirectional.", action="store_true")
     parser.add_argument("-i", help="Test input.", action="store_true")
     parser.add_argument("-o", help="Test output.", action="store_true")
+    parser.add_argument("-p", type=str, default="QFN32", help="Device package to test.")
     parser.add_argument(dest="io_type", type=str, default="LVCMOS33", help="I/O standard to test.")
     parser.add_argument(dest="loc", type=str, default="PB11D", help="Site to test.")
     args = parser.parse_args()
