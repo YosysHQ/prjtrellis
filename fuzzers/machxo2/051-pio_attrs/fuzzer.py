@@ -62,7 +62,11 @@ jobs = [
         },
 ]
 
-
+# Function constructed from reading the MachXO2 sysIO Usage Guide.
+# Diamond is very sensitive to invalid I/O combinations, and will happily
+# change the I/O type out from under you if you give it a bad combination.
+# This can lead to further errors when the Diamond-assigned I/O type is
+# invalid for the pin (for the complementary pair, especially).
 def get_io_types(dir, pio, side):
     # Singled-ended I/O types.
     types = [
@@ -81,7 +85,20 @@ def get_io_types(dir, pio, side):
         types += [
             "SSTL25_II",
             "SSTL18_II",
-            "HSTL18_II"
+            "HSTL18_II",
+            "LVCMOS25R33",
+            "LVCMOS18R33",
+            "LVCMOS18R25",
+            "LVCMOS15R33",
+            "LVCMOS15R25"
+        ]
+
+    if dir in ("INPUT", "BIDIR"):
+        types += [
+            "LVCMOS12R33",
+            "LVCMOS12R25",
+            "LVCMOS10R33",
+            "LVCMOS10R25"
         ]
 
     if side == "B":
@@ -102,28 +119,17 @@ def get_io_types(dir, pio, side):
             "LVCMOS18D",
             "LVCMOS15D",
             "LVCMOS12D",
-
-            # FIXME: I don't understand this one, but it results in:
-            # ERROR - par: chipcheck: Differential comp pad is not placed on
-            # a true pad of the true/complementary pair.
-            "LVCMOS25R33",
-            "LVCMOS18R33",
-            "LVCMOS18R25",
-            "LVCMOS15R33",
-            "LVCMOS15R25",
-            "LVCMOS12R33",
-            "LVCMOS12R25",
-            "LVCMOS10R33",
-            "LVCMOS10R25",
         ]
 
         if dir == "INPUT":
             # True differential inputs.
             # FIXME: Also supported in bidir?
+            # map_impl.mrp suggests no (warning: violates legal combination
+            # and is ignored.)
             types += [
                 "SSTL25D_II",
                 "SSTL18D_II",
-                "HSTL18D_II"
+                "HSTL18D_II",
                 "LVDS25",
                 "LVPECL33",
                 "MLVDS25",
