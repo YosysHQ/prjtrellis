@@ -37,7 +37,7 @@ templates_override = {
 
     # Manually verified to be safe to ignore. They are either I/O connections
     # we fuzz in "b" (BIOLOGIC, etc), CIBTEST, or extraneous connections
-    # that would imply bidirectional nets
+    # that would imply bidirectional nets.
     # (R11C11_V02N0001 --- R11C11_V02S0000, etc). TODO: Look into bidir nets?
     "b_cib": [
         # (["R11C11_J{}_CIBTEST"], char_product(["A", "B", "C", "D", "F", "M",
@@ -55,7 +55,8 @@ templates_override = {
 
     # Left and Right are done from CIB's POV because
     # there are no tiles dedicated strictly to I/O connections.
-    # Ignore loopback/CIBTEST nets.
+    # Ignore loopback/CIBTEST nets for now.
+    # A, B, C, D, CLK, CE, F, LSR, M, OFX, Q
     "l": [
         (["R10C1_JA{}",
           "R10C1_JB{}",
@@ -65,6 +66,17 @@ templates_override = {
           "R10C1_JCE{}"], range(0,4), "driver"),
         (["R10C1_JQ{}"], range(0,4), "sink"),
         (["R10C1_JF{}"], range(0,8), "sink")
+    ],
+
+    "r": [
+        (["R10C22_JA{}",
+          "R10C22_JB{}",
+          "R10C22_JC{}",
+          "R10C22_JCLK{}",
+          "R10C22_LSR{}",
+          "R10C22_JCE{}"], range(0,4), "driver"),
+        (["R10C22_JQ{}"], range(0,4), "sink"),
+        (["R10C22_JF{}"], range(0,8), "sink")
     ]
 }
 

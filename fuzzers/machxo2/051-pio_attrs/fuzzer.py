@@ -45,10 +45,20 @@ jobs = [
 
         {
             "cfg": FuzzConfig(job="PICT0_IO", family="MachXO2", device="LCMXO2-1200HC",
-                        ncl="empty.ncl", tiles=["PT11:PIC_T0"]),
+                        ncl="empty.ncl", tiles=["PT10:PIC_T0"]),
             "side": "T",
-            "pins": [("97", "A"), ("96", "B"), ("95", "C"), ("94", "D")],
+            "pins": [("97", "A"), ("96", "B")],
             "package": "TQFP100"
+        },
+
+        # FIXME: WARNING - map: In "LOCATE COMP "pad" SITE "PT10{C,D} pin" ;":
+        # Current SYS_CONFIG setting prohibits pin be used as user IO. This
+        # preference has been disabled. Why?
+        {
+            "cfg": FuzzConfig(job="PICT0_IO", family="MachXO2", device="LCMXO2-1200HC",
+                        ncl="empty.ncl", tiles=["PT12:PIC_T0"]),
+            "side": "T",
+            "pins": [("28", "C"), ("27", "D")]
         },
 ]
 
@@ -195,7 +205,7 @@ def main(args):
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.SLEWRATE".format(pio), ["FAST", "SLOW"],
                                          lambda x: get_substs(iomode="OUTPUT_LVCMOS33", extracfg=("SLEWRATE", x)),
                                          empty_bitfile)
-            # FIXME: Do LVCMOS12, which is 2/6mA.
+            # # FIXME: Do LVCMOS12, which is 2/6mA.
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.DRIVE".format(pio), ["4", "8", "12", "16", "24"],
                                          lambda x: get_substs(iomode="OUTPUT_LVCMOS33", extracfg=("DRIVE", x)),
                                          empty_bitfile)
