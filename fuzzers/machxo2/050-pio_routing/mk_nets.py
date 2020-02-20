@@ -1,123 +1,137 @@
 from nets import net_product, char_range
 from itertools import product, starmap
 from collections import defaultdict
+import re
 
-# A, B, C, D, F, M, Q- 0-7
-# CE, CLK, LSR- 0-3
-# Useful helpers to flatten nested iterators.
-def char_product(chars, ids):
-    return starmap(lambda l, n: "".join([l, n]), product(chars, ids))
-
-# Hint: F/Q are sinks for "driver"s, A-D are sources for "sinks".
-templates_override = {
-    "b": [
-        (["R12C11_JRXDA{}_BIOLOGIC"], range(0,8), "driver"),
-        (["R12C11_JDI{}",
-          "R12C11_JIN{}_IOLOGIC"], char_range("A","E"), "driver"),
-        (["R12C11_JPADDO{}",
-          "R12C11_JPADDT{}"], char_range("A","E"), "driver"),
-        (["R12C11_JRXD{}A_BIOLOGIC",
-          "R12C11_JRXD{}C_BSIOLOGIC"], range(0,4), "driver"),
-        (["R12C11_JDEL{}A_BIOLOGIC",
-          "R12C11_JDEL{}C_BSIOLOGIC"], range(0,5), "sink"),
-        (["R12C11_JI{}A_BIOLOGIC",
-          "R12C11_JI{}B_IOLOGIC",
-          "R12C11_JI{}C_BSIOLOGIC",
-          "R12C11_JI{}D_IOLOGIC"], ["N", "P"], "sink"),
-        (["R12C11_JOPOS{}",
-          "R12C11_JONEG{}",
-          "R12C11_JTS{}",
-          "R12C11_JCLK{}",
-          "R12C11_JLSR{}",
-          "R12C11_JCE{}"], ["A_BIOLOGIC", "B_IOLOGIC", "C_BSIOLOGIC",
-                            "D_IOLOGIC"], "sink"),
-          (["R12C11_JSLIP{}"], ["A_BIOLOGIC",
-                               "C_BSIOLOGIC"], "sink")
-    ],
-
-    # Manually verified to be safe to ignore. They are either I/O connections
-    # we fuzz in "b" (BIOLOGIC, etc), CIBTEST, or extraneous connections
-    # that would imply bidirectional nets.
-    # (R11C11_V02N0001 --- R11C11_V02S0000, etc). TODO: Look into bidir nets?
-    "b_cib": [
-        # (["R11C11_J{}_CIBTEST"], char_product(["A", "B", "C", "D", "F", "M",
-        #                                        "Q", "OFX"],
-        #                                       char_range("0", "8")), "ignore"),
-        # (["R11C11_J{}_CIBTEST"], char_product(["CE", "CLK", "LSR"],
-        #                                       char_range("0", "4")), "ignore"),
-        # (["R11C11_J{}"], char_product(["A", "B", "C", "D", "M"],
-        #                               char_range("0", "8")), "sink"),
-        # (["R11C11_J{}"], char_product(["CE", "CLK", "LSR"],
-        #                               char_range("0", "4")), "sink"),
-        # (["R11C11_J{}"], char_product(["F", "Q", "OFX"], char_range("0", "8")),
-        #                               "source"),
-    ],
-
-    # Left and Right are done from CIB's POV because
-    # there are no tiles dedicated strictly to I/O connections.
-    # Ignore loopback/CIBTEST nets for now.
-    # A, B, C, D, CLK, CE, F, LSR, M, OFX, Q
-    "l": [
-        (["R10C1_JA{}",
-          "R10C1_JB{}",
-          "R10C1_JC{}",
-          "R10C1_JCLK{}",
-          "R10C1_LSR{}",
-          "R10C1_JCE{}"], range(0,4), "driver"),
-        (["R10C1_JQ{}"], range(0,4), "sink"),
-        (["R10C1_JF{}"], range(0,8), "sink")
-    ],
-
-    "r": [
-        (["R10C22_JA{}",
-          "R10C22_JB{}",
-          "R10C22_JC{}",
-          "R10C22_JCLK{}",
-          "R10C22_LSR{}",
-          "R10C22_JCE{}"], range(0,4), "driver"),
-        (["R10C22_JQ{}"], range(0,4), "sink"),
-        (["R10C22_JF{}"], range(0,8), "sink")
+def io_conns(tile, bank):
+    # All I/O connections on the left bank are contained in the other banks.
+    all_template = [
+        ("JPADDO{}", "sink"),
+        ("JPADDT{}", "sink"),
+        ("PADDO{}_PIO", "sink"),
+        ("PADDT{}_PIO", "sink"),
+        ("IOLDO{}_PIO","sink"),
+        ("IOLDO{}_{}IOLOGIC","sink"),
+        ("IOLTO{}_PIO","sink"),
+        ("IOLTO{}_{}IOLOGIC","sink"),
+        ("JPADDI{}_PIO", "driver"),
+        ("PADDI{}_{}IOLOGIC", "driver"),
+        ("JDI{}", "driver"),
+        ("INDD{}_{}IOLOGIC", "driver"),
+        ("DI{}_{}IOLOGIC", "sink"),
+        ("JONEG{}_{}IOLOGIC", "sink"),
+        ("JOPOS{}_{}IOLOGIC", "sink"),
+        ("JTS{}_{}IOLOGIC", "sink"),
+        ("JCE{}_{}IOLOGIC", "sink"),
+        ("JLSR{}_{}IOLOGIC", "sink"),
+        ("JCLK{}_{}IOLOGIC", "sink"),
+        ("JIN{}_{}IOLOGIC", "driver"),
+        ("JIP{}_{}IOLOGIC", "driver"),
+        ("INRD{}_PIO", "sink"),
+        ("PG{}_PIO", "sink")
     ]
-}
 
-templates_missing = {
-    "b": [],
-    # A bug in the span1 fix prevents span1 nets from being included.
-    # Just fuzz manually for now.
-    "b_cib" : [(["R10C11_V01N0001", "R10C11_V01N0101"], range(0))],
-    "l" : [],
-    "r" : []
-}
+    right = [
+        ("DQSW90{}_RIOLOGIC", "sink"),
+        ("DQSR90{}_RIOLOGIC", "sink"),
+        ("DDRCLKPOL{}_RIOLOGIC", "sink")
+    ]
 
-overrides = {k: defaultdict(lambda : str("ignore")) for k in templates_override.keys()}
-# overrides = {k: {} for k in templates_override.keys()}
+    bottom = [
+        ("JRXDA{2}_{1}IOLOGIC", "driver"),
+        ("JRXD{2}{0}_{1}IOLOGIC", "driver"),
+        ("JDEL{2}{0}_{1}IOLOGIC", "sink"),
+        ("JLIP{}_{}IOLOGIC", "sink"),
+        ("ECLK{}_{}IOLOGIC", "sink"),
+    ]
 
-for (var, temp) in templates_override.items():
-    for (n, r, d) in temp:
-        for p in net_product(n, r):
-            overrides[var][p] = d
+    top = [
+        ("JTXD{2}{0}_{1}IOLOGIC", "sink"),
+        ("ECLK{}_{}IOLOGIC", "sink"),
+        ("LVDS{}_PIO", "sink"),
+    ]
 
+    if bank == "B":
+        bank_template = bottom
+    elif bank == "T":
+        bank_template = top
+    elif bank == "R":
+        bank_template = right
+    else:
+        bank_template = []
 
-missing = {k: [] for k in templates_missing.keys()}
+    # Nets which come in 0-3/0-7 and 0-4, respectively.
+    rxda_re = re.compile("JRXDA\{2\}*")
+    rxd_re = re.compile("JRXD\{2\}\{0\}*")
+    txda_re = re.compile("JTXD\{2\}A*")
+    txd_re = re.compile("JTXD\{2\}\{0\}*")
+    del_re = re.compile("JDEL*")
+    eclk_re = re.compile("ECLKC*")
 
-for (var, temp) in templates_missing.items():
-    for (n, r) in temp:
-        for p in net_product(n, r):
-            missing[var].append(d)
+    netlist = []
+    for pad in ("A", "B", "C", "D"):
+        # B/BS/T/TSIOLOGIC
+        if bank in ("B", "T"):
+            if pad == "A":
+                io_prefix = bank
+            elif pad == "C":
+                io_prefix = "{}S".format(bank)
+            else:
+                io_prefix = ""
+        # RIOLOGIC
+        elif bank == "R":
+            io_prefix = "R"
+        # Just "LOGIC"
+        else:
+            io_prefix = ""
+
+        for f, d in all_template:
+            suffix = f.format(pad, io_prefix)
+            netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
+
+        if bank == "R":
+            for f, d in bank_template:
+                suffix = f.format(pad, io_prefix)
+                netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
+        elif bank == "B":
+            for f, d in bank_template:
+                if del_re.match(f) and pad in ("A", "C"):
+                    for n in range(5):
+                        suffix = f.format(pad, io_prefix, n)
+                        netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
+                elif rxda_re.match(f) and pad == "A":
+                    for n in range(8):
+                        suffix = f.format(pad, io_prefix, n)
+                        netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
+                elif rxd_re.match(f) and pad in ("A", "C"):
+                    for n in range(4):
+                        suffix = f.format(pad, io_prefix, n)
+                        netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
+                elif pad in ("A", "C") and not rxda_re.match(f):
+                    suffix = f.format(pad, io_prefix)
+                    netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
+        elif bank == "T":
+            for f, d in bank_template:
+                if txd_re.match(f) and pad in ("A", "C"):
+                    netrange = range(8) if pad == "A" else range(4)
+                    for n in netrange:
+                        suffix = f.format(pad, io_prefix, n)
+                        netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
+                elif eclk_re.match(f) and pad in ("A", "C"):
+                    suffix = f.format(pad, io_prefix)
+                    netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
+                elif not txd_re.match(f) and not eclk_re.match(f):
+                    suffix = f.format(pad, io_prefix)
+                    netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
+
+    return netlist
 
 def main():
-    for k, v in overrides.items():
-        print("{}: {}".format(k, v))
+    for t, b in zip(((10, 0), (12, 11), (10, 23), (1, 11)), ("L", "B", "R", "T")):
+        print("Bank {}:".format(b))
+        for i, n in enumerate(io_conns(t, b)):
+            print(i, n)
         print("")
-
-    sum = 0
-    for k in overrides.keys():
-        s = len(overrides[k])
-        print("total {}: {}".format(k, s))
-        sum = sum + s
-
-    print("grand total: {}".format(sum))
-
 
 if __name__ == "__main__":
     main()
