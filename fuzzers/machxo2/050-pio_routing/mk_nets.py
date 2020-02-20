@@ -80,6 +80,15 @@ templates_override = {
     ]
 }
 
+templates_missing = {
+    "b": [],
+    # A bug in the span1 fix prevents span1 nets from being included.
+    # Just fuzz manually for now.
+    "b_cib" : [(["R10C11_V01N0001", "R10C11_V01N0101"], range(0))],
+    "l" : [],
+    "r" : []
+}
+
 overrides = {k: defaultdict(lambda : str("ignore")) for k in templates_override.keys()}
 # overrides = {k: {} for k in templates_override.keys()}
 
@@ -88,6 +97,13 @@ for (var, temp) in templates_override.items():
         for p in net_product(n, r):
             overrides[var][p] = d
 
+
+missing = {k: [] for k in templates_missing.keys()}
+
+for (var, temp) in templates_missing.items():
+    for (n, r) in temp:
+        for p in net_product(n, r):
+            missing[var].append(d)
 
 def main():
     for k, v in overrides.items():
