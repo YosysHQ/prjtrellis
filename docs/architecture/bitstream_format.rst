@@ -82,7 +82,7 @@ there are some setup bits:
 This is then followed by a number of frames, each in the following format:
 
  - The configuration frame itself (compressed in the case of the  ``LSC_PROG_INCR_RTI`` command),
-   such that bit 0 bit 0 of the first byte is the MSB of the frame, bit 7 of the first byte the 
+   such that bit 0 bit 0 of the first byte is the MSB of the frame, bit 7 of the first byte the
    MSB-7 and bit 0 of the last byte (if there are no dummy bits) being the LSB of the frame.
  - Any dummy bits needed to pad the frame to a whole number of bytes.
  - If the second flag is cleared (see above) a CRC-16 checksum:
@@ -94,7 +94,7 @@ This is then followed by a number of frames, each in the following format:
 The highest numbered frame in the chip is sent first.
 
 If the second flag is set there's no CRC sent in between frames but there's still one CRC-16 checksum
-after all the frames (this also covers any other commands sent before the programming command but after a CRC reset, 
+after all the frames (this also covers any other commands sent before the programming command but after a CRC reset,
 and the programming command itself.).
 
 Separate commands are used if EBR needs to be configured in the bitstream. EBR data can't use compression.
@@ -105,9 +105,9 @@ still need to be documented.
 Compression Algorithm
 ------------------------------
 
- - Before compression, the frame is left padded with zeroes (0) to make the data frame 64-bit bounded. 
- - After compressing the frame data, the resulting bits are right padded with zeroes (0) to make the data
-frame byte bounded.
+ - Before compression, the frame is left padded with zeroes (0) to make the data frame 64-bit bounded.
+ - After compressing the frame data, the resulting bits are right padded with zeroes (0)
+   to make the dataframe byte bounded.
 
 After padding, every byte in the bitstream is compressed by a simple prefix-free code with just 4 cases:
 
@@ -142,13 +142,14 @@ the ability to reload frames glitchlessly; partial reconfiguration is possible o
 
 ``LSC_WRITE_ADDRESS`` takes a frame address; however frame addressing is not strictly linear. It has only
 been fully documented for the 45k device and is as follows:
+
  - the first 7 bits are always between 0 and 105 (each group of 106 frames is a column)
  - the next 5 bits are the column index within a tap region
  - the MSBs from bit 12 onwards are the tap region index
 
 To enable loading of partial bitstreams the ``BACKGROUND_RECONFIG`` sysCONFIG option must be set. Then, to
 avoid reinitialising the whole device, instructions 0x79 with no data and 0x74 followed by 0x00 must be
-sent over JTAG before the partial bitstream data. 
+sent over JTAG before the partial bitstream data.
 
 Device-Specific Information
 ------------------------------
