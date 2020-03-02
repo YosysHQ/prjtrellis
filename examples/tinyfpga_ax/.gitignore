@@ -3,3 +3,5 @@
 *.txt
 *.ncl
 *.tmp
+*.jed
+*.hex
