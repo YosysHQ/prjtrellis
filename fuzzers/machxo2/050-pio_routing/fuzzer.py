@@ -101,7 +101,7 @@ def main(args):
                                                          fc_predicate=fc_filter,
                                                          netname_filter_union=False,
                                                          bidir=True,
-                                                         netdir_override=mk_nets.overrides[job["mknets_id"]],
+                                                         netdir_override=defaultdict(lambda : str("ignore")),
                                                          bias=1)
 
 
