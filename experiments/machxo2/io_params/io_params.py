@@ -53,7 +53,7 @@ def main(args):
             print("", file=f)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Test I/O Site")
+    parser = argparse.ArgumentParser(description="Test I/O Sites.")
     parser.add_argument("-b", help="Test bidirectional.", action="store_true")
     parser.add_argument("-i", help="Test input.", action="store_true")
     parser.add_argument("-o", help="Test output.", action="store_true")

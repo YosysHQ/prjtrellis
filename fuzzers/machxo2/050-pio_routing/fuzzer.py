@@ -129,7 +129,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="CIB_EBRn Fuzzer.")
+    parser = argparse.ArgumentParser(description="PIO Routing Fuzzer.")
     parser.add_argument("-i", action="store_true", help="Fuzz interconnect.")
     parser.add_argument("-m", action="store_true", help="Fuzz missing nets.")
     parser.add_argument("-p", action="store_true", help="Fuzz I/O pad connections.")

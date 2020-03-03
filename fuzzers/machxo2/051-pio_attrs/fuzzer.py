@@ -238,7 +238,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="CIB_EBRn Fuzzer.")
+    parser = argparse.ArgumentParser(description="PIO Attributes Fuzzer.")
     parser.add_argument(dest="ids", metavar="N", type=int, nargs="*",
                     default=range(0, len(jobs)), help="Job (indices) to run.")
     args = parser.parse_args()
