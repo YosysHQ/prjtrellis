@@ -49,6 +49,10 @@ def fuzz_interconnect(config,
     :param enable_span1_fix: if True, include span1 wires that are excluded due to a Tcl API bug
     :param func_cib: if True, we are fuzzing a special function to CIB interconnect, enable optimisations for this
     :param fc_prefix: add a prefix to non-global fixed connections for device-specific fuzzers
+    :param netdir_override: Manually specify whether the nets in the dictionary are driven by other nets (`"sink"`,
+    specified as "-->" in ispTcl), or drive other nets (`"driver"`, specified as "<--" in ispTcl). The dictionary is
+    only consulted if ispTcl returns "---" for the direction of a given net. This dictionary overrides
+    func_cib=False for the nets in question.
     :param nonlocal_prefix: add a prefix to non-global and non-neighbour wires for device-specific fuzzers
     :param bias: Apply offset correction for n-based column numbering, n > 0. Used used by Lattice
     on certain families.
@@ -104,7 +108,8 @@ def fuzz_interconnect_with_netnames(
     :param fc_prefix: add a prefix to non-global fixed connections for device-specific fuzzers
     :param netdir_override: Manually specify whether the nets in the dictionary are driven by other nets (`"sink"`,
     specified as "-->" in ispTcl), or drive other nets (`"driver"`, specified as "<--" in ispTcl). The dictionary is
-    only consulted if ispTcl returns "---" for the direction of a given net.
+    only consulted if ispTcl returns "---" for the direction of a given net. This dictionary overrides
+    bidir=False for the nets in question.
     :param bias: Apply offset correction for n-based column numbering, n > 0. Used used by Lattice
     on certain families.
     """
