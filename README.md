@@ -31,7 +31,7 @@ Out-of-tree builds are currently unsupported when coupled with `nextpnr`:
 Clone and install **latest git master** versions (Yosys 0.8 is not sufficient for ECP5 development) of [Yosys](https://github.com/YosysHQ/yosys)
  and [nextpnr](https://github.com/YosysHQ/nextpnr) according to their own instructions. Ensure
  to include the ECP5 architecture when building nextpnr; and point it towards your prjtrellis
- folder.
+ folder.  (for example: `cmake -DARCH=ecp5 -DTRELLIS_ROOT=/usr/share/trellis/ .`)
 
 You should now be able to build the [examples](examples).
 
