@@ -16,6 +16,8 @@ Install the dependencies for Project Trellis:
  - Git
  - Recent OpenOCD for device programming (`--enable-ftdi` required if building from source)
 
+Note that at least 4GB RAM is needed for Trellis, and 5GB for nextpnr on Ubuntu.
+
 Clone the Project Trellis repository and download the latest database:
 
      git clone --recursive https://github.com/SymbiFlow/prjtrellis
