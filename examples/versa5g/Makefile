@@ -1,6 +1,6 @@
 PROJ=demo
 CONSTR=versa.lpf
-TRELLIS=/usr/share/trellis
+TRELLIS?=/usr/share/trellis
 
 all: ${PROJ}.bit
 

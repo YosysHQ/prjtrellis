@@ -63,6 +63,12 @@ jobs = [
         "side": "B",
         "pins": [("U1", "A"), ("V1", "B")]
     },
+    {
+         "cfg": FuzzConfig(job="SPIOB", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
+                           tiles=["MIB_R71C18:SPICB0"]),
+         "side": "B",
+         "pins": [("T3", "A")]
+    },
 ]
 
 
@@ -75,6 +81,14 @@ def get_io_types(dir, pio, side):
         "LVCMOS15",
         "LVCMOS12"
     ]
+    if pio == "A" and side == "T" and dir == "OUTPUT":
+        types += [
+            "LVCMOS33D",
+            "LVCMOS25D",
+            "LVCMOS18D",
+            "LVCMOS15D",
+            "LVCMOS12D"
+        ]
     if side in ('L', 'R'):
         types += [
             "SSTL18_I",

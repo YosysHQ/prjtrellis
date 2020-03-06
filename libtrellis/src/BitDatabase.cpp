@@ -345,6 +345,8 @@ void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile,
         if (ce.name.substr(0, base_prefix.length()) == base_prefix) {
             if (is_tilegroup && !enums.count(ce.name))
                 continue;
+            else if (!enums.count(ce.name))
+                throw std::runtime_error("no enum named '" + ce.name + "'");
             if (is_tilegroup && !enums.at(ce.name).options.count(ce.value))
                 continue;
             if (tg_matches)
@@ -356,6 +358,8 @@ void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile,
     for (auto cw : cfg.cwords) {
         if (is_tilegroup && !words.count(cw.name))
             continue;
+        if (!words.count(cw.name))
+            throw std::runtime_error("no word named '" + cw.name + "'");
         if (tg_matches)
             tg_matches->insert(cw.name);
         words.at(cw.name).set_value(tile, cw.value);
@@ -365,6 +369,8 @@ void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile,
         if (ce.name.substr(0, base_prefix.length()) != base_prefix) {
             if (is_tilegroup && !enums.count(ce.name))
                 continue;
+            else if (!enums.count(ce.name))
+                throw std::runtime_error("no enum named '" + ce.name + "'");
             if (is_tilegroup && !enums.at(ce.name).options.count(ce.value))
                 continue;
             if (tg_matches)

@@ -84,6 +84,22 @@ jobs = [
         "iol": "B",
         "rc": "R0C20",
     },
+    {
+        "cfg": FuzzConfig(job="IOLOGICBA", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+                          tiles=["MIB_R50C11:PICB0", "MIB_R50C12:PICB1"]),
+        "side": "B",
+        "site": "IOL_B11A",
+        "iol": "A",
+        "rc": "R50C11"
+    },
+    {
+        "cfg": FuzzConfig(job="IOLOGICBB", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+                          tiles=["MIB_R50C11:PICB0", "MIB_R50C12:PICB1"]),
+        "side": "B",
+        "site": "IOL_B11B",
+        "iol": "B",
+        "rc": "R50C11"
+    },
 ]
 
 
@@ -137,7 +153,9 @@ def main():
                                                           settings={"DEL_VALUE": todecstr(x),
                                                                     "WAIT_FOR_EDGE": "DISABLED"}),
                                      empty_bitfile)
-
+        nonrouting.fuzz_enum_setting(cfg, "IOLOGIC{}.LOADNMUX".format(iol), ["1", "LOADN"],
+                                     lambda x: get_substs(program=({"LOADNMUX": "LOADN"} if x == "LOADN" else {})),
+                                     empty_bitfile, False)
 
     fuzzloops.parallel_foreach(jobs, per_job)
 

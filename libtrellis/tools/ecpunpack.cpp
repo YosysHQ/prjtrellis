@@ -2,6 +2,8 @@
 #include "Bitstream.hpp"
 #include "Chip.hpp"
 #include "Database.hpp"
+#include "DatabasePath.hpp"
+#include "version.hpp"
 #include <iostream>
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
@@ -17,7 +19,7 @@ int main(int argc, char *argv[])
     namespace po = boost::program_options;
     boost::optional<uint32_t> idcode;
 
-    std::string database_folder = TRELLIS_PREFIX "/share/trellis/database";
+    std::string database_folder = get_database_path();
 
     po::options_description options("Allowed options");
     options.add_options()("help,h", "show help");
@@ -36,18 +38,24 @@ int main(int argc, char *argv[])
         po::store(parsed, vm);
         po::notify(vm);
     }
+    catch (po::required_option &e) {
+        cerr << "Error: input file is mandatory." << endl << endl;
+        goto help;
+    }
     catch (std::exception &e) {
-        cerr << e.what() << endl << endl;
+        cerr << "Error: " << e.what() << endl << endl;
         goto help;
     }
 
     if (vm.count("help")) {
 help:
         cerr << "Project Trellis - Open Source Tools for ECP5 FPGAs" << endl;
+        cerr << "Version " << git_describe_str << endl;
         cerr << "ecpunpack: ECP5 bitstream to text config converter" << endl;
         cerr << endl;
         cerr << "Copyright (C) 2018 David Shah <david@symbioticeda.com>" << endl;
         cerr << endl;
+        cerr << "Usage: ecpunpack input.bit [output.config] [options]" << endl;
         cerr << options << endl;
         return vm.count("help") ? 0 : 1;
     }
@@ -90,6 +98,9 @@ help:
         }
         out_file << cc.to_string();
         return 0;
+    } catch (BitstreamParseError &e) {
+        cerr << "Failed to process input bitstream: " << e.what() << endl;
+        return 1;
     } catch (runtime_error &e) {
         cerr << "Failed to process input bitstream: " << e.what() << endl;
         return 1;

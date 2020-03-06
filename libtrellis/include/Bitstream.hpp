@@ -21,6 +21,7 @@ enum class BitstreamCommand : uint8_t {
     LSC_WRITE_COMP_DIC = 0b00000010,
     LSC_PROG_CNTRL0 = 0b00100010,
     LSC_INIT_ADDRESS = 0b01000110,
+    LSC_WRITE_ADDRESS = 0b10110100,
     LSC_PROG_INCR_CMP = 0b10111000,
     LSC_PROG_INCR_RTI = 0b10000010,
     LSC_PROG_SED_CRC = 0b10100010,
@@ -48,7 +49,11 @@ public:
 
     // Serialise a Chip back to a bitstream
     static Bitstream serialise_chip(const Chip &chip, const map<string, string> options);
+    static Bitstream serialise_chip_partial(const Chip &chip, const vector<uint32_t> &frames, const map<string, string> options);
     static Bitstream generate_jump(uint32_t address);
+
+    static Bitstream serialise_chip_py(const Chip &chip);
+    static Bitstream serialise_chip_delta_py(const Chip &chip1, const Chip &chip2);
 
     // Deserialise a bitstream to a Chip
     Chip deserialise_chip();
