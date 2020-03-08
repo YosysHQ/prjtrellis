@@ -249,6 +249,11 @@ if [ -n "$JEDEC_BITSTREAM" ]; then
 "$fpgabindir"/bitgen -d par_impl.ncd -jedec output.jed synth_impl.prf
 fi
 
+if [ -n "$COMPRESSED_BITSTREAM" ]; then
+	sed 's/COMPRESS_CONFIG=OFF/COMPRESS_CONFIG=ON/' synth_impl.prf > synth_impl_comp.prf
+	"$fpgabindir"/bitgen -d par_impl.ncd $BITARGS output-comp.bit synth_impl_comp.prf
+fi
+
 # dump bitmap
 "$fpgabindir"/bstool -d output.bit > output.dump
 
@@ -288,6 +293,9 @@ cp "$2.tmp"/output.ncl "$2_out.ncl"
 fi
 if [ -n "$JEDEC_BITSTREAM" ]; then
 cp "$2.tmp"/output.jed "$2.jed"
+fi
+if [ -n "$COMPRESSED_BITSTREAM" ]; then
+cp "$2.tmp"/output-comp.bit "$2-comp.bit"
 fi
 if [ -n "$BACKANNO" ]; then
 cp "$2.tmp"/par_impl.sdf "$2.sdf"
