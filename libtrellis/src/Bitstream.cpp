@@ -740,6 +740,15 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
     // Init address
     wr.write_byte(uint8_t(BitstreamCommand::LSC_INIT_ADDRESS));
     wr.insert_zeros(3);
+
+    bool reversed_frames;
+    if (chip.info.family == "MachXO2")
+        reversed_frames = false;
+    else if (chip.info.family == "ECP5")
+        reversed_frames = true;
+    else
+        throw runtime_error("Unknown chip family: " + chip.info.family);
+
     if (options.count("compress") && options.at("compress") == "yes") {
         // First create an uncompressed array of frames
         std::vector<std::vector<uint8_t>> frames_data;
@@ -770,12 +779,13 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
                                   chip.info.pad_bits_before_frame) / 8U;
         unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
         for (size_t i = 0; i < frames; i++) {
+            size_t idx = reversed_frames? (chip.info.num_frames - 1) - i : i;
             fill(frame_bytes.get(), frame_bytes.get() + bytes_per_frame, 0x00);
             for (int j = 0; j < chip.info.bits_per_frame; j++) {
                 size_t ofs = j + chip.info.pad_bits_after_frame;
                 assert(((bytes_per_frame - 1) - (ofs / 8)) < bytes_per_frame);
                 frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] |=
-                        (chip.cram.bit((chip.info.num_frames - 1) - i, j) & 0x01) << (ofs % 8);
+                        (chip.cram.bit(idx, j) & 0x01) << (ofs % 8);
             }
             wr.write_bytes(frame_bytes.get(), bytes_per_frame);
             wr.insert_crc16();
@@ -844,7 +854,7 @@ Bitstream Bitstream::serialise_chip_delta_py(const Chip &chip1, const Chip &chip
 Bitstream Bitstream::serialise_chip_partial(const Chip &chip, const vector<uint32_t> &frames, const map<string, string> options)
 {
     BitstreamReadWriter wr;
-    
+
     // Address encoding for partial frame writes
     static const map<uint32_t, uint32_t> msb_weights_45k = {
         {{0x0000}, { 0*106}},
