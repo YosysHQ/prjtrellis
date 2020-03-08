@@ -687,10 +687,36 @@ Bitstream Bitstream::serialise_chip_py(const Chip &chip) {
 
 Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> options) {
     BitstreamReadWriter wr;
+    bool reversed_frames;
+    int num_dummy;
+    uint8_t crc_meta;
+    bool crc_after_each_frame;
+    size_t dummy_bytes_after_frame;
+
+    if (chip.info.family == "MachXO2") {
+        reversed_frames = false;
+        num_dummy = 2;
+        crc_meta = 0xE0; // CRC check (0x80), once at end (0x40), dummy bits
+                         // in bitstream, no dummy bytes after each frame.
+        // FIXME: Diamond seems to set include_dummy_bits for MachXO2
+        // sometimes (0x20). Add this functionality later, as I'm not sure
+        // any MachXO2 members have dummy bits at this time.
+        crc_after_each_frame = false;
+        dummy_bytes_after_frame = 0;
+    } else if (chip.info.family == "ECP5") {
+        reversed_frames = true;
+        num_dummy = 4;
+        crc_meta = 0x91; // CRC check (0x80), per frame (bit 6 cleared),
+                         // and there 1 dummy bytes after each frame (0x10).
+        crc_after_each_frame = true;
+        dummy_bytes_after_frame = 1;
+    } else
+        throw runtime_error("Unknown chip family: " + chip.info.family);
+
     // Preamble
     wr.write_bytes(preamble.begin(), preamble.size());
     // Padding
-    wr.insert_dummy(4);
+    wr.insert_dummy(num_dummy);
 
     if (options.count("spimode")) {
         auto spimode = find_if(spi_modes.begin(), spi_modes.end(), [&](const pair<string, uint8_t> &fp){
@@ -737,17 +763,15 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
             ctrl0 &= ~background_flag;
     }
     wr.write_uint32(ctrl0);
+
+    // Seems pretty consistent...
+    if (chip.info.family == "MachXO2") {
+        wr.insert_dummy(4);
+    }
+
     // Init address
     wr.write_byte(uint8_t(BitstreamCommand::LSC_INIT_ADDRESS));
     wr.insert_zeros(3);
-
-    bool reversed_frames;
-    if (chip.info.family == "MachXO2")
-        reversed_frames = false;
-    else if (chip.info.family == "ECP5")
-        reversed_frames = true;
-    else
-        throw runtime_error("Unknown chip family: " + chip.info.family);
 
     if (options.count("compress") && options.at("compress") == "yes") {
         // First create an uncompressed array of frames
@@ -771,7 +795,7 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
     } else {
         // Bitstream data
         wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_INCR_RTI));
-        wr.write_byte(0x91); //CRC check, 1 dummy byte
+        wr.write_byte(crc_meta);
         uint16_t frames = uint16_t(chip.info.num_frames);
         wr.write_byte(uint8_t((frames >> 8) & 0xFF));
         wr.write_byte(uint8_t(frames & 0xFF));
@@ -788,13 +812,27 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
                         (chip.cram.bit(idx, j) & 0x01) << (ofs % 8);
             }
             wr.write_bytes(frame_bytes.get(), bytes_per_frame);
-            wr.insert_crc16();
-            wr.write_byte(0xFF);
+            if(crc_after_each_frame) {
+                wr.insert_crc16();
+            }
+
+            for(size_t j = 0; j < dummy_bytes_after_frame; j++) {
+                wr.write_byte(0xFF);
+            }
         }
     }
 
+    if(!crc_after_each_frame) {
+        wr.insert_crc16();
+    }
+
     // Post-bitstream space for SECURITY and SED (not used here)
-    wr.insert_dummy(12);
+    if (chip.info.family == "MachXO2") {
+        wr.insert_dummy(8);
+    } else {
+        wr.insert_dummy(12);
+    }
+
     // Program Usercode
     wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_USERCODE));
     wr.write_byte(0x80);
@@ -831,6 +869,14 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
         }
         wr.insert_crc16();
     }
+
+    // MachXO2 indeed writes this info twice for some reason...
+    if (chip.info.family == "MachXO2") {
+        wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_CNTRL0));
+        wr.insert_zeros(3);
+        wr.write_uint32(ctrl0);
+    }
+
     // Program DONE
     wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_DONE));
     wr.insert_zeros(3);
