@@ -33,6 +33,7 @@ find_package(PythonInterp 3.5 REQUIRED)
 
 if (BUILD_PYTHON)
     find_package(PythonLibs 3.5 REQUIRED)
+    set(PythonInstallTarget "pytrellis")
 endif()
 
 find_package(Boost REQUIRED COMPONENTS ${boost_libs})
@@ -174,7 +175,7 @@ target_link_libraries(ecpmulti trellis ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} ${lin
 setup_rpath(ecpmulti)
 
 if (BUILD_SHARED)
-    install(TARGETS trellis ecpbram ecppack ecppll ecpunpack ecpmulti pytrellis
+    install(TARGETS trellis ecpbram ecppack ecppll ecpunpack ecpmulti ${PythonInstallTarget}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/trellis
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 else()
