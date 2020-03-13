@@ -2,11 +2,33 @@
 Interface between Python fuzzer scripts and Lattice Diamond ispTcl
 """
 
+from collections import defaultdict
+
 import database
 import subprocess
 import tempfile
 from os import path
 import re
+
+
+# Arc whose direction is ambiguous "---"
+class AmbiguousArc:
+    # I
+    def __init__(self, lhs, rhs):
+        self.lhs = lhs
+        self.rhs = rhs
+
+    def __getitem__(self, idx):
+        if idx == 0:
+            return self.lhs
+        elif idx == 1:
+            return self.rhs
+        else:
+            raise IndexError("AmbiguousArc only connects two nets")
+
+    def __repr__(self):
+        return "{} --- {}".format(self.lhs, self.rhs)
+
 
 def run(commands):
     """Run a list of Tcl commands, returning the output as a string"""
@@ -84,13 +106,21 @@ def get_wires_at_position(desfiles, position):
     return wires
 
 
-def get_arcs_on_wires(desfiles, wires, drivers_only=False):
+def get_arcs_on_wires(desfiles, wires, drivers_only=False, dir_override=dict()):
     """
     Use ispTcl to get a list of arcs sinking or sourcing a list of wires
 
     desfiles: a tuple (ncdfile, prffile)
     wires: list of canonical names of the wire
     drivers_only: only include arcs driving the wire in the output
+    dir_override: Dictionary that specificies whether a net queried by ispTcl
+    is a "sink" or "driver" when ispTcl returns "---" (since ISPTcl always puts
+    the queried net on the RHS of an an arc). dir_override is only consulted if
+    ispTcl returns "---" for the direction of a given net, and will
+    additionally override drivers_only=False for any nets specified as
+    "driver". Two additional strings are allowed: "ignore" to ignore "---"
+    connections to/from the queried net, and "mark" to return the connection as
+    an AmbiguousArc for later processing.
 
     Returns a map between wire name and a list of arc tuples (source, sink)
     """
@@ -122,8 +152,29 @@ def get_arcs_on_wires(desfiles, wires, drivers_only=False):
                     if not drivers_only:
                         arcs.append((splitline[2].strip(), splitline[0].strip()))
                 elif splitline[1].strip() == "---":
-                    # Edge wires, currently ignored
-                    pass
+                    if isinstance(dir_override, defaultdict):
+                        # get() overrides defaultdict behavior, and a user may
+                        # have a valid reason to provide a default such as
+                        # ignore.
+                        override = dir_override[wires[wire_idx]]
+                    else:
+                        override = dir_override.get(wires[wire_idx], "")
+                    if override:
+                        if override == "sink":
+                            arcs.append((splitline[0].strip(), splitline[2].strip()))
+                        elif override == "driver":
+                            arcs.append((splitline[2].strip(), splitline[0].strip()))
+                        elif override == "mark":
+                            arcs.append(AmbiguousArc(splitline[0].strip(), splitline[2].strip()))
+                        elif override == "ignore":
+                            pass
+                        else:
+                            assert False, ("invalid override for wire {}".
+                                            format(wires[wire_idx]))
+                    else:
+                        assert False, ("'---' found in ispTcl output, and no netdir_override"
+                                       " was given for {wire}. Full line:\n{line}".
+                                       format(wire=wires[wire_idx], line=line))
                 else:
                     print (splitline)
                     assert False, "invalid output from Tcl command `dev_list_arcs`"

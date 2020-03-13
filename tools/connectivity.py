@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+import sys
 import pytrellis
 import nets
 import tiles
 import database
+if sys.platform in ("win32"):
+    import pyreadline.rlmain
 import readline
 import re
 
@@ -20,56 +23,58 @@ def main():
     pytrellis.load_database(database.get_db_root())
     c = pytrellis.Chip("LFE5U-45F")
     chip_size = (c.get_max_row(), c.get_max_col())
+    bias = c.info.col_bias
+
     # Get fan-in to a net
     # Returns (source, configurable, loc)
     def get_fanin(net):
         drivers = []
-        npos = tiles.pos_from_name(net, chip_size, 0)
+        npos = tiles.pos_from_name(net, chip_size, bias)
         for tile in c.get_all_tiles():
             tinf = tile.info
             tname = tinf.name
-            pos = tiles.pos_from_name(tname, chip_size, 0)
+            pos = tiles.pos_from_name(tname, chip_size, bias)
             if abs(pos[0] - npos[0]) >= 10 or abs(pos[1] - npos[1]) >= 10:
                 continue
             if net.startswith("G_"):
                 tnet = net
             else:
-                tnet = nets.normalise_name(chip_size, tname, net, 0)
+                tnet = nets.normalise_name(chip_size, tname, net, bias)
             tdb = pytrellis.get_tile_bitdata(pytrellis.TileLocator(c.info.family, c.info.name, tinf.type))
             try:
                 mux = tdb.get_mux_data_for_sink(tnet)
                 for src in mux.get_sources():
-                    drivers.append((nets.canonicalise_name(chip_size, tname, src, 0), True, tname))
+                    drivers.append((nets.canonicalise_name(chip_size, tname, src, bias), True, tname))
             except IndexError:
                 pass
             for fc in tdb.get_fixed_conns():
                 if fc.sink == tnet:
-                    drivers.append((nets.canonicalise_name(chip_size, tname, fc.source, 0), False, tname))
+                    drivers.append((nets.canonicalise_name(chip_size, tname, fc.source, bias), False, tname))
         return drivers
 
     # Get fan-out of a net
     # Returns (dest, configurable, loc)
     def get_fanout(net):
         drivers = []
-        npos = tiles.pos_from_name(net, chip_size, 0)
+        npos = tiles.pos_from_name(net, chip_size, bias)
         for tile in c.get_all_tiles():
             tinf = tile.info
             tname = tinf.name
-            pos = tiles.pos_from_name(tname, chip_size, 0)
+            pos = tiles.pos_from_name(tname, chip_size, bias)
             if abs(pos[0] - npos[0]) >= 12 or abs(pos[1] - npos[1]) >= 12:
                 continue
             if net.startswith("G_"):
                 tnet = net
             else:
-                tnet = nets.normalise_name(chip_size, tname, net, 0)
+                tnet = nets.normalise_name(chip_size, tname, net, bias)
             tdb = pytrellis.get_tile_bitdata(pytrellis.TileLocator(c.info.family, c.info.name, tinf.type))
             for sink in tdb.get_sinks():
                 mux = tdb.get_mux_data_for_sink(sink)
                 if tnet in mux.arcs:
-                    drivers.append((nets.canonicalise_name(chip_size, tname, sink, 0), True, tname))
+                    drivers.append((nets.canonicalise_name(chip_size, tname, sink, bias), True, tname))
             for fc in tdb.get_fixed_conns():
                 if fc.source == tnet:
-                    drivers.append((nets.canonicalise_name(chip_size, tname, fc.sink, 0), False, tname))
+                    drivers.append((nets.canonicalise_name(chip_size, tname, fc.sink, bias), False, tname))
         return drivers
 
 
@@ -105,7 +110,7 @@ def main():
     def completer(str, idx):
         if not tile_net_re.match(str):
             return None
-        loc = tiles.pos_from_name(str, chip_size, 0)
+        loc = tiles.pos_from_name(str, chip_size, bias)
         nets = get_nets_at(loc)
         for n in nets:
             if n.startswith(str):

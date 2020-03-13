@@ -46,6 +46,7 @@ def main(argv):
 
     max_row = device_info["max_row"]
     max_col = device_info["max_col"]
+    bias = device_info["col_bias"]
 
     tiles = []
     for i in range(max_row + 1):
@@ -56,7 +57,7 @@ def main(argv):
 
     for identifier, data in sorted(tilegrid.items()):
         name = identifier.split(":")[0]
-        row, col = tilelib.pos_from_name(name, (max_row, max_col), 0)
+        row, col = tilelib.pos_from_name(name, (max_row, max_col), bias)
         colour = get_colour(data["type"])
         tiles[row][col].append((name, data["type"], colour))
 
