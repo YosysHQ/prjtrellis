@@ -32,6 +32,45 @@ static const vector<pair<std::string, uint8_t>> spi_modes =
 static const uint32_t multiboot_flag = 1 << 20;
 static const uint32_t background_flag = 0x2E000000;
 
+// Bitstream generation can be tweaked in various ways; this class encapsulates
+// these options and provides defaults that mimic Diamond-generated output.
+class BitstreamOptions {
+public:
+    BitstreamOptions(const Chip &chip) {
+      if (chip.info.family == "MachXO2") {
+          // Write frames out in order 0 => max or reverse (max => 0).
+          // This apparently does NOT apply to compressed bitstreams, which
+          // uses reversed_frames = true unconditionally.
+          reversed_frames = false;
+          dummy_bytes_after_preamble = 2;
+          crc_meta = 0xE0; // CRC check (0x80), once at end (0x40), dummy bits
+                           // in bitstream, no dummy bytes after each frame.
+          // FIXME: Diamond seems to set include_dummy_bits for MachXO2
+          // sometimes (0x20). Add this functionality later, as I'm not sure
+          // any MachXO2 members have dummy bits at this time.
+          crc_after_each_frame = false;
+          dummy_bytes_after_frame = 0;
+          security_sed_space = 8;
+      } else if (chip.info.family == "ECP5") {
+          reversed_frames = true;
+          dummy_bytes_after_preamble = 4;
+          crc_meta = 0x91; // CRC check (0x80), per frame (bit 6 cleared),
+                           // and there 1 dummy bytes after each frame (0x10).
+          crc_after_each_frame = true;
+          dummy_bytes_after_frame = 1;
+          security_sed_space = 12;
+      } else
+          throw runtime_error("Unknown chip family: " + chip.info.family);
+    };
+
+    bool reversed_frames;
+    size_t dummy_bytes_after_preamble;
+    uint8_t crc_meta;
+    bool crc_after_each_frame;
+    size_t dummy_bytes_after_frame;
+    size_t security_sed_space;
+};
+
 // The BitstreamReadWriter class stores state (including CRC16) whilst reading
 // the bitstream
 class BitstreamReadWriter {
@@ -199,7 +238,7 @@ public:
         }
     }
 
-    void write_compressed_frames(const std::vector<std::vector<uint8_t>> &frames_in) {
+    void write_compressed_frames(const std::vector<std::vector<uint8_t>> &frames_in, BitstreamOptions &ops) {
         // Build a histogram of bytes to aid creating the dictionary
         int histogram[256];
         for (int i = 0; i < 256; i++)
@@ -223,7 +262,7 @@ public:
             write_byte(dict_entries[i]);
         // Write data
         write_byte(uint8_t(BitstreamCommand::LSC_PROG_INCR_CMP));
-        write_byte(0x91); //CRC check, 1 dummy byte
+        write_byte(ops.crc_meta); //CRC check, 1 dummy byte
         uint16_t frames = uint16_t(frames_in.size());
         write_byte(uint8_t((frames >> 8) & 0xFF));
         write_byte(uint8_t(frames & 0xFF));
@@ -286,8 +325,13 @@ public:
             // This ensures compressed frame is 8-bit aligned
             flush_bits();
             // Post-frame CRC and 0xFF byte
-            insert_crc16();
-            write_byte(0xFF);
+            if(ops.crc_after_each_frame) {
+                insert_crc16();
+            }
+
+            for(size_t j = 0; j < ops.dummy_bytes_after_frame; j++) {
+                write_byte(0xFF);
+            }
         }
     }
 
@@ -530,13 +574,8 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                 // This is the main bitstream payload
                 if (!chip)
                     throw BitstreamParseError("start of bitstream data before chip was identified", rd.get_offset());
-                bool reversed_frames;
-                if (chip->info.family == "MachXO2")
-                    reversed_frames = false;
-                else if (chip->info.family == "ECP5")
-                    reversed_frames = true;
-                else
-                    throw BitstreamParseError("Unknown chip family: " + chip->info.family);
+
+                BitstreamOptions ops(chip.get()); // Only reversed_frames is meaningful here.
 
                 uint8_t params[3];
                 rd.get_bytes(params, 3);
@@ -561,7 +600,9 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                     bytes_per_frame += (7 - ((bytes_per_frame - 1) % 8));
                 unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
                 for (size_t i = 0; i < frame_count; i++) {
-                    size_t idx = reversed_frames? (chip->info.num_frames - 1) - i : i;
+                    // Apparently when a bitstream is compressed, even on
+                    // MachXO2, frames are written in reverse order!
+                    const size_t idx = (chip->info.num_frames - 1) - i;
                     if (cmd == BitstreamCommand::LSC_PROG_INCR_CMP)
                         rd.get_compressed_bytes(frame_bytes.get(), bytes_per_frame, compression_dict.get());
                     else
@@ -687,10 +728,13 @@ Bitstream Bitstream::serialise_chip_py(const Chip &chip) {
 
 Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> options) {
     BitstreamReadWriter wr;
+
+    BitstreamOptions ops(chip);
+
     // Preamble
     wr.write_bytes(preamble.begin(), preamble.size());
     // Padding
-    wr.insert_dummy(4);
+    wr.insert_dummy(ops.dummy_bytes_after_preamble);
 
     if (options.count("spimode")) {
         auto spimode = find_if(spi_modes.begin(), spi_modes.end(), [&](const pair<string, uint8_t> &fp){
@@ -737,9 +781,16 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
             ctrl0 &= ~background_flag;
     }
     wr.write_uint32(ctrl0);
+
+    // Seems pretty consistent...
+    if (chip.info.family == "MachXO2") {
+        wr.insert_dummy(4);
+    }
+
     // Init address
     wr.write_byte(uint8_t(BitstreamCommand::LSC_INIT_ADDRESS));
     wr.insert_zeros(3);
+
     if (options.count("compress") && options.at("compress") == "yes") {
         // First create an uncompressed array of frames
         std::vector<std::vector<uint8_t>> frames_data;
@@ -758,11 +809,11 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
             }
         }
         // Then compress and write
-        wr.write_compressed_frames(frames_data);
+        wr.write_compressed_frames(frames_data, ops);
     } else {
         // Bitstream data
         wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_INCR_RTI));
-        wr.write_byte(0x91); //CRC check, 1 dummy byte
+        wr.write_byte(ops.crc_meta);
         uint16_t frames = uint16_t(chip.info.num_frames);
         wr.write_byte(uint8_t((frames >> 8) & 0xFF));
         wr.write_byte(uint8_t(frames & 0xFF));
@@ -770,21 +821,32 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
                                   chip.info.pad_bits_before_frame) / 8U;
         unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
         for (size_t i = 0; i < frames; i++) {
+            size_t idx = ops.reversed_frames? (chip.info.num_frames - 1) - i : i;
             fill(frame_bytes.get(), frame_bytes.get() + bytes_per_frame, 0x00);
             for (int j = 0; j < chip.info.bits_per_frame; j++) {
                 size_t ofs = j + chip.info.pad_bits_after_frame;
                 assert(((bytes_per_frame - 1) - (ofs / 8)) < bytes_per_frame);
                 frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] |=
-                        (chip.cram.bit((chip.info.num_frames - 1) - i, j) & 0x01) << (ofs % 8);
+                        (chip.cram.bit(idx, j) & 0x01) << (ofs % 8);
             }
             wr.write_bytes(frame_bytes.get(), bytes_per_frame);
-            wr.insert_crc16();
-            wr.write_byte(0xFF);
+            if(ops.crc_after_each_frame) {
+                wr.insert_crc16();
+            }
+
+            for(size_t j = 0; j < ops.dummy_bytes_after_frame; j++) {
+                wr.write_byte(0xFF);
+            }
         }
     }
 
+    if(!ops.crc_after_each_frame) {
+        wr.insert_crc16();
+    }
+
     // Post-bitstream space for SECURITY and SED (not used here)
-    wr.insert_dummy(12);
+    wr.insert_dummy(ops.security_sed_space);
+
     // Program Usercode
     wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_USERCODE));
     wr.write_byte(0x80);
@@ -821,6 +883,14 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
         }
         wr.insert_crc16();
     }
+
+    // MachXO2 indeed writes this info twice for some reason...
+    if (chip.info.family == "MachXO2") {
+        wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_CNTRL0));
+        wr.insert_zeros(3);
+        wr.write_uint32(ctrl0);
+    }
+
     // Program DONE
     wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_DONE));
     wr.insert_zeros(3);
@@ -844,7 +914,7 @@ Bitstream Bitstream::serialise_chip_delta_py(const Chip &chip1, const Chip &chip
 Bitstream Bitstream::serialise_chip_partial(const Chip &chip, const vector<uint32_t> &frames, const map<string, string> options)
 {
     BitstreamReadWriter wr;
-    
+
     // Address encoding for partial frame writes
     static const map<uint32_t, uint32_t> msb_weights_45k = {
         {{0x0000}, { 0*106}},

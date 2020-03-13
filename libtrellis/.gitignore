@@ -19,8 +19,22 @@ install_manifest.txt
 ecpbram
 ecppack
 ecpunpack
+ecpmulti
 ecppll
 libtrellis.dylib
 *~
 ecpmulti
 generated/
+
+# Windows
+ecpbram.exe
+ecppack.exe
+ecpunpack.exe
+ecpmulti.exe
+ecppll.exe
+pytrellis.pyd
+
+# Ninja
+.ninja_*
+build.ninja
+rules.ninja
