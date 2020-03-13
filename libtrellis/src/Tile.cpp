@@ -24,6 +24,7 @@ static const regex tile_r_re(R"([A-Za-z0-9_]*R(\d+))");
 // center. Mainly for MachXO2.
 // TODO: Make const.
 map<pair<int, int>, pair<int, int>> center_map = {
+    // 1200HC
     {make_pair(12, 21), make_pair(6, 12)}
 };
 

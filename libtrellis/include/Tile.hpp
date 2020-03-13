@@ -1,7 +1,6 @@
 #ifndef LIBTRELLIS_TILE_HPP
 #define LIBTRELLIS_TILE_HPP
 
-#include <iostream>
 #include <string>
 #include <iostream>
 #include <cstdint>
