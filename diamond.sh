@@ -11,11 +11,18 @@
 #  - lfe5u-85
 #  - lfe5u-45
 #  - lfe5u-25
+#  - LCMXO2-1200HC
 
-# Currently this script supports Linux only.
+# Currently this script supports Linux and Windows using a MINGW64 bash shell.
 
 # You need to set the DIAMONDDIR environment variable to the path where you have
 # installed Lattice Diamond, unless it matches this default.
+
+if [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]; then
+	WINDOWS=true
+else
+	WINDOWS=false
+fi
 
 if [ -z "$DIAMONDVER" ]; then
 	diamondver="3.10"
@@ -23,15 +30,34 @@ else
 	diamondver="$DIAMONDVER"
 fi
 
-diamonddir="${DIAMONDDIR:-/usr/local/diamond/${diamondver}_x64}"
+if $WINDOWS; then
+	diamonddir="${DIAMONDDIR:-/c/lscc/diamond/${diamondver}_x64}"
+else
+	diamonddir="${DIAMONDDIR:-/usr/local/diamond/${diamondver}_x64}"
+fi
 export FOUNDRY="${diamonddir}/ispfpga"
-bindir="${diamonddir}/bin/lin64"
+
+if $WINDOWS; then
+	bindir="${diamonddir}/bin/nt64"
+else
+	bindir="${diamonddir}/bin/lin64"
+fi
 LSC_DIAMOND=true
 export LSC_DIAMOND
 export NEOCAD_MAXLINEWIDTH=32767
 export TCL_LIBRARY="${diamonddir}/tcltk/lib/tcl8.5"
-export fpgabindir=${FOUNDRY}/bin/lin64
-export LD_LIBRARY_PATH="${bindir}:${fpgabindir}"
+
+if $WINDOWS; then
+	export fpgabindir=${FOUNDRY}/bin/nt64
+else
+	export fpgabindir=${FOUNDRY}/bin/lin64
+fi
+
+if $WINDOWS; then
+	export PATH="${bindir}:${fpgabindir}:$PATH"
+else
+	export LD_LIBRARY_PATH="${bindir}:${fpgabindir}"
+fi
 export LM_LICENSE_FILE="${diamonddir}/license/license.dat"
 
 set -ex
@@ -98,6 +124,16 @@ case "${PART}" in
 		LSE_ARCH="ECP5UM5G"
 		;;
 
+	LCMXO2-256HC)
+		PACKAGE="${DEV_PACKAGE:-QFN32}"
+		DEVICE="LCMXO2-256HC"
+		LSE_ARCH="MachXO2"
+		;;
+	LCMXO2-1200HC)
+		PACKAGE="${DEV_PACKAGE:-QFN32}"
+		DEVICE="LCMXO2-1200HC"
+		LSE_ARCH="MachXO2"
+		;;
 	LCMXO2-2000HC)
 		PACKAGE="${DEV_PACKAGE:-TQFP100}"
 		DEVICE="LCMXO2-2000HC"
@@ -140,13 +176,19 @@ touch input.sdc
 touch input.lpf
 
 if [ -n "$USE_NCL" ]; then
-"$FOUNDRY"/userware/unix/bin/lin64/ncl2ncd input.ncl -drc -o par_impl.ncd
+
+if $WINDOWS; then
+	"$FOUNDRY"/userware/NT/bin/nt64/ncl2ncd input.ncl -drc -o par_impl.ncd
+else
+	"$FOUNDRY"/userware/unix/bin/lin64/ncl2ncd input.ncl -drc -o par_impl.ncd
+fi
 
 if test -f "input.prf"; then
 cp "input.prf" "synth_impl.prf"
 else
 touch synth_impl.prf
 fi
+
 
 else
 cat > impl_lse.prj << EOT
@@ -197,11 +239,19 @@ EOT
 
 fi
 
+# Forcefully disable compression
+echo "SYSCONFIG COMPRESS_CONFIG=OFF ;" >> synth_impl.prf
+
 # make bitmap
 "$fpgabindir"/bitgen -d par_impl.ncd $BITARGS output.bit synth_impl.prf
 
 if [ -n "$JEDEC_BITSTREAM" ]; then
 "$fpgabindir"/bitgen -d par_impl.ncd -jedec output.jed synth_impl.prf
+fi
+
+if [ -n "$COMPRESSED_BITSTREAM" ]; then
+	sed 's/COMPRESS_CONFIG=OFF/COMPRESS_CONFIG=ON/' synth_impl.prf > synth_impl_comp.prf
+	"$fpgabindir"/bitgen -d par_impl.ncd $BITARGS output-comp.bit synth_impl_comp.prf
 fi
 
 # dump bitmap
@@ -212,9 +262,14 @@ if [ -z "$USE_NCL" ]; then
 "$fpgabindir"/bstool -t output.bit > output.test
 
 # convert ngd to ncl
-"$FOUNDRY"/userware/unix/bin/lin64/ncd2ncl par_impl.ncd output.ncl
+if $WINDOWS; then
+	"$FOUNDRY"/userware/NT/bin/nt64/ncd2ncl par_impl.ncd output.ncl
+else
+	"$FOUNDRY"/userware/unix/bin/lin64/ncd2ncl par_impl.ncd output.ncl
+fi
 
 fi
+
 if [ -z "$NO_TRCE" ]; then
 # run trce
 "$fpgabindir"/trce -v -u -c  par_impl.ncd
@@ -238,6 +293,9 @@ cp "$2.tmp"/output.ncl "$2_out.ncl"
 fi
 if [ -n "$JEDEC_BITSTREAM" ]; then
 cp "$2.tmp"/output.jed "$2.jed"
+fi
+if [ -n "$COMPRESSED_BITSTREAM" ]; then
+cp "$2.tmp"/output-comp.bit "$2-comp.bit"
 fi
 if [ -n "$BACKANNO" ]; then
 cp "$2.tmp"/par_impl.sdf "$2.sdf"
