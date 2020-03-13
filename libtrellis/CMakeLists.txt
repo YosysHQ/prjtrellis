@@ -33,6 +33,7 @@ find_package(PythonInterp 3.5 REQUIRED)
 
 if (BUILD_PYTHON)
     find_package(PythonLibs 3.5 REQUIRED)
+    set(PythonInstallTarget "pytrellis")
 endif()
 
 find_package(Boost REQUIRED COMPONENTS ${boost_libs})
@@ -129,7 +130,7 @@ endfunction()
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/generated")
 set(LAST_GIT_VERSION "")
 if (NOT DEFINED CURRENT_GIT_VERSION)
-    execute_process(COMMAND git describe --tags OUTPUT_VARIABLE CURRENT_GIT_VERSION)
+    execute_process(COMMAND git describe --tags OUTPUT_VARIABLE CURRENT_GIT_VERSION WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 endif()
 string(STRIP "${CURRENT_GIT_VERSION}" CURRENT_GIT_VERSION)
 if (EXISTS "${CMAKE_BINARY_DIR}/generated/last_git_version")
@@ -174,7 +175,7 @@ target_link_libraries(ecpmulti trellis ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} ${lin
 setup_rpath(ecpmulti)
 
 if (BUILD_SHARED)
-    install(TARGETS trellis ecpbram ecppack ecppll ecpunpack ecpmulti pytrellis
+    install(TARGETS trellis ecpbram ecppack ecppll ecpunpack ecpmulti ${PythonInstallTarget}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/trellis
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 else()

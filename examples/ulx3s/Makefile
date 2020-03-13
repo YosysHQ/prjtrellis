@@ -30,7 +30,7 @@ IDCODE ?= 0x21111043 # 12f
 	ujprog -t -b 3000000 $<
 
 pll_%.v:
-	../../libtrellis/ecppll \
+	ecppll \
 		-i 25 \
 		-o $(subst pll_,,$(basename $@)) \
 		-n $(basename $@) \
