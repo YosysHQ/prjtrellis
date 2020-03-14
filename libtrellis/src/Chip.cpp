@@ -109,6 +109,14 @@ ChipDelta operator-(const Chip &a, const Chip &b)
 
 shared_ptr<RoutingGraph> Chip::get_routing_graph()
 {
+    if(info.family == "ECP5") {
+        return get_routing_graph_ecp5();
+    } else
+      throw runtime_error("Unknown chip family: " + info.family);
+}
+
+shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5()
+{
     shared_ptr<RoutingGraph> rg(new RoutingGraph(*this));
     //cout << "Building routing graph" << endl;
     for (auto tile_entry : tiles) {
@@ -118,140 +126,140 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
         bitdb->add_routing(tile->info, *rg);
         int x, y;
         tie(y, x) = tile->info.get_row_col();
-        // SLICE Bels
+        // SLICE Ecp5Bels
         if (tile->info.type == "PLC2") {
             for (int z = 0; z < 4; z++)
-                Bels::add_lc(*rg, x, y, z);
+                Ecp5Bels::add_lc(*rg, x, y, z);
         }
-        // PIO Bels
+        // PIO Ecp5Bels
         if (tile->info.type.find("PICL0") != string::npos || tile->info.type.find("PICR0") != string::npos)
             for (int z = 0; z < 4; z++) {
-                Bels::add_pio(*rg, x, y, z);
-                Bels::add_iologic(*rg, x, y, z, false);
+                Ecp5Bels::add_pio(*rg, x, y, z);
+                Ecp5Bels::add_iologic(*rg, x, y, z, false);
             }
         if (tile->info.type.find("PIOT0") != string::npos || (tile->info.type.find("PICB0") != string::npos && tile->info.type != "SPICB0"))
             for (int z = 0; z < 2; z++) {
-                Bels::add_pio(*rg, x, y, z);
-                Bels::add_iologic(*rg, x, y, z, true);
+                Ecp5Bels::add_pio(*rg, x, y, z);
+                Ecp5Bels::add_iologic(*rg, x, y, z, true);
             }
         if (tile->info.type == "SPICB0") {
-            Bels::add_pio(*rg, x, y, 0);
-            Bels::add_iologic(*rg, x, y, 0, true);
+            Ecp5Bels::add_pio(*rg, x, y, 0);
+            Ecp5Bels::add_iologic(*rg, x, y, 0, true);
         }
-        // DCC Bels
+        // DCC Ecp5Bels
         if (tile->info.type == "LMID_0")
             for (int z = 0; z < 14; z++)
-                Bels::add_dcc(*rg, x, y, "L", std::to_string(z));
+                Ecp5Bels::add_dcc(*rg, x, y, "L", std::to_string(z));
         if (tile->info.type == "RMID_0")
             for (int z = 0; z < 14; z++)
-                Bels::add_dcc(*rg, x, y, "R", std::to_string(z));
+                Ecp5Bels::add_dcc(*rg, x, y, "R", std::to_string(z));
         if (tile->info.type == "TMID_0")
             for (int z = 0; z < 12; z++)
-                Bels::add_dcc(*rg, x, y, "T", std::to_string(z));
+                Ecp5Bels::add_dcc(*rg, x, y, "T", std::to_string(z));
         if (tile->info.type == "BMID_0V" || tile->info.type == "BMID_0H")
             for (int z = 0; z < 16; z++)
-                Bels::add_dcc(*rg, x, y, "B", std::to_string(z));
-        // RAM Bels
+                Ecp5Bels::add_dcc(*rg, x, y, "B", std::to_string(z));
+        // RAM Ecp5Bels
         if (tile->info.type == "MIB_EBR0" || tile->info.type == "EBR_CMUX_UR" || tile->info.type == "EBR_CMUX_LR"
             || tile->info.type == "EBR_CMUX_LR_25K")
-            Bels::add_bram(*rg, x, y, 0);
+            Ecp5Bels::add_bram(*rg, x, y, 0);
         if (tile->info.type == "MIB_EBR2")
-            Bels::add_bram(*rg, x, y, 1);
+            Ecp5Bels::add_bram(*rg, x, y, 1);
         if (tile->info.type == "MIB_EBR4")
-            Bels::add_bram(*rg, x, y, 2);
+            Ecp5Bels::add_bram(*rg, x, y, 2);
         if (tile->info.type == "MIB_EBR6")
-            Bels::add_bram(*rg, x, y, 3);
-        // DSP Bels
+            Ecp5Bels::add_bram(*rg, x, y, 3);
+        // DSP Ecp5Bels
         if (tile->info.type == "MIB_DSP0")
-            Bels::add_mult18(*rg, x, y, 0);
+            Ecp5Bels::add_mult18(*rg, x, y, 0);
         if (tile->info.type == "MIB_DSP1")
-            Bels::add_mult18(*rg, x, y, 1);
+            Ecp5Bels::add_mult18(*rg, x, y, 1);
         if (tile->info.type == "MIB_DSP4")
-            Bels::add_mult18(*rg, x, y, 4);
+            Ecp5Bels::add_mult18(*rg, x, y, 4);
         if (tile->info.type == "MIB_DSP5")
-            Bels::add_mult18(*rg, x, y, 5);
+            Ecp5Bels::add_mult18(*rg, x, y, 5);
         if (tile->info.type == "MIB_DSP3")
-            Bels::add_alu54b(*rg, x, y, 3);
+            Ecp5Bels::add_alu54b(*rg, x, y, 3);
         if (tile->info.type == "MIB_DSP7")
-            Bels::add_alu54b(*rg, x, y, 7);
-        // PLL Bels
+            Ecp5Bels::add_alu54b(*rg, x, y, 7);
+        // PLL Ecp5Bels
         if (tile->info.type == "PLL0_UL")
-            Bels::add_pll(*rg, "UL", x+1, y);
+            Ecp5Bels::add_pll(*rg, "UL", x+1, y);
         if (tile->info.type == "PLL0_LL")
-            Bels::add_pll(*rg, "LL", x, y-1);
+            Ecp5Bels::add_pll(*rg, "LL", x, y-1);
         if (tile->info.type == "PLL0_LR")
-            Bels::add_pll(*rg, "LR", x, y-1);
+            Ecp5Bels::add_pll(*rg, "LR", x, y-1);
         if (tile->info.type == "PLL0_UR")
-            Bels::add_pll(*rg, "UR", x-1, y);
-        // DCU and ancillary Bels
+            Ecp5Bels::add_pll(*rg, "UR", x-1, y);
+        // DCU and ancillary Ecp5Bels
         if (tile->info.type == "DCU0") {
-            Bels::add_dcu(*rg, x, y);
-            Bels::add_extref(*rg, x, y);
+            Ecp5Bels::add_dcu(*rg, x, y);
+            Ecp5Bels::add_extref(*rg, x, y);
         }
         if (tile->info.type == "BMID_0H")
             for (int z = 0; z < 2; z++)
-                Bels::add_pcsclkdiv(*rg, x, y-1, z);
-        // Config/system Bels
+                Ecp5Bels::add_pcsclkdiv(*rg, x, y-1, z);
+        // Config/system Ecp5Bels
         if (tile->info.type == "EFB0_PICB0") {
-            Bels::add_misc(*rg, "GSR", x, y-1);
-            Bels::add_misc(*rg, "JTAGG", x, y-1);
-            Bels::add_misc(*rg, "OSCG", x, y-1);
-            Bels::add_misc(*rg, "SEDGA", x, y-1);
+            Ecp5Bels::add_misc(*rg, "GSR", x, y-1);
+            Ecp5Bels::add_misc(*rg, "JTAGG", x, y-1);
+            Ecp5Bels::add_misc(*rg, "OSCG", x, y-1);
+            Ecp5Bels::add_misc(*rg, "SEDGA", x, y-1);
         }
         if (tile->info.type == "DTR")
-            Bels::add_misc(*rg, "DTR", x, y-1);
+            Ecp5Bels::add_misc(*rg, "DTR", x, y-1);
         if (tile->info.type == "EFB1_PICB1")
-            Bels::add_misc(*rg, "USRMCLK", x-5, y);
+            Ecp5Bels::add_misc(*rg, "USRMCLK", x-5, y);
         if (tile->info.type == "ECLK_L") {
-            Bels::add_ioclk_bel(*rg, "CLKDIVF", x-2, y, 0, 7);
-            Bels::add_ioclk_bel(*rg, "CLKDIVF", x-2, y, 1, 6);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y, 0, 7);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y, 1, 7);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y+1, 0, 6);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y+1, 1, 6);
-            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y, 0, 7);
-            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y, 1, 7);
-            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y+1, 0, 6);
-            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y+1, 1, 6);
-            Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y-1, 0);
-            Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y, 0);
-            Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y+1, 0);
-            Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y+2, 0);
-            Bels::add_ioclk_bel(*rg, "ECLKBRIDGECS", x-2, y, 1);
-            Bels::add_ioclk_bel(*rg, "BRGECLKSYNC", x-2, y, 1);
+            Ecp5Bels::add_ioclk_bel(*rg, "CLKDIVF", x-2, y, 0, 7);
+            Ecp5Bels::add_ioclk_bel(*rg, "CLKDIVF", x-2, y, 1, 6);
+            Ecp5Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y, 0, 7);
+            Ecp5Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y, 1, 7);
+            Ecp5Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y+1, 0, 6);
+            Ecp5Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x-2, y+1, 1, 6);
+            Ecp5Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y, 0, 7);
+            Ecp5Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y, 1, 7);
+            Ecp5Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y+1, 0, 6);
+            Ecp5Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x-2, y+1, 1, 6);
+            Ecp5Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y-1, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y+1, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "DLLDELD", x-2, y+2, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "ECLKBRIDGECS", x-2, y, 1);
+            Ecp5Bels::add_ioclk_bel(*rg, "BRGECLKSYNC", x-2, y, 1);
         }
         if (tile->info.type == "ECLK_R") {
-            Bels::add_ioclk_bel(*rg, "CLKDIVF", x+2, y, 0);
-            Bels::add_ioclk_bel(*rg, "CLKDIVF", x+2, y, 1);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y, 0, 2);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y, 1, 2);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y+1, 0, 3);
-            Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y+1, 1, 3);
-            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y, 0, 2);
-            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y, 1, 2);
-            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y+1, 0, 3);
-            Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y+1, 1, 3);
-            Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y-1, 0);
-            Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y, 0);
-            Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y+1, 0);
-            Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y+2, 0);
-            Bels::add_ioclk_bel(*rg, "ECLKBRIDGECS", x+2, y, 0);
-            Bels::add_ioclk_bel(*rg, "BRGECLKSYNC", x+2, y, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "CLKDIVF", x+2, y, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "CLKDIVF", x+2, y, 1);
+            Ecp5Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y, 0, 2);
+            Ecp5Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y, 1, 2);
+            Ecp5Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y+1, 0, 3);
+            Ecp5Bels::add_ioclk_bel(*rg, "ECLKSYNCB", x+2, y+1, 1, 3);
+            Ecp5Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y, 0, 2);
+            Ecp5Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y, 1, 2);
+            Ecp5Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y+1, 0, 3);
+            Ecp5Bels::add_ioclk_bel(*rg, "TRELLIS_ECLKBUF", x+2, y+1, 1, 3);
+            Ecp5Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y-1, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y+1, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "DLLDELD", x+2, y+2, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "ECLKBRIDGECS", x+2, y, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "BRGECLKSYNC", x+2, y, 0);
         }
         if (tile->info.type == "DDRDLL_UL")
-            Bels::add_ioclk_bel(*rg, "DDRDLL", x-2, y-10, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "DDRDLL", x-2, y-10, 0);
         if (tile->info.type == "DDRDLL_ULA")
-            Bels::add_ioclk_bel(*rg, "DDRDLL", x-2, y-13, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "DDRDLL", x-2, y-13, 0);
         if (tile->info.type == "DDRDLL_UR")
-            Bels::add_ioclk_bel(*rg, "DDRDLL", x+2, y-10, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "DDRDLL", x+2, y-10, 0);
         if (tile->info.type == "DDRDLL_URA")
-            Bels::add_ioclk_bel(*rg, "DDRDLL", x+2, y-13, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "DDRDLL", x+2, y-13, 0);
         if (tile->info.type == "DDRDLL_LL")
-            Bels::add_ioclk_bel(*rg, "DDRDLL", x-2, y+13, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "DDRDLL", x-2, y+13, 0);
         if (tile->info.type == "DDRDLL_LR")
-            Bels::add_ioclk_bel(*rg, "DDRDLL", x+2, y+13, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "DDRDLL", x+2, y+13, 0);
         if (tile->info.type == "PICL0_DQS2" || tile->info.type == "PICR0_DQS2")
-            Bels::add_ioclk_bel(*rg, "DQSBUFM", x, y, 0);
+            Ecp5Bels::add_ioclk_bel(*rg, "DQSBUFM", x, y, 0);
 
     }
     return rg;

@@ -150,6 +150,10 @@ public:
 
     // Globals data
     GlobalsInfo global_data;
+
+private:
+    // Factory functions
+    shared_ptr<RoutingGraph> get_routing_graph_ecp5();
 };
 
 ChipDelta operator-(const Chip &a, const Chip &b);

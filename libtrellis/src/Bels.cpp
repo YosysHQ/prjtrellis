@@ -3,7 +3,7 @@
 #include "Database.hpp"
 #include "BitDatabase.hpp"
 namespace Trellis {
-namespace Bels {
+namespace Ecp5Bels {
 
 void add_lc(RoutingGraph &graph, int x, int y, int z) {
     char l = "ABCD"[z];
