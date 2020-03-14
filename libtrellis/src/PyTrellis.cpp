@@ -443,6 +443,7 @@ BOOST_PYTHON_MODULE (pytrellis)
 
     class_<RoutingGraph, shared_ptr<RoutingGraph>>("RoutingGraph", no_init)
             .def_readonly("chip_name", &RoutingGraph::chip_name)
+            .def_readonly("chip_family", &RoutingGraph::chip_family)
             .def_readonly("max_row", &RoutingGraph::max_row)
             .def_readonly("max_col", &RoutingGraph::max_col)
             .def("ident", &RoutingGraph::ident)

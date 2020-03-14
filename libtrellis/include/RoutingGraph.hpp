@@ -135,6 +135,7 @@ public:
 
     // Must be set up beforehand
     std::string chip_name;
+    std::string chip_family;
     std::string chip_prefix;
     int max_row, max_col;
 
@@ -157,6 +158,11 @@ public:
     // Add a Bel input or output pin
     void add_bel_input(RoutingBel &bel, ident_t pin, int wire_x, int wire_y, ident_t wire_name);
     void add_bel_output(RoutingBel &bel, ident_t pin, int wire_x, int wire_y, ident_t wire_name);
+
+private:
+    // Factory functions
+    RoutingId globalise_net_ecp5(int row, int col, const std::string &db_name);
+    RoutingId globalise_net_machxo2(int row, int col, const std::string &db_name);
 };
 }
 

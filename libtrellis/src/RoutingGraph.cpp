@@ -10,7 +10,7 @@ namespace Trellis {
 // graph creation.
 const Location GlobalLoc(-2, -2);
 
-RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), max_row(c.get_max_row()), max_col(c.get_max_col())
+RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), chip_family(c.info.family), max_row(c.get_max_row()), max_col(c.get_max_col())
 {
     tiles[GlobalLoc].loc = GlobalLoc;
     for (int y = 0; y <= max_row; y++) {
@@ -57,6 +57,16 @@ RoutingId IdStore::id_at_loc(int16_t x, int16_t y, const std::string &str) const
 }
 
 RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_name)
+{
+    if(chip_family == "ECP5") {
+        return globalise_net_ecp5(row, col, db_name);
+    } else if(chip_family == "MachXO2") {
+        return globalise_net_machxo2(row, col, db_name);
+    } else
+        throw runtime_error("Unknown chip family: " + chip_family);
+}
+
+RoutingId RoutingGraph::globalise_net_ecp5(int row, int col, const std::string &db_name)
 {
     static const std::regex e(R"(^([NS]\d+)?([EW]\d+)?_(.*))", std::regex::optimize);
     std::string stripped_name = db_name;
@@ -114,6 +124,11 @@ RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_na
             return RoutingId(); // TODO: handle edge nets properly
         return id;
     }
+}
+
+RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::string &db_name)
+{
+    return RoutingId();
 }
 
 void RoutingGraph::add_arc(Location loc, const RoutingArc &arc)
