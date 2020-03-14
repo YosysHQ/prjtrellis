@@ -111,6 +111,8 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph()
 {
     if(info.family == "ECP5") {
         return get_routing_graph_ecp5();
+    } else if(info.family == "MachXO2") {
+        return get_routing_graph_machxo2();
     } else
       throw runtime_error("Unknown chip family: " + info.family);
 }
@@ -262,6 +264,13 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5()
             Ecp5Bels::add_ioclk_bel(*rg, "DQSBUFM", x, y, 0);
 
     }
+    return rg;
+}
+
+shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2()
+{
+    shared_ptr<RoutingGraph> rg(new RoutingGraph(*this));
+
     return rg;
 }
 

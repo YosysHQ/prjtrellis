@@ -6,6 +6,8 @@
 
 namespace Trellis {
 
+// This is ignored for the MachXO2 family- globals are handled during routing
+// graph creation.
 const Location GlobalLoc(-2, -2);
 
 RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), max_row(c.get_max_row()), max_col(c.get_max_col())
@@ -23,6 +25,9 @@ RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), max_row(c.ge
         chip_prefix = "45K_";
     else if (chip_name.find("85F") != string::npos)
         chip_prefix = "85K_";
+    else if (chip_name.find("1200HC") != string::npos)
+        // FIXME: Prefix to distinguish XO, XO2, and XO3?
+        chip_prefix = "1200_";
     else
         assert(false);
 }

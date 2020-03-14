@@ -634,4 +634,14 @@ void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, i
 
 
 }
+
+namespace MachXO2Bels {
+    void add_lc(RoutingGraph &graph, int x, int y, int z) {
+
+    }
+
+    void add_pio(RoutingGraph &graph, int x, int y, int z) {
+      
+    }
+}
 }

@@ -154,6 +154,7 @@ public:
 private:
     // Factory functions
     shared_ptr<RoutingGraph> get_routing_graph_ecp5();
+    shared_ptr<RoutingGraph> get_routing_graph_machxo2();
 };
 
 ChipDelta operator-(const Chip &a, const Chip &b);
