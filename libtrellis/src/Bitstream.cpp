@@ -39,8 +39,6 @@ public:
     BitstreamOptions(const Chip &chip) {
       if (chip.info.family == "MachXO2") {
           // Write frames out in order 0 => max or reverse (max => 0).
-          // This apparently does NOT apply to compressed bitstreams, which
-          // uses reversed_frames = true unconditionally.
           reversed_frames = false;
           dummy_bytes_after_preamble = 2;
           crc_meta = 0xE0; // CRC check (0x80), once at end (0x40), dummy bits
@@ -600,9 +598,7 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                     bytes_per_frame += (7 - ((bytes_per_frame - 1) % 8));
                 unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
                 for (size_t i = 0; i < frame_count; i++) {
-                    // Apparently when a bitstream is compressed, even on
-                    // MachXO2, frames are written in reverse order!
-                    const size_t idx = (chip->info.num_frames - 1) - i;
+                    size_t idx = ops.reversed_frames ? (chip->info.num_frames - 1) - i : i;
                     if (cmd == BitstreamCommand::LSC_PROG_INCR_CMP)
                         rd.get_compressed_bytes(frame_bytes.get(), bytes_per_frame, compression_dict.get());
                     else
@@ -798,6 +794,7 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
         size_t bytes_per_frame = (chip.info.bits_per_frame + chip.info.pad_bits_after_frame +
                                   chip.info.pad_bits_before_frame) / 8U;
         for (size_t i = 0; i < frames; i++) {
+            const size_t idx = ops.reversed_frames? (chip.info.num_frames - 1) - i : i;
             frames_data.emplace_back();
             auto &frame_bytes = frames_data.back();
             frame_bytes.resize(bytes_per_frame);
@@ -805,7 +802,7 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
                 size_t ofs = j + chip.info.pad_bits_after_frame;
                 assert(((bytes_per_frame - 1) - (ofs / 8)) < bytes_per_frame);
                 frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] |=
-                        (chip.cram.bit((chip.info.num_frames - 1) - i, j) & 0x01) << (ofs % 8);
+                        (chip.cram.bit(idx, j) & 0x01) << (ofs % 8);
             }
         }
         // Then compress and write
