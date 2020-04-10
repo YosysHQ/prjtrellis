@@ -146,7 +146,7 @@ int main(int argc, char **argv)
     if (vm.count("help")) {
     help:
         cerr << "Project Trellis - Open Source Tools for ECP5 FPGAs" << endl;
-        cerr << "ecpbram: ECP5 BRAM content initialization tool" << endl;
+        cerr << argv[0] << ": ECP5 BRAM content initialization tool" << endl;
         cerr << endl;
         cerr << "Copyright (C) 2019  Sylvain Munaut <tnt@246tNt.com>" << endl;
         cerr << "Copyright (C) 2016  Clifford Wolf <clifford@clifford.at>" << endl;
