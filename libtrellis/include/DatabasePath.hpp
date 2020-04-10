@@ -11,7 +11,7 @@
 std::string get_database_path()
 {
     boost::filesystem::path executable_path = boost::dll::program_location().parent_path();
-    boost::filesystem::path database_datadir_relative(TRELLIS_RPATH_DATADIR "/trellis/database");
+    boost::filesystem::path database_datadir_relative(TRELLIS_RPATH_DATADIR "/" TRELLIS_PROGRAM_PREFIX "trellis/database");
     std::string database_folder = (executable_path /= database_datadir_relative).string();
     return database_folder;
 }

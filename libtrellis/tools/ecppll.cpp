@@ -124,7 +124,7 @@ int main(int argc, char** argv){
 
   if(vm.count("help")){
     cerr << "Project Trellis - Open Source Tools for ECP5 FPGAs" << endl;
-    cerr << "ecppll: ECP5 PLL Configuration Calculator" << endl;
+    cerr << argv[0] << ": ECP5 PLL Configuration Calculator" << endl;
     cerr << "Version " << git_describe_str << endl;
     cerr << endl;
     cerr << "This tool is experimental! Use at your own risk!" << endl;
