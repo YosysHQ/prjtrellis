@@ -1,0 +1,19 @@
+name: arch-pkg
+on: [push, pull_request]
+
+jobs:
+  arch-pkg:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux
+      options: --privileged
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Arch Linux package
+        uses: FFY00/build-arch-package@master
+        with:
+          PKGBUILD: $GITHUB_WORKSPACE/.github/archlinux/PKGBUILD
+
+
