@@ -45,6 +45,8 @@ int main(int argc, char *argv[])
     options.add_options()("freq", po::value<std::string>(), "config frequency in MHz");
     options.add_options()("svf", po::value<std::string>(), "output SVF file");
     options.add_options()("svf-rowsize", po::value<int>(), "SVF row size in bits (default 8000)");
+    options.add_options()("svf-spibase", po::value<std::string>(), "Base address for SVF SPI writes");
+    options.add_options()("svf-spiflash", "SVF output will write to SPI flash");
     options.add_options()("compress", "compress bitstream to reduce size");
     options.add_options()("spimode", po::value<std::string>(), "SPI Mode to use (fast-read, dual-spi, qspi)");
     options.add_options()("background", "enable background reconfiguration in bitstream");
@@ -176,6 +178,18 @@ help:
     }
 
     bool partial_mode = false;
+    bool svfspiflash = vm.count("svf-spiflash");
+    uint32_t spibase = 0;
+    if (vm.count("svf-spibase")) {
+        spibase = convert_hexstring(vm["svf-spibase"].as<string>());
+
+        if (spibase & 0xffff) {
+            cerr << "Error: Base Address must be 64k aligned !" << endl;
+            return 1;
+        }
+
+        spibase = (spibase & 0x00ff0000) >> 16;
+    }
     vector<uint32_t> partial_frames;
     if (vm.count("delta")) {
         ifstream delta_file(vm["delta"].as<string>());
@@ -215,7 +229,7 @@ help:
     if (vm.count("svf")) {
         // Create JTAG bitstream without SPI flash related settings, as these
         // seem to confuse the chip sometimes when configuring over JTAG
-        if (!bitopts.empty() && !(bitopts.size() == 1 && bitopts.count("compress"))) {
+        if (!bitopts.empty() && !vm.count("svf-spiflash") && !(bitopts.size() == 1 && bitopts.count("compress"))) {
             bitopts.clear();
             if (vm.count("background"))
                 bitopts["background"] = "yes";
@@ -227,7 +241,7 @@ help:
         }
 
         vector<uint8_t> bitstream = b.get_bytes();
-        int max_row_size = 8000;
+        int max_row_size = svfspiflash ? 2048 : 8000;
         if (vm.count("svf-rowsize"))
             max_row_size = vm["svf-rowsize"].as<int>();
         if ((max_row_size % 8) != 0 || max_row_size <= 0) {
@@ -246,80 +260,114 @@ help:
         svf_file << "ENDDR\tDRPAUSE;" << endl;
         svf_file << "ENDIR\tIRPAUSE;" << endl;
         svf_file << "STATE\tIDLE;" << endl;
-        svf_file << "SIR\t8\tTDI  (E0);" << endl;
+        svf_file << "SIR\t8\tTDI  (E0);    ! READ_ID" << endl;
         svf_file << "SDR\t32\tTDI  (00000000)" << endl;
         svf_file << "\t\t\tTDO  (" << setw(8) << hex << uppercase << setfill('0') << c.info.idcode << ")" << endl;
         svf_file << "\t\t\tMASK (FFFFFFFF);" << endl;
         svf_file << endl;
         if (!partial_mode) {
-            svf_file << "SIR\t8\tTDI  (1C);" << endl;
+            svf_file << "SIR\t8\tTDI  (1C);    ! LSC_PRELOAD" << endl;
             svf_file << "SDR\t510\tTDI  (3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << endl;
             svf_file << "\t\t\t\tFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);" << endl;
             svf_file << endl;
-            svf_file << "SIR\t8\tTDI  (C6);" << endl;
+            svf_file << "SIR\t8\tTDI  (C6);    ! ISC_ENABLE" << endl;
             svf_file << "SDR\t8\tTDI  (00);" << endl;
             svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
             svf_file << endl;
-            svf_file << "SIR\t8\tTDI  (0E);" << endl;
+            svf_file << "SIR\t8\tTDI  (0E);    ! ISC_ERASE" << endl;
             svf_file << "SDR\t8\tTDI  (01);" << endl;
             svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
             svf_file << endl;
-            svf_file << "SIR\t8\tTDI  (3C);" << endl;
+            svf_file << "SIR\t8\tTDI  (3C);    ! LSC_READ_STATUS" << endl;
             svf_file << "SDR\t32\tTDI  (00000000)" << endl;
             svf_file << "\t\t\tTDO  (00000000)" << endl;
-            svf_file << "\t\t\tMASK (0000B000);" << endl;
+            svf_file << "\t\t\tMASK (0000B000);    ! not encrypted, not busy, not failed" << endl;
             svf_file << endl;
         } else {
-            svf_file << "SIR\t8\tTDI  (79);" << endl;
+            svf_file << "SIR\t8\tTDI  (79);    ! LSC_REFRESH" << endl;
             svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
-            svf_file << "SIR\t8\tTDI  (74);" << endl;
+            svf_file << "SIR\t8\tTDI  (74);    ! ISC_ENABLE_X" << endl;
             svf_file << "SDR\t8\tTDI  (00);" << endl;
             svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
         }
-        svf_file << "SIR\t8\tTDI  (46);" << endl;
-        svf_file << "SDR\t8\tTDI  (01);" << endl;
-        svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
-        svf_file << endl;
-        svf_file << "SIR\t8\tTDI  (7A);" << endl;
-        svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
+        if (svfspiflash) {
+            svf_file << "STATE\tRESET;" << endl;
+            svf_file << "STATE\tIDLE;" << endl;
+            svf_file << "SIR\t8\tTDI  (FF);    ! ISC_NOOP" << endl;
+            svf_file << "RUNTEST\tIDLE\t32 TCK\t1.00E-01 SEC;" << endl;
+
+            svf_file << "SIR\t8\tTDI  (3A);    ! LSC_PROG_SPI" << endl;
+            svf_file << "SDR\t16\tTDI  (68FE);" << endl;
+            svf_file << "RUNTEST\tIDLE\t32 TCK\t1.00E-02 SEC;" << endl;
+            int erase_end = spibase + ( ( bitstream.size() + 0xFFFF ) >> 16 );
+            for(int i = spibase; i < erase_end; i++ ) {
+                svf_file << "SDR\t8\tTDI  (60);    ! 06, Write Enable" << endl;
+
+                svf_file << "SDR\t32\tTDI(0000" << setw(2) << unsigned(reverse_byte(uint8_t(i))) << "1B);    ! D8, Block Erase" << endl;
+                svf_file << "RUNTEST\tIDLE\t8.00E-01 SEC;" << endl;
+
+                svf_file << "SDR\t16\tTDI(00A0)    ! 05, Read Status Register 1" << endl;
+                svf_file << "\tTDO(00FF)" << endl;
+                svf_file << "\tMASK(C100);    ! not protect, not write enable, not busy" << endl;
+            }
+        } else {
+            svf_file << "SIR\t8\tTDI  (46);    ! LSC_INIT_ADDRESS" << endl;
+            svf_file << "SDR\t8\tTDI  (01);" << endl;
+            svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
+            svf_file << endl;
+            svf_file << "SIR\t8\tTDI  (7A);    ! LSC_BITSTREAM_BURST" << endl;
+            svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
+        }
         size_t i = 0;
         while(i < bitstream.size()) {
            size_t len = min(size_t(max_row_size / 8), bitstream.size() - i);
            if (len == 0)
                break;
-           svf_file << "SDR\t" << setw(0) << dec << (8 * len) << "\tTDI  (";
+           if (svfspiflash)
+               svf_file << "SDR\t8\tTDI  (60);    ! 06, Write Enable" << endl;
+           svf_file << "SDR\t" << setw(0) << dec << (8 * len + (svfspiflash ? 32 : 0)) << "\tTDI  (";
            svf_file << hex << uppercase << setw(2) << setfill('0');
            for (int j = len - 1; j >= 0; j--) {
                 svf_file << setw(2) << unsigned(reverse_byte(uint8_t(bitstream[j + i])));
                 if (j % 40 == 0 && j != 0)
                     svf_file << endl << "\t\t\t";
            }
-           svf_file << ");" << endl;
+           if (svfspiflash) {
+               svf_file << setw(2) << unsigned(reverse_byte(uint8_t(i & 0xFF))) << setw(2) << unsigned(reverse_byte(uint8_t((i >> 8) & 0xFF))) << setw(2) << unsigned(reverse_byte(uint8_t(((i >> 16) + spibase ) & 0xFF))) << "40);    ! 02, Page Program" << endl;
+               svf_file << "RUNTEST\tIDLE\t5.00E-03 SEC;" << endl;
+               svf_file << "SDR\t16\tTDI(00A0)    ! 05, Read Status Register 1" << endl;
+               svf_file << "\tTDO(00FF)" << endl;
+               svf_file << "\tMASK(C100);    ! not protect, not write enable, not busy" << endl;
+           } else
+               svf_file << ");" << endl;
            i += len;
         }
         if (!partial_mode) {
             svf_file << endl;
-            svf_file << "SIR\t8\tTDI  (FF);" << endl;
+            svf_file << "SIR\t8\tTDI  (FF);    ! ISC_NOOP" << endl;
             svf_file << "RUNTEST\tIDLE\t100 TCK\t1.00E-02 SEC;" << endl;
             svf_file << endl;
-            svf_file << "SIR\t8\tTDI  (C0);" << endl;
+            svf_file << "SIR\t8\tTDI  (C0);    ! USERCODE" << endl;
             svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-03 SEC;" << endl;
             svf_file << "SDR\t32\tTDI  (00000000)" << endl;
             svf_file << "\t\t\tTDO  (00000000)" << endl;
             svf_file << "\t\t\tMASK (FFFFFFFF);" << endl;
             svf_file << endl;
         }
-        svf_file << "SIR\t8\tTDI  (26);" << endl;
+        svf_file << "SIR\t8\tTDI  (26);    ! ISC_DISABLE" << endl;
         svf_file << "RUNTEST\tIDLE\t2 TCK\t2.00E-01 SEC;" << endl;
         svf_file << endl;
-        svf_file << "SIR\t8\tTDI  (FF);" << endl;
+        svf_file << "SIR\t8\tTDI  (FF);    ! ISC_NOOP" << endl;
         svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-03 SEC;" << endl;
         svf_file << endl;
-        if (!partial_mode) {
-            svf_file << "SIR\t8\tTDI  (3C);" << endl;
+        if (svfspiflash) {
+            svf_file << "SIR\t8\tTDI  (79);    ! LSC_REFRESH" << endl;
+            svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;    
+        } else if (!partial_mode) {
+            svf_file << "SIR\t8\tTDI  (3C);    ! LSC_READ_STATUS" << endl;
             svf_file << "SDR\t32\tTDI  (00000000)" << endl;
             svf_file << "\t\t\tTDO  (00000100)" << endl;
-            svf_file << "\t\t\tMASK (00002100);" << endl;
+            svf_file << "\t\t\tMASK (00002100);    ! done, not failed" << endl;
         }
     }
 
