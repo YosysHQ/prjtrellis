@@ -24,6 +24,10 @@ jobs = [
                                             tiles=dsp_tiles)),
     ("MULT18_R13C9", "MULT18_5", FuzzConfig(job="MULT18_5", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
                                             tiles=dsp_tiles)),
+    ("ALU54_R13C7", "ALU54_3", FuzzConfig(job="ALU54_3", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+                                            tiles=dsp_tiles)),
+    ("ALU54_R13C11", "ALU54_7", FuzzConfig(job="ALU54_7", family="ECP5", device="LFE5U-25F", ncl="empty.ncl",
+                                            tiles=dsp_tiles)),
 ]
 
 
@@ -51,7 +55,15 @@ def main():
                 nonrouting.fuzz_enum_setting(cfg, "{}.{}MUX".format(mult, sig), [sig, "INV"],
                                              lambda x: get_substs(sig, x), empty_bitfile,
                                              False)
-
+        extra_ports = []
+        if cellmodel == "ALU54":
+            extra_ports = ["OP{}".format(i) for i in range(11)]
+        if cellmodel == "MULT18":
+            extra_ports = ["SIGNEDA", "SIGNEDB", "SOURCEA", "SOURCEB"]
+        for port in extra_ports:
+            nonrouting.fuzz_enum_setting(cfg, "{}.{}MUX".format(mult, port), [port, "INV"],
+                                         lambda x: get_substs(port, x), empty_bitfile,
+                                         False)
     fuzzloops.parallel_foreach(jobs, per_job)
 
 
