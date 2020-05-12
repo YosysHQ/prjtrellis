@@ -69,10 +69,11 @@ void push_back_bitvector(vector<vector<bool>> &hexfile, const vector<int> &digit
             hexfile.back().at(i) = true;
 }
 
-void parse_hexfile_line(const char *filename, int linenr, vector<vector<bool>> &hexfile, string &line)
+void parse_hexfile_line(const char *filename, int linenr, vector<vector<bool>> &hexfile, string &line, int &address)
 {
     vector<int> digits;
-
+    bool reading_address = false;
+    
     for (char c : line) {
         if ('0' <= c && c <= '9')
             digits.push_back(c - '0');
@@ -85,9 +86,29 @@ void parse_hexfile_line(const char *filename, int linenr, vector<vector<bool>> &
             digits.push_back(0);
         else if ('_' == c)
             ;
-        else if (' ' == c || '\t' == c || '\r' == c) {
-            push_back_bitvector(hexfile, digits);
-            digits.clear();
+	else if ('@' == c) {
+	    if (reading_address || !digits.empty())
+		goto error;
+	    else
+		reading_address = true;
+        } else if (' ' == c || '\t' == c || '\r' == c) {
+	    if (reading_address) {
+		int file_address = 0;
+		for (int i = 0; i < int(digits.size()); i++ ) {
+		    file_address <<= 4;
+		    file_address |= digits.at(i);
+		}
+		if (file_address != address) {
+		    fprintf(stderr, "Non-contiguous address (expected @%X) at line %d of %s: %s\n", address, linenr, filename, line.c_str());
+		    exit(1);
+		}
+	    } else {
+		push_back_bitvector(hexfile, digits);
+		if( !digits.empty() )
+		    address++;
+	    }
+	    digits.clear();
+	    reading_address = false;
         } else goto error;
     }
 
@@ -146,7 +167,7 @@ int main(int argc, char **argv)
     if (vm.count("help")) {
     help:
         cerr << "Project Trellis - Open Source Tools for ECP5 FPGAs" << endl;
-        cerr << "ecpbram: ECP5 BRAM content initialization tool" << endl;
+        cerr << argv[0] << ": ECP5 BRAM content initialization tool" << endl;
         cerr << endl;
         cerr << "Copyright (C) 2019  Sylvain Munaut <tnt@246tNt.com>" << endl;
         cerr << "Copyright (C) 2016  Clifford Wolf <clifford@clifford.at>" << endl;
@@ -243,12 +264,12 @@ int main(int argc, char **argv)
     vector<vector<bool>> to_hexfile;
 
     string line;
+    
+    for (int i = 1, address = 0; getline(from_hexfile_f, line); i++)
+        parse_hexfile_line(from_hexfile_n, i, from_hexfile, line, address);
 
-    for (int i = 1; getline(from_hexfile_f, line); i++)
-        parse_hexfile_line(from_hexfile_n, i, from_hexfile, line);
-
-    for (int i = 1; getline(to_hexfile_f, line); i++)
-        parse_hexfile_line(to_hexfile_n, i, to_hexfile, line);
+    for (int i = 1, address = 0; getline(to_hexfile_f, line); i++)
+        parse_hexfile_line(to_hexfile_n, i, to_hexfile, line, address);
 
     if (to_hexfile.size() > 0 && from_hexfile.size() > to_hexfile.size()) {
         if (verbose)

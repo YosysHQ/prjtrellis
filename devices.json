@@ -2,6 +2,18 @@
   "families": {
     "ECP5": {
       "devices": {
+            "LFE5U-12F": {
+                "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
+                "idcode": "0x21111043",
+                "frames": 7562,
+                "bits_per_frame": 592,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 50,
+                "max_col" : 72,
+                "col_bias" : 0,
+                "fuzz": 1
+            },
             "LFE5U-25F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
                 "idcode": "0x41111043",

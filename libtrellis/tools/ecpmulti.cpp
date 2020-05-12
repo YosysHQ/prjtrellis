@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
         help:
         cerr << "Project Trellis - Open Source Tools for ECP5 FPGAs" << endl;
         cerr << "Version " << git_describe_str << endl;
-        cerr << "ecpmulti: ECP5 multiboot bitstream assembler" << endl;
+        cerr << argv[0] << ": ECP5 multiboot bitstream assembler" << endl;
         cerr << endl;
         cerr << "Copyright (C) 2019 Jens Andersen <jens.andersen@gmail.com>" << endl;
         cerr << endl;

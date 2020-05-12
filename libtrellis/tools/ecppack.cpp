@@ -75,11 +75,11 @@ int main(int argc, char *argv[])
 help:
         cerr << "Project Trellis - Open Source Tools for ECP5 FPGAs" << endl;
         cerr << "Version " << git_describe_str << endl;
-        cerr << "ecppack: ECP5 bitstream packer" << endl;
+        cerr << argv[0] << ": ECP5 bitstream packer" << endl;
         cerr << endl;
         cerr << "Copyright (C) 2018 David Shah <david@symbioticeda.com>" << endl;
         cerr << endl;
-        cerr << "Usage: ecppack input.config [output.bit] [options]" << endl;
+        cerr << "Usage: " << argv[0] << " input.config [output.bit] [options]" << endl;
         cerr << options << endl;
         return vm.count("help") ? 0 : 1;
     }
