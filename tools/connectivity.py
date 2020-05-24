@@ -66,7 +66,7 @@ def main():
             if net.startswith("G_"):
                 tnet = net
             else:
-                tnet = nets.normalise_name(chip_size, tname, net, bias)
+                tnet = nets.normalise_name(chip_size, tname, net, c.info.family)
             tdb = pytrellis.get_tile_bitdata(pytrellis.TileLocator(c.info.family, c.info.name, tinf.type))
             for sink in tdb.get_sinks():
                 mux = tdb.get_mux_data_for_sink(sink)

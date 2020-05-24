@@ -16,7 +16,7 @@ def main():
     def nn_filter(net, netnames):
         """ Match nets that are: in the tile according to Tcl, global nets, or span-1 nets that are accidentally
         left out by Tcl"""
-        return ((net in netnames or span1_re.match(net)) and nets.is_cib(net)) or nets.is_global(net)
+        return ((net in netnames or span1_re.match(net)) and nets.is_cib(net)) or nets.ecp5.is_global(net)
 
     def fc_filter(arc, netnames):
         """ Ignore connections between two general routing nets. These are edge buffers which vary based on location
