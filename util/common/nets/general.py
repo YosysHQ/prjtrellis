@@ -1,7 +1,7 @@
 import re
 import tiles
 
-from .ecp5 import *
+import ecp5
 
 
 # General inter-tile routing
@@ -128,7 +128,7 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
     return netname, wire_pos
 
 
-def normalise_name(chip_size, tile, wire, bias):
+def normalise_name(chip_size, tile, wire, family):
     """
     Wire name normalisation for tile wires and fuzzing
     All net names that we have access too are canonical, global names
@@ -156,33 +156,34 @@ def normalise_name(chip_size, tile, wire, bias):
     chip_size: chip size as tuple (max_row, max_col)
     tile: name of the relevant tile
     wire: full Lattice name of the wire
-    bias: Use 1-based column indexing
+    family: Device family to normalise. Affects column indexing (e.g. MachXO2 uses 1-based
+          column indexing) and naming of global wires, TAP_DRIVEs, DQS, bank wires,
+          etc.
 
     Returns the normalised netname
     """
+
+    if family == "ECP5":
+        def handle_family_net(tile, wire, prefix_pos, tile_pos, netname):
+            return ecp5.handle_family_net(tile, wire, prefix_pos, tile_pos, netname)
+        bias = 0
+    elif family == "MachXO2":
+        def handle_family_net(tile, wire, prefix_pos, tile_pos, netname):
+            return machxo2.handle_family_net(tile, wire, prefix_pos, tile_pos, netname)
+        bias = 1
+    else:
+        raise ValueError("Unknown device family.")
+
     upos = wire.index("_")
     prefix = wire[:upos]
     prefix_pos = tiles.pos_from_name(prefix, chip_size, bias)
     tile_pos = tiles.pos_from_name(tile, chip_size, bias)
     netname = wire[upos+1:]
-    if tile.startswith("TAP") and netname.startswith("H"):
-        if prefix_pos[1] < tile_pos[1]:
-            return "L_" + netname
-        elif prefix_pos[1] > tile_pos[1]:
-            return "R_" + netname
-        else:
-            assert False, "bad TAP_DRIVE netname"
-    elif is_global(wire):
-        return "G_" + netname
-    elif dqs_ssig_re.match(wire):
-        return "DQSG_" + netname
-    elif bnk_eclk_re.match(wire):
-        if "ECLK" in tile:
-            return "G_" + netname
-        else:
-            return "BNK_" + bnk_eclk_re.match(wire).group(1)
-    elif netname in ("INRD", "LVDS"):
-        return "BNK_" + netname
+
+    family_net = handle_family_net(tile, wire, prefix_pos, tile_pos, netname)
+    if family_net:
+        return family_net
+
     netname, prefix_pos = handle_edge_name(chip_size, tile_pos, prefix_pos, netname)
     if tile_pos == prefix_pos:
         return netname

@@ -1,3 +1,4 @@
 from .general import *
-from .ecp5 import *
+import ecp5
+import machxo2
 from .util import *

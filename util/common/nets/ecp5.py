@@ -80,3 +80,25 @@ def is_global(wire):
                 center_clk_re.match(wire) or
                 cib_eclk_re.match(wire) or
                 is_global_brgeclk(wire))
+
+def handle_family_net(tile, wire, prefix_pos, tile_pos, netname):
+    if tile.startswith("TAP") and netname.startswith("H"):
+        if prefix_pos[1] < tile_pos[1]:
+            return "L_" + netname
+        elif prefix_pos[1] > tile_pos[1]:
+            return "R_" + netname
+        else:
+            assert False, "bad TAP_DRIVE netname"
+    elif is_global(wire):
+        return "G_" + netname
+    elif dqs_ssig_re.match(wire):
+        return "DQSG_" + netname
+    elif bnk_eclk_re.match(wire):
+        if "ECLK" in tile:
+            return "G_" + netname
+        else:
+            return "BNK_" + bnk_eclk_re.match(wire).group(1)
+    elif netname in ("INRD", "LVDS"):
+        return "BNK_" + netname
+    else:
+        return None
