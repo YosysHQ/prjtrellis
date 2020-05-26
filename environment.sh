@@ -13,7 +13,7 @@ fi
 SCRIPT_PATH=$(readlink -f "${BASH_SOURCE:-$0}")
 SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 LIBTRELLIS_DIR="${SCRIPT_DIR}/libtrellis"
-PYTHONLIBS_DIR="${SCRIPT_DIR}/util:${SCRIPT_DIR}/util/common:${SCRIPT_DIR}/util/fuzz:${SCRIPT_DIR}/timing/util"
+PYTHONLIBS_DIR="${SCRIPT_DIR}/util:${SCRIPT_DIR}/util/common:${SCRIPT_DIR}/util/fuzz:${SCRIPT_DIR}/timing/util:${SCRIPT_DIR}/util/common/nets"
 export PYTHONPATH="${LIBTRELLIS_DIR}:${PYTHONLIBS_DIR}:${PYTHONPATH}"
 
 USER_ENV="${SCRIPT_DIR}/user_environment.sh"
