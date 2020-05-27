@@ -50,7 +50,7 @@ class Autorouter:
                     if wire.startswith("G_"):
                         twire = wire
                     else:
-                        twire = nets.normalise_name(self.chip_size, tname, wire, self.bias)
+                        twire = nets.normalise_name(self.chip_size, tname, wire, self.chip.info.family)
 
                     tdb = pytrellis.get_tile_bitdata(
                         pytrellis.TileLocator(self.chip.info.family, self.chip.info.name, tinf.type))
@@ -74,8 +74,8 @@ class Autorouter:
         else:
             self.net_to_wire[net] = {dest_wire}
         if configurable and not exists:
-            src_wirename = nets.normalise_name(self.chip_size, tile, uphill_wire, self.bias)
-            sink_wirename = nets.normalise_name(self.chip_size, tile, dest_wire, self.bias)
+            src_wirename = nets.normalise_name(self.chip_size, tile, uphill_wire, self.chip.info.family)
+            sink_wirename = nets.normalise_name(self.chip_size, tile, dest_wire, self.chip.info.family)
             config[tile].add_arc(sink_wirename, src_wirename)
 
     # Bind a net to a wire (used for port connections)

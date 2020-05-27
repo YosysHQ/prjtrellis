@@ -28,8 +28,7 @@ def fuzz_interconnect(config,
                       func_cib=False,
                       fc_prefix="",
                       nonlocal_prefix="",
-                      netdir_override=dict(),
-                      bias=0):
+                      netdir_override=dict()):
     """
     The fully-automatic interconnect fuzzer function. This performs the fuzzing and updates the database with the
     results. It is expected that PyTrellis has already been initialised with the database prior to this function being
@@ -54,8 +53,6 @@ def fuzz_interconnect(config,
     only consulted if ispTcl returns "---" for the direction of a given net. This dictionary overrides
     func_cib=False for the nets in question.
     :param nonlocal_prefix: add a prefix to non-global and non-neighbour wires for device-specific fuzzers
-    :param bias: Apply offset correction for n-based column numbering, n > 0. Used used by Lattice
-    on certain families.
     """
     netdata = isptcl.get_wires_at_position(config.ncd_prf, location)
     netnames = [x[0] for x in netdata]
@@ -75,7 +72,7 @@ def fuzz_interconnect(config,
     if func_cib and not netname_filter_union:
         netnames = list(filter(lambda x: netname_predicate(x, netnames), netnames))
     fuzz_interconnect_with_netnames(config, netnames, netname_predicate, arc_predicate, fc_predicate, func_cib,
-                                    netname_filter_union, False, fc_prefix, nonlocal_prefix, netdir_override, bias)
+                                    netname_filter_union, False, fc_prefix, nonlocal_prefix, netdir_override)
 
 
 def fuzz_interconnect_with_netnames(
@@ -89,8 +86,7 @@ def fuzz_interconnect_with_netnames(
         full_mux_style=False,
         fc_prefix="",
         nonlocal_prefix="",
-        netdir_override=dict(),
-        bias=0):
+        netdir_override=dict()):
     """
     Fuzz interconnect given a list of netnames to analyse. Arcs associated these netnames will be found using the Tcl
     API and bits identified as described above.
@@ -110,8 +106,6 @@ def fuzz_interconnect_with_netnames(
     specified as "-->" in ispTcl), or drive other nets (`"driver"`, specified as "<--" in ispTcl). The dictionary is
     only consulted if ispTcl returns "---" for the direction of a given net. This dictionary overrides
     bidir=False for the nets in question.
-    :param bias: Apply offset correction for n-based column numbering, n > 0. Used used by Lattice
-    on certain families.
     """
     net_arcs = isptcl.get_arcs_on_wires(config.ncd_prf, netnames, not bidir, netdir_override)
     baseline_bitf = config.build_design(config.ncl, {}, "base_")
@@ -121,7 +115,7 @@ def fuzz_interconnect_with_netnames(
     max_col = baseline_chip.get_max_col()
 
     def normalise_arc_in_tile(tile, arc):
-        return tuple(nets.normalise_name((max_row, max_col), tile, x, bias) for x in arc)
+        return tuple(nets.normalise_name((max_row, max_col), tile, x, config.family) for x in arc)
 
     def add_nonlocal_prefix(wire):
         if wire.startswith("G_"):

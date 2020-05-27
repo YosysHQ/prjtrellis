@@ -1,85 +1,7 @@
 import re
 import tiles
 
-# REGEXs for global/clock signals
-
-# Globals including spine inputs, TAP_DRIVE inputs and TAP_DRIVE outputs
-global_spine_tap_re = re.compile(r'R\d+C\d+_[HV]P[TLBR]X(\d){2}00')
-# CMUX outputs
-global_cmux_out_re = re.compile(r'R\d+C\d+_[UL][LR]PCLK\d+')
-# CMUX inputs
-global_cmux_in_re = re.compile(r'R\d+C\d+_[HV]PF[NESW](\d){2}00')
-# Clock pins
-clock_pin_re = re.compile(r'R\d+C\d+_J?PCLK[TBLR]\d+')
-# PLL global outputs
-pll_out_re = re.compile(r'R\d+C\d+_J?[UL][LR][QC]PLL\dCLKO[PS]\d?')
-
-# CIB clock inputs
-cib_clk_re = re.compile(r'R\d+C\d+_J?[ULTB][LR][QCM]PCLKCIB\d+')
-# Oscillator output
-osc_clk_re = re.compile(r'R\d+C\d+_J?OSC')
-# Clock dividers
-cdivx_clk_re = re.compile(r'R\d+C\d+_J?[UL]CDIVX\d+')
-# SED clock output
-sed_clk_re = re.compile(r'R\d+C\d+_J?SEDCLKOUT')
-
-# SERDES reference clocks
-pcs_clk_re = re.compile(r'R\d+C\d+_J?PCS[AB][TR]XCLK\d')
-
-
-# DDRDEL delay signals
-ddr_delay_re = re.compile(r'R\d+C\d+_[UL][LR]DDRDEL')
-
-# DCC signals
-dcc_clk_re = re.compile(r'R\d+C\d+_J?(CLK[IO]|CE)_[BLTR]?DCC(\d+|[BT][LR])')
-# DCC inputs
-dcc_clki_re = re.compile(r'R\d+C\d+_[BLTR]?DCC(\d+|[BT][LR])CLKI')
-# DCS signals
-dcs_sig_re = re.compile(r'R\d+C\d+_J?(CLK\d|SEL\d|DCSOUT|MODESEL)_DCS\d')
-# DCS clocks
-dcs_clk_re = re.compile(r'R\d+C\d+_DCS\d(CLK\d)?')
-# Misc. center clocks
-center_clk_re = re.compile(r'R\d+C\d+_J?(LE|RE)CLK\d')
-
-# Shared DQS signals
-dqs_ssig_re = re.compile(r'R\d+C\d+_(DQS[RW]\d*|(RD|WR)PNTR\d)$')
-
-# Bank edge clocks
-bnk_eclk_re = re.compile('R\d+C\d+_BANK\d+(ECLK\d+)')
-# CIB ECLK inputs
-cib_eclk_re = re.compile(r'R\d+C\d+_J?[ULTB][LR][QCM]ECLKCIB\d+')
-
-brg_eclk_re = re.compile(r'R\d+C(\d+)_JBRGECLK\d+')
-
-
-def is_global_brgeclk(wire):
-    m = brg_eclk_re.match(wire)
-    if not m:
-        return False
-    if m:
-        x = int(m.group(1))
-        return x > 5 and x < 67
-
-def is_global(wire):
-    """Return true if a wire is part of the global clock network"""
-    return bool(global_spine_tap_re.match(wire) or
-                global_cmux_out_re.match(wire) or
-                global_cmux_in_re.match(wire) or
-                clock_pin_re.match(wire) or
-                pll_out_re.match(wire) or
-                cib_clk_re.match(wire) or
-                osc_clk_re.match(wire) or
-                cdivx_clk_re.match(wire) or
-                sed_clk_re.match(wire) or
-                ddr_delay_re.match(wire) or
-                dcc_clk_re.match(wire) or
-                dcc_clki_re.match(wire) or
-                dcs_sig_re.match(wire) or
-                dcs_clk_re.match(wire) or
-                pcs_clk_re.match(wire) or
-                center_clk_re.match(wire) or
-                cib_eclk_re.match(wire) or
-                is_global_brgeclk(wire))
+import ecp5
 
 
 # General inter-tile routing
@@ -206,7 +128,7 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
     return netname, wire_pos
 
 
-def normalise_name(chip_size, tile, wire, bias):
+def normalise_name(chip_size, tile, wire, family):
     """
     Wire name normalisation for tile wires and fuzzing
     All net names that we have access too are canonical, global names
@@ -234,33 +156,34 @@ def normalise_name(chip_size, tile, wire, bias):
     chip_size: chip size as tuple (max_row, max_col)
     tile: name of the relevant tile
     wire: full Lattice name of the wire
-    bias: Use 1-based column indexing
+    family: Device family to normalise. Affects column indexing (e.g. MachXO2 uses 1-based
+          column indexing) and naming of global wires, TAP_DRIVEs, DQS, bank wires,
+          etc.
 
     Returns the normalised netname
     """
+
+    if family == "ECP5":
+        def handle_family_net(tile, wire, prefix_pos, tile_pos, netname):
+            return ecp5.handle_family_net(tile, wire, prefix_pos, tile_pos, netname)
+        bias = 0
+    elif family == "MachXO2":
+        def handle_family_net(tile, wire, prefix_pos, tile_pos, netname):
+            return machxo2.handle_family_net(tile, wire, prefix_pos, tile_pos, netname)
+        bias = 1
+    else:
+        raise ValueError("Unknown device family.")
+
     upos = wire.index("_")
     prefix = wire[:upos]
     prefix_pos = tiles.pos_from_name(prefix, chip_size, bias)
     tile_pos = tiles.pos_from_name(tile, chip_size, bias)
     netname = wire[upos+1:]
-    if tile.startswith("TAP") and netname.startswith("H"):
-        if prefix_pos[1] < tile_pos[1]:
-            return "L_" + netname
-        elif prefix_pos[1] > tile_pos[1]:
-            return "R_" + netname
-        else:
-            assert False, "bad TAP_DRIVE netname"
-    elif is_global(wire):
-        return "G_" + netname
-    elif dqs_ssig_re.match(wire):
-        return "DQSG_" + netname
-    elif bnk_eclk_re.match(wire):
-        if "ECLK" in tile:
-            return "G_" + netname
-        else:
-            return "BNK_" + bnk_eclk_re.match(wire).group(1)
-    elif netname in ("INRD", "LVDS"):
-        return "BNK_" + netname
+
+    family_net = handle_family_net(tile, wire, prefix_pos, tile_pos, netname)
+    if family_net:
+        return family_net
+
     netname, prefix_pos = handle_edge_name(chip_size, tile_pos, prefix_pos, netname)
     if tile_pos == prefix_pos:
         return netname
@@ -278,7 +201,6 @@ def normalise_name(chip_size, tile, wire, bias):
 
 
 rel_netname_re = re.compile(r'^([NS]\d+)?([EW]\d+)?_.*')
-
 
 def canonicalise_name(chip_size, tile, wire, bias):
     """
@@ -310,43 +232,3 @@ def canonicalise_name(chip_size, tile, wire, bias):
     if wire_pos[0] < 0 or wire_pos[0] > chip_size[0] or wire_pos[1] < 0 or wire_pos[1] > chip_size[1]:
         return None #TODO: edge normalisation
     return "R{}C{}_{}".format(wire_pos[0], wire_pos[1], wire)
-
-
-# Useful functions for constructing nets.
-def char_range(c1, c2):
-    """Generates the characters from `c1` to `c2`, exclusive."""
-    for c in range(ord(c1), ord(c2)):
-        yield chr(c)
-
-def net_product(net_list, range_iter):
-    return [n.format(i) for i in range_iter for n in net_list]
-
-
-def main():
-    assert is_global("R2C7_HPBX0100")
-    assert is_global("R24C12_VPTX0700")
-    assert is_global("R22C40_HPRX0300")
-    assert is_global("R34C67_ULPCLK7")
-    assert not is_global("R22C67_H06E0003")
-    assert is_global("R24C67_VPFS0800")
-    assert is_global("R1C67_JPCLKT01")
-
-    assert is_cib("R47C61_Q4")
-    assert is_cib("R47C58_H06W0003")
-    assert is_cib("R47C61_CLK0")
-
-    assert normalise_name((95, 126), "R48C26", "R48C26_B1", 0) == "B1"
-    assert normalise_name((95, 126), "R48C26", "R48C26_HPBX0600", 0) == "G_HPBX0600"
-    assert normalise_name((95, 126), "R48C26", "R48C25_H02E0001", 0) == "W1_H02E0001"
-    assert normalise_name((95, 126), "R48C1", "R48C1_H02E0002", 0) == "W1_H02E0001"
-    assert normalise_name((95, 126), "R82C90", "R79C90_V06S0003", 0) == "N3_V06S0003"
-    assert normalise_name((95, 126), "R5C95", "R3C95_V06S0004", 0) == "N3_V06S0003"
-    assert normalise_name((95, 126), "R1C95", "R1C95_V06S0006", 0) == "N3_V06S0003"
-    assert normalise_name((95, 126), "R3C95", "R2C95_V06S0005", 0) == "N3_V06S0003"
-    assert normalise_name((95, 126), "R82C95", "R85C95_V06N0303", 0) == "S3_V06N0303"
-    assert normalise_name((95, 126), "R90C95", "R92C95_V06N0304", 0) == "S3_V06N0303"
-    assert normalise_name((95, 126), "R93C95", "R94C95_V06N0305", 0) == "S3_V06N0303"
-
-
-if __name__ == "__main__":
-    main()
