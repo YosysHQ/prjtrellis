@@ -128,7 +128,39 @@ RoutingId RoutingGraph::globalise_net_ecp5(int row, int col, const std::string &
 
 RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::string &db_name)
 {
-    return RoutingId();
+  static const std::regex e(R"(^([NS]\d+)?([EW]\d+)?_(.*))", std::regex::optimize);
+  std::string stripped_name = db_name;
+
+  if (stripped_name.find("G_") == 0 || stripped_name.find("L_") == 0 || stripped_name.find("R_") == 0) {
+      // Global net
+      // TODO: Everything!
+
+      return RoutingId();
+  } else {
+      RoutingId id;
+      id.loc.x = int16_t(col);
+      id.loc.y = int16_t(row);
+      // Local net, process prefix
+      smatch m;
+      if (regex_match(stripped_name, m, e)) {
+          for (int i = 1; i < int(m.size()) - 1; i++) {
+              string g = m.str(i);
+              if (g.empty()) continue;
+              if (g[0] == 'N') id.loc.y -= std::stoi(g.substr(1));
+              else if (g[0] == 'S') id.loc.y += std::stoi(g.substr(1));
+              else if (g[0] == 'W') id.loc.x -= std::stoi(g.substr(1));
+              else if (g[0] == 'E') id.loc.x += std::stoi(g.substr(1));
+              else
+                  assert(false);
+          }
+          id.id = ident(m.str(m.size() - 1));
+      } else {
+          id.id = ident(stripped_name);
+      }
+      if (id.loc.x < 0 || id.loc.x > max_col || id.loc.y < 0 || id.loc.y > max_row)
+          return RoutingId(); // TODO: handle edge nets properly
+      return id;
+  }
 }
 
 void RoutingGraph::add_arc(Location loc, const RoutingArc &arc)
