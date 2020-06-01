@@ -11,4 +11,4 @@ def is_global(wire):
     return bool(osc_clk_re.match(wire))
 
 def handle_family_net(tile, wire, prefix_pos, tile_pos, netname):
-    raise NotImplementedError("MachXO2 device family not implemented.")
+    return None

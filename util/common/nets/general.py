@@ -2,6 +2,7 @@ import re
 import tiles
 
 import ecp5
+import machxo2
 
 
 # General inter-tile routing
