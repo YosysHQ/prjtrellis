@@ -276,6 +276,14 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2()
         //cout << "    Tile " << tile->info.name << endl;
         shared_ptr<TileBitDatabase> bitdb = get_tile_bitdata(TileLocator{info.family, info.name, tile->info.type});
         bitdb->add_routing(tile->info, *rg);
+        int x, y;
+        tie(y, x) = tile->info.get_row_col();
+
+        // SLICE MachXO2Bels
+        if (tile->info.type == "PLC") {
+            for (int z = 0; z < 4; z++)
+                MachXO2Bels::add_lc(*rg, x, y, z);
+        }
     }
 
     return rg;
