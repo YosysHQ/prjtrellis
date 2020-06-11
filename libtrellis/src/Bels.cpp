@@ -719,7 +719,23 @@ namespace MachXO2Bels {
     }
 
     void add_pio(RoutingGraph &graph, int x, int y, int z) {
+        char l = "ABCD"[z];
+        string name = string("PIO") + l;
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("PIO");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = z;
 
+        graph.add_bel_input(bel, graph.ident("I"), x, y, graph.ident(fmt("PADDO" << l << "_PIO")));
+        graph.add_bel_input(bel, graph.ident("T"), x, y, graph.ident(fmt("PADDT" << l << "_PIO")));
+        graph.add_bel_output(bel, graph.ident("O"), x, y, graph.ident(fmt("JPADDI" << l << "_PIO")));
+
+        graph.add_bel_input(bel, graph.ident("IOLDO"), x, y, graph.ident(fmt("IOLDO" << l << "_PIO")));
+        graph.add_bel_input(bel, graph.ident("IOLTO"), x, y, graph.ident(fmt("IOLTO" << l << "_PIO")));
+
+        graph.add_bel(bel);
     }
 }
 }
