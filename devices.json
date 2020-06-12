@@ -174,6 +174,18 @@
                 "max_col" : 25,
                 "col_bias" : 1,
                 "fuzz": 1
+            },
+            "LCMXO2-4000HC": {
+                "packages": ["TQFP144"],
+                "idcode": "0x012bc043",
+                "frames": 623,
+                "bits_per_frame": 1560,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 22,
+                "max_col" : 31,
+                "col_bias" : 1,
+                "fuzz": 1
             }
         }
     }

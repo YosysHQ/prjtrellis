@@ -33,6 +33,8 @@ map<pair<int, int>, pair<int, int>> center_map = {
     {make_pair(12, 21), make_pair(6, 12)},
     // 2000HC
     {make_pair(15, 25), make_pair(8, 13)},
+    // 4000HC
+    {make_pair(22, 31), make_pair(11, 15)},
 };
 
 // Universal function to get a zero-indexed row/column pair.
