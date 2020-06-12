@@ -140,9 +140,9 @@
                 "fuzz": 1
             },
             "LCMXO2-640HC": {
-                "packages": ["QFN32"],
+                "packages": ["QFN48"],
                 "idcode": "0x012b9043",
-                "frames": 209,
+                "frames": 211,
                 "bits_per_frame": 888,
                 "pad_bits_after_frame": 0,
                 "pad_bits_before_frame": 0,
@@ -160,6 +160,18 @@
                 "pad_bits_before_frame": 0,
                 "max_row" : 12,
                 "max_col" : 21,
+                "col_bias" : 1,
+                "fuzz": 1
+            },
+            "LCMXO2-2000HC": {
+                "packages": ["TQFP100"],
+                "idcode": "0x012bb043",
+                "frames": 420,
+                "bits_per_frame": 1272,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 15,
+                "max_col" : 25,
                 "col_bias" : 1,
                 "fuzz": 1
             }
