@@ -21,9 +21,12 @@ static const regex tile_l_re(R"([A-Za-z0-9_]*L(\d+))");
 static const regex tile_r_re(R"([A-Za-z0-9_]*R(\d+))");
 
 // Given the zero-indexed max chip_size, return the zero-indexed
-// center. Mainly for MachXO2.
+// center. Mainly for MachXO2, it is based on the location of the entry
+// to global routing.
 // TODO: Make const.
 map<pair<int, int>, pair<int, int>> center_map = {
+    // 256HC
+    {make_pair(7, 9), make_pair(3, 4)},
     // 1200HC
     {make_pair(12, 21), make_pair(6, 12)}
 };
