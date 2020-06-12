@@ -186,6 +186,18 @@
                 "max_col" : 31,
                 "col_bias" : 1,
                 "fuzz": 1
+            },
+            "LCMXO2-7000HC": {
+                "packages": ["TQFP144"],
+                "idcode": "0x012bd043",
+                "frames": 770,
+                "bits_per_frame": 1992,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 26,
+                "max_col" : 40,
+                "col_bias" : 1,
+                "fuzz": 1
             }
         }
     }

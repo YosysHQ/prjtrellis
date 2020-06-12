@@ -35,13 +35,19 @@ map<pair<int, int>, pair<int, int>> center_map = {
     {make_pair(15, 25), make_pair(8, 13)},
     // 4000HC
     {make_pair(22, 31), make_pair(11, 15)},
+    // 7000HC
+    {make_pair(26, 40), make_pair(13, 18)},
 };
 
 // Universal function to get a zero-indexed row/column pair.
 pair<int, int> get_row_col_pair_from_chipsize(string name, pair<int, int> chip_size, int bias) {
     smatch m;
 
-    if(regex_search(name, m, tile_rxcx_re)) {
+    // Special-cases... CENTER30 will match wrong regex. Only on 7000HC,
+    // this position is a best-guess.
+    if(name.find("CENTER30") != std::string::npos) {
+        return make_pair(20, 29);
+    } else if(regex_search(name, m, tile_rxcx_re)) {
         return make_pair(stoi(m.str(1)), stoi(m.str(2)) - bias);
     } else if(regex_search(name, m, tile_centert_re)) {
         return make_pair(0, center_map[chip_size].second);
