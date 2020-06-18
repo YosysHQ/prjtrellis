@@ -68,35 +68,54 @@ dqsw90_re = re.compile(r'R\d+C\d+_DQSW90')
 
 def is_global(wire):
     """Return true if a wire is part of the global clock network"""
-    return bool(global_entry_re.match(l) or
-        global_left_right_re.match(l) or
-        global_up_down_re.match(l) or
-        global_branch_re.match(l) or
-        hfsn_entry_re.match(l) or
-        hfsn_left_right_re.match(l) or
-        hfsn_l2r_re.match(l) or
-        hfsn_up_down_re.match(l) or
-        hfsn_branch_re.match(l) or
-        center_mux_glb_out_re.match(l) or
-        center_mux_ebrg_out_re.match(l) or
-        cib_out_to_hfsn_re.match(l) or
-        cib_out_to_glb_re.match(l) or
-        cib_out_to_eclk_re.match(l) or
-        eclk_out_re.match(l) or
-        pll_out_re.match(l) or
-        clock_pin_re.match(l) or
-        dcc_sig_re.match(l) or
-        dcm_sig_re.match(l) or
-        eclkbridge_sig_re.match(l) or
-        osc_clk_re.match(l) or
-        sed_clk_re.match(l) or
-        pll_clk_re.match(l) or
-        pg_re.match(l) or
-        inrd_re.match(l) or
-        lvds_re.match(l) or
-        ddrclkpol_re.match(l) or
-        dqsr90_re.match(l) or
-        dqsw90_re.match(l))
+    return bool(global_entry_re.match(wire) or
+        global_left_right_re.match(wire) or
+        global_up_down_re.match(wire) or
+        global_branch_re.match(wire) or
+        hfsn_entry_re.match(wire) or
+        hfsn_left_right_re.match(wire) or
+        hfsn_l2r_re.match(wire) or
+        hfsn_up_down_re.match(wire) or
+        hfsn_branch_re.match(wire) or
+        center_mux_glb_out_re.match(wire) or
+        center_mux_ebrg_out_re.match(wire) or
+        cib_out_to_hfsn_re.match(wire) or
+        cib_out_to_glb_re.match(wire) or
+        cib_out_to_eclk_re.match(wire) or
+        eclk_out_re.match(wire) or
+        pll_out_re.match(wire) or
+        clock_pin_re.match(wire) or
+        dcc_sig_re.match(wire) or
+        dcm_sig_re.match(wire) or
+        eclkbridge_sig_re.match(wire) or
+        osc_clk_re.match(wire) or
+        sed_clk_re.match(wire) or
+        pll_clk_re.match(wire) or
+        pg_re.match(wire) or
+        inrd_re.match(wire) or
+        lvds_re.match(wire) or
+        ddrclkpol_re.match(wire) or
+        dqsr90_re.match(wire) or
+        dqsw90_re.match(wire))
 
 def handle_family_net(tile, wire, prefix_pos, tile_pos, netname):
-    return None
+    if tile.startswith("CENTER") and global_left_right_re.match(wire):
+        if prefix_pos[1] < tile_pos[1]:
+            return "L_" + netname
+        elif prefix_pos[1] > tile_pos[1]:
+            return "R_" + netname
+        else:
+            assert False, "bad CIB_EBR netname"
+    elif tile.startswith("CIB_EBR") and global_up_down_re.match(wire):
+        if prefix_pos[0] < tile_pos[0]:
+            return "U_" + netname
+        elif prefix_pos[0] > tile_pos[0]:
+            return "D_" + netname
+        else:
+            assert False, "bad CIB_EBR netname"
+    elif global_branch_re.match(wire):
+        return "BRANCH_" + netname
+    elif is_global(wire):
+        return "G_" + netname
+    else:
+        return None
