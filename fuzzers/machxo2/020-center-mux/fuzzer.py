@@ -9,14 +9,17 @@ import argparse
 from mk_nets import *
 
 # The relevant tiles were inferred from the center_mux experiment.
+# Asterisk means "the fuzzer generated connects with non-local prefixes".
 jobs = [
+        # *
         {
             "netnames" : eclk_out + eclk_cib + eclk_div,
-            "cfg" : FuzzConfig(job="GLOBAL_FIXED", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
-                      tiles=["CENTER6:CENTER_EBR_CIB", "CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER7:CENTER6",
+            "cfg" : FuzzConfig(job="GLOBAL_ECLK", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
+                      tiles=["CENTER6:CENTER_EBR_CIB", "CENTER_EBR14:CENTER_EBR",
+                             "CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER7:CENTER6",
                              "CENTER5:CENTER5", "CENTER4:CENTER4"]),
             "prefix" : "1200_"
-        }
+        },
 ]
 
 
