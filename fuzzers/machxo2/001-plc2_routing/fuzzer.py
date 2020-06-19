@@ -16,13 +16,12 @@ def main():
     def nn_filter(net, netnames):
         """ Match nets that are: in the tile according to Tcl, global nets, or span-1 nets that are accidentally
         left out by Tcl"""
-        return net in netnames or nets.is_global(net) or span1_re.match(net)
+        return net in netnames or nets.machxo2.is_global(net) or span1_re.match(net)
 
     interconnect.fuzz_interconnect(config=cfg, location=(5, 10),
                                    netname_predicate=nn_filter,
                                    netname_filter_union=True,
-                                   enable_span1_fix=True,
-                                   bias=1)
+                                   enable_span1_fix=True)
 
 if __name__ == "__main__":
     main()
