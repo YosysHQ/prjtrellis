@@ -18,7 +18,22 @@ jobs = [
                       tiles=["CENTER6:CENTER_EBR_CIB", "CENTER_EBR14:CENTER_EBR",
                              "CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER7:CENTER6",
                              "CENTER5:CENTER5", "CENTER4:CENTER4"]),
-            "prefix" : "1200_"
+            "prefix" : "1200_",
+            "overrides" : defaultdict(lambda : str("sink"))
+        },
+
+        # *
+        {
+            "netnames" : eclkbridge,
+            "cfg" : FuzzConfig(job="GLOBAL_ECLKBRIDGE", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
+                      tiles=["CENTER6:CENTER_EBR_CIB", "CENTER_EBR14:CENTER_EBR",
+                             "CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER7:CENTER6",
+                             "CENTER5:CENTER5", "CENTER4:CENTER4"]),
+            "prefix" : "1200_",
+            "overrides" : { "R6C13_JECSOUT0_ECLKBRIDGECS" : "driver",
+                            "R6C13_JECSOUT1_ECLKBRIDGECS" : "driver",
+                            "R6C13_JSEL0_ECLKBRIDGECS" : "sink",
+                            "R6C13_JSEL1_ECLKBRIDGECS" : "sink" }
         },
 ]
 
@@ -31,7 +46,7 @@ def main(args):
         cfg.setup()
         interconnect.fuzz_interconnect_with_netnames(config=cfg, netnames=job["netnames"],
                                                      netname_filter_union=False,
-                                                     netdir_override=defaultdict(lambda : str("sink")),
+                                                     netdir_override=job["overrides"],
                                                      nonlocal_prefix=job["prefix"])
 
     # TODO: R6C13_JA0 --> R6C13_JCE0_DCC. But TCL also claims
