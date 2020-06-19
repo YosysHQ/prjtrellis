@@ -35,6 +35,16 @@ jobs = [
                             "R6C13_JSEL0_ECLKBRIDGECS" : "sink",
                             "R6C13_JSEL1_ECLKBRIDGECS" : "sink" }
         },
+
+        {
+            "netnames" : dcm + dcc,
+            "cfg" : FuzzConfig(job="GLOBAL_DCM_DCC", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
+                      tiles=["CENTER6:CENTER_EBR_CIB", "CENTER_EBR14:CENTER_EBR",
+                             "CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER7:CENTER6",
+                             "CENTER5:CENTER5", "CENTER4:CENTER4"]),
+            "prefix" : "1200_",
+            "overrides" : defaultdict(lambda : str("sink"))
+        },
 ]
 
 
