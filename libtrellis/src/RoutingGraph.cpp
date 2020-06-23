@@ -148,11 +148,17 @@ RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::strin
       }
   }
 
-  if (stripped_name.find("G_") == 0 || stripped_name.find("L_") == 0 || stripped_name.find("R_") == 0) {
-      // Global net
-      // TODO: Everything!
+  if (stripped_name.find("G_") == 0 || stripped_name.find("L_") == 0 || stripped_name.find("R_") == 0 ||
+      stripped_name.find("U_") == 0 || stripped_name.find("D_") == 0 || stripped_name.find("BRANCH_") == 0) {
+      //size_t sub_idx = 0;
 
-      return RoutingId();
+      // if(stripped_name.find("BRANCH_") == 0) {
+      //     sub_idx = 7;
+      // } else {
+      //     sub_idx = 3;
+      // }
+
+      return find_machxo2_global_position(row, col, stripped_name);
   } else {
       RoutingId id;
       id.loc.x = int16_t(col);
@@ -263,6 +269,84 @@ void RoutingGraph::add_bel_output(RoutingBel &bel, ident_t pin, int wire_x, int 
     add_wire(wireId);
     bel.pins[pin] = make_pair(wireId, PORT_OUT);
     tiles[wireId.loc].wires[wireId.id].belsUphill.push_back(make_pair(belId, pin));
+}
+
+RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std::string &db_name) {
+    // A RoutingId uniquely describes a net on the chip- using a string
+    // identifier (id- converted to int), and a nominal position (loc).
+    // Two RoutingIds with the same id and loc represent the same net, so
+    // we can use heuristics to connect globals to the rest of the routing
+    // graph properly, given the current tile position and the global's
+    // identifier.
+    // Globals are given their nominal position, even if they span multiple
+    // tiles, by the following rules:
+
+    pair<int, int> center = center_map[make_pair(max_row, max_col)];
+    RoutingId curr_global;
+
+    // All globals in the center tile get a nominal position of the center
+    // tile. This handles L/R_HPSX as well.
+    if(make_pair(row, col) == center) {
+        curr_global.id = ident(db_name);
+        curr_global.loc.x = center.second;
+        curr_global.loc.y = center.first;
+        return curr_global;
+
+    // If we found a global emanating from the CENTER MUX, return a L_/R_
+    // global net in the center tile based upon the current tile position
+    // (specifically column).
+    } else if(db_name.find("HPSX") != string::npos) {
+        assert(row == center.first);
+        // Prefixes only required in the center tile.
+        assert(db_name[0] == 'G');
+
+        std::string db_copy = db_name;
+
+        // Center column tiles connect to the left side of the center mux.
+        if(col <= center.second)
+            db_copy[0] = 'L';
+        else
+            db_copy[0] = 'R';
+
+        curr_global.id = ident(db_copy);
+        curr_global.loc.x = center.second;
+        curr_global.loc.y = center.first;
+        return curr_global;
+
+    // U/D wires get the nominal position of center row, current column.
+    } else if(db_name.find("VPTX") != string::npos) {
+        // Special case the center row, which will have both U/D wires.
+        if(row == center.first) {
+            assert((db_name[0] == 'U') || (db_name[0] == 'D'));
+
+            curr_global.id = ident(db_name);
+            curr_global.loc.x = col;
+            curr_global.loc.y = center.first;
+            return curr_global;
+        } else {
+            // Otherwise choose an U_/D_ wire at nominal position based on
+            // the current tile's row.
+            // Prefixes only required in the center row.
+            assert(db_name[0] == 'G');
+
+            std::string db_copy = db_name;
+
+            // Center column tiles are considered above the center mux,
+            // despite sharing the same tile.
+            if(row <= center.first)
+                db_copy[0] = 'U';
+            else
+                db_copy[0] = 'D';
+
+            curr_global.id = ident(db_copy);
+            curr_global.loc.x = col;
+            curr_global.loc.y = center.first;
+            return curr_global;
+        }
+    } else {
+        // TODO: Not fuzzed yet!
+        return RoutingId();
+    }
 }
 
 }

@@ -10,6 +10,8 @@
 #include "CRAM.hpp"
 
 namespace Trellis {
+
+extern map<pair<int, int>, pair<int, int>> center_map;
 pair<int, int> get_row_col_pair_from_chipsize(string name, pair<int, int> chip_size, int bias);
 
 // Basic information about a site

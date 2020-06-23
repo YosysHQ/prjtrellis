@@ -163,6 +163,10 @@ private:
     // Factory functions
     RoutingId globalise_net_ecp5(int row, int col, const std::string &db_name);
     RoutingId globalise_net_machxo2(int row, int col, const std::string &db_name);
+
+    // Algorithm to give global nets a unique position in MachXO2 devices.
+    // ECP5 defers global routing to nextpnr.
+    RoutingId find_machxo2_global_position(int row, int col, const std::string &db_name);
 };
 }
 
