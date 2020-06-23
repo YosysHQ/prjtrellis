@@ -166,30 +166,40 @@ RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::strin
               if (g[0] == 'N') id.loc.y -= std::stoi(g.substr(1));
               else if (g[0] == 'S') id.loc.y += std::stoi(g.substr(1));
               else if (g[0] == 'W') {
-                  bool pio_wire = (db_name.find("PADD") != string::npos ||
-                    db_name.find("IOLDO") != string::npos ||
-                    db_name.find("IOLTO") != string::npos);
+                  id.loc.x -= std::stoi(g.substr(1));
 
-                  // Special case: PIO wires on left side have a relative
-                  // position placing them outside the chip thanks to MachXO2's
-                  // wonderful 1-based column numbering, and lack of dedicated
-                  // PIO tiles on the left and right.
-                  // Top and bottom unaffected due to dedicated PIO tiles.
-                  if(!(col == 0 && pio_wire))
-                      id.loc.x -= std::stoi(g.substr(1));
+                  if(id.loc.x < 0) {
+                      // Special case: PIO wires on left side have a relative
+                      // position placing them outside the chip thanks to MachXO2's
+                      // wonderful 1-based column numbering, and lack of dedicated
+                      // PIO tiles on the left and right.
+                      // Top and bottom unaffected due to dedicated PIO tiles.
+                      bool pio_wire = (db_name.find("PADD") != string::npos ||
+                          db_name.find("IOLDO") != string::npos ||
+                          db_name.find("IOLTO") != string::npos ||
+                          db_name.find("JINCK") != string::npos);
+
+                      if((id.loc.x == -1) && pio_wire)
+                          id.loc.x = 0;
+                  }
               }
               else if (g[0] == 'E') {
-                  bool pio_wire = (db_name.find("PADD") != string::npos ||
-                    db_name.find("IOLDO") != string::npos ||
-                    db_name.find("IOLTO") != string::npos);
+                  id.loc.x += std::stoi(g.substr(1));
 
-                  // Same deal as left side, except the position exceeds
-                  // the maximum row.
-                  // TODO: Should this become part of general edge-handling
-                  // code, rather than a special case in the generic relative-
-                  // position logic?
-                  if(!(col == max_col && pio_wire))
-                      id.loc.x += std::stoi(g.substr(1));
+                  if(id.loc.x > max_col) {
+                      bool pio_wire = (db_name.find("PADD") != string::npos ||
+                        db_name.find("IOLDO") != string::npos ||
+                        db_name.find("IOLTO") != string::npos||
+                        db_name.find("JINCK") != string::npos);
+
+                      // Same deal as left side, except the position exceeds
+                      // the maximum row.
+                      // TODO: Should this become part of general edge-handling
+                      // code, rather than a special case in the generic relative-
+                      // position logic?
+                      if((id.loc.x == max_col + 1) && pio_wire)
+                          id.loc.x = max_col;
+                  }
               }
               else
                   assert(false);
