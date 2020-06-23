@@ -131,6 +131,23 @@ RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::strin
   static const std::regex e(R"(^([NS]\d+)?([EW]\d+)?_(.*))", std::regex::optimize);
   std::string stripped_name = db_name;
 
+  if (db_name.find("256_") == 0 || db_name.find("640_") == 0) {
+      if (db_name.substr(0, 4) == chip_prefix) {
+          stripped_name = db_name.substr(4);
+      } else {
+          return RoutingId();
+      }
+  }
+
+  if (db_name.find("1200_") == 0 || db_name.find("2000_") == 0 ||
+      db_name.find("4000_") == 0 || db_name.find("7000_") == 0) {
+      if (db_name.substr(0, 5) == chip_prefix) {
+          stripped_name = db_name.substr(5);
+      } else {
+          return RoutingId();
+      }
+  }
+
   if (stripped_name.find("G_") == 0 || stripped_name.find("L_") == 0 || stripped_name.find("R_") == 0) {
       // Global net
       // TODO: Everything!
