@@ -7,6 +7,7 @@
 #include "TileConfig.hpp"
 #include "RoutingGraph.hpp"
 #include "DedupChipdb.hpp"
+#include "OptChipdb.hpp"
 
 #include <vector>
 #include <string>
@@ -533,6 +534,84 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def("to_str", &DedupChipdb::to_str);
 
     def("make_dedup_chipdb", make_dedup_chipdb);
+
+    // OptChipdb
+    // Introduce a scope to avoid name collisions with DedupChipdb.
+    using namespace OptChipDb;
+    {
+        struct Stub { };
+
+        scope opt = class_<Stub>("optDb");
+
+        class_<OptChipDb::OptId>("OptId")
+                .def_readwrite("rel", &OptChipDb::OptId::rel)
+                .def_readwrite("id", &OptChipDb::OptId::id)
+                .def(self == self)
+                .def(self != self);
+
+        class_<OptChipDb::BelPort>("BelPort")
+                .def_readwrite("bel", &OptChipDb::BelPort::bel)
+                .def_readwrite("pin", &OptChipDb::BelPort::pin);
+        class_<OptChipDb::BelWire>("BelWire")
+                .def_readwrite("wire", &OptChipDb::BelWire::wire)
+                .def_readwrite("pin", &OptChipDb::BelWire::pin)
+                .def_readwrite("dir", &OptChipDb::BelWire::dir);
+
+        class_<vector<OptChipDb::BelPort>>("BelPortVector")
+                .def(vector_indexing_suite<vector<OptChipDb::BelPort>>());
+        class_<vector<OptChipDb::BelWire>>("BelWireVector")
+                .def(vector_indexing_suite<vector<OptChipDb::BelWire>>());
+        class_<vector<OptId>>("OptIdVector")
+                .def(vector_indexing_suite<vector<OptChipDb::OptId>>());
+        class_<set<OptId>>("OptIdSet")
+                .def(bond::python::set_indexing_suite<set<OptId>,true>());
+
+        enum_<OptChipDb::ArcClass>("ArcClass")
+                .value("ARC_STANDARD", OptChipDb::ArcClass::ARC_STANDARD)
+                .value("ARC_FIXED", OptChipDb::ArcClass::ARC_FIXED);
+        class_<OptChipDb::OptArcData>("OptArcData")
+                .def_readwrite("srcWire", &OptChipDb::OptArcData::srcWire)
+                .def_readwrite("sinkWire", &OptChipDb::OptArcData::sinkWire)
+                .def_readwrite("cls", &OptChipDb::OptArcData::cls)
+                .def_readwrite("delay", &OptChipDb::OptArcData::delay)
+                .def_readwrite("tiletype", &OptChipDb::OptArcData::tiletype);
+
+        class_<OptChipDb::WireData>("WireData")
+                .def_readwrite("name", &OptChipDb::WireData::name)
+                .def_readwrite("arcsDownhill", &OptChipDb::WireData::arcsDownhill)
+                .def_readwrite("arcsUphill", &OptChipDb::WireData::arcsUphill)
+                .def_readwrite("belPins", &OptChipDb::WireData::belPins);
+
+        class_<OptChipDb::BelData>("BelData")
+                .def_readwrite("name", &OptChipDb::BelData::name)
+                .def_readwrite("type", &OptChipDb::BelData::type)
+                .def_readwrite("z", &OptChipDb::BelData::z)
+                .def_readwrite("wires", &OptChipDb::BelData::wires);
+
+        class_<vector<OptChipDb::BelData>>("BelDataVector")
+                .def(vector_indexing_suite<vector<OptChipDb::BelData>>());
+        class_<vector<OptChipDb::WireData>>("WireDataVector")
+                .def(vector_indexing_suite<vector<OptChipDb::WireData>>());
+        class_<vector<OptChipDb::OptArcData>>("OptArcDataVector")
+                .def(vector_indexing_suite<vector<OptChipDb::OptArcData>>());
+
+        class_<OptChipDb::LocationData>("LocationData")
+                .def_readwrite("wires", &OptChipDb::LocationData::wires)
+                .def_readwrite("arcs", &OptChipDb::LocationData::arcs)
+                .def_readwrite("bels", &OptChipDb::LocationData::bels);
+
+        class_<map<Location, OptChipDb::LocationData>>("LocationMap")
+                .def(map_indexing_suite<map<Location, OptChipDb::LocationData>>());
+
+        class_<OptChipDb::OptChipdb, shared_ptr<OptChipDb::OptChipdb>>("OptChipdb")
+                .def_readwrite("tiles", &OptChipDb::OptChipdb::tiles)
+                .def("ident", &OptChipDb::OptChipdb::ident)
+                .def("to_str", &OptChipDb::OptChipdb::to_str);
+
+        def("make_optimized_chipdb", make_optimized_chipdb);
+    }
+
+
 }
 
 #endif
