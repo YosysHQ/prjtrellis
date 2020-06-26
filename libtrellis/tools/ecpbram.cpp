@@ -41,6 +41,7 @@
 #include "Chip.hpp"
 #include "Database.hpp"
 #include "DatabasePath.hpp"
+#include "wasmexcept.hpp"
 
 using std::map;
 using std::pair;
@@ -202,7 +203,9 @@ int main(int argc, char **argv)
             if (verbose)
                 fprintf(stderr, "Seed: %d\n", seed_nr);
         } else {
-#ifdef _WIN32
+#if defined(__wasm)
+            seed_nr = 0;
+#elif defined(_WIN32)
             seed_nr = GetCurrentProcessId();
 #else
             seed_nr = getpid();

@@ -37,6 +37,7 @@ f_out = f_vco / output
 #include <string>
 #include <boost/program_options.hpp>
 #include "version.hpp"
+#include "wasmexcept.hpp"
 using namespace std;
 
 enum class pll_mode{

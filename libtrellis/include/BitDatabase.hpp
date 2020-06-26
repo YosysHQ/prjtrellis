@@ -7,8 +7,10 @@
 #include <cstdint>
 #include <boost/optional.hpp>
 #include <mutex>
+#ifndef NO_THREADS
 #include <boost/thread/shared_mutex.hpp>
 #include <atomic>
+#endif
 #include <set>
 #include <unordered_set>
 #include "Util.hpp"
@@ -331,8 +333,12 @@ public:
 private:
     explicit TileBitDatabase(const string &filename);
 
+#ifdef NO_THREADS
+    bool dirty = false;
+#else
     mutable boost::shared_mutex db_mutex;
     atomic<bool> dirty{false};
+#endif
     map<string, MuxBits> muxes;
     map<string, WordSettingBits> words;
     map<string, EnumSettingBits> enums;

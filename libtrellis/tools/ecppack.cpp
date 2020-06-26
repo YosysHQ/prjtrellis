@@ -6,7 +6,7 @@
 #include "Tile.hpp"
 #include "BitDatabase.hpp"
 #include "version.hpp"
-
+#include "wasmexcept.hpp"
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <stdexcept>

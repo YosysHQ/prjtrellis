@@ -6,6 +6,15 @@
 
 #if BOOST_VERSION >= 106100
 
+#if defined(__wasm)
+
+std::string get_database_path()
+{
+    return "/share/trellis/database";
+}
+
+#else
+
 #include <boost/dll/runtime_symbol_info.hpp>
 
 std::string get_database_path()
@@ -15,6 +24,8 @@ std::string get_database_path()
     std::string database_folder = (executable_path /= database_datadir_relative).string();
     return database_folder;
 }
+
+#endif
 
 #else
 

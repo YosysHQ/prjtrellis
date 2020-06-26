@@ -6,8 +6,10 @@
 
 #include <algorithm>
 #include <fstream>
+#ifndef NO_THREADS
 #include <boost/thread/shared_lock_guard.hpp>
 #include <boost/thread/lock_guard.hpp>
+#endif
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/range/adaptors.hpp>
 
@@ -335,7 +337,9 @@ TileBitDatabase::TileBitDatabase(const string &filename) : filename(filename)
 
 void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile, bool is_tilegroup, set<string> *tg_matches) const
 {
+#ifndef NO_THREADS
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     for (auto arc : cfg.carcs)
         muxes.at(arc.sink).set_driver(tile, arc.source);
     set<string> found_words, found_enums;
@@ -397,7 +401,9 @@ void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile,
 
 TileConfig TileBitDatabase::tile_cram_to_config(const CRAMView &tile) const
 {
+#ifndef NO_THREADS
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     TileConfig cfg;
     BitSet coverage;
     for (auto mux : muxes) {
@@ -431,7 +437,9 @@ TileConfig TileBitDatabase::tile_cram_to_config(const CRAMView &tile) const
 
 void TileBitDatabase::load()
 {
+#ifndef NO_THREADS
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     ifstream in(filename);
     if (!in) {
         throw runtime_error("failed to open tilebit database file " + filename);
@@ -466,7 +474,9 @@ void TileBitDatabase::load()
 
 void TileBitDatabase::save()
 {
+#ifndef NO_THREADS
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     ofstream out(filename);
     if (!out) {
         throw runtime_error("failed to open tilebit database file " + filename + " for writing");
@@ -488,7 +498,9 @@ void TileBitDatabase::save()
 
 vector<string> TileBitDatabase::get_sinks() const
 {
+#ifndef NO_THREADS
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     vector<string> result;
     boost::copy(muxes | boost::adaptors::map_keys, back_inserter(result));
     return result;
@@ -496,13 +508,17 @@ vector<string> TileBitDatabase::get_sinks() const
 
 MuxBits TileBitDatabase::get_mux_data_for_sink(const string &sink) const
 {
+#ifndef NO_THREADS
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     return muxes.at(sink);
 }
 
 vector<string> TileBitDatabase::get_settings_words() const
 {
+#ifndef NO_THREADS
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     vector<string> result;
     boost::copy(words | boost::adaptors::map_keys, back_inserter(result));
     return result;
@@ -510,13 +526,17 @@ vector<string> TileBitDatabase::get_settings_words() const
 
 WordSettingBits TileBitDatabase::get_data_for_setword(const string &name) const
 {
+#ifndef NO_THREADS
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     return words.at(name);
 }
 
 vector<string> TileBitDatabase::get_settings_enums() const
 {
+#ifndef NO_THREADS
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     vector<string> result;
     boost::copy(enums | boost::adaptors::map_keys, back_inserter(result));
     return result;
@@ -524,13 +544,17 @@ vector<string> TileBitDatabase::get_settings_enums() const
 
 EnumSettingBits TileBitDatabase::get_data_for_enum(const string &name) const
 {
+#ifndef NO_THREADS
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     return enums.at(name);
 }
 
 vector<FixedConnection> TileBitDatabase::get_fixed_conns() const
 {
+#ifndef NO_THREADS
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     vector<FixedConnection> result;
     for (const auto &csink : fixed_conns) {
         for (const auto &conn : csink.second) {
@@ -560,7 +584,9 @@ vector<pair<string, bool>> TileBitDatabase::get_downhill_wires(const string &wir
 
 void TileBitDatabase::add_routing(const TileInfo &tile, RoutingGraph &graph) const
 {
+#ifndef NO_THREADS
     boost::shared_lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     int row, col;
     tie(row, col) = tile.get_row_col();
     Location loc(col, row);
@@ -603,7 +629,9 @@ void TileBitDatabase::add_routing(const TileInfo &tile, RoutingGraph &graph) con
 
 void TileBitDatabase::add_mux_arc(const ArcData &arc)
 {
+#ifndef NO_THREADS
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     dirty = true;
     if (muxes.find(arc.sink) == muxes.end()) {
         MuxBits mux;
@@ -630,7 +658,9 @@ void TileBitDatabase::add_mux_arc(const ArcData &arc)
 
 void TileBitDatabase::add_setting_word(const WordSettingBits &wsb)
 {
+#ifndef NO_THREADS
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     dirty = true;
     if (words.find(wsb.name) != words.end()) {
         WordSettingBits &curr = words.at(wsb.name);
@@ -653,7 +683,9 @@ void TileBitDatabase::add_setting_word(const WordSettingBits &wsb)
 
 void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb)
 {
+#ifndef NO_THREADS
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     dirty = true;
     if (enums.find(esb.name) != enums.end()) {
         EnumSettingBits &curr = enums.at(esb.name);
@@ -677,7 +709,9 @@ void TileBitDatabase::add_setting_enum(const EnumSettingBits &esb)
 
 void TileBitDatabase::add_fixed_conn(const Trellis::FixedConnection &conn)
 {
+#ifndef NO_THREADS
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     fixed_conns[conn.sink].insert(conn);
     dirty = true;
 }
@@ -691,19 +725,25 @@ TileBitDatabase::TileBitDatabase(const TileBitDatabase &other)
 
 void TileBitDatabase::remove_fixed_sink(const string &sink)
 {
+#ifndef NO_THREADS
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     fixed_conns.erase(sink);
 }
 
 void TileBitDatabase::remove_setting_enum(const string &enum_name)
 {
+#ifndef NO_THREADS
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     enums.erase(enum_name);
 }
 
 void TileBitDatabase::remove_setting_word(const string &word_name)
 {
+#ifndef NO_THREADS
     boost::lock_guard<boost::shared_mutex> guard(db_mutex);
+#endif
     words.erase(word_name);
 }
 
