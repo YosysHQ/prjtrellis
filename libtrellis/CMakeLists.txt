@@ -29,7 +29,24 @@ else()
         set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
     endif()
 endif()
-set(boost_libs filesystem thread program_options system)
+if (WASI)
+    set(USE_THREADS OFF)
+    add_definitions(
+        -DBOOST_EXCEPTION_DISABLE
+        -DBOOST_NO_EXCEPTIONS
+        -DBOOST_SP_NO_ATOMIC_ACCESS
+        -DBOOST_AC_DISABLE_THREADS
+        -DBOOST_NO_CXX11_HDR_MUTEX
+    )
+else()
+    set(USE_THREADS ON)
+endif()
+set(boost_libs filesystem program_options system)
+if (USE_THREADS)
+    list(APPEND boost_libs thread)
+else()
+    add_definitions(-DNO_THREADS)
+endif()
 set(Boost_NO_BOOST_CMAKE ON)
 find_package(PythonInterp 3.5 REQUIRED)
 
@@ -179,6 +196,13 @@ target_include_directories(${PROGRAM_PREFIX}ecpmulti PRIVATE tools)
 target_compile_definitions(${PROGRAM_PREFIX}ecpmulti PRIVATE TRELLIS_RPATH_DATADIR="${TRELLIS_RPATH_DATADIR}" TRELLIS_PREFIX="${CMAKE_INSTALL_PREFIX}" TRELLIS_PROGRAM_PREFIX="${PROGRAM_PREFIX}")
 target_link_libraries(${PROGRAM_PREFIX}ecpmulti trellis ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} ${link_param})
 setup_rpath(${PROGRAM_PREFIX}ecpmulti)
+
+if (WASI)
+    foreach (tool ecpbram ecppack ecpunpack ecppll ecpmulti)
+        # set(CMAKE_EXECUTABLE_SUFFIX) breaks CMake tests for some reason
+        set_property(TARGET ${PROGRAM_PREFIX}${tool} PROPERTY SUFFIX ".wasm")
+    endforeach()
+endif()
 
 if (BUILD_SHARED)
     install(TARGETS trellis ${PROGRAM_PREFIX}ecpbram ${PROGRAM_PREFIX}ecppack ${PROGRAM_PREFIX}ecppll ${PROGRAM_PREFIX}ecpunpack ${PROGRAM_PREFIX}ecpmulti ${PythonInstallTarget}

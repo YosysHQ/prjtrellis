@@ -6,6 +6,7 @@
 #include "DatabasePath.hpp"
 #include "Tile.hpp"
 #include "version.hpp"
+#include "wasmexcept.hpp"
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <stdexcept>

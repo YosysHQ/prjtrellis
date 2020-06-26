@@ -41,6 +41,7 @@
 #include "Chip.hpp"
 #include "Database.hpp"
 #include "DatabasePath.hpp"
+#include "wasmexcept.hpp"
 
 using std::map;
 using std::pair;
@@ -124,11 +125,6 @@ error:
 int main(int argc, char **argv)
 {
     bool verbose = false;
-#ifdef _WIN32
-    uint32_t seed_nr = GetCurrentProcessId();
-#else
-    uint32_t seed_nr = getpid();
-#endif
     namespace po = boost::program_options;
 
     std::string database_folder = get_database_path();;
@@ -197,14 +193,26 @@ int main(int argc, char **argv)
             return 1;
         }
 
+        // If -s is provided: seed with the given value.
+        // If -s is not provided: seed with the PID and current time, which are unlikely 
+        // to repeat simultaneously.
+        uint32_t seed_nr;
         if (vm.count("seed")) {
             seed_nr = vm.at("seed").as<int>();
 
             if (verbose)
                 fprintf(stderr, "Seed: %d\n", seed_nr);
+        } else {
+#if defined(__wasm)
+            seed_nr = 0;
+#elif defined(_WIN32)
+            seed_nr = GetCurrentProcessId();
+#else
+            seed_nr = getpid();
+#endif
         }
 
-        x  =  uint64_t(seed_nr) << 32;
+        x  = uint64_t(seed_nr) << 32;
         x ^= uint64_t(seed_nr) << 20;
         x ^= uint64_t(seed_nr);
 
