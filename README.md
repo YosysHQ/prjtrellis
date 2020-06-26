@@ -18,7 +18,7 @@ Install the dependencies for Project Trellis:
 
 Clone the Project Trellis repository and download the latest database:
 
-     git clone --recursive https://github.com/SymbiFlow/prjtrellis
+     git clone --recursive https://github.com/YosysHQ/prjtrellis
      
 Install _libtrellis_ and associated tools. You _must_ run `cmake` from the libtrellis directory.
 Out-of-tree builds are currently unsupported when coupled with `nextpnr`:
@@ -60,8 +60,8 @@ boards have been tested and confirmed working:
 ## For Developers
 
 Project Trellis documents the Lattice ECP5 bit-stream format and internal architecture. Current documentation is
-located in machine-readable format in [prjtrellis-db](https://github.com/SymbiFlow/prjtrellis-db)
-and is also [published online as HTML](https://symbiflow.github.io/prjtrellis-db/).
+located in machine-readable format in [prjtrellis-db](https://github.com/YosysHQ/prjtrellis-db)
+and is also [published online as HTML](https://yosyshq.github.io/prjtrellis-db/).
 
 This repository contains both tools and scripts which allow you to document the
 bit-stream format of Lattice ECP5 series FPGAs.
@@ -148,7 +148,7 @@ Boost::Python so that fuzzers and utilities can be written in Python.
 ### Database
 
 Instead of downloading the
-[compiled part database](https://github.com/SymbiFlow/prjtrellis-db),
+[compiled part database](https://github.com/YosysHQ/prjtrellis-db),
 it can also be created from scratch. However, this procedure
 takes several hours, even on a decent workstation.
 First, the empty reference bitstreams and the tile layout must be created
