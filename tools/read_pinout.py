@@ -2,6 +2,9 @@
 #!/usr/bin/env python3
 import sys
 import json
+import argparse
+import pytrellis
+import database
 
 # (X, Y, Z)
 def get_bel(pin):
@@ -20,24 +23,20 @@ def get_bel(pin):
     else:
         assert False
 
-def main(argv):
+def main(args):
     global max_row, max_col
 
-    if "45" in argv[1]:
-        max_row = 71
-        max_col = 90
-    elif "25" in argv[1]:
-        max_row = 50
-        max_col = 72
-    elif "85" in argv[1]:
-        max_row = 95
-        max_col = 126
-    
+    pytrellis.load_database(database.get_db_root())
+    chip = pytrellis.Chip(args.device)
+
+    max_row = chip.get_max_row()
+    max_col = chip.get_max_col()
+
     metadata = dict()
     package_data = dict()
     package_indicies = None
     found_header = False
-    with open(argv[1], 'r') as csvf:
+    with args.infile as csvf:
         for line in csvf:
             trline = line.strip()
             splitline = trline.split(",")
@@ -81,9 +80,18 @@ def main(argv):
         if dqs != "-":
             meta["dqs"] = dqs
         json_data["pio_metadata"].append(meta)
-    with open(argv[2], 'w') as jsonf:
+    with args.outfile as jsonf:
         jsonf.write(json.dumps(json_data, sort_keys=True, indent=4, separators=(',', ': ')))
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    parser = argparse.ArgumentParser("Store pinout information into iodb.json.")
+    parser.add_argument('device', type=str,
+                        help="Device for which to generate iodb.json (family autodetected).")
+    parser.add_argument('infile', type=argparse.FileType('r'),
+                        help="Input pinout CSV file from Lattice.")
+    parser.add_argument('outfile', type=argparse.FileType('w'),
+                        help="Output json file (iodb.json in the database).")
+    args = parser.parse_args()
+
+    main(args)
