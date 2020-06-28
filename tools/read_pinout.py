@@ -32,6 +32,12 @@ def main(args):
     max_row = chip.get_max_row()
     max_col = chip.get_max_col()
 
+    if chip.info.family == "MachXO2":
+        # I/O Grouping
+        pkg_index_start = 8
+    else:
+        pkg_index_start = 7
+
     metadata = dict()
     package_data = dict()
     package_indicies = None
@@ -40,14 +46,14 @@ def main(args):
         for line in csvf:
             trline = line.strip()
             splitline = trline.split(",")
-            if len(splitline) < 8:
+            if len(splitline) < (pkg_index_start + 1):
                 continue
             if len(splitline[0].strip()) == 0:
                 continue
             if splitline[0] == "PAD":
                 # is header
                 found_header = True
-                package_indicies = splitline[7:]
+                package_indicies = splitline[pkg_index_start:]
                 for pkg in package_indicies:
                     package_data[pkg] = {}
             elif found_header:
@@ -57,7 +63,11 @@ def main(args):
                 bank = int(splitline[2])
                 function = splitline[3]
                 dqs = splitline[6]
-                metadata[bel] = bank, function, dqs
+                if chip.info.family == "MachXO2":
+                    io_grouping = splitline[7]
+                    metadata[bel] = bank, function, dqs, io_grouping
+                else:
+                    metadata[bel] = bank, function, dqs
                 for i in range(len(package_indicies)):
                     if splitline[7+i] == "-":
                         continue
@@ -68,7 +78,10 @@ def main(args):
         for pin, bel in pins.items():
             json_data["packages"][pkg][pin] = {"col": bel[0], "row": bel[1], "pio": bel[2]}
     for bel, data in sorted(metadata.items()):
-        bank, function, dqs = data
+        if chip.info.family == "MachXO2":
+            bank, function, dqs, io_grouping = data
+        else:
+            bank, function, dqs = data
         meta = {
             "col": bel[0],
             "row": bel[1],
@@ -79,6 +92,12 @@ def main(args):
             meta["function"] = function
         if dqs != "-":
             meta["dqs"] = dqs
+
+        if chip.info.family == "MachXO2":
+            # Since "+" is used, "-" means "minus" presumably, as opposed to
+            # "not applicable".
+            meta["io_grouping"] = io_grouping
+
         json_data["pio_metadata"].append(meta)
     with args.outfile as jsonf:
         jsonf.write(json.dumps(json_data, sort_keys=True, indent=4, separators=(',', ': ')))
