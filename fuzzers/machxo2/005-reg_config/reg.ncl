@@ -19,7 +19,7 @@ design top
                  "Q${r}:Q "
                  "GSR:${gsr} "
                  "REGMODE:${regmode} "
-                 "CLKMUX:CLK "
+                 "CLKMUX:${clkmode} "
                  "CEMUX:1 "
                  "LSRMUX:LSR "
                  "SRMODE:LSR_OVER_CE "
