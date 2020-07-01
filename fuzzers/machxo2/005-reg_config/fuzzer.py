@@ -17,8 +17,8 @@ def main():
     def per_slice(slicen):
         r = 0
 
-        def get_substs(regset="RESET", sd="0", gsr="DISABLED"):
-            return dict(slice=slicen, r=str(r), regset=regset, sd=sd, gsr=gsr)
+        def get_substs(regset="RESET", sd="0", gsr="DISABLED", regmode="FF"):
+            return dict(slice=slicen, r=str(r), regset=regset, sd=sd, gsr=gsr, regmode=regmode)
 
         for r in range(2):
             nonrouting.fuzz_enum_setting(cfg, "SLICE{}.REG{}.REGSET".format(slicen, r), ["RESET", "SET"],
@@ -29,6 +29,12 @@ def main():
                                          empty_bitfile)
         nonrouting.fuzz_enum_setting(cfg, "SLICE{}.GSR".format(slicen), ["DISABLED", "ENABLED"],
                                      lambda x: get_substs(gsr=x),
+                                     empty_bitfile)
+        # The below will be part of SLICE parameters in yosys models to
+        # decouple latches from registers. However, fuzz here b/c it makes
+        # sense.
+        nonrouting.fuzz_enum_setting(cfg, "SLICE{}.REGMODE".format(slicen), ["FF", "LATCH"],
+                                     lambda x: get_substs(regmode=x),
                                      empty_bitfile)
 
     fuzzloops.parallel_foreach(["A", "B", "C", "D"], per_slice)

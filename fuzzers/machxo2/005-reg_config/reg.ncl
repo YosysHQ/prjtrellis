@@ -18,6 +18,7 @@ design top
                  "REG${r}:::REGSET=${regset}:SD=${sd} "
                  "Q${r}:Q "
                  "GSR:${gsr} "
+                 "REGMODE:${regmode} "
                  "CLKMUX:CLK "
                  "CEMUX:1 "
                  "LSRMUX:LSR "
