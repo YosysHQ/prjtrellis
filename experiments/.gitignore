@@ -7,3 +7,4 @@
 *.tmp/
 work/
 *_out.txt
+*_filter.txt
