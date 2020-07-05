@@ -17,13 +17,20 @@ def main():
     cfg.ncl = "mkmux.ncl"
 
     def per_slice(slicen):
-        def get_substs(m0mux="M0", m1mux="M1"):
-            return dict(slice=slicen, m0mux=m0mux, m1mux=m1mux)
-        nonrouting.fuzz_enum_setting(cfg, "SLICE{}.M0MUX".format(slicen), ["M0", "0"],
+        def get_substs(m0mux="M0", m1mux="M1", f_mode="F"):
+            if m0mux == "OFF":
+                s_m0mux = "#OFF"
+            else:
+                s_m0mux = m0mux
+            return dict(slice=slicen, m0mux=s_m0mux, m1mux=m1mux)
+        nonrouting.fuzz_enum_setting(cfg, "SLICE{}.M0MUX".format(slicen), ["M0", "OFF", "0"],
                                      lambda x: get_substs(m0mux=x),
                                      empty_bitfile, False)
-        nonrouting.fuzz_enum_setting(cfg, "SLICE{}.M1MUX".format(slicen), ["M1", "0"],
+        nonrouting.fuzz_enum_setting(cfg, "SLICE{}.M1MUX".format(slicen), ["M1", "OFF", "0"],
                                      lambda x: get_substs(m1mux=x),
+                                     empty_bitfile, False)
+        nonrouting.fuzz_enum_setting(cfg, "SLICE{}.F0".format(slicen), ["F", "OFF", "0"],
+                                     lambda x: get_substs(f_mode=x),
                                      empty_bitfile, False)
     fuzzloops.parallel_foreach(["A", "B", "C", "D"], per_slice)
 
