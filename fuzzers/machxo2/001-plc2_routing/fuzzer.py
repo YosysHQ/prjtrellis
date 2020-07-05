@@ -18,6 +18,11 @@ def main():
         left out by Tcl"""
         return net in netnames or nets.machxo2.is_global(net) or span1_re.match(net)
 
+    def arc_filter(arc, netnames):
+        """ Exclude arcs whose sinks are HFSN BRANCHES (HSBX0*0{0,1}). We
+        will deal with them specially in another fuzzer. """
+        return not nets.machxo2.hfsn_branch_re.match(arc[1])
+
     interconnect.fuzz_interconnect(config=cfg, location=(5, 10),
                                    netname_predicate=nn_filter,
                                    netname_filter_union=True,

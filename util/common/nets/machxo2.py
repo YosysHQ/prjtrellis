@@ -15,7 +15,8 @@ hfsn_left_right_re = re.compile(r'R\d+C\d+_HSSX(\d){2}00')
 # L2Rs control bidirectional portion of HFSNs!!
 hfsn_l2r_re = re.compile(r'R\d+C\d+_HSSX(\d){2}00_[RL]2[LR]')
 hfsn_up_down_re = re.compile(r'R\d+C\d+_VSTX(\d){2}00')
-hfsn_branch_re = re.compile(r'R\d+C\d+_HSBX(\d){2}01')
+# HSBX(\d){2}00 are fixed connections to HSBX(\d){2}01s.
+hfsn_branch_re = re.compile(r'R\d+C\d+_HSBX(\d){2}0[01]')
 
 # Center Mux
 # Outputs- entry to DCCs connected to globals (VPRXI -> DCC -> VPRX) *
