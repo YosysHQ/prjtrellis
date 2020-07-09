@@ -737,5 +737,54 @@ namespace MachXO2Bels {
 
         graph.add_bel(bel);
     }
+
+    void add_dcc(RoutingGraph &graph, int x, int y, const std::string &name, int z) {
+        string full_name = string("DCC") + name;
+        RoutingBel bel;
+        bel.name = graph.ident(full_name);
+        bel.type = graph.ident("DCC");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = z;
+
+        graph.add_bel_input(bel, graph.ident("CLKI"), x, y, graph.ident(fmt("G_CLKI" << name << "_DCC")));
+        graph.add_bel_input(bel, graph.ident("CE"), x, y, graph.ident(fmt("G_JCE" << name << "_DCC")));
+        graph.add_bel_output(bel, graph.ident("CLKO"), x, y, graph.ident(fmt("G_CLKO" << name << "_DCC")));
+
+        graph.add_bel(bel);
+    }
+
+    void add_dcm(RoutingGraph &graph, int x, int y, int z) {
+        string name = string("DCM") + std::to_string(z);
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("DCM");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = z;
+
+        graph.add_bel_input(bel, graph.ident("CLK0"), x, y, graph.ident(fmt("G_CLK0_" << z << "_DCM")));
+        graph.add_bel_input(bel, graph.ident("CLK1"), x, y, graph.ident(fmt("G_CLK1_" << z << "_DCM")));
+        graph.add_bel_input(bel, graph.ident("SEL"), x, y, graph.ident(fmt("G_JSEL" << z << "_DCM")));
+        graph.add_bel_output(bel, graph.ident("DCMOUT"), x, y, graph.ident(fmt("G_DCMOUT" << z << "_DCM")));
+
+        graph.add_bel(bel);
+    }
+
+    void add_osch(RoutingGraph &graph, int x, int y, int z) {
+        string name = string("OSCH");
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("OSCH");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = z;
+
+        graph.add_bel_input(bel, graph.ident("STDBY"), x, y, graph.ident(fmt("JSTDBY_OSC")));
+        graph.add_bel_output(bel, graph.ident("OSC"), x, y, graph.ident(fmt("G_JOSC_OSC")));
+        graph.add_bel_output(bel, graph.ident("SEDSTDBY"), x, y, graph.ident(fmt("SEDSTDBY_OSC")));
+
+        graph.add_bel(bel);
+    }
 }
 }
