@@ -45,7 +45,6 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname, bias):
     """
     hm = h_wire_regex.match(netname)
     vm = v_wire_regex.match(netname)
-    print(tile_pos)
     if hm:
         # MachXO2 doesn't appear to have edge nets for span-1s.
         if hm.group(1) == "01":
