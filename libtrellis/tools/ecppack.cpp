@@ -29,6 +29,273 @@ uint32_t convert_hexstring(std::string value_str)
     return uint32_t(strtoul(value_str.c_str(), nullptr, 0));
 }
 
+enum class xsvf_instr : uint8_t {
+    XCOMPLETE = 0x00,
+    XTDOMASK = 0x01,
+    XSIR = 0x02,
+    XSDR = 0x03,
+    XRUNTEST = 0x04,
+    XREPEAT = 0x07,
+    XSDRSIZE = 0x08,
+    XSDRTDO = 0x09,
+    XSTATE = 0x12,
+    XENDIR = 0x13,
+    XENDDR = 0x14,
+    XWAITSTATE = 0x18,
+    LCOUNT = 0x19,
+    LDELAY = 0x1A,
+    LSDR = 0x1B
+};
+
+enum class jtag_state : uint8_t {
+    RESET = 0x00,
+    IDLE = 0x01,
+    DRPAUSE = 0x06,
+    IRPAUSE = 0x0D
+};
+
+class VectorWriter {
+public:
+    virtual void header() = 0;
+    virtual void state( jtag_state s ) = 0;
+    virtual void sir( uint8_t instr, std::string comment ) = 0;
+    // start an SDR command (output instruction and length; other arguments
+    // will follow with sdr_continue()
+    virtual void sdr( int len ) = 0;
+    // append TDI bits to an SDR command started with sdr()
+    virtual void sdr_continue( uint8_t tdi ) = 0;
+    // finish the SDR command started with sdr() and sdr_continue()
+    virtual void sdr_complete() = 0;
+    virtual void sdr( int len, uint32_t tdi ) = 0;
+    virtual void sdr( int len, uint32_t tdi, uint32_t tdo, uint32_t mask ) = 0;
+    virtual void runtest( int ticks, int usecs ) = 0;
+    virtual void poll( int len, uint32_t tdi, uint32_t tdo, uint32_t mask, int ticks, int usecs ) {
+	// try to poll the scanned out data until we get a match... if we
+	// can't do that, just wait a while and try once
+	runtest( ticks, usecs );
+	sdr( len, tdi, tdo, mask );
+    }
+    virtual void space() {}
+    virtual void complete() = 0;
+    virtual ~VectorWriter() {}
+};
+
+class SVFWriter : public VectorWriter {
+private:
+    ostream &s;
+    vector<uint8_t> sdr_buf;
+    bool odd_hex;
+    int line;
+    
+public:
+    SVFWriter( ostream &s ) : s(s), sdr_buf() {}
+
+    virtual void header() {
+	s << "HDR\t0;" << endl;
+	s << "HIR\t0;" << endl;
+	s << "TDR\t0;" << endl;
+	s << "TIR\t0;" << endl;
+	// these are critical: the ECP5 aborts configuration updates if we
+	// pass through an update->idle path during the scan
+	s << "ENDDR\tDRPAUSE;" << endl;
+	s << "ENDIR\tIRPAUSE;" << endl;
+    }
+    
+    virtual void state( jtag_state st ) {
+	if( st == jtag_state::IDLE )
+	    s << "STATE\tIDLE;" << endl;
+	else if( st == jtag_state::RESET )
+	    s << "STATE\tRESET;" << endl;
+	else
+	    throw logic_error( "unknown state" );
+    }
+    
+    virtual void sir( uint8_t instr, std::string comment ) {
+	s << "SIR\t8\tTDI  (" << setw(2) << hex << uppercase << setfill('0') << int(instr) << ");    ! " << comment << endl;
+    }
+    
+    virtual void sdr( int len ) {
+	s << "SDR\t" << setw(0) << dec << len << "\tTDI  (";
+	sdr_buf.reserve( (len + 7) >> 3 );
+	odd_hex = len & 4;
+	line = 0;
+    }
+    
+    virtual void sdr_continue( uint8_t tdi ) {
+	if (line>39) {
+	    s << endl << "\t\t\t";
+	    line = 0;
+	}
+	
+	s << setw(odd_hex ? 1 : 2) << hex << uppercase << int(tdi);
+	odd_hex = 0;
+	line++;
+    }
+    
+    virtual void sdr_complete() {
+	s << ");" << endl;
+    }
+    
+    virtual void sdr( int len, uint32_t tdi ) {
+	s << "SDR\t" << setw(0) << dec << len <<
+	    "\tTDI  (" << setw((len + 3) >> 2) << hex << tdi << ");" << endl;
+    }
+    
+    virtual void sdr( int len, uint32_t tdi, uint32_t tdo, uint32_t mask ) {
+	s << "SDR\t" << setw(0) << dec << len <<
+	    "\tTDI  (" << setw((len + 3) >> 2) << hex << tdi << ")" << endl <<
+	    "\tTDO  (" << setw((len + 3) >> 2) << hex << tdo << ")" << endl <<
+	    "\tMASK  (" << setw((len + 3) >> 2) << hex << mask << ");" << endl;
+    }
+
+    virtual void runtest( int ticks, int usecs ) {
+	s << "RUNTEST\tIDLE\t" << setw(0) << dec << ticks << " TCK\t" << usecs << "E-6 SEC;" << endl;
+    }
+    
+    virtual void space() {
+	s << endl;
+    }
+
+    virtual void complete() {}
+};
+
+class XSVFWriter : public VectorWriter {
+private:
+    ostream &s;
+    uint32_t xsdrsize;
+    uint32_t tdoexpect, tdomask; // used only for <=32 bits
+    bool mask_valid;
+    bool expected_valid;
+    
+    void write( uint32_t val, int len ) {
+	if( len > 24 )
+	    s << uint8_t( ( val >> 24 ) & 0xFF );
+	if( len > 16 )
+	    s << uint8_t( ( val >> 16 ) & 0xFF );
+	if( len > 8 )
+	    s << uint8_t( ( val >> 8 ) & 0xFF );
+	s << uint8_t( val & 0xFF );
+    }
+    
+    void setsize( uint32_t len, bool clear_mask ) {
+	if (xsdrsize == len)
+	    return;
+
+	s << uint8_t( xsvf_instr::XSDRSIZE );
+	write( len, 32 );
+
+	if( clear_mask ) {
+	    s << uint8_t( xsvf_instr::XTDOMASK );
+	    for (int i = 0; i < int(len + 7) >> 3; i++ )
+		s << uint8_t( 0x00 );
+	}
+
+	xsdrsize = len;
+	mask_valid = clear_mask;
+	expected_valid = false;
+    }
+    
+public:
+    XSVFWriter( ostream &s ) : s(s), xsdrsize(0xFFFFFFFF), mask_valid(false),
+			       expected_valid(false) {}
+
+    virtual void header() {
+	// these are critical: ECP5s abort configuration updates if we
+	// pass through an update->idle path during the scan
+	s << uint8_t( xsvf_instr::XENDDR ) << uint8_t( 0x01 ) <<
+	    uint8_t( xsvf_instr::XENDIR ) << uint8_t( 0x01 ) <<
+	    uint8_t( xsvf_instr::XREPEAT ) << uint8_t( 0x00 ) <<
+	    // this is for XSVFWriter::poll(...)
+	    uint8_t( xsvf_instr::LCOUNT ) << uint8_t( 0x00 ) <<
+	    uint8_t( 0x00 ) << uint8_t( 0x00 ) << uint8_t( 0x10 );
+    }
+    
+    virtual void state( enum jtag_state st ) {
+	s << uint8_t( xsvf_instr::XSTATE ) << uint8_t( st );
+    }
+    
+    virtual void sir( uint8_t instr, std::string comment ) {
+	(void) comment;
+	s << uint8_t( xsvf_instr::XSIR ) << uint8_t( 0x08 ) << uint8_t( instr );
+    }
+    
+    virtual void sdr( int len ) {
+	setsize( len, true );
+	s << uint8_t( expected_valid ? xsvf_instr::XSDR : xsvf_instr::XSDRTDO );
+    }
+    
+    virtual void sdr_continue( uint8_t tdi ) {
+	s << tdi;
+    }
+    
+    virtual void sdr_complete() {
+	if( !expected_valid ) {
+	    for (int i = 0; i < int(xsdrsize + 7) >> 3; i++ )
+		s << uint8_t( 0x00 );
+	    expected_valid = true;
+	}
+    }
+    
+    virtual void sdr( int len, uint32_t tdi ) {
+	sdr( len, tdi, 0x00000000, 0x00000000 );
+    }
+    
+    virtual void sdr( int len, uint32_t tdi, uint32_t tdo, uint32_t mask ) {
+	setsize( len, false );
+	if( !mask_valid || tdomask != mask ) {
+	    s << uint8_t( xsvf_instr::XTDOMASK );
+	    write( mask, len );
+	    mask_valid = true;
+	    tdomask = mask;
+	}
+	if (tdoexpect != tdo)
+	    expected_valid = false;
+	s << uint8_t( expected_valid ? xsvf_instr::XSDR : xsvf_instr::XSDRTDO );
+	write( tdi, len );
+	if( !expected_valid ) {
+	    write( tdo, len );
+	    expected_valid = true;
+	    tdoexpect = tdo;
+	}
+    }
+    
+    virtual void runtest( int ticks, int usecs ) {
+	s << uint8_t( xsvf_instr::XWAITSTATE ) << uint8_t( jtag_state::IDLE ) <<
+	    uint8_t( jtag_state::IDLE );
+	write( ticks, 32 );
+	write( usecs, 32 );
+    }
+    
+    virtual void poll( int len, uint32_t tdi, uint32_t tdo, uint32_t mask, int ticks, int usecs ) {
+	// use the LDELAY/LSDR XSVF extensions to loop until the condition
+	// is true (time out after 16 attempts, each for 1/8 of the
+	// nominal time)
+	ticks = (ticks + 0x07) >> 3;
+	usecs = (usecs + 0x07) >> 3;
+	s << uint8_t( xsvf_instr::LDELAY ) << uint8_t( jtag_state::IDLE );
+	write( ticks, 32 );
+	write( usecs, 32 );
+	setsize( len, false );
+	if( !mask_valid || tdomask != mask ) {
+	    s << uint8_t( xsvf_instr::XTDOMASK );
+	    write( mask, len );
+	    mask_valid = true;
+	    tdomask = mask;
+	}
+	s << uint8_t( xsvf_instr::LSDR );
+	write( tdi, len );
+	write( tdo, len );
+	expected_valid = true;
+	tdoexpect = tdo;
+    }
+    
+    virtual void space() {}
+
+    virtual void complete() {
+	s << uint8_t( xsvf_instr::XCOMPLETE );
+    }
+};
+
 int main(int argc, char *argv[])
 {
     using namespace Trellis;
@@ -44,7 +311,10 @@ int main(int argc, char *argv[])
     options.add_options()("idcode", po::value<std::string>(), "IDCODE to override in bitstream");
     options.add_options()("freq", po::value<std::string>(), "config frequency in MHz");
     options.add_options()("svf", po::value<std::string>(), "output SVF file");
-    options.add_options()("svf-rowsize", po::value<int>(), "SVF row size in bits (default 8000)");
+    options.add_options()("xsvf", po::value<std::string>(), "output XSVF file");
+    options.add_options()("svf-rowsize", po::value<int>(), "(X)SVF row size in bits (default 8000)");
+    options.add_options()("svf-spibase", po::value<std::string>(), "Base address for (X)SVF SPI writes");
+    options.add_options()("svf-spiflash", "(X)SVF output will write to SPI flash");
     options.add_options()("compress", "compress bitstream to reduce size");
     options.add_options()("spimode", po::value<std::string>(), "SPI Mode to use (fast-read, dual-spi, qspi)");
     options.add_options()("background", "enable background reconfiguration in bitstream");
@@ -87,6 +357,11 @@ help:
     ifstream config_file(vm["input"].as<string>());
     if (!config_file) {
         cerr << "Failed to open input file" << endl;
+        return 1;
+    }
+
+    if (vm.count("svf") && vm.count("xsvf")) {
+        cerr << "Cannot output both SVF and XSVF" << endl;
         return 1;
     }
 
@@ -176,6 +451,18 @@ help:
     }
 
     bool partial_mode = false;
+    bool svfspiflash = vm.count("svf-spiflash");
+    uint32_t spibase = 0;
+    if (vm.count("svf-spibase")) {
+        spibase = convert_hexstring(vm["svf-spibase"].as<string>());
+
+        if (spibase & 0xffff) {
+            cerr << "Error: Base Address must be 64k aligned !" << endl;
+            return 1;
+        }
+
+        spibase = (spibase & 0x00ff0000) >> 16;
+    }
     vector<uint32_t> partial_frames;
     if (vm.count("delta")) {
         ifstream delta_file(vm["delta"].as<string>());
@@ -212,10 +499,12 @@ help:
         b.write_bit(bit_file);
     }
 
-    if (vm.count("svf")) {
+    if (vm.count("svf") || vm.count("xsvf")) {
+	bool xsvf = vm.count("xsvf");
+
         // Create JTAG bitstream without SPI flash related settings, as these
         // seem to confuse the chip sometimes when configuring over JTAG
-        if (!bitopts.empty() && !(bitopts.size() == 1 && bitopts.count("compress"))) {
+        if (!bitopts.empty() && !vm.count("svf-spiflash") && !(bitopts.size() == 1 && bitopts.count("compress"))) {
             bitopts.clear();
             if (vm.count("background"))
                 bitopts["background"] = "yes";
@@ -227,100 +516,115 @@ help:
         }
 
         vector<uint8_t> bitstream = b.get_bytes();
-        int max_row_size = 8000;
+        int max_row_size = svfspiflash ? 2048 : 8000;
         if (vm.count("svf-rowsize"))
             max_row_size = vm["svf-rowsize"].as<int>();
         if ((max_row_size % 8) != 0 || max_row_size <= 0) {
-            cerr << "SVF row size must be an exact positive number of bytes" << endl;
+            cerr << (xsvf ? "X" : "") << "SVF row size must be an exact positive number of bytes" << endl;
             return 1;
         }
-        ofstream svf_file(vm["svf"].as<string>());
+        ofstream svf_file(vm[xsvf ? "xsvf" : "svf"].as<string>());
         if (!svf_file) {
-            cerr << "Failed to open output SVF file" << endl;
+            cerr << "Failed to open output " << (xsvf ? "X" : "") << "SVF file" << endl;
             return 1;
         }
-        svf_file << "HDR\t0;" << endl;
-        svf_file << "HIR\t0;" << endl;
-        svf_file << "TDR\t0;" << endl;
-        svf_file << "TIR\t0;" << endl;
-        svf_file << "ENDDR\tDRPAUSE;" << endl;
-        svf_file << "ENDIR\tIRPAUSE;" << endl;
-        svf_file << "STATE\tIDLE;" << endl;
-        svf_file << "SIR\t8\tTDI  (E0);" << endl;
-        svf_file << "SDR\t32\tTDI  (00000000)" << endl;
-        svf_file << "\t\t\tTDO  (" << setw(8) << hex << uppercase << setfill('0') << c.info.idcode << ")" << endl;
-        svf_file << "\t\t\tMASK (FFFFFFFF);" << endl;
-        svf_file << endl;
+	VectorWriter &v( *( xsvf ? static_cast<VectorWriter *>(new XSVFWriter( svf_file )) : new SVFWriter( svf_file ) ) );
+	v.header();
+	v.state( jtag_state::IDLE );
+	v.sir( 0xE0, "READ_ID" );
+	v.sdr( 32, 0x00000000, c.info.idcode, 0xFFFFFFFF );
+	v.space();
         if (!partial_mode) {
-            svf_file << "SIR\t8\tTDI  (1C);" << endl;
-            svf_file << "SDR\t510\tTDI  (3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << endl;
-            svf_file << "\t\t\t\tFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);" << endl;
-            svf_file << endl;
-            svf_file << "SIR\t8\tTDI  (C6);" << endl;
-            svf_file << "SDR\t8\tTDI  (00);" << endl;
-            svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
-            svf_file << endl;
-            svf_file << "SIR\t8\tTDI  (0E);" << endl;
-            svf_file << "SDR\t8\tTDI  (01);" << endl;
-            svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
-            svf_file << endl;
-            svf_file << "SIR\t8\tTDI  (3C);" << endl;
-            svf_file << "SDR\t32\tTDI  (00000000)" << endl;
-            svf_file << "\t\t\tTDO  (00000000)" << endl;
-            svf_file << "\t\t\tMASK (0000B000);" << endl;
-            svf_file << endl;
+	    v.sir( 0x1C, "LSC_PRELOAD" );
+	    v.sdr( 510 );
+	    v.sdr_continue( 0x3F );
+	    for (int i = 0; i < 63; i++ )
+		v.sdr_continue( 0xFF );
+	    v.sdr_complete();
+            v.space();
+	    v.sir( 0xC6, "ISC_ENABLE" );
+	    v.sdr( 8, 0x00 );
+	    v.runtest( 2, 10000 );
+            v.space();
+	    v.sir( 0x0E, "ISC_ERASE" );
+	    v.sdr( 8, 0x01 );
+            v.space();
+	    v.sir( 0x3C, "LSC_READ_STATUS" );
+	    v.poll( 32, 0x00000000, 0x00000000, 0x0000B000, 2, 10000 ); // not encrypted, not busy, not failed
+	    v.space();
         } else {
-            svf_file << "SIR\t8\tTDI  (79);" << endl;
-            svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
-            svf_file << "SIR\t8\tTDI  (74);" << endl;
-            svf_file << "SDR\t8\tTDI  (00);" << endl;
-            svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
+	    v.sir( 0x79, "LSC_REFRESH" );
+	    v.runtest( 2, 10000 );
+	    v.sir( 0x74, "ISC_ENABLE_X" );
+	    v.sdr( 8, 0x00 );
+	    v.runtest( 2, 10000 );
         }
-        svf_file << "SIR\t8\tTDI  (46);" << endl;
-        svf_file << "SDR\t8\tTDI  (01);" << endl;
-        svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
-        svf_file << endl;
-        svf_file << "SIR\t8\tTDI  (7A);" << endl;
-        svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-02 SEC;" << endl;
+	if (svfspiflash) {
+	    v.state( jtag_state::RESET );
+	    v.state( jtag_state::IDLE );
+	    v.sir( 0xFF, "ISC_NOOP" );
+	    v.runtest( 2, 10000 );
+	    v.sir( 0x3A, "LSC_PROG_SPI" );
+	    v.sdr( 16, 0x68FE );
+	    v.runtest( 32, 10000 );
+	    int erase_end = spibase + ( ( bitstream.size() + 0xFFFF ) >> 16 );
+	    for(int i = spibase; i < erase_end; i++ ) {
+		v.sdr( 8, 0x60 ); // 06, Write Enable
+		v.sdr( 32, ( reverse_byte(uint8_t(i)) << 8 ) | 0x1B ); // D8, Block Erase
+		v.poll( 16, 0x00A0, 0x00FF, 0xC100, 128, 800000 ); // 05, Read Status Register 1: not protect, not write enable, not busy
+	    }
+	} else {
+	    v.sir( 0x46, "LSC_INIT_ADDRESS" );
+	    v.sdr( 8, 0x01 );
+	    v.runtest( 2, 10000 );
+	    v.space();
+	    v.sir( 0x7A, "LSC_BITSTREAM_BURST" );
+	    v.runtest( 2, 10000 );
+	}
         size_t i = 0;
         while(i < bitstream.size()) {
            size_t len = min(size_t(max_row_size / 8), bitstream.size() - i);
            if (len == 0)
                break;
-           svf_file << "SDR\t" << setw(0) << dec << (8 * len) << "\tTDI  (";
-           svf_file << hex << uppercase << setw(2) << setfill('0');
-           for (int j = len - 1; j >= 0; j--) {
-                svf_file << setw(2) << unsigned(reverse_byte(uint8_t(bitstream[j + i])));
-                if (j % 40 == 0 && j != 0)
-                    svf_file << endl << "\t\t\t";
-           }
-           svf_file << ");" << endl;
+	   if (svfspiflash)
+	       v.sdr( 8, 0x60 ); // 06, Write Enable
+	   v.sdr( 8 * len + (svfspiflash ? 32 : 0) );
+	   for (int j = len - 1; j >= 0; j-- )
+	       v.sdr_continue( reverse_byte(uint8_t(bitstream[j + i])) );
+	   if (svfspiflash) {
+	       v.sdr_continue( reverse_byte(uint8_t(i & 0xFF)) );
+	       v.sdr_continue( reverse_byte(uint8_t((i >> 8) & 0xFF)) );
+	       v.sdr_continue( reverse_byte(uint8_t(((i >> 16) + spibase) & 0xFF)) );
+	       v.sdr_continue( 0x40 ); // 02, Page Program
+	   }
+	   v.sdr_complete();
+	   if (svfspiflash)
+	       v.poll( 16, 0x00A0, 0x00FF, 0xC100, 32, 5000 ); // 05, Read Status Register 1: not protect, not write enable, not busy
            i += len;
         }
         if (!partial_mode) {
-            svf_file << endl;
-            svf_file << "SIR\t8\tTDI  (FF);" << endl;
-            svf_file << "RUNTEST\tIDLE\t100 TCK\t1.00E-02 SEC;" << endl;
-            svf_file << endl;
-            svf_file << "SIR\t8\tTDI  (C0);" << endl;
-            svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-03 SEC;" << endl;
-            svf_file << "SDR\t32\tTDI  (00000000)" << endl;
-            svf_file << "\t\t\tTDO  (00000000)" << endl;
-            svf_file << "\t\t\tMASK (FFFFFFFF);" << endl;
-            svf_file << endl;
+	    v.space();
+	    v.sir( 0xFF, "ISC_NOOP" );
+	    v.runtest( 100, 10000 );
+            v.space();
+	    v.sir( 0xC0, "USERCODE" );
+	    v.runtest( 2, 1000 );
+	    v.sdr( 32, 0x00000000, 0x00000000, 0xFFFFFFFF );
         }
-        svf_file << "SIR\t8\tTDI  (26);" << endl;
-        svf_file << "RUNTEST\tIDLE\t2 TCK\t2.00E-01 SEC;" << endl;
-        svf_file << endl;
-        svf_file << "SIR\t8\tTDI  (FF);" << endl;
-        svf_file << "RUNTEST\tIDLE\t2 TCK\t1.00E-03 SEC;" << endl;
-        svf_file << endl;
-        if (!partial_mode) {
-            svf_file << "SIR\t8\tTDI  (3C);" << endl;
-            svf_file << "SDR\t32\tTDI  (00000000)" << endl;
-            svf_file << "\t\t\tTDO  (00000100)" << endl;
-            svf_file << "\t\t\tMASK (00002100);" << endl;
+	v.sir( 0x26, "ISC_DISABLE" );
+	v.runtest( 2, 200000 );
+	v.space();
+	v.sir( 0xFF, "ISC_NOOP" );
+	v.space();
+	if (svfspiflash) {
+	    v.sir( 0x79, "LSC_REFRESH" );
+	    v.sdr( 24, 0x000000, 0x000000, 0x000000 );
+	} else if (!partial_mode) {
+	    v.sir( 0x3C, "LSC_READ_STATUS" );
+	    v.poll( 32, 0x00000000, 0x00000100, 0x00002100, 2, 1000 ); // done, not failed
         }
+	v.complete();
+	delete &v;
     }
 
     return 0;
