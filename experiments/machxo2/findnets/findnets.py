@@ -78,8 +78,8 @@ def filter_mode(args):
     netdata = isptcl.get_wires_at_position(cfg.ncd_prf, (args.row, args.col))
     netnames = [x[0] for x in netdata]
 
+    extra_netnames = []
     if args.s:
-        extra_netnames = []
         for net in netnames:
             m = re.match("R(\d+)C(\d+)_V01N(\d{4})", net)
             if m:
@@ -115,7 +115,7 @@ def filter_mode(args):
         filt_arcs_pred = list(itertools.filterfalse(lambda x: arc_predicate(x, netnames), assoc_arcs.copy()))
         fuzz_arcs = list(filter(lambda x: arc_predicate(x, netnames), assoc_arcs))
 
-        filt_fc_pred = list(itertools.filterfalse(lambda x: arc_predicate(x, netnames), fuzz_arcs.copy()))
+        filt_fc_pred = list(itertools.filterfalse(lambda x: fc_predicate(x, netnames), fuzz_arcs.copy()))
 
         return (fuzz_arcs, filt_net_pred, filt_arcs_pred, filt_fc_pred)
 
