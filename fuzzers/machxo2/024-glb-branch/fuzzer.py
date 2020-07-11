@@ -13,6 +13,7 @@ from nets import net_product
 #     return branch_nets
 
 jobs = [
+    # PLC
     (FuzzConfig(job="GLB_BRANCH37", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
                       tiles=["R5C17:PLC"]), ["R5C18_HPBX0300", "R5C18_HPBX0700"]),
     (FuzzConfig(job="GLB_BRANCH26", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
@@ -21,6 +22,16 @@ jobs = [
                       tiles=["R5C15:PLC"]), ["R5C16_HPBX0100", "R5C16_HPBX0500"]),
     (FuzzConfig(job="GLB_BRANCH04", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
                       tiles=["R5C14:PLC"]), ["R5C15_HPBX0000", "R5C15_HPBX0400"]),
+
+    # CIB_EBR
+    (FuzzConfig(job="CIB_EBR_BRANCH26", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["CIB_R6C4:CIB_EBR0"]), ["R6C5_HPBX0200", "R6C5_HPBX0600"]),
+    (FuzzConfig(job="CIB_EBR_BRANCH15", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["CIB_R6C7:CIB_EBR0"]), ["R6C8_HPBX0100", "R6C8_HPBX0500"]),
+    (FuzzConfig(job="CIB_EBR_BRANCH04", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["CIB_R6C10:CIB_EBR0"]), ["R6C11_HPBX0000", "R6C11_HPBX0400"]),
+    (FuzzConfig(job="CIB_EBR_BRANCH37", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["CIB_R6C17:CIB_EBR0"]), ["R6C18_HPBX0300", "R6C18_HPBX0700"]),
 ]
 
 def main(args):
