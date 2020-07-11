@@ -33,7 +33,7 @@ jobs = [
                       tiles=["CIB_R6C17:CIB_EBR0"]), mk_nets((6, 17), (3, 7))),
 ]
 
-def main():
+def main(args):
     pytrellis.load_database("../../../database")
 
     for job in [jobs[i] for i in args.ids]:
