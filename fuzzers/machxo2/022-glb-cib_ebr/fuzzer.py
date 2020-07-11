@@ -1,6 +1,7 @@
 from fuzzconfig import FuzzConfig
 import interconnect
 import pytrellis
+import argparse
 from nets import net_product
 
 def mk_nets(tilepos, glb_ids):
@@ -34,7 +35,8 @@ jobs = [
 
 def main():
     pytrellis.load_database("../../../database")
-    for job in jobs:
+
+    for job in [jobs[i] for i in args.ids]:
         cfg, netnames = job
         cfg.setup()
         interconnect.fuzz_interconnect_with_netnames(config=cfg, netnames=netnames,
@@ -42,4 +44,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Center Mux Routing Fuzzer.")
+    parser.add_argument(dest="ids", metavar="N", type=int, nargs="*",
+                    default=range(0, len(jobs)), help="Job (indices) to run.")
+    args = parser.parse_args()
+    main(args)
