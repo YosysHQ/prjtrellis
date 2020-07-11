@@ -1,10 +1,9 @@
-import sys
-
 from fuzzconfig import FuzzConfig
 import nonrouting
 import pytrellis
 import fuzzloops
 import interconnect
+import argparse
 
 cfg = FuzzConfig(job="OSCH", family="MachXO2", device="LCMXO2-1200HC", ncl="empty.ncl",
                                           tiles=["PT8:PIC_T_DUMMY_OSC",
@@ -12,6 +11,9 @@ cfg = FuzzConfig(job="OSCH", family="MachXO2", device="LCMXO2-1200HC", ncl="empt
                                                 "PT6:CFG2", "PT7:CFG3",
                                                 "CIB_R1C4:CIB_CFG0",
                                                 "CIB_R1C5:CIB_CFG1"])
+
+cfg_r = FuzzConfig(job="OSCH_ROUTE", family="MachXO2", device="LCMXO2-1200HC", ncl="osc_routing.ncl",
+                                          tiles=["CIB_R1C4:CFG0"])
 
 
 def get_substs(mode="OSCH", nom_freq="2.08", stdby="0"):
@@ -41,19 +43,19 @@ def get_substs(mode="OSCH", nom_freq="2.08", stdby="0"):
                 using_non_default_freq=using_non_default_freq,
                 using_default_freq=using_default_freq)
 
-def main():
+def main(args):
     pytrellis.load_database("../../../database")
     cfg.setup()
     empty_bitfile = cfg.build_design(cfg.ncl, {})
     cfg.ncl = "osc.ncl"
 
-    nonrouting.fuzz_enum_setting(cfg, "OSCH.STDBY", ["0", "1"],
-                                 lambda x: get_substs(stdby=x), empty_bitfile)
-    nonrouting.fuzz_enum_setting(cfg, "OSCH.MODE", ["NONE", "OSCH"],
-                                 lambda x: get_substs(mode=x), empty_bitfile)
+    if args.e:
+        nonrouting.fuzz_enum_setting(cfg, "OSCH.STDBY", ["0", "1"],
+                                     lambda x: get_substs(stdby=x), empty_bitfile)
+        nonrouting.fuzz_enum_setting(cfg, "OSCH.MODE", ["NONE", "OSCH"],
+                                     lambda x: get_substs(mode=x), empty_bitfile)
 
-    # Takes a long time, so permit opt-out.
-    if "-s" not in sys.argv:
+    if args.f:
         nonrouting.fuzz_enum_setting(cfg, "OSCH.NOM_FREQ",
             ["{}".format(i) for i in [
                 2.08, 2.15, 2.22, 2.29, 2.38, 2.46, 2.56, 2.66, 2.77, 2.89,
@@ -65,14 +67,18 @@ def main():
                 53.20, 66.50, 88.67, 133.00
             ]], lambda x: get_substs(nom_freq=x), empty_bitfile)
 
-    cfg.ncl = "osc_routing.ncl"
-    interconnect.fuzz_interconnect_with_netnames(
-        cfg,
-        ["R1C4_JOSC_OSC"],
-        bidir=True,
-        netdir_override={"R1C4_JOSC_OSC" : "driver"},
-        bias=1
-    )
+    if args.r:
+        cfg_r.setup()
+        interconnect.fuzz_interconnect_with_netnames(
+            cfg_r,
+            ["R1C4_JOSC_OSC"],
+            bidir=True,
+            netdir_override={"R1C4_JOSC_OSC" : "driver"})
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="OSCH Fuzzer.")
+    parser.add_argument("-e", action="store_true", help="Fuzz other enums.")
+    parser.add_argument("-f", action="store_true", help="Fuzz frequency enum.")
+    parser.add_argument("-r", action="store_true", help="Fuzz routing.")
+    args = parser.parse_args()
+    main(args)
