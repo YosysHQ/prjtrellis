@@ -23,8 +23,16 @@ def main():
         will deal with them specially in another fuzzer. """
         return not nets.machxo2.hfsn_branch_re.match(arc[1])
 
+    def fc_filter(arc, netnames):
+        """ Ignore connections between two general routing nets. These are edge buffers which vary based on location
+        and must be excluded from the CIB database.
+        """
+        return not (nets.general_routing_re.match(arc[0]) and nets.general_routing_re.match(arc[1]))
+
     interconnect.fuzz_interconnect(config=cfg, location=(5, 10),
                                    netname_predicate=nn_filter,
+                                   arc_predicate=arc_filter,
+                                   fc_predicate=fc_filter,
                                    netname_filter_union=True,
                                    enable_span1_fix=True)
 
