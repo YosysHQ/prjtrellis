@@ -28,6 +28,7 @@ public:
     vector<string> metadata;
     map<string, TileConfig> tiles;
     vector<TileGroup> tilegroups;
+    map<string, string> sysconfig;
 
     // Block RAM initialisation (WIP)
     map<uint16_t, vector<uint16_t>> bram_data;
