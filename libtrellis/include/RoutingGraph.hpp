@@ -23,9 +23,6 @@ struct Location
     Location(int16_t x, int16_t y) : x(x), y(y)
     {};
 
-    Location(const Location &loc) : x(loc.x), y(loc.y)
-    {};
-
     bool operator==(const Location &other) const
     { return x == other.x && y == other.y; }
 
