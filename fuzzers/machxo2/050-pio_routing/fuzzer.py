@@ -16,23 +16,24 @@ jofx_re = re.compile(r'R\d+C\d+_JOFX\d')
 def nn_filter(net, netnames):
     """ Match nets that are: in the tile according to Tcl, global nets, or span-1 nets that are accidentally
     left out by Tcl"""
-    return net in netnames or nets.is_global(net) or span1_re.match(net)
+    return net in netnames or nets.machxo2.is_global(net) or span1_re.match(net)
 
 # JOFX source connections are conjectured to not go to anything.
+# Also ignore edge connections.
 def fc_filter(arc, netnames):
-    return not jofx_re.match(arc[0])
+    return not jofx_re.match(arc[0]) and not (nets.general_routing_re.match(arc[0]) and nets.general_routing_re.match(arc[1]))
 
 # Bank of None means that the I/O connections are in another tile.
 jobs = [
         {
-           "pos" : [(12, 11)],
+           "pos" : (12, 11),
            "cfg" : FuzzConfig(job="PIOROUTEB", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                   tiles=["PB11:PIC_B0"]),
            "missing_nets" : None,
            "bank" : "B",
         },
         {
-           "pos" : [(11, 11)],
+           "pos" : (11, 11),
            "cfg" : FuzzConfig(job="PIOROUTEB_CIB", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                   tiles=["CIB_R11C11:CIB_PIC_B0"]),
             # A bug in the span1 fix prevents span1 nets from being included.
@@ -41,7 +42,7 @@ jobs = [
            "bank" : None,
         },
         {
-           "pos" : [(10, 1)],
+           "pos" : (10, 1),
            "cfg" : FuzzConfig(job="PIOROUTEL", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                   tiles=["PL10:PIC_L0"]),
            "missing_nets" : None,
@@ -50,28 +51,28 @@ jobs = [
 
         # Probably the same thing as PIC_L0 plus some additional fixed connections?
         {
-           "pos" : [(11, 1)],
+           "pos" : (11, 1),
            "cfg" : FuzzConfig(job="PIOROUTELLC0", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                   tiles=["PL11:LLC0"]),
            "missing_nets" : None,
            "bank" : "L"
         },
         {
-           "pos" : [(10, 22)],
+           "pos" : (10, 22),
            "cfg" : FuzzConfig(job="PIOROUTER", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                    tiles=["PR10:PIC_R0"]),
            "missing_nets" : None,
            "bank" : "R"
         },
         {
-           "pos" : [(0, 12)],
+           "pos" : (0, 12),
            "cfg" : FuzzConfig(job="PIOROUTET", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                   tiles=["PT12:PIC_T0"]),
            "missing_nets" : None,
            "bank" : "T",
         },
         {
-           "pos" : [(1, 12)],
+           "pos" : (1, 12),
            "cfg" : FuzzConfig(job="PIOROUTET_CIB", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                   tiles=["CIB_R1C12:CIB_PIC_T0"]),
            "missing_nets" : None,
@@ -87,13 +88,12 @@ def main(args):
 
         if args.i:
             # Fuzz basic routing, ignore fixed connections to/from I/O pads.
-            interconnect.fuzz_interconnect(config=cfg, location=pos,
+            interconnect.fuzz_interconnect(config=cfg, location=job["pos"],
                                            netname_predicate=nn_filter,
                                            netdir_override=defaultdict(lambda : str("ignore")),
                                            fc_predicate=fc_filter,
                                            netname_filter_union=False,
-                                           enable_span1_fix=True,
-                                           bias=1)
+                                           enable_span1_fix=True)
 
         if args.m and job["missing_nets"]:
             interconnect.fuzz_interconnect_with_netnames(config=cfg,
@@ -101,8 +101,7 @@ def main(args):
                                                          fc_predicate=fc_filter,
                                                          netname_filter_union=False,
                                                          bidir=True,
-                                                         netdir_override=defaultdict(lambda : str("ignore")),
-                                                         bias=1)
+                                                         netdir_override=defaultdict(lambda : str("ignore")))
 
 
         if args.p and job["bank"]:
@@ -124,8 +123,7 @@ def main(args):
                                                          fc_predicate=fc_filter,
                                                          netname_filter_union=False,
                                                          bidir=True,
-                                                         netdir_override=override_dict,
-                                                         bias=1)
+                                                         netdir_override=override_dict)
 
 
 if __name__ == "__main__":
