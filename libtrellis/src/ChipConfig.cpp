@@ -14,6 +14,8 @@ string ChipConfig::to_string() const
     ss << ".device " << chip_name << endl << endl;
     for (const auto &meta : metadata)
         ss << ".comment " << meta << endl;
+    for (const auto &sc : sysconfig)
+        ss << ".sysconfig " << sc.first << " " << sc.second << endl;
     ss << endl;
     for (const auto &tile : tiles) {
         if (!tile.second.empty()) {
@@ -67,6 +69,10 @@ ChipConfig ChipConfig::from_string(const string &config)
             TileConfig tc;
             ss >> tc;
             cc.tiles[tilename] = tc;
+        } else if (verb == ".sysconfig") {
+            std::string key, value;
+            ss >> key >> value;
+            cc.sysconfig[key] = value;
         } else if (verb == ".bram_init") {
             uint16_t bram;
             ss >> bram;
