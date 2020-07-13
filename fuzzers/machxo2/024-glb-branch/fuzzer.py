@@ -32,6 +32,11 @@ jobs = [
                       tiles=["CIB_R6C10:CIB_EBR0"]), ["R6C11_HPBX0000", "R6C11_HPBX0400"]),
     (FuzzConfig(job="CIB_EBR_BRANCH37", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
                       tiles=["CIB_R6C17:CIB_EBR0"]), ["R6C18_HPBX0300", "R6C18_HPBX0700"]),
+
+    # CIB_EBR0_END0
+    (FuzzConfig(job="CIB_EBR0_END0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["CIB_R6C1:CIB_EBR0_END0"]), ["R6C1_HPBX0100", "R6C2_HPBX0200", "R6C2_HPBX0300",
+                                                          "R6C1_HPBX0500", "R6C2_HPBX0600", "R6C2_HPBX0700"]),
 ]
 
 def main(args):

@@ -22,6 +22,9 @@ def mk_nets(tilepos, glb_ids):
 
     return ud_nets
 
+def flatten_nets(tilepos):
+    return [nets for netpair in [(0, 4), (1, 5), (2, 6), (3, 7)] for nets in mk_nets(tilepos, netpair)]
+
 jobs = [
     (FuzzConfig(job="GLB_UPDOWN26", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
                       tiles=["CIB_R6C4:CIB_EBR0"]), mk_nets((6, 4), (2, 6))),
@@ -31,6 +34,8 @@ jobs = [
                       tiles=["CIB_R6C10:CIB_EBR0"]), mk_nets((6, 10), (0, 4))),
     (FuzzConfig(job="GLB_UPDOWN37", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
                       tiles=["CIB_R6C17:CIB_EBR0"]), mk_nets((6, 17), (3, 7))),
+    (FuzzConfig(job="CIB0_EBR0_END0_UPDOWN", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["CIB_R6C1:CIB_EBR0_END0"]), flatten_nets((6,1)))
 ]
 
 def main(args):
