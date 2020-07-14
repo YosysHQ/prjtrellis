@@ -33,6 +33,16 @@ jobs = [
     (FuzzConfig(job="CIB_EBR_BRANCH37", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
                       tiles=["CIB_R6C17:CIB_EBR0"]), ["R6C18_HPBX0300", "R6C18_HPBX0700"]),
 
+    # CIB_PIC_T0.
+    (FuzzConfig(job="CIB_PIC_T0_BRANCH37", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["CIB_R1C9:CIB_PIC_T0"]), ["R1C10_HPBX0300", "R1C10_HPBX0700"]),
+    (FuzzConfig(job="CIB_PIC_T0_BRANCH04", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["CIB_R1C10:CIB_PIC_T0"]), ["R1C11_HPBX0000", "R1C11_HPBX0400"]),
+    (FuzzConfig(job="CIB_PIC_T0_BRANCH15", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["CIB_R1C11:CIB_PIC_T0"]), ["R1C12_HPBX0100", "R1C12_HPBX0500"]),
+    (FuzzConfig(job="CIB_PIC_T0_BRANCH26", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["CIB_R1C12:CIB_PIC_T0"]), ["R1C13_HPBX0200", "R1C13_HPBX0600"]),
+
     # CIB_EBR0_END0
     (FuzzConfig(job="CIB_EBR0_END0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
                       tiles=["CIB_R6C1:CIB_EBR0_END0"]), ["R6C1_HPBX0100", "R6C2_HPBX0200", "R6C2_HPBX0300",

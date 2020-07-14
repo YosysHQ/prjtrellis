@@ -107,7 +107,7 @@ def handle_family_net(tile, wire, prefix_pos, tile_pos, netname):
             return "R_" + netname
         else:
             assert False, "bad CENTER netname"
-    elif tile.startswith("CIB") and global_up_down_re.match(wire):
+    elif tile.startswith("CIB_EBR") and global_up_down_re.match(wire):
         if prefix_pos[0] < tile_pos[0]:
             return "U_" + netname
         elif prefix_pos[0] > tile_pos[0]:
