@@ -6,7 +6,7 @@ import nets
 import pytrellis
 import re
 
-cfg = FuzzConfig(job="CIBCFG0ROUTE", family="MachXO2", device="LCMXO2-1200HC", ncl="cibroute.ncl", tiles=["CIB_R1C4:CIB_CFG0"])
+cfg = FuzzConfig(job="CIBPICT0ROUTE", family="MachXO2", device="LCMXO2-1200HC", ncl="cibroute.ncl", tiles=["CIB_R1C10:CIB_PIC_T0"])
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
         and must be excluded from the CIB database.
         """
         return not (nets.general_routing_re.match(arc[0]) and nets.general_routing_re.match(arc[1]))
-    interconnect.fuzz_interconnect(config=cfg, location=(1, 4),
+    interconnect.fuzz_interconnect(config=cfg, location=(1, 10),
                                    netname_predicate=nn_filter,
                                    fc_predicate=fc_filter,
                                    netname_filter_union=True,
