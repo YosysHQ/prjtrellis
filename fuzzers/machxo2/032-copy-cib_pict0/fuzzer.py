@@ -8,7 +8,7 @@ def main():
     pytrellis.load_database("../../../database")
 
     for dest in shared_tiles:
-        dbcopy.dbcopy("MachXO2", "LCMXO2-1200HC", "CIB_CFG0", dest, copy_words=False, copy_enums=False, copy_conns=False)
+        dbcopy.dbcopy("MachXO2", "LCMXO2-1200HC", "CIB_PIC_T0", dest)
 
 
 if __name__ == "__main__":
