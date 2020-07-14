@@ -47,6 +47,11 @@ jobs = [
     (FuzzConfig(job="CIB_EBR2_END0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
                       tiles=["CIB_R6C22:CIB_EBR2_END0"]), ["R6C22_HPBX0000", "R6C22_HPBX0100",
                                                           "R6C22_HPBX0400", "R6C22_HPBX0500"]),
+
+    # PIC_R0- This also appears to be a noop after other fuzzers run.
+    (FuzzConfig(job="PIC_R0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["PR5:PIC_R0"]), ["R5C22_HPBX0000", "R5C22_HPBX0100",
+                                              "R5C22_HPBX0400", "R5C22_HPBX0500"]),
 ]
 
 def main(args):
