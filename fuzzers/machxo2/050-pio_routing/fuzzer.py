@@ -20,6 +20,7 @@ def nn_filter(net, netnames):
 
 # JOFX source connections are conjectured to not go to anything.
 # Also ignore edge connections.
+# TODO: We should probably ignore KEEP connections too, but right now am unsure.
 def fc_filter(arc, netnames):
     return not jofx_re.match(arc[0]) and not (nets.general_routing_re.match(arc[0]) and nets.general_routing_re.match(arc[1]))
 

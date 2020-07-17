@@ -4,6 +4,10 @@ import pytrellis
 # Based on prior fuzzing conjecture that CIB_EBR
 # 0,1,2, and DUMMY, and CIB_PIC_B0 and CIB_PIC_B_DUMMY have the same layout.
 
+# Pending dbcopy and prjtrellis changes (TODO), CIB_PIC_B0 and CIB_PIC_B_DUMMY
+# need to be manually tweaked to convert U_/D_ prefixes to G_ prefixes. There's
+# too much shared routing to justify rerunning the fuzzers.
+
 shared_tiles = ["CIB_EBR1", "CIB_EBR2", "CIB_EBR_DUMMY", "CIB_PIC_B0", "CIB_PIC_B_DUMMY"]
 
 def main():
