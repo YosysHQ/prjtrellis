@@ -32,7 +32,11 @@ Chip::Chip(const Trellis::ChipInfo &info) : info(info), cram(info.num_frames, in
         }
         tiles_at_location.at(row).at(col).push_back(make_pair(tile.name, tile.type));
     }
-    global_data = get_global_info(DeviceLocator{info.family, info.name});
+
+    if(info.family == "ECP5")
+        global_data_ecp5 = get_global_info_ecp5(DeviceLocator{info.family, info.name});
+    else
+        throw runtime_error("Unknown chip family " + info.family);
 }
 
 shared_ptr<Tile> Chip::get_tile_by_name(string name)

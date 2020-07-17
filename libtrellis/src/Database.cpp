@@ -83,7 +83,7 @@ ChipInfo get_chip_info(const DeviceLocator &part) {
     return ci;
 }
 
-Ecp5GlobalsInfo get_global_info(const DeviceLocator &part) {
+Ecp5GlobalsInfo get_global_info_ecp5(const DeviceLocator &part) {
     string glbdata_path = db_root + "/" + part.family + "/" + part.device + "/globals.json";
     pt::ptree glb_parsed;
     pt::read_json(glbdata_path, glb_parsed);

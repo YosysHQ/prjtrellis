@@ -148,8 +148,8 @@ public:
     // Block RAM initialisation (WIP)
     map<uint16_t, vector<uint16_t>> bram_data;
 
-    // Globals data
-    Ecp5GlobalsInfo global_data;
+    // Globals data- Should be a variant.
+    Ecp5GlobalsInfo global_data_ecp5;
 
 private:
     // Factory functions
