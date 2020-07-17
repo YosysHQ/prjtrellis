@@ -312,7 +312,7 @@ bool TapSegment::matches_right(int row, int col) const {
     return (col >= rx0 && col <= rx1);
 }
 
-string GlobalsInfo::get_quadrant(int row, int col) const {
+string Ecp5GlobalsInfo::get_quadrant(int row, int col) const {
     for (const auto &quad : quadrants) {
         if (quad.matches(row, col))
             return quad.name;
@@ -320,7 +320,7 @@ string GlobalsInfo::get_quadrant(int row, int col) const {
     throw runtime_error(fmt("R" << row << "C" << col << " matches no globals quadrant"));
 }
 
-TapDriver GlobalsInfo::get_tap_driver(int row, int col) const {
+TapDriver Ecp5GlobalsInfo::get_tap_driver(int row, int col) const {
     for (const auto &seg : tapsegs) {
         if (seg.matches_left(row, col)) {
             TapDriver td;
@@ -338,7 +338,7 @@ TapDriver GlobalsInfo::get_tap_driver(int row, int col) const {
     throw runtime_error(fmt("R" << row << "C" << col << " matches no global TAP_DRIVE segment"));
 }
 
-pair<int, int> GlobalsInfo::get_spine_driver(std::string quadrant, int col) {
+pair<int, int> Ecp5GlobalsInfo::get_spine_driver(std::string quadrant, int col) {
     for (const auto &seg : spinesegs) {
         if (seg.quadrant == quadrant && seg.tap_col == col) {
             return make_pair(seg.spine_row, seg.spine_col);

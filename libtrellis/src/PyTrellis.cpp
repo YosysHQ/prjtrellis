@@ -127,12 +127,12 @@ BOOST_PYTHON_MODULE (pytrellis)
     class_<vector<TapSegment>>("TapSegmentVector")
             .def(vector_indexing_suite<vector<TapSegment>>());
 
-    class_<GlobalsInfo>("GlobalsInfo")
-            .def_readwrite("quadrants", &GlobalsInfo::quadrants)
-            .def_readwrite("tapsegs", &GlobalsInfo::tapsegs)
-            .def("get_quadrant", &GlobalsInfo::get_quadrant)
-            .def("get_tap_driver", &GlobalsInfo::get_tap_driver)
-            .def("get_spine_driver", &GlobalsInfo::get_spine_driver);
+    class_<Ecp5GlobalsInfo>("Ecp5GlobalsInfo")
+            .def_readwrite("quadrants", &Ecp5GlobalsInfo::quadrants)
+            .def_readwrite("tapsegs", &Ecp5GlobalsInfo::tapsegs)
+            .def("get_quadrant", &Ecp5GlobalsInfo::get_quadrant)
+            .def("get_tap_driver", &Ecp5GlobalsInfo::get_tap_driver)
+            .def("get_spine_driver", &Ecp5GlobalsInfo::get_spine_driver);
 
     class_<Chip>("Chip", init<string>())
             .def(init<uint32_t>())

@@ -75,7 +75,7 @@ struct SpineSegment
     int spine_row, spine_col;
 };
 
-struct GlobalsInfo
+struct Ecp5GlobalsInfo
 {
     vector<GlobalRegion> quadrants;
     vector<TapSegment> tapsegs;
@@ -149,7 +149,7 @@ public:
     map<uint16_t, vector<uint16_t>> bram_data;
 
     // Globals data
-    GlobalsInfo global_data;
+    Ecp5GlobalsInfo global_data;
 
 private:
     // Factory functions

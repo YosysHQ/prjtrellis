@@ -83,11 +83,11 @@ ChipInfo get_chip_info(const DeviceLocator &part) {
     return ci;
 }
 
-GlobalsInfo get_global_info(const DeviceLocator &part) {
+Ecp5GlobalsInfo get_global_info(const DeviceLocator &part) {
     string glbdata_path = db_root + "/" + part.family + "/" + part.device + "/globals.json";
     pt::ptree glb_parsed;
     pt::read_json(glbdata_path, glb_parsed);
-    GlobalsInfo glbs;
+    Ecp5GlobalsInfo glbs;
     for (const pt::ptree::value_type &quad : glb_parsed.get_child("quadrants")) {
         GlobalRegion rg;
         rg.name = quad.first;

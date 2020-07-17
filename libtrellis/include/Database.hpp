@@ -43,10 +43,10 @@ struct ChipInfo;
 // Obtain basic information about a device
 ChipInfo get_chip_info(const DeviceLocator &part);
 
-struct GlobalsInfo;
+struct Ecp5GlobalsInfo;
 
 // Obtain global network information for a chip
-GlobalsInfo get_global_info(const DeviceLocator &part);
+Ecp5GlobalsInfo get_global_info(const DeviceLocator &part);
 
 // Obtain the tilegrid for a part
 struct TileInfo;
