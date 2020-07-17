@@ -118,6 +118,28 @@ Ecp5GlobalsInfo get_global_info_ecp5(const DeviceLocator &part) {
     return glbs;
 }
 
+MachXO2GlobalsInfo get_global_info_machxo2(const DeviceLocator &part) {
+    string glbdata_path = db_root + "/" + part.family + "/" + part.device + "/globals.json";
+    pt::ptree glb_parsed;
+    pt::read_json(glbdata_path, glb_parsed);
+    MachXO2GlobalsInfo glbs;
+
+    for (const pt::ptree::value_type &lr : glb_parsed.get_child("lr-conns")) {
+        LeftRightConn lrc;
+        lrc.name = lr.first;
+        lrc.row = lr.second.get<int>("row");
+
+        auto rs = lr.second.get_child("row-span").begin();
+        lrc.row_span.first = rs->second.get_value<int>();
+        rs++;
+        lrc.row_span.second = rs->second.get_value<int>();
+
+        glbs.lr_conns.push_back(lrc);
+    }
+
+    return glbs;
+}
+
 vector<TileInfo> get_device_tilegrid(const DeviceLocator &part) {
     vector <TileInfo> tilesInfo;
     assert(db_root != "");

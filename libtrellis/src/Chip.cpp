@@ -35,6 +35,8 @@ Chip::Chip(const Trellis::ChipInfo &info) : info(info), cram(info.num_frames, in
 
     if(info.family == "ECP5")
         global_data_ecp5 = get_global_info_ecp5(DeviceLocator{info.family, info.name});
+    else if(info.family == "MachXO2")
+        global_data_machxo2 = get_global_info_machxo2(DeviceLocator{info.family, info.name});
     else
         throw runtime_error("Unknown chip family " + info.family);
 }

@@ -88,6 +88,31 @@ struct Ecp5GlobalsInfo
     pair<int, int> get_spine_driver(std::string quadrant, int col);
 };
 
+struct LeftRightConn
+{
+    string name;
+    int row;
+    std::pair<int, int> row_span;
+};
+
+// Some columns contain global routing which EPIC shows as missing DCCA
+// primitives between L/R and U/D connections. None of the DCCs between these
+// connections appear to physically exist on-chip. However, the bitstream
+// does appear to treat them specially, so keep this info around.
+struct MissingDccs
+{
+    int row;
+    std::vector<int> missing;
+};
+
+struct MachXO2GlobalsInfo
+{
+    std::vector<LeftRightConn> lr_conns;
+    std::vector<std::vector<int>> ud_conns;
+    std::vector<std::vector<pair<int, int>>> branch_spans;
+    std::vector<MissingDccs> missing_dccs;
+};
+
 class Tile;
 
 // A difference between two Chips
@@ -148,8 +173,10 @@ public:
     // Block RAM initialisation (WIP)
     map<uint16_t, vector<uint16_t>> bram_data;
 
-    // Globals data- Should be a variant.
+    // Globals data- Should be a variant, but I couldn't get boost::python
+    // to behave with boost::variant.
     Ecp5GlobalsInfo global_data_ecp5;
+    MachXO2GlobalsInfo global_data_machxo2;
 
 private:
     // Factory functions

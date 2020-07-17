@@ -150,6 +150,7 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def_readwrite("usercode", &Chip::usercode)
             .def_readwrite("metadata", &Chip::metadata)
             .def_readwrite("global_data_ecp5", &Chip::global_data_ecp5)
+            .def_readwrite("global_data_machxo2", &Chip::global_data_machxo2)
             .def(self - self);
 
     class_<ChipDelta>("ChipDelta")
