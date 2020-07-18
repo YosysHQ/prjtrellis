@@ -1,18 +1,18 @@
-#include "OptChipdb.hpp"
+#include "DedupChipdb.hpp"
 #include "Chip.hpp"
 
 namespace Trellis {
-namespace OptChipDb {
+namespace DDChipDb {
 
-OptChipdb::OptChipdb()
+OptimizedChipdb::OptimizedChipdb()
 {
 
 }
 
-OptChipdb::OptChipdb(const IdStore &base) : IdStore(base)
+OptimizedChipdb::OptimizedChipdb(const IdStore &base) : IdStore(base)
 {}
 
-shared_ptr<OptChipdb> make_optimized_chipdb(Chip &chip)
+shared_ptr<OptimizedChipdb> make_optimized_chipdb(Chip &chip)
 {
     shared_ptr<RoutingGraph> graph = chip.get_routing_graph();
     for (auto &loc : graph->tiles) {
@@ -38,7 +38,7 @@ shared_ptr<OptChipdb> make_optimized_chipdb(Chip &chip)
             arc.second.cdb_id = arc_id++;
         }
     }
-    shared_ptr<OptChipdb> cdb = make_shared<OptChipdb>(IdStore(*graph));
+    shared_ptr<OptimizedChipdb> cdb = make_shared<OptimizedChipdb>(IdStore(*graph));
     for (const auto &loc : graph->tiles) {
         int x = loc.first.x, y = loc.first.y;
         LocationData ld;
