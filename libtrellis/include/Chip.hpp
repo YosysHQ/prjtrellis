@@ -95,6 +95,12 @@ struct LeftRightConn
     std::pair<int, int> row_span;
 };
 
+inline bool operator==(const LeftRightConn &a, const LeftRightConn &b)
+{
+    return (a.name == b.name) && (a.row == b.row) && (a.row_span == b.row_span);
+}
+
+
 // Some columns contain global routing which EPIC shows as missing DCCA
 // primitives between L/R and U/D connections. None of the DCCs between these
 // connections appear to physically exist on-chip. However, the bitstream
@@ -104,6 +110,11 @@ struct MissingDccs
     int row;
     std::vector<int> missing;
 };
+
+inline bool operator==(const MissingDccs &a, const MissingDccs &b)
+{
+    return (a.row == b.row) && (a.missing == b.missing);
+}
 
 struct MachXO2GlobalsInfo
 {

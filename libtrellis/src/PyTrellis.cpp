@@ -133,6 +133,38 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def("get_tap_driver", &Ecp5GlobalsInfo::get_tap_driver)
             .def("get_spine_driver", &Ecp5GlobalsInfo::get_spine_driver);
 
+    class_<LeftRightConn>("LeftRightConn")
+            .def_readwrite("name", &LeftRightConn::name)
+            .def_readwrite("row", &LeftRightConn::row);
+
+    class_<MissingDccs>("MissingDccs")
+            .def_readwrite("row", &MissingDccs::row)
+            .def_readwrite("missing", &MissingDccs::missing);
+
+    class_<vector<LeftRightConn>>("LeftRightConnVector")
+            .def(vector_indexing_suite<vector<LeftRightConn>>());
+
+    class_<vector<vector<int>>>("UpDownConnVector")
+            .def(vector_indexing_suite<vector<vector<int>>>());
+
+    class_<vector<vector<std::pair<int, int>>>>("BranchSpanVector")
+            .def(vector_indexing_suite<vector<vector<std::pair<int, int>>>>());
+
+    class_<vector<MissingDccs>>("MissingDccsVector")
+            .def(vector_indexing_suite<vector<MissingDccs>>());
+
+    class_<vector<int>>("IntVector")
+            .def(vector_indexing_suite<vector<int>>());
+
+    class_<vector<std::pair<int, int>>>("IntPairVector")
+            .def(vector_indexing_suite<vector<std::pair<int, int>>>());
+
+    class_<MachXO2GlobalsInfo>("MachXO2GlobalsInfo")
+            .def_readwrite("lr_conns", &MachXO2GlobalsInfo::lr_conns)
+            .def_readwrite("ud_conns", &MachXO2GlobalsInfo::ud_conns)
+            .def_readwrite("branch_spans", &MachXO2GlobalsInfo::branch_spans)
+            .def_readwrite("missing_dccs", &MachXO2GlobalsInfo::missing_dccs);
+
     class_<Chip>("Chip", init<string>())
             .def(init<uint32_t>())
             .def(init<const ChipInfo &>())
@@ -535,6 +567,12 @@ BOOST_PYTHON_MODULE (pytrellis)
 
     def("make_dedup_chipdb", make_dedup_chipdb);
 
+    class_<OptimizedChipdb, shared_ptr<OptimizedChipdb>>("OptimizedChipdb")
+            .def_readwrite("tiles", &OptimizedChipdb::tiles)
+            .def("ident", &OptimizedChipdb::ident)
+            .def("to_str", &OptimizedChipdb::to_str);
+
+    def("make_optimized_chipdb", make_optimized_chipdb);
 
 }
 
