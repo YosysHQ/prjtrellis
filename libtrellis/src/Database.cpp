@@ -137,6 +137,61 @@ MachXO2GlobalsInfo get_global_info_machxo2(const DeviceLocator &part) {
         glbs.lr_conns.push_back(lrc);
     }
 
+    // The column is a string the in JSON file so the JSON is easier to read
+    // (because JSON doesn't have comments). Columns need to be parsed in
+    // order.
+    int col_no = 0;
+    for (const pt::ptree::value_type &ud : glb_parsed.get_child("ud-conns")) {
+        std::vector<int> udc;
+
+        assert(col_no == std::stoi(ud.first));
+
+        for(const pt::ptree::value_type &glb_no : ud.second.get_child(""))
+        {
+            udc.push_back(glb_no.second.get<int>(""));
+        }
+
+        glbs.ud_conns.push_back(udc);
+        col_no++;
+    }
+
+    col_no = 0;
+    for (const pt::ptree::value_type &spans : glb_parsed.get_child("branch-spans")) {
+        std::vector<pair<int, int> > sp;
+
+        assert(col_no == std::stoi(spans.first));
+
+        for(auto global_no : glbs.ud_conns[col_no])
+        {
+          std::pair<int, int> sr;
+
+          string global_key = std::to_string(global_no);
+          auto curr_sr = spans.second.get_child(global_key).begin();
+
+          sr.first = curr_sr->second.get_value<int>();
+          curr_sr++;
+          sr.second = curr_sr->second.get_value<int>();
+
+          sp.push_back(sr);
+        }
+
+        glbs.branch_spans.push_back(sp);
+        col_no++;
+    }
+
+    for (const pt::ptree::value_type &dccs : glb_parsed.get_child("missing_dccs")) {
+        MissingDccs missing;
+
+        missing.row = std::stoi(dccs.first);
+
+        for(const pt::ptree::value_type &dcc_no : dccs.second.get_child(""))
+        {
+            missing.missing.push_back(dcc_no.second.get<int>(""));
+        }
+
+        glbs.missing_dccs.push_back(missing);
+    }
+
     return glbs;
 }
 

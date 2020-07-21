@@ -135,7 +135,8 @@ BOOST_PYTHON_MODULE (pytrellis)
 
     class_<LeftRightConn>("LeftRightConn")
             .def_readwrite("name", &LeftRightConn::name)
-            .def_readwrite("row", &LeftRightConn::row);
+            .def_readwrite("row", &LeftRightConn::row)
+            .def_readwrite("row_span", &LeftRightConn::row_span);
 
     class_<MissingDccs>("MissingDccs")
             .def_readwrite("row", &MissingDccs::row)

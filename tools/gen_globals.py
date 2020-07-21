@@ -191,7 +191,7 @@ def main(args):
     last_col_conns = set(globals_json["ud-conns"][str(chip_size[1])])
     missing_dccs_r = tuple(last_col_conns.difference(last_col_dccs))
 
-    globals_json["missing_dcss"] = {
+    globals_json["missing_dccs"] = {
         "0" : missing_dccs_l,
         str(chip_size[1]) : missing_dccs_r
     }
