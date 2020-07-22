@@ -109,9 +109,9 @@ def main(args):
             # I/O connections in the left/right tiles exist as-if a column "0"
             # or one past maximum is physically present.
             if job["bank"] == "R":
-                io_nets = mk_nets.io_conns((job["pos"][0][0], job["pos"][0][1] + 1), job["bank"])
+                io_nets = mk_nets.io_conns((job["pos"][0], job["pos"][1] + 1), job["bank"])
             elif job["bank"] == "L":
-                io_nets = mk_nets.io_conns((job["pos"][0][0], job["pos"][0][1] - 1), job["bank"])
+                io_nets = mk_nets.io_conns((job["pos"][0], job["pos"][1] - 1), job["bank"])
             else:
                 io_nets = mk_nets.io_conns(job["pos"][0], job["bank"])
 
