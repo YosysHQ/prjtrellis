@@ -182,7 +182,12 @@ def main(args):
         globals_json["branch-spans"][str(col)] = span_dict
 
 
-    # For the first and last columns, globals at the stride's current position
+    # For the first and last columns, globals at the stride's current
+    # position have DCCs when viewed in EPIC. These DCCs don't appear to
+    # physically exist on-chip. See minitests/machxo2/dcc/dcc2.v. However,
+    # in the bitstream (for the first and last columns) global conns going
+    # into "DCCs" have different bits controlling them as opposed to globals
+    # without DCC connections.
     zero_col_dccs = set(inv_global_group[(global_group[start_stride[chip_size]] - 1) % 4])
     zero_col_conns = set(globals_json["ud-conns"]["0"])
     missing_dccs_l = tuple(zero_col_conns.difference(zero_col_dccs))
