@@ -62,6 +62,26 @@ jobs = [
     (FuzzConfig(job="PIC_R0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
                       tiles=["PR5:PIC_R0"]), ["R5C22_HPBX0000", "R5C22_HPBX0100",
                                               "R5C22_HPBX0400", "R5C22_HPBX0500"]),
+
+    # URC0- This also appears to be a noop after other fuzzers run.
+    (FuzzConfig(job="URC0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["PR1:URC0"]), ["R1C22_HPBX0000", "R1C22_HPBX0100",
+                                              "R1C22_HPBX0400", "R1C22_HPBX0500"]),
+
+    # LRC0- This also appears to be a noop after other fuzzers run.
+    (FuzzConfig(job="LRC0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["PR11:LRC0"]), ["R11C22_HPBX0000", "R11C22_HPBX0100",
+                                              "R11C22_HPBX0400", "R11C22_HPBX0500"]),
+
+    # ULC0
+    (FuzzConfig(job="ULC0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["PL1:ULC0"]), ["R1C1_HPBX0100", "R1C2_HPBX0200", "R1C2_HPBX0300",
+                                              "R1C1_HPBX0500", "R1C2_HPBX0600", "R1C2_HPBX0700"]),
+
+    # LLC0
+    (FuzzConfig(job="LLC0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+                      tiles=["PL11:LLC0"]), ["R11C1_HPBX0100", "R11C2_HPBX0200", "R11C2_HPBX0300",
+                                              "R11C1_HPBX0500", "R11C2_HPBX0600", "R11C2_HPBX0700"]),
 ]
 
 def main(args):
