@@ -55,18 +55,26 @@ int main(int argc, char *argv[])
     pos.add("input", 1);
     options.add_options()("bit", po::value<std::string>(), "output bitstream file");
     pos.add("bit", 1);
+    options.add_options()("version", "show current version and exit");
 
     po::variables_map vm;
+
     try {
         po::parsed_options parsed = po::command_line_parser(argc, argv).options(options).positional(pos).run();
         po::store(parsed, vm);
+
+        if (vm.count("version")) {
+            cerr << "Project Trellis ecppack Version " << git_describe_str << endl;
+            return 0;
+        }
+
         po::notify(vm);
     }
-    catch (po::required_option &e) {
+    catch (po::required_option& e) {
         cerr << "Error: input file is mandatory." << endl << endl;
         goto help;
     }
-    catch (std::exception &e) {
+    catch (std::exception& e) {
         cerr << "Error: " << e.what() << endl << endl;
         goto help;
     }
