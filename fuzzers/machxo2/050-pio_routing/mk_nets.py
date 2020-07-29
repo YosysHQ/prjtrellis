@@ -3,7 +3,7 @@ from itertools import product, starmap
 from collections import defaultdict
 import re
 
-def io_conns(tile, bank):
+def io_conns(tile, bank, ab_only=False):
     # All I/O connections on the left bank are contained in the other banks.
     all_template = [
         ("JPADDO{}", "sink"),
@@ -55,7 +55,7 @@ def io_conns(tile, bank):
         bank_template = bottom
     elif bank == "T":
         bank_template = top
-    elif bank == "R":
+    elif bank.startswith("R"):
         bank_template = right
     else:
         bank_template = []
@@ -69,7 +69,12 @@ def io_conns(tile, bank):
     eclk_re = re.compile("ECLKC*")
 
     netlist = []
-    for pad in ("A", "B", "C", "D"):
+    if ab_only:
+        pads = ("A", "B")
+    else:
+        pads = ("A", "B", "C", "D")
+
+    for pad in pads:
         # B/BS/T/TSIOLOGIC
         if bank in ("B", "T"):
             if pad == "A":
@@ -79,7 +84,7 @@ def io_conns(tile, bank):
             else:
                 io_prefix = ""
         # RIOLOGIC
-        elif bank == "R":
+        elif bank.startswith("R"):
             io_prefix = "R"
         # Just "LOGIC"
         else:
@@ -89,7 +94,7 @@ def io_conns(tile, bank):
             suffix = f.format(pad, io_prefix)
             netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
 
-        if bank == "R":
+        if bank.startswith("R"):
             for f, d in bank_template:
                 suffix = f.format(pad, io_prefix)
                 netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
@@ -127,11 +132,14 @@ def io_conns(tile, bank):
     return netlist
 
 def main():
-    for t, b in zip(((10, 0), (12, 11), (10, 23), (1, 11)), ("L", "B", "R", "T")):
-        print("Bank {}:".format(b))
-        for i, n in enumerate(io_conns(t, b)):
-            print(i, n)
-        print("")
+    for t, b, ab in zip(
+        ((10, 0), (12, 11), (10, 23), (1, 11), (9, 0), (3, 23)),
+        ("L", "B", "R", "T", "LS", "RS"),
+        (False, False, False, False, True, True)):
+            print("Bank {} (AB only={}):".format(b, ab))
+            for i, n in enumerate(io_conns(t, b, ab)):
+                print(i, n)
+            print("")
 
 if __name__ == "__main__":
     main()

@@ -58,6 +58,8 @@ jobs = [
            "missing_nets" : None,
            "bank" : "L"
         },
+
+        # 4
         {
            "pos" : (10, 22),
            "cfg" : FuzzConfig(job="PIOROUTER", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
@@ -78,6 +80,22 @@ jobs = [
                                   tiles=["CIB_R1C12:CIB_PIC_T0"]),
            "missing_nets" : None,
            "bank" : None,
+        },
+        {
+           "pos" : (9, 1),
+           "cfg" : FuzzConfig(job="PIOROUTELS0", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
+                                  tiles=["PL9:PIC_LS0"]),
+           "missing_nets" : None,
+           "bank" : "LS",
+        },
+
+        # 8
+        {
+           "pos" : (3, 22),
+           "cfg" : FuzzConfig(job="PIOROUTERS0", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
+                                  tiles=["PR3:PIC_RS0"]),
+           "missing_nets" : None,
+           "bank" : "RS",
         },
 ]
 
@@ -108,10 +126,12 @@ def main(args):
         if args.p and job["bank"]:
             # I/O connections in the left/right tiles exist as-if a column "0"
             # or one past maximum is physically present.
-            if job["bank"] == "R":
-                io_nets = mk_nets.io_conns((job["pos"][0], job["pos"][1] + 1), job["bank"])
-            elif job["bank"] == "L":
-                io_nets = mk_nets.io_conns((job["pos"][0], job["pos"][1] - 1), job["bank"])
+            if job["bank"].startswith("R"):
+                ab_only = job["bank"].endswith("S")
+                io_nets = mk_nets.io_conns((job["pos"][0], job["pos"][1] + 1), job["bank"], ab_only)
+            elif job["bank"].startswith("L"):
+                ab_only = job["bank"].endswith("S")
+                io_nets = mk_nets.io_conns((job["pos"][0], job["pos"][1] - 1), job["bank"], ab_only)
             else:
                 io_nets = mk_nets.io_conns(job["pos"][0], job["bank"])
 
