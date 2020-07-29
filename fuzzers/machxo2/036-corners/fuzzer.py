@@ -7,9 +7,6 @@ import pytrellis
 import re
 import argparse
 
-* `LRC0` has same routing and globals as `PIC_R0`.
-* `LLC0` has same routing and globals as `PIC_L0`.
-
 jobs = [
         # URC0 has same routing as `CIB_PIC_T`, except for globals.
         {
