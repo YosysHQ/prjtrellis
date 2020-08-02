@@ -49,3 +49,29 @@ def dbcopy(family, device, source, dest, copy_muxes=True, copy_words=True, copy_
         fcs = srcdb.get_fixed_conns()
         for conn in fcs:
             dstdb.add_fixed_conn(conn)
+
+
+def copy_muxes_with_predicate(family, device, source, dest, predicate):
+    srcdb = pytrellis.get_tile_bitdata(
+        pytrellis.TileLocator(family, device, source))
+    dstdb = pytrellis.get_tile_bitdata(
+        pytrellis.TileLocator(family, device, dest))
+
+    sinks = srcdb.get_sinks()
+    for sink in sinks:
+        mux = srcdb.get_mux_data_for_sink(sink)
+        for src in mux.get_sources():
+            if predicate((src, sink)):
+                dstdb.add_mux_arc(mux.arcs[src])
+
+
+def copy_conns_with_predicate(family, device, source, dest, predicate):
+    srcdb = pytrellis.get_tile_bitdata(
+        pytrellis.TileLocator(family, device, source))
+    dstdb = pytrellis.get_tile_bitdata(
+        pytrellis.TileLocator(family, device, dest))
+
+    fcs = srcdb.get_fixed_conns()
+    for conn in fcs:
+        if predicate(conn):
+            dstdb.add_fixed_conn(conn)
