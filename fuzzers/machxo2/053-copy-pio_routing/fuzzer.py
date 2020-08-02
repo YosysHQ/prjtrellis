@@ -36,7 +36,7 @@ def exclude_cd_conns(conn):
     else:
         return True
 
-# URC0 has same routing as `CIB_PIC_T`, but the globals look like PIC_R0.
+# URC0 has same routing as `CIB_PIC_T`, but the globals are unique.
 def exclude_globals(conn):
     if isinstance(conn, pytrellis.FixedConnection):
         src = conn.source
@@ -80,9 +80,6 @@ def main():
     for dest, pred in pio_tiles_cib.items():
         dbcopy.copy_muxes_with_predicate("MachXO2", "LCMXO2-1200HC", "CIB_PIC_T0", dest, pred[0])
         dbcopy.copy_conns_with_predicate("MachXO2", "LCMXO2-1200HC", "CIB_PIC_T0", dest, pred[1])
-
-        dbcopy.copy_muxes_with_predicate("MachXO2", "LCMXO2-1200HC", "PIC_R0", dest, lambda c: exclude_abcd_conns(c) and not pred[0](c))
-        dbcopy.copy_conns_with_predicate("MachXO2", "LCMXO2-1200HC", "PIC_R0", dest, lambda c: exclude_abcd_conns(c) and not pred[1](c))
 
 
 if __name__ == "__main__":
