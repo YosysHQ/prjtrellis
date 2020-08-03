@@ -31,6 +31,7 @@ jobs = [
            "cfg" : FuzzConfig(job="PIOROUTEB", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                   tiles=["PB11:PIC_B0"]),
            "missing_nets" : None,
+           "nn_filter": nn_filter,
            "bank" : "B",
         },
         {
@@ -40,6 +41,7 @@ jobs = [
             # A bug in the span1 fix prevents span1 nets from being included.
             # Just fuzz manually for now.
            "missing_nets" : ["R10C11_V01N0001", "R10C11_V01N0101"],
+           "nn_filter": nn_filter,
            "bank" : None,
         },
         {
@@ -47,6 +49,7 @@ jobs = [
            "cfg" : FuzzConfig(job="PIOROUTEL", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                   tiles=["PL10:PIC_L0"]),
            "missing_nets" : None,
+           "nn_filter": nn_filter,
            "bank" : "L"
         },
 
@@ -56,6 +59,7 @@ jobs = [
            "cfg" : FuzzConfig(job="PIOROUTELLC0", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                   tiles=["PL11:LLC0"]),
            "missing_nets" : None,
+           "nn_filter": nn_filter,
            "bank" : "L"
         },
 
@@ -65,6 +69,7 @@ jobs = [
            "cfg" : FuzzConfig(job="PIOROUTER", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                    tiles=["PR10:PIC_R0"]),
            "missing_nets" : None,
+           "nn_filter": nn_filter,
            "bank" : "R"
         },
         {
@@ -72,6 +77,7 @@ jobs = [
            "cfg" : FuzzConfig(job="PIOROUTET", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                   tiles=["PT12:PIC_T0"]),
            "missing_nets" : None,
+           "nn_filter" : lambda x, nets: x.startswith("R0C12"),
            "bank" : "T",
         },
         {
@@ -79,6 +85,7 @@ jobs = [
            "cfg" : FuzzConfig(job="PIOROUTET_CIB", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                   tiles=["CIB_R1C12:CIB_PIC_T0"]),
            "missing_nets" : None,
+           "nn_filter": nn_filter,
            "bank" : None,
         },
         {
@@ -86,6 +93,7 @@ jobs = [
            "cfg" : FuzzConfig(job="PIOROUTELS0", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                   tiles=["PL9:PIC_LS0"]),
            "missing_nets" : None,
+           "nn_filter": nn_filter,
            "bank" : "LS",
         },
 
@@ -95,6 +103,7 @@ jobs = [
            "cfg" : FuzzConfig(job="PIOROUTERS0", family="MachXO2", device="LCMXO2-1200HC", ncl="pioroute.ncl",
                                   tiles=["PR3:PIC_RS0"]),
            "missing_nets" : None,
+           "nn_filter": nn_filter,
            "bank" : "RS",
         },
 ]
@@ -108,7 +117,7 @@ def main(args):
         if args.i:
             # Fuzz basic routing, ignore fixed connections to/from I/O pads.
             interconnect.fuzz_interconnect(config=cfg, location=job["pos"],
-                                           netname_predicate=nn_filter,
+                                           netname_predicate=job["nn_filter"],
                                            netdir_override=defaultdict(lambda : str("ignore")),
                                            fc_predicate=fc_filter,
                                            netname_filter_union=False,
@@ -133,7 +142,7 @@ def main(args):
                 ab_only = job["bank"].endswith("S")
                 io_nets = mk_nets.io_conns((job["pos"][0], job["pos"][1] - 1), job["bank"], ab_only)
             else:
-                io_nets = mk_nets.io_conns(job["pos"][0], job["bank"])
+                io_nets = mk_nets.io_conns((job["pos"][0], job["pos"][1]), job["bank"])
 
             io_list = [io[0] for io in io_nets]
             override_dict = {io[0]: io[1] for io in io_nets}
