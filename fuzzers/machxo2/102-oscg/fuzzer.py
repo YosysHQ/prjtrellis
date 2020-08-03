@@ -13,7 +13,7 @@ cfg = FuzzConfig(job="OSCH", family="MachXO2", device="LCMXO2-1200HC", ncl="empt
                                                 "CIB_R1C5:CIB_CFG1"])
 
 cfg_r = FuzzConfig(job="OSCH_ROUTE", family="MachXO2", device="LCMXO2-1200HC", ncl="osc_routing.ncl",
-                                          tiles=["CIB_R1C4:CFG0"])
+                                          tiles=["CIB_R1C4:CIB_CFG0"])
 
 
 def get_substs(mode="OSCH", nom_freq="2.08", stdby="0"):
