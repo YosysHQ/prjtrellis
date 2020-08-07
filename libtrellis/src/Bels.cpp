@@ -261,6 +261,7 @@ void add_pll(RoutingGraph &graph, std::string quad, int x, int y) {
     bel.type = graph.ident("EHXPLLL");
     bel.loc.x = x;
     bel.loc.y = y;
+    bel.z = 0;
     auto add_input = [&](const std::string &pin) {
         graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt("J" << pin << "_PLL")));
     };
@@ -508,7 +509,7 @@ void add_misc(RoutingGraph &graph, const std::string &name, int x, int y) {
             add_output("DTROUT" + std::to_string(i));
     } else if (name == "USRMCLK") {
         postfix = "CCLK";
-        bel.z = 0;
+        bel.z = 1;
         add_input("PADDO");
         add_input("PADDT");
         add_output("PADDI");

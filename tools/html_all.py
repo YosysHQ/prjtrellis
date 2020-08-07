@@ -28,8 +28,8 @@ trellis_docs_index = """
 <h1>Project Trellis HTML Documentation</h1>
 <p>Project Trellis is a project to document the ECP5 bitstream and internal architecture.</p>
 <p>This repository contains HTML documentation automatically generated from the
-<a href="https://github.com/SymbiFlow/prjtrellis">Project Trellis</a> database. The equivalent
-machine-readable data is located in <a href="https://github.com/SymbiFlow/prjtrellis-db">prjtrellis-db.<a/>
+<a href="https://github.com/YosysHQ/prjtrellis">Project Trellis</a> database. The equivalent
+machine-readable data is located in <a href="https://github.com/YosysHQ/prjtrellis-db">prjtrellis-db.<a/>
 Data generated includes tilemap data and bitstream data for many tile types. Click on any tile to see its bitstream
 documentation.
 </p>
@@ -38,7 +38,7 @@ documentation.
 on the <a href="http://prjtrellis.readthedocs.io/en/latest/">Read the Docs</a> site.</p>
 
 <p>This HTML documentation was generated at ${datetime} from prjtrellis-db commit
-<a href="https://github.com/SymbiFlow/prjtrellis-db/tree/${commit}">${commit}</a>.</p>
+<a href="https://github.com/YosysHQ/prjtrellis-db/tree/${commit}">${commit}</a>.</p>
 <hr/>
 $docs_toc
 <hr/>

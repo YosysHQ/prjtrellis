@@ -19,7 +19,9 @@ static pt::ptree devices_info;
 
 // Cache Tilegrid data, to save time parsing it again
 static map<string, pt::ptree> tilegrid_cache;
+#ifndef NO_THREADS
 static mutex tilegrid_cache_mutex;
+#endif
 
 void load_database(string root) {
     db_root = root;
@@ -201,7 +203,9 @@ vector<TileInfo> get_device_tilegrid(const DeviceLocator &part) {
     string tilegrid_path = db_root + "/" + part.family + "/" + part.device + "/tilegrid.json";
     {
         ChipInfo info = get_chip_info(part);
+#ifndef NO_THREADS
         lock_guard <mutex> lock(tilegrid_cache_mutex);
+#endif
         if (tilegrid_cache.find(part.device) == tilegrid_cache.end()) {
             pt::ptree tg_parsed;
             pt::read_json(tilegrid_path, tg_parsed);
@@ -237,10 +241,14 @@ vector<TileInfo> get_device_tilegrid(const DeviceLocator &part) {
 }
 
 static unordered_map<TileLocator, shared_ptr<TileBitDatabase>> bitdb_store;
+#ifndef NO_THREADS
 static mutex bitdb_store_mutex;
+#endif
 
 shared_ptr<TileBitDatabase> get_tile_bitdata(const TileLocator &tile) {
+#ifndef NO_THREADS
     lock_guard <mutex> bitdb_store_lg(bitdb_store_mutex);
+#endif
     if (bitdb_store.find(tile) == bitdb_store.end()) {
         assert(!db_root.empty());
         string bitdb_path = db_root + "/" + tile.family + "/tiledata/" + tile.tiletype + "/bits.db";
