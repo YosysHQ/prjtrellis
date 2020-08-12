@@ -554,6 +554,9 @@ BOOST_PYTHON_MODULE (pytrellis)
     class_<map<checksum_t, LocationData>>("LocationTypesMap")
             .def(map_indexing_suite<map<checksum_t, LocationData>>());
 
+    class_<map<Location, LocationData>>("LocationMapDirect")
+            .def(map_indexing_suite<map<Location, LocationData>>());
+
     class_<checksum_t>("checksum_t")
             .def_readwrite("first", &checksum_t::first)
             .def_readwrite("second", &checksum_t::second)
