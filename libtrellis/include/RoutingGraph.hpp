@@ -8,6 +8,9 @@
 #include <set>
 #include <boost/functional/hash.hpp>
 
+#include "Chip.hpp"
+#include "Database.hpp"
+
 using namespace std;
 
 namespace Trellis {
@@ -167,6 +170,9 @@ private:
     // Algorithm to give global nets a unique position in MachXO2 devices.
     // ECP5 defers global routing to nextpnr.
     RoutingId find_machxo2_global_position(int row, int col, const std::string &db_name);
+    // We need access to globals.json to correctly assign global positions.
+    // Internal use only- do NOT expose to pytrellis for now.
+    MachXO2GlobalsInfo global_data_machxo2;
 };
 }
 

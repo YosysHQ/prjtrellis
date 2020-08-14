@@ -30,6 +30,9 @@ RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), chip_family(
         chip_prefix = "1200_";
     else
         assert(false);
+
+    if(c.info.family == "MachXO2")
+        global_data_machxo2 = get_global_info_machxo2(DeviceLocator{c.info.family, c.info.name});
 }
 
 ident_t IdStore::ident(const std::string &str) const
@@ -281,6 +284,8 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // Globals are given their nominal position, even if they span multiple
     // tiles, by the following rules:
 
+    static const std::regex clk_dcc(R"(^G_CLK[IO]\d[TB]_DCC)", std::regex::optimize);
+    smatch m;
     pair<int, int> center = center_map[make_pair(max_row, max_col)];
     RoutingId curr_global;
 
@@ -311,6 +316,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
         curr_global.id = ident(db_copy);
         curr_global.loc.x = center.second;
         curr_global.loc.y = center.first;
+
         return curr_global;
 
     // U/D wires get the nominal position of center row, current column.
@@ -343,6 +349,16 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
             curr_global.loc.y = center.first;
             return curr_global;
         }
+    } else if(db_name.find("BRANCH") != string::npos) {
+        curr_global.id = ident(db_name);
+        curr_global.loc.x = -2;
+        curr_global.loc.y = -2;
+        return curr_global;
+    } else if(regex_match(db_name, m, clk_dcc)) {
+        curr_global.id = ident(db_name);
+        curr_global.loc.x = col;
+        curr_global.loc.y = row;
+        return curr_global;
     } else {
         // TODO: Not fuzzed yet!
         return RoutingId();
