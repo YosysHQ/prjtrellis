@@ -285,6 +285,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // tiles, by the following rules:
 
     static const std::regex clk_dcc(R"(^G_CLK[IO]\d[TB]_DCC)", std::regex::optimize);
+
     smatch m;
     pair<int, int> center = center_map[make_pair(max_row, max_col)];
     RoutingId curr_global;
@@ -354,7 +355,12 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
         curr_global.loc.x = -2;
         curr_global.loc.y = -2;
         return curr_global;
-    } else if(regex_match(db_name, m, clk_dcc)) {
+    } else if(regex_match(db_name, m, clk_dcc) ||
+        db_name.find("G_JOSC_OSC") != string::npos ||
+        db_name.find("_DCM") != string::npos) {
+
+        // TODO: _DCM should really be a regex.
+        // Assign nominal position of current requested tile.
         curr_global.id = ident(db_name);
         curr_global.loc.x = col;
         curr_global.loc.y = row;

@@ -297,6 +297,19 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2()
             tile->info.type.find("PIC_B") != string::npos)
             for (int z = 0; z < 4; z++)
                 MachXO2Bels::add_pio(*rg, x, y, z);
+
+        // DCC/DCM MachXO2Bels
+        if (tile->info.type.find("CENTER_EBR_CIB") != string::npos) {
+          for (int z = 0; z < 8; z++)
+              MachXO2Bels::add_dcc(*rg, x, y, z);
+          for (int z = 6; z < 8; z++)
+              // Start at z = 8, but names start at 6.
+              MachXO2Bels::add_dcm(*rg, x, y, z, z + 2);
+        }
+
+        if (tile->info.type.find("CIB_CFG0") != string::npos) {
+            MachXO2Bels::add_osch(*rg, x, y, 0);
+        }
     }
 
     return rg;

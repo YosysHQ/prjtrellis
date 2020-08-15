@@ -739,11 +739,16 @@ namespace MachXO2Bels {
         graph.add_bel(bel);
     }
 
-    void add_dcc(RoutingGraph &graph, int x, int y, const std::string &name, int z) {
-        string full_name = string("DCC") + name;
+    void add_dcc(RoutingGraph &graph, int x, int y, /* const std::string &name, */ int z) {
+        // TODO: All DCCs appear to be in center. Phantom DCCs line the columns
+        // for global routing with names of the form DCC_RxCy_{0,1}{T,B}. Hence
+        // commented-out name parameter.
+        // Diamond acknowledges these BELs, but attempting to use them crashes.
+        // See if they indeed do exist.
+        string name = string("DCC") + std::to_string(z);
         RoutingBel bel;
-        bel.name = graph.ident(full_name);
-        bel.type = graph.ident("DCC");
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("DCCA");
         bel.loc.x = x;
         bel.loc.y = y;
         bel.z = z;
@@ -755,19 +760,19 @@ namespace MachXO2Bels {
         graph.add_bel(bel);
     }
 
-    void add_dcm(RoutingGraph &graph, int x, int y, int z) {
-        string name = string("DCM") + std::to_string(z);
+    void add_dcm(RoutingGraph &graph, int x, int y, int n, int z) {
+        string name = string("DCM") + std::to_string(n);
         RoutingBel bel;
         bel.name = graph.ident(name);
-        bel.type = graph.ident("DCM");
+        bel.type = graph.ident("DCMA");
         bel.loc.x = x;
         bel.loc.y = y;
         bel.z = z;
 
-        graph.add_bel_input(bel, graph.ident("CLK0"), x, y, graph.ident(fmt("G_CLK0_" << z << "_DCM")));
-        graph.add_bel_input(bel, graph.ident("CLK1"), x, y, graph.ident(fmt("G_CLK1_" << z << "_DCM")));
-        graph.add_bel_input(bel, graph.ident("SEL"), x, y, graph.ident(fmt("G_JSEL" << z << "_DCM")));
-        graph.add_bel_output(bel, graph.ident("DCMOUT"), x, y, graph.ident(fmt("G_DCMOUT" << z << "_DCM")));
+        graph.add_bel_input(bel, graph.ident("CLK0"), x, y, graph.ident(fmt("G_CLK0_" << n << "_DCM")));
+        graph.add_bel_input(bel, graph.ident("CLK1"), x, y, graph.ident(fmt("G_CLK1_" << n << "_DCM")));
+        graph.add_bel_input(bel, graph.ident("SEL"), x, y, graph.ident(fmt("G_JSEL" << n << "_DCM")));
+        graph.add_bel_output(bel, graph.ident("DCMOUT"), x, y, graph.ident(fmt("G_DCMOUT" << n << "_DCM")));
 
         graph.add_bel(bel);
     }
