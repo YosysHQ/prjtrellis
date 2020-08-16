@@ -20,6 +20,11 @@ def exclude_lrud_conns(conn):
 
     return not (src.startswith("G_CLKO") or sink.startswith("G_CLKI"))
 
+def exclude_lrud_muxes(conn):
+    (src, sink) = conn
+
+    return not (src.startswith("G_CLKI") and sink.startswith("G_CLKO"))
+
 def main():
     pytrellis.load_database("../../../database")
 
@@ -27,7 +32,7 @@ def main():
         dbcopy.dbcopy("MachXO2", "LCMXO2-1200HC", "CIB_EBR0", dest)
 
     for dest in shared_tiles_no_lrudconns:
-        dbcopy.dbcopy("MachXO2", "LCMXO2-1200HC", "CIB_EBR0", dest, copy_conns=False)
+        dbcopy.copy_muxes_with_predicate("MachXO2", "LCMXO2-1200HC", "CIB_EBR0", dest, exclude_lrud_muxes)
         dbcopy.copy_conns_with_predicate("MachXO2", "LCMXO2-1200HC", "CIB_EBR0", dest, exclude_lrud_conns)
 
 if __name__ == "__main__":
