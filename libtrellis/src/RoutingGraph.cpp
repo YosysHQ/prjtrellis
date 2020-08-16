@@ -3,6 +3,7 @@
 #include "Tile.hpp"
 #include <regex>
 #include <iostream>
+#include <algorithm>
 
 namespace Trellis {
 
@@ -358,7 +359,8 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
 
     // All globals in the center tile get a nominal position of the center
     // tile. We have to use regexes because a number of these connections
-    // in the center mux have config bits spread across multiple tiles.
+    // in the center mux have config bits spread across multiple tiles
+    // (although few nets actually have routing bits which cross tiles).
     //
     // This handles L/R_HPSX as well. DCCs are handled a bit differently
     // until we can determine they only truly exist in center tile (the row,
@@ -380,9 +382,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
         // If more than one arc has this problem, we may need to change this
         // function signature to be device-specific, and find a better way to
         // store this info along with the routing graph besides special-casing.
-        if((db_name.find("G_VPRXCLKI0") != string::npos) &&
-            row == 9 &&
-            col == 12)
+        if((db_name.find("G_VPRXCLKI0") != string::npos) && row == 9 && col == 12)
             return RoutingId();
 
         curr_global.id = ident(db_name);
@@ -416,6 +416,16 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // Both U_/D_ and G_ prefixes are handled here.
     } else if(regex_match(db_name, m, global_up_down) ||
         regex_match(db_name, m, global_up_down_g)) {
+
+        std::vector<int> & ud_conns_in_col = global_data_machxo2.ud_conns[col];
+
+        // First check whether the requested global is in the current column.
+        // If not, no point in continuing.
+        if(std::find(ud_conns_in_col.begin(), ud_conns_in_col.end(),
+                    std::stoi(m.str(1))) == ud_conns_in_col.end()) {
+                    return RoutingId();
+        }
+
         // Special case the center row, which will have both U/D wires.
         if(row == center.first) {
             assert((db_name[0] == 'U') || (db_name[0] == 'D'));
@@ -448,10 +458,45 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // to U_/D_ routing. We need the global_data_machxo2 struct to figure
     // out this information.
     } else if(regex_match(db_name, m, global_branch)) {
-        curr_global.id = ident(db_name);
-        curr_global.loc.x = -2;
-        curr_global.loc.y = -2;
-        return curr_global;
+        std::vector<int> candidate_cols;
+
+        if(col == 0) {
+            candidate_cols.push_back(0);
+            candidate_cols.push_back(1);
+        } else if(col == 1) {
+            candidate_cols.push_back(0);
+            candidate_cols.push_back(1);
+            candidate_cols.push_back(2);
+        } else if(col == max_col) {
+            candidate_cols.push_back(max_col - 2);
+            candidate_cols.push_back(max_col - 1);
+            candidate_cols.push_back(max_col);
+        } else {
+            candidate_cols.push_back(col - 2);
+            candidate_cols.push_back(col - 1);
+            candidate_cols.push_back(col);
+            candidate_cols.push_back(col + 1);
+        }
+
+        for(auto curr_col : candidate_cols) {
+            std::vector<int> & ud_conns_in_col = global_data_machxo2.ud_conns[curr_col];
+
+            // First check whether the requested global is in the current column.
+            // If not, no point in continuing.
+            if(std::find(ud_conns_in_col.begin(), ud_conns_in_col.end(),
+                        std::stoi(m.str(1))) != ud_conns_in_col.end()) {
+                curr_global.id = ident(db_name);
+                curr_global.loc.x = curr_col;
+                curr_global.loc.y = row;
+                return curr_global;
+            }
+        }
+
+        // One of the candidate columns should have had the correct U/D
+        // connection to route to.
+        assert(false);
+        return RoutingId();
+
     // For OSCH, and DCCs assign nominal position of current requested tile.
     // DCM only exist in center tile but have their routing spread out
     // across tiles.
