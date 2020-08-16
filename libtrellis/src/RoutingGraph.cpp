@@ -281,18 +281,93 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // we can use heuristics to connect globals to the rest of the routing
     // graph properly, given the current tile position and the global's
     // identifier.
+
+    // First copy regexs from utils.nets.machxo2, adjusting as necessary for
+    // prefixes and regex syntax. Commented-out ones are not ready yet:
+    // Globals
+    static const std::regex global_entry(R"(G_VPRX(\d){2}00)", std::regex::optimize);
+    static const std::regex global_left_right(R"([LR]_HPSX(\d){2}00)", std::regex::optimize);
+    static const std::regex global_left_right_g(R"(G_HPSX(\d){2}00)", std::regex::optimize);
+    static const std::regex global_up_down(R"([UD]_VPTX(\d){2}00)", std::regex::optimize);
+    static const std::regex global_up_down_g(R"(G_VPTX(\d){2}00)", std::regex::optimize);
+    static const std::regex global_branch(R"(BRANCH_HPBX(\d){2}00)", std::regex::optimize);
+
+    // High Fanout Secondary Nets
+    // static const std::regex hfsn_entry(R"(G_VSRX(\d){2}00)", std::regex::optimize);
+    // static const std::regex hfsn_left_right(R"(G_HSSX(\d){2}00)", std::regex::optimize);
+    // L2Rs control bidirectional portion of HFSNs!!
+    // static const std::regex hfsn_l2r(R"(G_HSSX(\d){2}00_[RL]2[LR])", std::regex::optimize);
+    // static const std::regex hfsn_up_down(R"(G_VSTX(\d){2}00)", std::regex::optimize);
+    // HSBX(\d){2}00 are fixed connections to HSBX(\d){2}01s.
+    // static const std::regex hfsn_branch(R"(G_HSBX(\d){2}0[01])", std::regex::optimize);
+
+    // Center Mux
+    // Outputs- entry to DCCs connected to globals (VPRXI -> DCC -> VPRX) *
+    static const std::regex center_mux_glb_out(R"(G_VPRXCLKI\d+)", std::regex::optimize);
+    // Outputs- connected to ECLKBRIDGEs *
+    // static const std::regex center_mux_ebrg_out(R"(G_EBRG(\d){1}CLK(\d){1})", std::regex::optimize);
+
+    // Inputs- CIB routing to HFSNs
+    // static const std::regex cib_out_to_hfsn(R"(G_JSNETCIB([TBRL]|MID)(\d){1})", std::regex::optimize);
+    // Inputs- CIB routing to globals
+    static const std::regex cib_out_to_glb(R"(G_J?PCLKCIB(L[TBRL]Q|MID|VIQ[TBRL])(\d){1})", std::regex::optimize);
+    // Inputs- CIB routing to ECLKBRIDGEs
+    // static const std::regex cib_out_to_eclk(R"(G_J?ECLKCIB[TBRL](\d){1})", std::regex::optimize);
+
+    // Inputs- Edge clocks dividers
+    // static const std::regex eclk_out(R"(G_J?[TBRL]CDIV(X(\d){1}|(\d){2}))", std::regex::optimize);
+    // Inputs- PLL
+    // static const std::regex pll_out(R"(G_J?[LR]PLLCLK\d+)", std::regex::optimize);
+    // Inputs- Clock pads
+    // static const std::regex clock_pin(R"(G_J?PCLK[TBLR]\d+)", std::regex::optimize);
+
+    // Part of center-mux but can also be found elsewhere
+    // DCCs connected to globals *
+    static const std::regex dcc_sig(R"(G_J?(CLK[IO]|CE)(\d){1}[TB]?_DCC)", std::regex::optimize);
+
+    // DCMs- connected to DCCs on globals 6 and 7 *
+    static const std::regex dcm_sig(R"(G_J?(CLK(\d){1}_|SEL|DCMOUT)(\d){1}_DCM)", std::regex::optimize);
+
+    // ECLKBRIDGEs- TODO
+    // static const std::regex eclkbridge_sig(R"(G_J?(CLK(\d){1}_|SEL|ECSOUT)(\d){1}_ECLKBRIDGECS)", std::regex::optimize);
+
+    // Oscillator output
+    static const std::regex osc_clk(R"(G_J?OSC_.*)", std::regex::optimize);
+
+    // Soft Error Detection Clock *
+    // static const std::regex sed_clk(R"(G_J?SEDCLKOUT)", std::regex::optimize);
+
+    // PLL/DLL Clocks
+    // static const std::regex pll_clk(R"(G_[TB]ECLK\d)", std::regex::optimize);
+
+    // PG/INRD/LVDS
+    // static const std::regex pg(R"(G_PG)", std::regex::optimize);
+    // static const std::regex inrd(R"(G_INRD)", std::regex::optimize);
+    // static const std::regex vds(R"(G_LVDS)", std::regex::optimize);
+
+    // DDR
+    // static const std::regex ddrclkpol(R"(G_DDRCLKPOL)", std::regex::optimize);
+    // static const std::regex dqsr90(R"(G_DQSR90)", std::regex::optimize);
+    // static const std::regex qsw90(R"(G_DQSW90)", std::regex::optimize);
+
     // Globals are given their nominal position, even if they span multiple
     // tiles, by the following rules:
-
-    static const std::regex clk_dcc(R"(^G_CLK[IO]\d[TB]_DCC)", std::regex::optimize);
-
     smatch m;
     pair<int, int> center = center_map[make_pair(max_row, max_col)];
     RoutingId curr_global;
 
     // All globals in the center tile get a nominal position of the center
-    // tile. This handles L/R_HPSX as well.
-    if(make_pair(row, col) == center) {
+    // tile. We have to use regexes because a number of these connections
+    // in the center mux have config bits spread across multiple tiles.
+    //
+    // This handles L/R_HPSX as well. DCCs are handled a bit differently
+    // until we can determine they only truly exist in center tile (the row,
+    // col, and db_name will still be enough to distinguish them).
+    if(regex_match(db_name, m, global_entry) ||
+        regex_match(db_name, m, global_left_right) ||
+        regex_match(db_name, m, center_mux_glb_out) ||
+        regex_match(db_name, m, cib_out_to_glb) ||
+        regex_match(db_name, m, dcm_sig)) {
         curr_global.id = ident(db_name);
         curr_global.loc.x = center.second;
         curr_global.loc.y = center.first;
@@ -301,7 +376,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // If we found a global emanating from the CENTER MUX, return a L_/R_
     // global net in the center tile based upon the current tile position
     // (specifically column).
-    } else if(db_name.find("HPSX") != string::npos) {
+    } else if(regex_match(db_name, m, global_left_right_g)) {
         assert(row == center.first);
         // Prefixes only required in the center tile.
         assert(db_name[0] == 'G');
@@ -321,7 +396,9 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
         return curr_global;
 
     // U/D wires get the nominal position of center row, current column.
-    } else if(db_name.find("VPTX") != string::npos) {
+    // Both U_/D_ and G_ prefixes are handled here.
+    } else if(regex_match(db_name, m, global_up_down) ||
+        regex_match(db_name, m, global_up_down_g)) {
         // Special case the center row, which will have both U/D wires.
         if(row == center.first) {
             assert((db_name[0] == 'U') || (db_name[0] == 'D'));
@@ -350,23 +427,25 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
             curr_global.loc.y = center.first;
             return curr_global;
         }
-    } else if(db_name.find("BRANCH") != string::npos) {
+    // BRANCH wires get nominal position of the row/col where they connect
+    // to U_/D_ routing. We need the global_data_machxo2 struct to figure
+    // out this information.
+    } else if(regex_match(db_name, m, global_branch)) {
         curr_global.id = ident(db_name);
         curr_global.loc.x = -2;
         curr_global.loc.y = -2;
         return curr_global;
-    } else if(regex_match(db_name, m, clk_dcc) ||
-        db_name.find("G_JOSC_OSC") != string::npos ||
-        db_name.find("_DCM") != string::npos) {
-
-        // TODO: _DCM should really be a regex.
-        // Assign nominal position of current requested tile.
+    // For OSCH, and DCCs assign nominal position of current requested tile.
+    // DCM only exist in center tile but have their routing spread out
+    // across tiles.
+    } else if(regex_match(db_name, m, dcc_sig) ||
+        regex_match(db_name, m, osc_clk)) {
         curr_global.id = ident(db_name);
         curr_global.loc.x = col;
         curr_global.loc.y = row;
         return curr_global;
     } else {
-        // TODO: Not fuzzed yet!
+        // TODO: Not fuzzed and/or handled yet!
         return RoutingId();
     }
 }
