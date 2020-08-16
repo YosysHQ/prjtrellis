@@ -68,6 +68,20 @@ jobs = [
             "overrides" : defaultdict(lambda : str("sink")),
             "fc_filter" : fc_filter_all
         },
+
+        # Thanks to fc_filter_dcc, make sure to manually connect DCC outputs to
+        # entrance to global network!
+        {
+            "netnames" : ["R6C13_VPRX0000", "R6C13_VPRX0100", "R6C13_VPRX0200", "R6C13_VPRX0300",
+                          "R6C13_VPRX0400", "R6C13_VPRX0500", "R6C13_VPRX0600", "R6C13_VPRX0700"],
+            "cfg" : FuzzConfig(job="GLOBAL_DCC_OUT", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
+                      tiles=["CENTER6:CENTER_EBR_CIB", "CENTER_EBR14:CENTER_EBR",
+                             "CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER7:CENTER6",
+                             "CENTER5:CENTER5", "CENTER4:CENTER4"]),
+            "prefix" : "1200_",
+            "overrides" : defaultdict(lambda : str("sink")),
+            "fc_filter" : fc_filter_all
+        },
 ]
 
 
