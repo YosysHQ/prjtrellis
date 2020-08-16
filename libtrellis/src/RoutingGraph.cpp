@@ -368,6 +368,23 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
         regex_match(db_name, m, center_mux_glb_out) ||
         regex_match(db_name, m, cib_out_to_glb) ||
         regex_match(db_name, m, dcm_sig)) {
+
+        // XXX: This is a MachXO2-1200HC-specific hack; VPRXCLKI0's routing
+        // config bits are split across multiple tiles. Arcs do not store data
+        // about their tile position in the routing graph (as that's the DB's
+        // responsibility). Even so, we do _not_ want the same physical arc
+        // that appears in two tiles in the DB appearing twice in the routing
+        // graph. So for now, special-case and remove the second arc at
+        // (12, 9).
+        //
+        // If more than one arc has this problem, we may need to change this
+        // function signature to be device-specific, and find a better way to
+        // store this info along with the routing graph besides special-casing.
+        if((db_name.find("G_VPRXCLKI0") != string::npos) &&
+            row == 9 &&
+            col == 12)
+            return RoutingId();
+
         curr_global.id = ident(db_name);
         curr_global.loc.x = center.second;
         curr_global.loc.y = center.first;
