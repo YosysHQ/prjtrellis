@@ -55,18 +55,26 @@ int main(int argc, char *argv[])
     pos.add("input", 1);
     options.add_options()("bit", po::value<std::string>(), "output bitstream file");
     pos.add("bit", 1);
+    options.add_options()("version", "show current version and exit");
 
     po::variables_map vm;
+
     try {
         po::parsed_options parsed = po::command_line_parser(argc, argv).options(options).positional(pos).run();
         po::store(parsed, vm);
+
+        if (vm.count("version")) {
+            cerr << "Project Trellis ecppack Version " << git_describe_str << endl;
+            return 0;
+        }
+
         po::notify(vm);
     }
-    catch (po::required_option &e) {
+    catch (po::required_option& e) {
         cerr << "Error: input file is mandatory." << endl << endl;
         goto help;
     }
-    catch (std::exception &e) {
+    catch (std::exception& e) {
         cerr << "Error: " << e.what() << endl << endl;
         goto help;
     }
@@ -127,6 +135,18 @@ help:
 
     map<string, string> bitopts;
 
+    // Apply options passed from nextpnr via SYSCONFIG
+    if (cc.sysconfig.count("MCCLK_FREQ")) {
+        std::string freq = cc.sysconfig.at("MCCLK_FREQ");
+        if (freq == "62")
+            freq = "62.0";
+        bitopts["freq"] = freq;
+    }
+
+    if (cc.sysconfig.count("COMPRESS_CONFIG") && cc.sysconfig.at("COMPRESS_CONFIG") == "ON")
+        bitopts["compress"] = "yes";
+
+    // Override with command line options
     if (vm.count("freq"))
         bitopts["freq"] = vm["freq"].as<string>();
 
@@ -216,13 +236,8 @@ help:
         // Create JTAG bitstream without SPI flash related settings, as these
         // seem to confuse the chip sometimes when configuring over JTAG
         if (!bitopts.empty() && !(bitopts.size() == 1 && bitopts.count("compress"))) {
-            bitopts.clear();
-            if (vm.count("background"))
-                bitopts["background"] = "yes";
-            if (vm.count("bootaddr"))
-                bitopts["multiboot"] = "yes";
-            if (vm.count("compress"))
-                bitopts["compress"] = "yes";
+            bitopts.erase("spimode");
+            bitopts.erase("freq");
             b = Bitstream::serialise_chip(c, bitopts);
         }
 
