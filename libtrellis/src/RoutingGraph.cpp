@@ -339,15 +339,14 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     } else if(strategy == GlobalType::UP_DOWN) {
         std::string db_copy = db_name;
         std::vector<int> & ud_conns_in_col = global_data_machxo2.ud_conns[col];
+        auto conn_begin = ud_conns_in_col.begin();
+        auto conn_end = ud_conns_in_col.end();
+        int conn_no = std::stoi(m.str(1));
 
         // First check whether the requested global is in the current column.
         // If not, no point in continuing.
-        if(std::find(ud_conns_in_col.begin(),
-            ud_conns_in_col.end(),
-            std::stoi(m.str(1))) == ud_conns_in_col.end()) {
-
+        if(std::find(conn_begin, conn_end, conn_no) == conn_end)
             return RoutingId();
-        }
 
         // Special case the center row, which will have both U/D wires.
         if(row == center.first) {
@@ -377,33 +376,23 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     } else if(strategy == GlobalType::BRANCH) {
         std::vector<int> candidate_cols;
 
-        if(col == 0) {
-            candidate_cols.push_back(0);
-            candidate_cols.push_back(1);
-        } else if(col == 1) {
-            candidate_cols.push_back(0);
-            candidate_cols.push_back(1);
-            candidate_cols.push_back(2);
-        } else if(col == max_col) {
-            candidate_cols.push_back(max_col - 2);
-            candidate_cols.push_back(max_col - 1);
-            candidate_cols.push_back(max_col);
-        } else {
+        if(col > 1)
             candidate_cols.push_back(col - 2);
+        if(col > 0)
             candidate_cols.push_back(col - 1);
-            candidate_cols.push_back(col);
+        candidate_cols.push_back(col);
+        if(col < max_col)
             candidate_cols.push_back(col + 1);
-        }
 
         for(auto curr_col : candidate_cols) {
             std::vector<int> & ud_conns_in_col = global_data_machxo2.ud_conns[curr_col];
+            auto conn_begin = ud_conns_in_col.begin();
+            auto conn_end = ud_conns_in_col.end();
+            int conn_no = std::stoi(m.str(1));
 
             // First check whether the requested global is in the current column.
             // If not, no point in continuing.
-            if(std::find(ud_conns_in_col.begin(),
-                ud_conns_in_col.end(),
-                std::stoi(m.str(1))) != ud_conns_in_col.end()) {
-
+            if(std::find(conn_begin, conn_end, conn_no) != conn_end) {
                 curr_global.id = ident(db_name);
                 curr_global.loc.x = curr_col;
                 curr_global.loc.y = row;
