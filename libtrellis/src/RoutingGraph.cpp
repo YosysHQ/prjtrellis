@@ -276,6 +276,161 @@ void RoutingGraph::add_bel_output(RoutingBel &bel, ident_t pin, int wire_x, int 
 }
 
 RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std::string &db_name) {
+    // Globals are given their nominal position, even if they span multiple
+    // tiles, by the following rules (determined by a combination of regexes
+    // on db_name and row/col):
+    smatch m;
+    pair<int, int> center = center_map[make_pair(max_row, max_col)];
+    RoutingId curr_global;
+
+    GlobalType strategy = get_global_type_from_name(db_name, m);
+
+    // All globals in the center tile get a nominal position of the center
+    // tile. We have to use regexes because a number of these connections
+    // in the center mux have config bits spread across multiple tiles
+    // (although few nets actually have routing bits which cross tiles).
+    //
+    // This handles L/R_HPSX as well. DCCs are handled a bit differently
+    // until we can determine they only truly exist in center tile (the row,
+    // col, and db_name will still be enough to distinguish them).
+    if(strategy == GlobalType::CENTER) {
+        // XXX: This is a MachXO2-1200HC-specific hack; VPRXCLKI0's routing
+        // config bits are split across multiple tiles. Arcs do not store data
+        // about their tile position in the routing graph (as that's the DB's
+        // responsibility). Even so, we do _not_ want the same physical arc
+        // that appears in two tiles in the DB appearing twice in the routing
+        // graph. So for now, special-case and remove the second arc at
+        // (12, 9).
+        //
+        // If more than one arc has this problem, we may need to change this
+        // function signature to be device-specific, and find a better way to
+        // store this info along with the routing graph besides special-casing.
+        if((db_name.find("G_VPRXCLKI0") != string::npos) && row == 9 && col == 12)
+            return RoutingId();
+
+        curr_global.id = ident(db_name);
+        curr_global.loc.x = center.second;
+        curr_global.loc.y = center.first;
+        return curr_global;
+
+    // If we found a global emanating from the CENTER MUX, return a L_/R_
+    // global net in the center tile based upon the current tile position
+    // (specifically column).
+    } else if(strategy == GlobalType::LEFT_RIGHT) {
+        assert(row == center.first);
+        // Prefixes only required in the center tile.
+        assert(db_name[0] == 'G');
+
+        std::string db_copy = db_name;
+
+        // Center column tiles connect to the left side of the center mux.
+        if(col <= center.second)
+            db_copy[0] = 'L';
+        else
+            db_copy[0] = 'R';
+
+        curr_global.id = ident(db_copy);
+        curr_global.loc.x = center.second;
+        curr_global.loc.y = center.first;
+        return curr_global;
+
+    // U/D wires get the nominal position of center row, current column.
+    // Both U_/D_ and G_ prefixes are handled here.
+    } else if(strategy == GlobalType::UP_DOWN) {
+        std::string db_copy = db_name;
+        std::vector<int> & ud_conns_in_col = global_data_machxo2.ud_conns[col];
+
+        // First check whether the requested global is in the current column.
+        // If not, no point in continuing.
+        if(std::find(ud_conns_in_col.begin(),
+            ud_conns_in_col.end(),
+            std::stoi(m.str(1))) == ud_conns_in_col.end()) {
+
+            return RoutingId();
+        }
+
+        // Special case the center row, which will have both U/D wires.
+        if(row == center.first) {
+            assert((db_name[0] == 'U') || (db_name[0] == 'D'));
+        } else {
+            // Otherwise choose an U_/D_ wire at nominal position based on
+            // the current tile's row.
+            // Prefixes only required in the center row.
+            assert(db_name[0] == 'G');
+
+            // Center column tiles are considered above the center mux,
+            // despite sharing the same tile.
+            if(row <= center.first)
+                db_copy[0] = 'U';
+            else
+                db_copy[0] = 'D';
+        }
+
+        curr_global.id = ident(db_copy);
+        curr_global.loc.x = col;
+        curr_global.loc.y = center.first;
+        return curr_global;
+
+    // BRANCH wires get nominal position of the row/col where they connect
+    // to U_/D_ routing. We need the global_data_machxo2 struct to figure
+    // out this information.
+    } else if(strategy == GlobalType::BRANCH) {
+        std::vector<int> candidate_cols;
+
+        if(col == 0) {
+            candidate_cols.push_back(0);
+            candidate_cols.push_back(1);
+        } else if(col == 1) {
+            candidate_cols.push_back(0);
+            candidate_cols.push_back(1);
+            candidate_cols.push_back(2);
+        } else if(col == max_col) {
+            candidate_cols.push_back(max_col - 2);
+            candidate_cols.push_back(max_col - 1);
+            candidate_cols.push_back(max_col);
+        } else {
+            candidate_cols.push_back(col - 2);
+            candidate_cols.push_back(col - 1);
+            candidate_cols.push_back(col);
+            candidate_cols.push_back(col + 1);
+        }
+
+        for(auto curr_col : candidate_cols) {
+            std::vector<int> & ud_conns_in_col = global_data_machxo2.ud_conns[curr_col];
+
+            // First check whether the requested global is in the current column.
+            // If not, no point in continuing.
+            if(std::find(ud_conns_in_col.begin(),
+                ud_conns_in_col.end(),
+                std::stoi(m.str(1))) != ud_conns_in_col.end()) {
+
+                curr_global.id = ident(db_name);
+                curr_global.loc.x = curr_col;
+                curr_global.loc.y = row;
+                break;
+            }
+        }
+
+        // One of the candidate columns should have had the correct U/D
+        // connection to route to.
+        assert(curr_global != RoutingId());
+        return curr_global;
+
+    // For OSCH, and DCCs assign nominal position of current requested tile.
+    // DCM only exist in center tile but have their routing spread out
+    // across tiles.
+    } else if(strategy == GlobalType::OTHER) {
+        curr_global.id = ident(db_name);
+        curr_global.loc.x = col;
+        curr_global.loc.y = row;
+        return curr_global;
+    } else {
+        // TODO: Not fuzzed and/or handled yet!
+        return RoutingId();
+    }
+}
+
+RoutingGraph::GlobalType RoutingGraph::get_global_type_from_name(const std::string &db_name, smatch &match) {
     // A RoutingId uniquely describes a net on the chip- using a string
     // identifier (id- converted to int), and a nominal position (loc).
     // Two RoutingIds with the same id and loc represent the same net, so
@@ -283,7 +438,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // graph properly, given the current tile position and the global's
     // identifier.
 
-    // First copy regexs from utils.nets.machxo2, adjusting as necessary for
+    // First copy regexes from utils.nets.machxo2, adjusting as necessary for
     // prefixes and regex syntax. Commented-out ones are not ready yet:
     // Globals
     static const std::regex global_entry(R"(G_VPRX(\d){2}00)", std::regex::optimize);
@@ -351,164 +506,25 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // static const std::regex dqsr90(R"(G_DQSR90)", std::regex::optimize);
     // static const std::regex qsw90(R"(G_DQSW90)", std::regex::optimize);
 
-    // Globals are given their nominal position, even if they span multiple
-    // tiles, by the following rules:
-    smatch m;
-    pair<int, int> center = center_map[make_pair(max_row, max_col)];
-    RoutingId curr_global;
-
-    // All globals in the center tile get a nominal position of the center
-    // tile. We have to use regexes because a number of these connections
-    // in the center mux have config bits spread across multiple tiles
-    // (although few nets actually have routing bits which cross tiles).
-    //
-    // This handles L/R_HPSX as well. DCCs are handled a bit differently
-    // until we can determine they only truly exist in center tile (the row,
-    // col, and db_name will still be enough to distinguish them).
-    if(regex_match(db_name, m, global_entry) ||
-        regex_match(db_name, m, global_left_right) ||
-        regex_match(db_name, m, center_mux_glb_out) ||
-        regex_match(db_name, m, cib_out_to_glb) ||
-        regex_match(db_name, m, dcm_sig)) {
-
-        // XXX: This is a MachXO2-1200HC-specific hack; VPRXCLKI0's routing
-        // config bits are split across multiple tiles. Arcs do not store data
-        // about their tile position in the routing graph (as that's the DB's
-        // responsibility). Even so, we do _not_ want the same physical arc
-        // that appears in two tiles in the DB appearing twice in the routing
-        // graph. So for now, special-case and remove the second arc at
-        // (12, 9).
-        //
-        // If more than one arc has this problem, we may need to change this
-        // function signature to be device-specific, and find a better way to
-        // store this info along with the routing graph besides special-casing.
-        if((db_name.find("G_VPRXCLKI0") != string::npos) && row == 9 && col == 12)
-            return RoutingId();
-
-        curr_global.id = ident(db_name);
-        curr_global.loc.x = center.second;
-        curr_global.loc.y = center.first;
-        return curr_global;
-
-    // If we found a global emanating from the CENTER MUX, return a L_/R_
-    // global net in the center tile based upon the current tile position
-    // (specifically column).
-    } else if(regex_match(db_name, m, global_left_right_g)) {
-        assert(row == center.first);
-        // Prefixes only required in the center tile.
-        assert(db_name[0] == 'G');
-
-        std::string db_copy = db_name;
-
-        // Center column tiles connect to the left side of the center mux.
-        if(col <= center.second)
-            db_copy[0] = 'L';
-        else
-            db_copy[0] = 'R';
-
-        curr_global.id = ident(db_copy);
-        curr_global.loc.x = center.second;
-        curr_global.loc.y = center.first;
-
-        return curr_global;
-
-    // U/D wires get the nominal position of center row, current column.
-    // Both U_/D_ and G_ prefixes are handled here.
-    } else if(regex_match(db_name, m, global_up_down) ||
-        regex_match(db_name, m, global_up_down_g)) {
-
-        std::vector<int> & ud_conns_in_col = global_data_machxo2.ud_conns[col];
-
-        // First check whether the requested global is in the current column.
-        // If not, no point in continuing.
-        if(std::find(ud_conns_in_col.begin(), ud_conns_in_col.end(),
-                    std::stoi(m.str(1))) == ud_conns_in_col.end()) {
-                    return RoutingId();
-        }
-
-        // Special case the center row, which will have both U/D wires.
-        if(row == center.first) {
-            assert((db_name[0] == 'U') || (db_name[0] == 'D'));
-
-            curr_global.id = ident(db_name);
-            curr_global.loc.x = col;
-            curr_global.loc.y = center.first;
-            return curr_global;
-        } else {
-            // Otherwise choose an U_/D_ wire at nominal position based on
-            // the current tile's row.
-            // Prefixes only required in the center row.
-            assert(db_name[0] == 'G');
-
-            std::string db_copy = db_name;
-
-            // Center column tiles are considered above the center mux,
-            // despite sharing the same tile.
-            if(row <= center.first)
-                db_copy[0] = 'U';
-            else
-                db_copy[0] = 'D';
-
-            curr_global.id = ident(db_copy);
-            curr_global.loc.x = col;
-            curr_global.loc.y = center.first;
-            return curr_global;
-        }
-    // BRANCH wires get nominal position of the row/col where they connect
-    // to U_/D_ routing. We need the global_data_machxo2 struct to figure
-    // out this information.
-    } else if(regex_match(db_name, m, global_branch)) {
-        std::vector<int> candidate_cols;
-
-        if(col == 0) {
-            candidate_cols.push_back(0);
-            candidate_cols.push_back(1);
-        } else if(col == 1) {
-            candidate_cols.push_back(0);
-            candidate_cols.push_back(1);
-            candidate_cols.push_back(2);
-        } else if(col == max_col) {
-            candidate_cols.push_back(max_col - 2);
-            candidate_cols.push_back(max_col - 1);
-            candidate_cols.push_back(max_col);
-        } else {
-            candidate_cols.push_back(col - 2);
-            candidate_cols.push_back(col - 1);
-            candidate_cols.push_back(col);
-            candidate_cols.push_back(col + 1);
-        }
-
-        for(auto curr_col : candidate_cols) {
-            std::vector<int> & ud_conns_in_col = global_data_machxo2.ud_conns[curr_col];
-
-            // First check whether the requested global is in the current column.
-            // If not, no point in continuing.
-            if(std::find(ud_conns_in_col.begin(), ud_conns_in_col.end(),
-                        std::stoi(m.str(1))) != ud_conns_in_col.end()) {
-                curr_global.id = ident(db_name);
-                curr_global.loc.x = curr_col;
-                curr_global.loc.y = row;
-                return curr_global;
-            }
-        }
-
-        // One of the candidate columns should have had the correct U/D
-        // connection to route to.
-        assert(false);
-        return RoutingId();
-
-    // For OSCH, and DCCs assign nominal position of current requested tile.
-    // DCM only exist in center tile but have their routing spread out
-    // across tiles.
-    } else if(regex_match(db_name, m, dcc_sig) ||
-        regex_match(db_name, m, osc_clk)) {
-        curr_global.id = ident(db_name);
-        curr_global.loc.x = col;
-        curr_global.loc.y = row;
-        return curr_global;
+    if(regex_match(db_name, match, global_entry) ||
+        regex_match(db_name, match, global_left_right) ||
+        regex_match(db_name, match, center_mux_glb_out) ||
+        regex_match(db_name, match, cib_out_to_glb) ||
+        regex_match(db_name, match, dcm_sig)) {
+        return GlobalType::CENTER;
+    } else if(regex_match(db_name, match, global_left_right_g)) {
+        return GlobalType::LEFT_RIGHT;
+    } else if(regex_match(db_name, match, global_up_down) ||
+        regex_match(db_name, match, global_up_down_g)) {
+        return GlobalType::UP_DOWN;
+    } else if(regex_match(db_name, match, global_branch)) {
+        return GlobalType::BRANCH;
+    } else if(regex_match(db_name, match, dcc_sig) ||
+        regex_match(db_name, match, osc_clk)) {
+        return GlobalType::OTHER;
     } else {
         // TODO: Not fuzzed and/or handled yet!
-        return RoutingId();
+        return GlobalType::NONE;
     }
 }
 

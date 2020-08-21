@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <regex>
 #include <boost/functional/hash.hpp>
 
 #include "Chip.hpp"
@@ -166,10 +167,24 @@ private:
 
     // Algorithm to give global nets a unique position in MachXO2 devices.
     // ECP5 defers global routing to nextpnr.
+    // Given the tile from where a net was queried, find the actual physical
+    // wire on chip that corresponds to the queried net rather than the
+    // imprecise location stored with the database.
     RoutingId find_machxo2_global_position(int row, int col, const std::string &db_name);
     // We need access to globals.json to correctly assign global positions.
-    // Internal use only- do NOT expose to pytrellis for now.
+    // Internal use only- do NOT expose below methods, members, and types to
+    // pytrellis for now.
     MachXO2GlobalsInfo global_data_machxo2;
+    enum GlobalType {
+        CENTER,
+        LEFT_RIGHT,
+        UP_DOWN,
+        BRANCH,
+        OTHER,
+        NONE
+    };
+    // Helper function to put all regexes in one place.
+    GlobalType get_global_type_from_name(const std::string &db_name, smatch &match);
 };
 }
 
