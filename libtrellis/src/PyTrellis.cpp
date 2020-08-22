@@ -181,6 +181,8 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def_readwrite("tiles", &Chip::tiles)
             .def_readwrite("usercode", &Chip::usercode)
             .def_readwrite("metadata", &Chip::metadata)
+            // Alias for backwards compatibility.
+            .def_readwrite("global_data", &Chip::global_data_ecp5)
             .def_readwrite("global_data_ecp5", &Chip::global_data_ecp5)
             .def_readwrite("global_data_machxo2", &Chip::global_data_machxo2)
             .def(self - self);
