@@ -13,6 +13,9 @@ jobs = [
 
 
 def main():
+    # left_end and right_end are 1200HC-specific. However, the results
+    # also readily apply to 2000HC devices because they also have a
+    # CENTER_EBR_CIB tile (without qualifiers).
     def left_end(x):
         return 8 if x % 2 == 0 else 7
 
