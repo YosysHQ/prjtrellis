@@ -134,12 +134,12 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5()
         bitdb->add_routing(tile->info, *rg);
         int x, y;
         tie(y, x) = tile->info.get_row_col();
-        // SLICE Ecp5Bels
+        // SLICE Bels
         if (tile->info.type == "PLC2") {
             for (int z = 0; z < 4; z++)
                 Ecp5Bels::add_lc(*rg, x, y, z);
         }
-        // PIO Ecp5Bels
+        // PIO Bels
         if (tile->info.type.find("PICL0") != string::npos || tile->info.type.find("PICR0") != string::npos)
             for (int z = 0; z < 4; z++) {
                 Ecp5Bels::add_pio(*rg, x, y, z);
@@ -154,7 +154,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5()
             Ecp5Bels::add_pio(*rg, x, y, 0);
             Ecp5Bels::add_iologic(*rg, x, y, 0, true);
         }
-        // DCC Ecp5Bels
+        // DCC Bels
         if (tile->info.type == "LMID_0")
             for (int z = 0; z < 14; z++)
                 Ecp5Bels::add_dcc(*rg, x, y, "L", std::to_string(z));
@@ -167,7 +167,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5()
         if (tile->info.type == "BMID_0V" || tile->info.type == "BMID_0H")
             for (int z = 0; z < 16; z++)
                 Ecp5Bels::add_dcc(*rg, x, y, "B", std::to_string(z));
-        // RAM Ecp5Bels
+        // RAM Bels
         if (tile->info.type == "MIB_EBR0" || tile->info.type == "EBR_CMUX_UR" || tile->info.type == "EBR_CMUX_LR"
             || tile->info.type == "EBR_CMUX_LR_25K")
             Ecp5Bels::add_bram(*rg, x, y, 0);
@@ -177,7 +177,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5()
             Ecp5Bels::add_bram(*rg, x, y, 2);
         if (tile->info.type == "MIB_EBR6")
             Ecp5Bels::add_bram(*rg, x, y, 3);
-        // DSP Ecp5Bels
+        // DSP Bels
         if (tile->info.type == "MIB_DSP0")
             Ecp5Bels::add_mult18(*rg, x, y, 0);
         if (tile->info.type == "MIB_DSP1")
@@ -190,7 +190,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5()
             Ecp5Bels::add_alu54b(*rg, x, y, 3);
         if (tile->info.type == "MIB_DSP7")
             Ecp5Bels::add_alu54b(*rg, x, y, 7);
-        // PLL Ecp5Bels
+        // PLL Bels
         if (tile->info.type == "PLL0_UL")
             Ecp5Bels::add_pll(*rg, "UL", x+1, y);
         if (tile->info.type == "PLL0_LL")
@@ -199,7 +199,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5()
             Ecp5Bels::add_pll(*rg, "LR", x, y-1);
         if (tile->info.type == "PLL0_UR")
             Ecp5Bels::add_pll(*rg, "UR", x-1, y);
-        // DCU and ancillary Ecp5Bels
+        // DCU and ancillary Bels
         if (tile->info.type == "DCU0") {
             Ecp5Bels::add_dcu(*rg, x, y);
             Ecp5Bels::add_extref(*rg, x, y);
@@ -207,7 +207,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5()
         if (tile->info.type == "BMID_0H")
             for (int z = 0; z < 2; z++)
                 Ecp5Bels::add_pcsclkdiv(*rg, x, y-1, z);
-        // Config/system Ecp5Bels
+        // Config/system Bels
         if (tile->info.type == "EFB0_PICB0") {
             Ecp5Bels::add_misc(*rg, "GSR", x, y-1);
             Ecp5Bels::add_misc(*rg, "JTAGG", x, y-1);
@@ -285,12 +285,12 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2()
         int x, y;
         tie(y, x) = tile->info.get_row_col();
 
-        // SLICE MachXO2Bels
+        // SLICE Bels
         if (tile->info.type == "PLC")
             for (int z = 0; z < 4; z++)
                 MachXO2Bels::add_lc(*rg, x, y, z);
 
-        // PIO MachXO2Bels
+        // PIO Bels
         if (tile->info.type.find("PIC_L0") != string::npos || tile->info.type.find("PIC_LS0") != string::npos ||
             tile->info.type.find("PIC_T") != string::npos ||
             tile->info.type.find("PIC_R0") != string::npos || tile->info.type.find("PIC_RS0") != string::npos ||
@@ -298,7 +298,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2()
             for (int z = 0; z < 4; z++)
                 MachXO2Bels::add_pio(*rg, x, y, z);
 
-        // DCC/DCM MachXO2Bels
+        // DCC/DCM Bels
         if (tile->info.type.find("CENTER_EBR_CIB") != string::npos) {
           for (int z = 0; z < 8; z++)
               MachXO2Bels::add_dcc(*rg, x, y, z);
