@@ -24,7 +24,7 @@
                 "max_row" : 50,
                 "max_col" : 72,
                 "col_bias" : 0,
-                "fuzz": 0
+                "fuzz": 1
             },
             "LFE5U-45F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
@@ -36,7 +36,7 @@
                 "max_row" : 71,
                 "max_col" : 90,
                 "col_bias" : 0,
-                "fuzz": 0
+                "fuzz": 1
             },
             "LFE5U-85F": {
                 "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
@@ -48,7 +48,7 @@
                 "max_row" : 95,
                 "max_col" : 126,
                 "col_bias" : 0,
-                "fuzz": 0
+                "fuzz": 1
             },
             "LFE5UM-25F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
@@ -60,7 +60,7 @@
                 "max_row" : 50,
                 "max_col" : 72,
                 "col_bias" : 0,
-                "fuzz": 0
+                "fuzz": 1
             },
             "LFE5UM-45F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
@@ -72,7 +72,7 @@
                 "max_row" : 71,
                 "max_col" : 90,
                 "col_bias" : 0,
-                "fuzz": 0
+                "fuzz": 1
             },
             "LFE5UM-85F": {
                 "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
@@ -84,7 +84,7 @@
                 "max_row" : 95,
                 "max_col" : 126,
                 "col_bias" : 0,
-                "fuzz": 0
+                "fuzz": 1
             },
             "LFE5UM5G-25F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
@@ -96,7 +96,7 @@
                 "max_row" : 50,
                 "max_col" : 72,
                 "col_bias" : 0,
-                "fuzz": 0
+                "fuzz": 1
             },
             "LFE5UM5G-45F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
@@ -108,7 +108,7 @@
                 "max_row" : 71,
                 "max_col" : 90,
                 "col_bias" : 0,
-                "fuzz": 0
+                "fuzz": 1
             },
             "LFE5UM5G-85F": {
                 "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
