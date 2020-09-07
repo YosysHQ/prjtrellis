@@ -6,15 +6,18 @@ import interconnect
 
 jobs = [(FuzzConfig(job="TDLLDEL", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
                     tiles=["MIB_R0C40:TMID_0", "MIB_R0C41:TMID_1"]),
-         [("DLLDEL_00", "R0C39"), ("DLLDEL_01", "R0C40"), ("DLLDEL_10", "R0C41"), ("DLLDEL_11", "R0C42")]
+         [("DLLDEL_00", "R0C39"), ("DLLDEL_01", "R0C40"), ("DLLDEL_10", "R0C41"), ("DLLDEL_11", "R0C42")],
+         ["R0C39_JPADDI", "R0C40_JPADDI", "R0C41_JPADDI", "R0C41_JPADDI"]
          ),
         (FuzzConfig(job="LDLLDEL", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
                     tiles=["CIB_R34C2:ECLK_L", "MIB_R34C3:LMID_0"]),
-         [("DLLDEL_61", "R36C0"), ("DLLDEL_60", "R35C0"), ("DLLDEL_71", "R34C0"), ("DLLDEL_70", "R33C0")]
+         [("DLLDEL_61", "R36C0"), ("DLLDEL_60", "R35C0"), ("DLLDEL_71", "R34C0"), ("DLLDEL_70", "R33C0")],
+         ["R36C0_JPADDI", "R35C0_JPADDI", "R34C0_JPADDI", "R33C0_JPADDI"]
          ),
         (FuzzConfig(job="RDLLDEL", family="ECP5", device="LFE5U-45F", ncl="empty.ncl",
                     tiles=["CIB_R34C88:ECLK_R", "MIB_R34C87:RMID_0"]),
-         [("DLLDEL_31", "R36C90"), ("DLLDEL_30", "R35C90"), ("DLLDEL_21", "R34C90"), ("DLLDEL_20", "R33C90")]
+         [("DLLDEL_31", "R36C90"), ("DLLDEL_30", "R35C90"), ("DLLDEL_21", "R34C90"), ("DLLDEL_20", "R33C90")],
+         ["R36C90_JPADDI", "R35C90_JPADDI", "R34C90_JPADDI", "R33C90_JPADDI"]
          ),
         ]
 
@@ -31,7 +34,7 @@ def main():
     pytrellis.load_database("../../../database")
 
     def per_job(job):
-        cfg, locs = job
+        cfg, locs, paddi = job
         cfg.setup()
 
         empty_bitfile = cfg.build_design(cfg.ncl, {})
@@ -81,7 +84,7 @@ def main():
                 "{}_JDIRECTION_DLLDEL".format(rc),
                 "{}_Z_DLLDEL".format(rc),
                 "{}_JINCK".format(rc),
-            ]
+            ] + paddi
 
             cfg.ncl = "dlldel_routing.ncl"
             interconnect.fuzz_interconnect_with_netnames(cfg, nets, bidir=True)
