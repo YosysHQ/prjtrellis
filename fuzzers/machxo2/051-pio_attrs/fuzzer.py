@@ -221,17 +221,17 @@ def main(args):
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.OPENDRAIN".format(pio), ["ON", "OFF"],
                                          lambda x: get_substs(iomode="OUTPUT_LVCMOS33", extracfg=("OPENDRAIN", x)),
                                          empty_bitfile)
-            if loc in "B":
+            if side in "B":
                 nonrouting.fuzz_enum_setting(cfg, "PIO{}.CLAMP".format(pio), ["PCI", "OFF"],
-                                             lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("CLAMP", x)),
+                                             lambda x: get_substs(iomode="INPUT_PCI33", extracfg=("CLAMP", x)),
                                              empty_bitfile)
             else:
                 nonrouting.fuzz_enum_setting(cfg, "PIO{}.CLAMP".format(pio), ["ON", "OFF"],
                                              lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("CLAMP", x)),
                                              empty_bitfile)
-            if loc in "T" and pio in "A":
-                nonrouting.fuzz_enum_setting(cfg, "PIO{}.DIFFDRIVE".format(pio), ["1.25", "2.0", "2.5", "3.5"],
-                                             lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("CLAMP", x)),
+            if side in "T" and pio in "A":
+                nonrouting.fuzz_enum_setting(cfg, "PIO{}.DIFFDRIVE".format(pio), ["1.25"],
+                                             lambda x: get_substs(iomode="OUTPUT_LVDS25", extracfg=("DIFFDRIVE", x)),
                                              empty_bitfile)
 
         fuzzloops.parallel_foreach(pins, per_pin)
