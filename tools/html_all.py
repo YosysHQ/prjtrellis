@@ -109,10 +109,10 @@ def main(argv):
                     '{}/{}/index.html'.format(fam, dev),
                     dev
                 )
+        docs_toc += "</ul>"
 
         # No timing stuff for MachXO2 yet.
         if fam in ["ECP5"]:
-            docs_toc += "</ul>"
             docs_toc += "<h4>Cell Timing Documentation</h4>"
             docs_toc += "<ul>"
             for spgrade in ["6", "7", "8", "8_5G"]:
