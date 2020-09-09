@@ -120,7 +120,7 @@
                 "max_row" : 95,
                 "max_col" : 126,
                 "col_bias" : 0,
-                "fuzz": 0
+                "fuzz": 1
             }
         }
     },
