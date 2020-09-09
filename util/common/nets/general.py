@@ -2,6 +2,7 @@ import re
 import tiles
 
 import ecp5
+import machxo2
 
 
 # General inter-tile routing
@@ -27,7 +28,7 @@ h_wire_regex = re.compile(r'H(\d{2})([EW])(\d{2})(\d{2})')
 v_wire_regex = re.compile(r'V(\d{2})([NS])(\d{2})(\d{2})')
 
 
-def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
+def handle_edge_name(chip_size, tile_pos, wire_pos, netname, bias):
     """
     At the edges of the device, canonical wire names do not follow normal naming conventions, as they
     would mean the nominal position of the wire would be outside the bounds of the chip. Before we add routing to the
@@ -38,32 +39,36 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname):
     tile_pos: tile position as tuple (r, c)
     wire_pos: wire nominal position as tuple (r, c)
     netname: wire name without position prefix
+    bias: If "1", use Lattice's 1-based column indexing
 
     Returns a tuple (netname, wire_pos)
     """
     hm = h_wire_regex.match(netname)
     vm = v_wire_regex.match(netname)
     if hm:
+        # MachXO2 doesn't appear to have edge nets for span-1s.
         if hm.group(1) == "01":
             if tile_pos[1] == chip_size[1] - 1:
                 # H01xyy00 --> x+1, H01xyy01
                 assert hm.group(4) == "00"
                 return "H01{}{}01".format(hm.group(2), hm.group(3)), (wire_pos[0], wire_pos[1] + 1)
         elif hm.group(1) == "02":
-            if tile_pos[1] == 1:
+            if tile_pos[1] == (1 - bias):
                 # H02E0002 --> x-1, H02E0001
                 # H02W0000 --> x-1, H02W00001
-                if hm.group(2) == "E" and wire_pos[1] == 1 and hm.group(4) == "02":
+                if hm.group(2) == "E" and wire_pos[1] == (1 - bias) and hm.group(4) == "02":
                     return "H02E{}01".format(hm.group(3)), (wire_pos[0], wire_pos[1] - 1)
-                elif hm.group(2) == "W" and wire_pos[1] == 1 and hm.group(4) == "00":
+                elif hm.group(2) == "W" and wire_pos[1] == (1 - bias) and hm.group(4) == "00":
                     return "H02W{}01".format(hm.group(3)), (wire_pos[0], wire_pos[1] - 1)
-            elif tile_pos[1] == (chip_size[1] - 1):
+            elif tile_pos[1] == (chip_size[1] - (1 - bias)):
                 # H02E0000 --> x+1, H02E0001
                 # H02W0002 --> x+1, H02W00001
-                if hm.group(2) == "E" and wire_pos[1] == (chip_size[1] - 1) and hm.group(4) == "00":
+                if hm.group(2) == "E" and wire_pos[1] == (chip_size[1] - (1 - bias)) and hm.group(4) == "00":
                     return "H02E{}01".format(hm.group(3)), (wire_pos[0], wire_pos[1] + 1)
-                elif hm.group(2) == "W" and wire_pos[1] == (chip_size[1] - 1) and hm.group(4) == "02":
+                elif hm.group(2) == "W" and wire_pos[1] == (chip_size[1] - (1 - bias)) and hm.group(4) == "02":
                     return "H02W{}01".format(hm.group(3)), (wire_pos[0], wire_pos[1] + 1)
+        # Bias only affects columns... span-6s seem to work fine without
+        # a correction.
         elif hm.group(1) == "06":
             if tile_pos[1] <= 5:
                 # x-2, H06W0302 --> x-3, H06W0303
@@ -158,7 +163,7 @@ def normalise_name(chip_size, tile, wire, family):
     wire: full Lattice name of the wire
     family: Device family to normalise. Affects column indexing (e.g. MachXO2 uses 1-based
           column indexing) and naming of global wires, TAP_DRIVEs, DQS, bank wires,
-          etc.
+          etc..
 
     Returns the normalised netname
     """
@@ -184,7 +189,7 @@ def normalise_name(chip_size, tile, wire, family):
     if family_net:
         return family_net
 
-    netname, prefix_pos = handle_edge_name(chip_size, tile_pos, prefix_pos, netname)
+    netname, prefix_pos = handle_edge_name(chip_size, tile_pos, prefix_pos, netname, bias)
     if tile_pos == prefix_pos:
         return netname
     else:

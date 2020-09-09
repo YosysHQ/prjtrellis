@@ -46,7 +46,7 @@ module top_large (
 		.mem_la_wstrb   (mem_la_wstrb   ),
 		.irq            (irq            )
 	);
-	
+
 endmodule
 
 /*
@@ -2368,5 +2368,3 @@ module picorv32_pcpi_div (
 		end
 	end
 endmodule
-
-

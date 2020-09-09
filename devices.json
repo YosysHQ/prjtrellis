@@ -120,6 +120,83 @@
                 "max_row" : 95,
                 "max_col" : 126,
                 "col_bias" : 0,
+                "fuzz": 0
+            }
+        }
+    },
+
+    "MachXO2" : {
+        "devices" : {
+            "LCMXO2-256HC": {
+                "packages": ["QFN32"],
+                "idcode": "0x012b8043",
+                "frames": 186,
+                "bits_per_frame": 504,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 7,
+                "max_col" : 9,
+                "col_bias" : 1,
+                "fuzz": 1
+            },
+            "LCMXO2-640HC": {
+                "packages": ["QFN48"],
+                "idcode": "0x012b9043",
+                "frames": 211,
+                "bits_per_frame": 888,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 8,
+                "max_col" : 17,
+                "col_bias" : 1,
+                "fuzz": 1
+            },
+            "LCMXO2-1200HC": {
+                "packages": ["QFN32"],
+                "idcode": "0x012ba043",
+                "frames": 333,
+                "bits_per_frame": 1080,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 12,
+                "max_col" : 21,
+                "col_bias" : 1,
+                "fuzz": 1
+            },
+            "LCMXO2-2000HC": {
+                "packages": ["TQFP100"],
+                "idcode": "0x012bb043",
+                "frames": 420,
+                "bits_per_frame": 1272,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 15,
+                "max_col" : 25,
+                "col_bias" : 1,
+                "fuzz": 1
+            },
+            "LCMXO2-4000HC": {
+                "packages": ["TQFP144"],
+                "idcode": "0x012bc043",
+                "frames": 623,
+                "bits_per_frame": 1560,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 22,
+                "max_col" : 31,
+                "col_bias" : 1,
+                "fuzz": 1
+            },
+            "LCMXO2-7000HC": {
+                "packages": ["TQFP144"],
+                "idcode": "0x012bd043",
+                "frames": 770,
+                "bits_per_frame": 1992,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 26,
+                "max_col" : 40,
+                "col_bias" : 1,
                 "fuzz": 1
             }
         }

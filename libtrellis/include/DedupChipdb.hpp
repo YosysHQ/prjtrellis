@@ -357,6 +357,32 @@ struct DedupChipdb : public IdStore
 
 shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip);
 
+/*
+An optimized chip database is a database with the following properties, intended to be used in place-and-route flows.
+ - All wire, bel and arc IDs are sequential starting from zero at a location
+ - Sequential IDs means it is possible to store wires, bels, and arcs in vectors instead of maps
+ - The database is fully linked: wires contain arcs and bel pins up and downhill, arcs store their up and down wires,
+   etc
+
+This database is _not_ deduplicated, meaning global data is still stored directly
+in this database and relative coordinates are NOT used! Types are reused when
+possible.
+*/
+
+typedef RelId OptId;
+typedef DdArcData OptArcData;
+
+struct OptimizedChipdb : public IdStore
+{
+    OptimizedChipdb();
+
+    OptimizedChipdb(const IdStore &base);
+
+    map<Location, LocationData> tiles;
+};
+
+shared_ptr<OptimizedChipdb> make_optimized_chipdb(Chip &chip);
+
 }
 }
 

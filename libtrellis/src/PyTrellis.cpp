@@ -126,12 +126,45 @@ BOOST_PYTHON_MODULE (pytrellis)
     class_<vector<TapSegment>>("TapSegmentVector")
             .def(vector_indexing_suite<vector<TapSegment>>());
 
-    class_<GlobalsInfo>("GlobalsInfo")
-            .def_readwrite("quadrants", &GlobalsInfo::quadrants)
-            .def_readwrite("tapsegs", &GlobalsInfo::tapsegs)
-            .def("get_quadrant", &GlobalsInfo::get_quadrant)
-            .def("get_tap_driver", &GlobalsInfo::get_tap_driver)
-            .def("get_spine_driver", &GlobalsInfo::get_spine_driver);
+    class_<Ecp5GlobalsInfo>("Ecp5GlobalsInfo")
+            .def_readwrite("quadrants", &Ecp5GlobalsInfo::quadrants)
+            .def_readwrite("tapsegs", &Ecp5GlobalsInfo::tapsegs)
+            .def("get_quadrant", &Ecp5GlobalsInfo::get_quadrant)
+            .def("get_tap_driver", &Ecp5GlobalsInfo::get_tap_driver)
+            .def("get_spine_driver", &Ecp5GlobalsInfo::get_spine_driver);
+
+    class_<LeftRightConn>("LeftRightConn")
+            .def_readwrite("name", &LeftRightConn::name)
+            .def_readwrite("row", &LeftRightConn::row)
+            .def_readwrite("row_span", &LeftRightConn::row_span);
+
+    class_<MissingDccs>("MissingDccs")
+            .def_readwrite("row", &MissingDccs::row)
+            .def_readwrite("missing", &MissingDccs::missing);
+
+    class_<vector<LeftRightConn>>("LeftRightConnVector")
+            .def(vector_indexing_suite<vector<LeftRightConn>>());
+
+    class_<vector<vector<int>>>("UpDownConnVector")
+            .def(vector_indexing_suite<vector<vector<int>>>());
+
+    class_<vector<vector<std::pair<int, int>>>>("BranchSpanVector")
+            .def(vector_indexing_suite<vector<vector<std::pair<int, int>>>>());
+
+    class_<vector<MissingDccs>>("MissingDccsVector")
+            .def(vector_indexing_suite<vector<MissingDccs>>());
+
+    class_<vector<int>>("IntVector")
+            .def(vector_indexing_suite<vector<int>>());
+
+    class_<vector<std::pair<int, int>>>("IntPairVector")
+            .def(vector_indexing_suite<vector<std::pair<int, int>>>());
+
+    class_<MachXO2GlobalsInfo>("MachXO2GlobalsInfo")
+            .def_readwrite("lr_conns", &MachXO2GlobalsInfo::lr_conns)
+            .def_readwrite("ud_conns", &MachXO2GlobalsInfo::ud_conns)
+            .def_readwrite("branch_spans", &MachXO2GlobalsInfo::branch_spans)
+            .def_readwrite("missing_dccs", &MachXO2GlobalsInfo::missing_dccs);
 
     class_<Chip>("Chip", init<string>())
             .def(init<uint32_t>())
@@ -148,7 +181,10 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def_readwrite("tiles", &Chip::tiles)
             .def_readwrite("usercode", &Chip::usercode)
             .def_readwrite("metadata", &Chip::metadata)
-            .def_readwrite("global_data", &Chip::global_data)
+            // Alias for backwards compatibility.
+            .def_readwrite("global_data", &Chip::global_data_ecp5)
+            .def_readwrite("global_data_ecp5", &Chip::global_data_ecp5)
+            .def_readwrite("global_data_machxo2", &Chip::global_data_machxo2)
             .def(self - self);
 
     class_<ChipDelta>("ChipDelta")
@@ -443,6 +479,7 @@ BOOST_PYTHON_MODULE (pytrellis)
 
     class_<RoutingGraph, shared_ptr<RoutingGraph>>("RoutingGraph", no_init)
             .def_readonly("chip_name", &RoutingGraph::chip_name)
+            .def_readonly("chip_family", &RoutingGraph::chip_family)
             .def_readonly("max_row", &RoutingGraph::max_row)
             .def_readonly("max_col", &RoutingGraph::max_col)
             .def("ident", &RoutingGraph::ident)
@@ -519,6 +556,9 @@ BOOST_PYTHON_MODULE (pytrellis)
     class_<map<checksum_t, LocationData>>("LocationTypesMap")
             .def(map_indexing_suite<map<checksum_t, LocationData>>());
 
+    class_<map<Location, LocationData>>("LocationMapDirect")
+            .def(map_indexing_suite<map<Location, LocationData>>());
+
     class_<checksum_t>("checksum_t")
             .def_readwrite("first", &checksum_t::first)
             .def_readwrite("second", &checksum_t::second)
@@ -532,6 +572,14 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def("to_str", &DedupChipdb::to_str);
 
     def("make_dedup_chipdb", make_dedup_chipdb);
+
+    class_<OptimizedChipdb, shared_ptr<OptimizedChipdb>>("OptimizedChipdb")
+            .def_readwrite("tiles", &OptimizedChipdb::tiles)
+            .def("ident", &OptimizedChipdb::ident)
+            .def("to_str", &OptimizedChipdb::to_str);
+
+    def("make_optimized_chipdb", make_optimized_chipdb);
+
 }
 
 #endif

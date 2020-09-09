@@ -1,0 +1,1 @@
+SYSCONFIG CONFIG_IOVOLTAGE = ${cfg_vio};

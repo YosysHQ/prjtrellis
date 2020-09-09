@@ -3,7 +3,7 @@
 #include "Database.hpp"
 #include "BitDatabase.hpp"
 namespace Trellis {
-namespace Bels {
+namespace Ecp5Bels {
 
 void add_lc(RoutingGraph &graph, int x, int y, int z) {
     char l = "ABCD"[z];
@@ -634,5 +634,163 @@ void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, i
 }
 
 
+}
+
+namespace MachXO2Bels {
+    void add_lc(RoutingGraph &graph, int x, int y, int z) {
+        char l = "ABCD"[z];
+        string name = string("SLICE") + l;
+        int lc0 = z * 2;
+        int lc1 = z * 2 + 1;
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("SLICE");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = z;
+
+        // Bel in/outs ordered by going from the bottom-up of each SLICE, clockwise.
+        if(z == 0) {
+            graph.add_bel_input(bel, graph.ident("FCI"), x, y, graph.ident(fmt("FCI_SLICE")));
+        } else {
+            graph.add_bel_input(bel, graph.ident("FCI"), x, y, graph.ident(fmt("FCI" << l << "_SLICE")));
+        }
+
+        graph.add_bel_input(bel, graph.ident("CLK"), x, y, graph.ident(fmt("CLK" << z << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("LSR"), x, y, graph.ident(fmt("LSR" << z << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("CE"), x, y, graph.ident(fmt("CE" << z << "_SLICE")));
+
+        if(z == 0 || z == 1) {
+            graph.add_bel_input(bel, graph.ident("WCK"), x, y, graph.ident(fmt("WCK" << z << "_SLICE")));
+            graph.add_bel_input(bel, graph.ident("WRE"), x, y, graph.ident(fmt("WRE" << z << "_SLICE")));
+
+            graph.add_bel_input(bel, graph.ident("WD1"), x, y, graph.ident(fmt("WD1" << l << "_SLICE")));
+            graph.add_bel_input(bel, graph.ident("WD0"), x, y, graph.ident(fmt("WD0" << l << "_SLICE")));
+
+            graph.add_bel_input(bel, graph.ident("WAD3"), x, y, graph.ident(fmt("WAD3" << l << "_SLICE")));
+            graph.add_bel_input(bel, graph.ident("WAD2"), x, y, graph.ident(fmt("WAD2" << l << "_SLICE")));
+            graph.add_bel_input(bel, graph.ident("WAD1"), x, y, graph.ident(fmt("WAD1" << l << "_SLICE")));
+            graph.add_bel_input(bel, graph.ident("WAD0"), x, y, graph.ident(fmt("WAD0" << l << "_SLICE")));
+        }
+
+        graph.add_bel_input(bel, graph.ident("FXA"), x, y, graph.ident(fmt("FXA" << l << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("FXB"), x, y, graph.ident(fmt("FXB" << l << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("M0"), x, y, graph.ident(fmt("M" << lc0 << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("M1"), x, y, graph.ident(fmt("M" << lc1 << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("DI0"), x, y, graph.ident(fmt("DI" << lc0 << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("DI1"), x, y, graph.ident(fmt("DI" << lc1 << "_SLICE")));
+
+        graph.add_bel_input(bel, graph.ident("A0"), x, y, graph.ident(fmt("A" << lc0 << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("B0"), x, y, graph.ident(fmt("B" << lc0 << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("C0"), x, y, graph.ident(fmt("C" << lc0 << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("D0"), x, y, graph.ident(fmt("D" << lc0 << "_SLICE")));
+
+        graph.add_bel_input(bel, graph.ident("A1"), x, y, graph.ident(fmt("A" << lc1 << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("B1"), x, y, graph.ident(fmt("B" << lc1 << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("C1"), x, y, graph.ident(fmt("C" << lc1 << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("D1"), x, y, graph.ident(fmt("D" << lc1 << "_SLICE")));
+
+
+        if(z == 3) {
+            graph.add_bel_output(bel, graph.ident("FCO"), x, y, graph.ident(fmt("FCO_SLICE")));
+        } else {
+            graph.add_bel_output(bel, graph.ident("FCO"), x, y, graph.ident(fmt("FCO" << l << "_SLICE")));
+        }
+
+        if(z == 2) {
+            graph.add_bel_output(bel, graph.ident("WDO3"), x, y, graph.ident(fmt("WDO3" << l << "_SLICE")));
+            graph.add_bel_output(bel, graph.ident("WDO2"), x, y, graph.ident(fmt("WDO2" << l << "_SLICE")));
+            graph.add_bel_output(bel, graph.ident("WDO1"), x, y, graph.ident(fmt("WDO1" << l << "_SLICE")));
+            graph.add_bel_output(bel, graph.ident("WDO0"), x, y, graph.ident(fmt("WDO0" << l << "_SLICE")));
+
+            graph.add_bel_output(bel, graph.ident("WADO3"), x, y, graph.ident(fmt("WADO3" << l << "_SLICE")));
+            graph.add_bel_output(bel, graph.ident("WADO2"), x, y, graph.ident(fmt("WADO2" << l << "_SLICE")));
+            graph.add_bel_output(bel, graph.ident("WADO1"), x, y, graph.ident(fmt("WADO1" << l << "_SLICE")));
+            graph.add_bel_output(bel, graph.ident("WADO0"), x, y, graph.ident(fmt("WADO0" << l << "_SLICE")));
+        }
+
+        graph.add_bel_output(bel, graph.ident("OFX1"), x, y, graph.ident(fmt("FX" << l << "_SLICE")));
+        graph.add_bel_output(bel, graph.ident("Q1"), x, y, graph.ident(fmt("Q" << lc1 << "_SLICE")));
+        graph.add_bel_output(bel, graph.ident("F1"), x, y, graph.ident(fmt("F" << lc1 << "_SLICE")));
+        graph.add_bel_output(bel, graph.ident("Q0"), x, y, graph.ident(fmt("Q" << lc0 << "_SLICE")));
+        graph.add_bel_output(bel, graph.ident("F0"), x, y, graph.ident(fmt("F" << lc0 << "_SLICE")));
+        graph.add_bel_output(bel, graph.ident("OFX0"), x, y, graph.ident(fmt("F5" << l << "_SLICE")));
+
+        graph.add_bel(bel);
+    }
+
+    void add_pio(RoutingGraph &graph, int x, int y, int z) {
+        char l = "ABCD"[z];
+        string name = string("PIO") + l;
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("PIO");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = z;
+
+        graph.add_bel_input(bel, graph.ident("I"), x, y, graph.ident(fmt("PADDO" << l << "_PIO")));
+        graph.add_bel_input(bel, graph.ident("T"), x, y, graph.ident(fmt("PADDT" << l << "_PIO")));
+        graph.add_bel_output(bel, graph.ident("O"), x, y, graph.ident(fmt("JPADDI" << l << "_PIO")));
+
+        graph.add_bel_input(bel, graph.ident("IOLDO"), x, y, graph.ident(fmt("IOLDO" << l << "_PIO")));
+        graph.add_bel_input(bel, graph.ident("IOLTO"), x, y, graph.ident(fmt("IOLTO" << l << "_PIO")));
+
+        graph.add_bel(bel);
+    }
+
+    void add_dcc(RoutingGraph &graph, int x, int y, /* const std::string &name, */ int z) {
+        // TODO: All DCCs appear to be in center. Phantom DCCs line the columns
+        // for global routing with names of the form DCC_RxCy_{0,1}{T,B}. Hence
+        // commented-out name parameter.
+        // Diamond acknowledges these BELs, but attempting to use them crashes.
+        // See if they indeed do exist.
+        string name = string("DCC") + std::to_string(z);
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("DCCA");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = z;
+
+        graph.add_bel_input(bel, graph.ident("CLKI"), x, y, graph.ident(fmt("G_CLKI" << name << "_DCC")));
+        graph.add_bel_input(bel, graph.ident("CE"), x, y, graph.ident(fmt("G_JCE" << name << "_DCC")));
+        graph.add_bel_output(bel, graph.ident("CLKO"), x, y, graph.ident(fmt("G_CLKO" << name << "_DCC")));
+
+        graph.add_bel(bel);
+    }
+
+    void add_dcm(RoutingGraph &graph, int x, int y, int n, int z) {
+        string name = string("DCM") + std::to_string(n);
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("DCMA");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = z;
+
+        graph.add_bel_input(bel, graph.ident("CLK0"), x, y, graph.ident(fmt("G_CLK0_" << n << "_DCM")));
+        graph.add_bel_input(bel, graph.ident("CLK1"), x, y, graph.ident(fmt("G_CLK1_" << n << "_DCM")));
+        graph.add_bel_input(bel, graph.ident("SEL"), x, y, graph.ident(fmt("G_JSEL" << n << "_DCM")));
+        graph.add_bel_output(bel, graph.ident("DCMOUT"), x, y, graph.ident(fmt("G_DCMOUT" << n << "_DCM")));
+
+        graph.add_bel(bel);
+    }
+
+    void add_osch(RoutingGraph &graph, int x, int y, int z) {
+        string name = string("OSCH");
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("OSCH");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = z;
+
+        graph.add_bel_input(bel, graph.ident("STDBY"), x, y, graph.ident(fmt("JSTDBY_OSC")));
+        graph.add_bel_output(bel, graph.ident("OSC"), x, y, graph.ident(fmt("G_JOSC_OSC")));
+        graph.add_bel_output(bel, graph.ident("SEDSTDBY"), x, y, graph.ident(fmt("SEDSTDBY_OSC")));
+
+        graph.add_bel(bel);
+    }
 }
 }
