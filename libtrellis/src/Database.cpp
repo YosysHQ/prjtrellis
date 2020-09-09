@@ -181,7 +181,7 @@ MachXO2GlobalsInfo get_global_info_machxo2(const DeviceLocator &part) {
         col_no++;
     }
 
-    for (const pt::ptree::value_type &dccs : glb_parsed.get_child("missing_dccs")) {
+    for (const pt::ptree::value_type &dccs : glb_parsed.get_child("missing-dccs")) {
         MissingDccs missing;
 
         missing.row = std::stoi(dccs.first);
