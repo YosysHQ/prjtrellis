@@ -82,7 +82,7 @@ if (BUILD_PYTHON)
     endwhile ()
 
     if (NOT Boost_PYTHON_FOUND)
-        foreach (PyVer 3 36 37 38 39)
+        foreach (PyVer 3 36 37 38 39 310)
             find_package(Boost QUIET COMPONENTS python${PyVer} ${boost_libs})
             if ("${Boost_LIBRARIES}" MATCHES ".*(python|PYTHON).*" )
                 set(Boost_PYTHON_FOUND TRUE)
