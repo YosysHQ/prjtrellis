@@ -12,7 +12,7 @@ Install the dependencies for Project Trellis:
  - Python 3.5 or later, including development libraries (`python3-dev` on Ubuntu)
  - A modern C++14 compiler (Clang is recommended)
  - CMake 3.5 or later
- - Boost including boost-python
+ - Boost
  - Git
  - Recent OpenOCD for device programming (`--enable-ftdi` required if building from source)
 
@@ -87,7 +87,7 @@ Install the dependencies:
  - Python 3.5 or later, including development libraries (`python3-dev` on Ubuntu)
  - A modern C++14 compiler (Clang is recommended)
  - CMake 3.5 or later
- - Boost including boost-python
+ - Boost
  
 For a generic environment:
 
@@ -143,7 +143,7 @@ Python libraries used for fuzzers and other purposes
 
 libtrellis is a library for manipulating ECP5 bitstreams, tiles and the Project
 Trellis databases. It is written with C++, with Python bindings exposed using
-Boost::Python so that fuzzers and utilities can be written in Python.
+pybind11 so that fuzzers and utilities can be written in Python.
 
 ### Database
 
