@@ -14,70 +14,81 @@
 
 #ifdef INCLUDE_PYTHON
 
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
+#include <pybind11/stl_bind.h>
 
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/python/suite/indexing/map_indexing_suite.hpp>
-#include <boost/python/exception_translator.hpp>
-#include "set_indexing_suite.h"
-
-using namespace boost::python;
+using namespace pybind11;
 using namespace Trellis;
+using namespace DDChipDb;
 
-void translate_bspe(const BitstreamParseError &e)
-{
-    // Use the Python 'C' API to set up an exception object
-    PyErr_SetString(PyExc_ValueError, e.what());
-}
+namespace py = pybind11;
 
-void translate_dbce(const DatabaseConflictError &e)
-{
-    // Use the Python 'C' API to set up an exception object
-    PyErr_SetString(PyExc_ValueError, e.what());
-}
+    typedef pair<int, int> IntPair;
+    typedef pair<string, bool> StringBoolPair;
+    typedef pair<RoutingId, ident_t> BelPin;
+    typedef pair<RoutingId, PortDirection> BelWireDir;
 
+    // Common Types
+    PYBIND11_MAKE_OPAQUE(IntPair)
+    PYBIND11_MAKE_OPAQUE(LocationData)
+    PYBIND11_MAKE_OPAQUE(checksum_t)
+    PYBIND11_MAKE_OPAQUE(map<checksum_t, LocationData>)
+    PYBIND11_MAKE_OPAQUE(Location)
+    PYBIND11_MAKE_OPAQUE(std::set<RelId>)
 
-BOOST_PYTHON_MODULE (pytrellis)
+PYBIND11_MODULE (pytrellis, m)
 {
     // Common Types
-    class_<vector<string>>("StringVector")
-            .def(vector_indexing_suite<vector<string>>());
+    py::bind_vector<vector<string>>(m, "StringVector");
 
-    class_<vector<uint8_t>>("ByteVector")
-            .def(vector_indexing_suite<vector<uint8_t>>());
+    py::bind_vector<vector<uint8_t>>(m, "ByteVector");
 
-    class_<vector<bool>>("BoolVector")
-            .def(vector_indexing_suite<vector<bool>>());
+    py::bind_vector<vector<bool>>(m, "BoolVector");
 
-    class_<std::pair<int, int> >("IntPair")
-            .def_readwrite("first", &std::pair<int, int>::first)
-            .def_readwrite("second", &std::pair<int, int>::second);
+    class_<IntPair>(m, "IntPair")
+            .def(init<IntPair>())
+            .def_readonly("first", &std::pair<int, int>::first)
+            .def_readonly("second", &std::pair<int, int>::second);
+
+
+    m.def("make_IntPair", [](int first, int second) {
+        return std::make_pair(first, second);
+    });
 
     // From Bitstream.cpp
-    register_exception_translator<BitstreamParseError>(&translate_bspe);
-    class_<Bitstream>("Bitstream", no_init)
-            .def("read_bit", &Bitstream::read_bit_py)
-            .staticmethod("read_bit")
-            .def("serialise_chip", &Bitstream::serialise_chip_py)
-            .staticmethod("serialise_chip")
-            .def("serialise_chip_delta", &Bitstream::serialise_chip_delta_py)
-            .staticmethod("serialise_chip_delta")
+    py::register_exception_translator([](std::exception_ptr p) {
+        try {
+            if (p)
+                std::rethrow_exception(p);
+        } catch (const BitstreamParseError &e) {
+            PyErr_SetString(PyExc_ValueError, e.what());
+        } catch (const DatabaseConflictError &e) {
+            PyErr_SetString(PyExc_ValueError, e.what());
+        }
+    });
+
+    class_<Bitstream>(m, "Bitstream")
+            .def_static("read_bit", &Bitstream::read_bit_py)
+            .def_static("serialise_chip", &Bitstream::serialise_chip_py)
+            .def_static("serialise_chip_delta", &Bitstream::serialise_chip_delta_py)
             .def("write_bit", &Bitstream::write_bit_py)
             .def_readwrite("metadata", &Bitstream::metadata)
             .def_readwrite("data", &Bitstream::data)
         .def("deserialise_chip", static_cast<Chip (Bitstream::*)()>(&Bitstream::deserialise_chip));
 
-    class_<DeviceLocator>("DeviceLocator")
+    class_<DeviceLocator>(m, "DeviceLocator")
             .def_readwrite("family", &DeviceLocator::family)
             .def_readwrite("device", &DeviceLocator::device);
 
-    class_<TileLocator>("TileLocator", init<string, string, string>())
+    class_<TileLocator>(m, "TileLocator")
+            .def(init<string, string, string>())
             .def_readwrite("family", &TileLocator::family)
             .def_readwrite("device", &TileLocator::device)
             .def_readwrite("tiletype", &TileLocator::tiletype);
 
     // From Chip.cpp
-    class_<ChipInfo>("ChipInfo")
+    class_<ChipInfo>(m, "ChipInfo")
             .def_readwrite("name", &ChipInfo::name)
             .def_readwrite("family", &ChipInfo::family)
             .def_readwrite("idcode", &ChipInfo::idcode)
@@ -89,13 +100,11 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def_readonly("max_col", &ChipInfo::max_col)
             .def_readonly("col_bias", &ChipInfo::col_bias);
 
-    class_<map<string, shared_ptr<Tile>>>("TileMap")
-            .def(map_indexing_suite<map<string, shared_ptr<Tile>>, true>());
+    py::bind_map<map<string, shared_ptr<Tile>>>(m, "TileMap");
 
-    class_<vector<shared_ptr<Tile>>>("TileVector")
-            .def(vector_indexing_suite<vector<shared_ptr<Tile>>, true>());
+    py::bind_vector<vector<shared_ptr<Tile>>>(m, "TileVector");
 
-    class_<GlobalRegion>("GlobalRegion")
+    class_<GlobalRegion>(m, "GlobalRegion")
             .def_readwrite("name", &GlobalRegion::name)
             .def_readwrite("x0", &GlobalRegion::x0)
             .def_readwrite("y0", &GlobalRegion::y0)
@@ -103,10 +112,9 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def_readwrite("y1", &GlobalRegion::y1)
             .def("matches", &GlobalRegion::matches);
 
-    class_<vector<GlobalRegion>>("GlobalRegionVector")
-            .def(vector_indexing_suite<vector<GlobalRegion>>());
+    py::bind_vector<vector<GlobalRegion>>(m, "GlobalRegionVector");
 
-    class_<TapSegment>("TapSegment")
+    class_<TapSegment>(m, "TapSegment")
             .def_readwrite("tap_col", &TapSegment::tap_col)
             .def_readwrite("lx0", &TapSegment::lx0)
             .def_readwrite("lx1", &TapSegment::lx1)
@@ -115,58 +123,52 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def("matches_left", &TapSegment::matches_left)
             .def("matches_right", &TapSegment::matches_right);
 
-    enum_<TapDriver::TapDir>("TapDir")
+    enum_<TapDriver::TapDir>(m, "TapDir")
             .value("LEFT", TapDriver::LEFT)
             .value("RIGHT", TapDriver::RIGHT);
 
-    class_<TapDriver>("TapDriver")
+    class_<TapDriver>(m, "TapDriver")
             .def_readwrite("col", &TapDriver::col)
             .def_readwrite("dir", &TapDriver::dir);
 
-    class_<vector<TapSegment>>("TapSegmentVector")
-            .def(vector_indexing_suite<vector<TapSegment>>());
+    py::bind_vector<vector<TapSegment>>(m, "TapSegmentVector");
 
-    class_<Ecp5GlobalsInfo>("Ecp5GlobalsInfo")
+    class_<Ecp5GlobalsInfo>(m, "Ecp5GlobalsInfo")
             .def_readwrite("quadrants", &Ecp5GlobalsInfo::quadrants)
             .def_readwrite("tapsegs", &Ecp5GlobalsInfo::tapsegs)
             .def("get_quadrant", &Ecp5GlobalsInfo::get_quadrant)
             .def("get_tap_driver", &Ecp5GlobalsInfo::get_tap_driver)
             .def("get_spine_driver", &Ecp5GlobalsInfo::get_spine_driver);
 
-    class_<LeftRightConn>("LeftRightConn")
+    class_<LeftRightConn>(m, "LeftRightConn")
             .def_readwrite("name", &LeftRightConn::name)
             .def_readwrite("row", &LeftRightConn::row)
             .def_readwrite("row_span", &LeftRightConn::row_span);
 
-    class_<MissingDccs>("MissingDccs")
+    class_<MissingDccs>(m, "MissingDccs")
             .def_readwrite("row", &MissingDccs::row)
             .def_readwrite("missing", &MissingDccs::missing);
 
-    class_<vector<LeftRightConn>>("LeftRightConnVector")
-            .def(vector_indexing_suite<vector<LeftRightConn>>());
+    py::bind_vector<vector<LeftRightConn>>(m, "LeftRightConnVector");
 
-    class_<vector<vector<int>>>("UpDownConnVector")
-            .def(vector_indexing_suite<vector<vector<int>>>());
+    py::bind_vector<vector<vector<int>>>(m, "UpDownConnVector");
 
-    class_<vector<vector<std::pair<int, int>>>>("BranchSpanVector")
-            .def(vector_indexing_suite<vector<vector<std::pair<int, int>>>>());
+    py::bind_vector<vector<vector<std::pair<int, int>>>>(m, "BranchSpanVector");
 
-    class_<vector<MissingDccs>>("MissingDccsVector")
-            .def(vector_indexing_suite<vector<MissingDccs>>());
+    py::bind_vector<vector<MissingDccs>>(m, "MissingDccsVector");
 
-    class_<vector<int>>("IntVector")
-            .def(vector_indexing_suite<vector<int>>());
+    py::bind_vector<vector<int>>(m, "IntVector");
 
-    class_<vector<std::pair<int, int>>>("IntPairVector")
-            .def(vector_indexing_suite<vector<std::pair<int, int>>>());
+    py::bind_vector<vector<std::pair<int, int>>>(m, "IntPairVector");
 
-    class_<MachXO2GlobalsInfo>("MachXO2GlobalsInfo")
+    class_<MachXO2GlobalsInfo>(m, "MachXO2GlobalsInfo")
             .def_readwrite("lr_conns", &MachXO2GlobalsInfo::lr_conns)
             .def_readwrite("ud_conns", &MachXO2GlobalsInfo::ud_conns)
             .def_readwrite("branch_spans", &MachXO2GlobalsInfo::branch_spans)
             .def_readwrite("missing_dccs", &MachXO2GlobalsInfo::missing_dccs);
 
-    class_<Chip>("Chip", init<string>())
+    class_<Chip>(m, "Chip")
+            .def(init<string>())
             .def(init<uint32_t>())
             .def(init<const ChipInfo &>())
             .def("get_tile_by_name", &Chip::get_tile_by_name)
@@ -187,16 +189,15 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def_readwrite("global_data_machxo2", &Chip::global_data_machxo2)
             .def(self - self);
 
-    class_<ChipDelta>("ChipDelta")
-            .def(map_indexing_suite<ChipDelta>());
+    py::bind_map<ChipDelta>(m, "ChipDelta");
 
     // From CRAM.cpp
-    class_<ChangedBit>("ChangedBit")
+    class_<ChangedBit>(m, "ChangedBit")
             .def_readonly("frame", &ChangedBit::frame)
             .def_readonly("bit", &ChangedBit::bit)
             .def_readonly("delta", &ChangedBit::delta);
 
-    class_<CRAMView>("CRAMView", no_init)
+    class_<CRAMView>(m, "CRAMView")
             .def("bit", &CRAMView::get_bit)
             .def("set_bit", &CRAMView::set_bit)
             .def("bits", &CRAMView::bits)
@@ -204,28 +205,27 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def("clear", &CRAMView::clear)
             .def(self - self);
 
-    class_<CRAM>("CRAM", init<int, int>())
+    class_<CRAM>(m, "CRAM")
+            .def(init<int, int>())
             .def("bit", &CRAM::get_bit)
             .def("set_bit", &CRAM::set_bit)
             .def("bits", &CRAM::bits)
             .def("frames", &CRAM::frames)
             .def("make_view", &CRAM::make_view);
 
-    class_<CRAMDelta>("CRAMDelta")
-            .def(vector_indexing_suite<CRAMDelta>());
+    py::bind_vector<CRAMDelta>(m, "CRAMDelta");
 
     // From Tile.cpp
-    def("get_row_col_pair_from_chipsize", get_row_col_pair_from_chipsize);
+    m.def("get_row_col_pair_from_chipsize", get_row_col_pair_from_chipsize);
 
-    class_<vector<SiteInfo>>("SiteInfoVector")
-            .def(vector_indexing_suite<vector<SiteInfo>>());
+    py::bind_vector<vector<SiteInfo>>(m, "SiteInfoVector");
 
-    class_<SiteInfo>("SiteInfo")
+    class_<SiteInfo>(m, "SiteInfo")
             .def_readonly("type", &SiteInfo::type)
             .def_readonly("row", &SiteInfo::row)
             .def_readonly("col", &SiteInfo::col);
 
-    class_<TileInfo>("TileInfo")
+    class_<TileInfo>(m, "TileInfo")
             .def_readonly("name", &TileInfo::name)
             .def_readonly("type", &TileInfo::type)
             .def_readonly("num_frames", &TileInfo::num_frames)
@@ -235,7 +235,7 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def_readonly("sites", &TileInfo::sites)
             .def("get_row_col", &TileInfo::get_row_col);
 
-    class_<Tile, shared_ptr<Tile>>("Tile", no_init)
+    class_<Tile, shared_ptr<Tile>>(m, "Tile")
             .def_readonly("info", &Tile::info)
             .def_readwrite("cram", &Tile::cram)
             .def_readwrite("known_bits", &Tile::known_bits)
@@ -244,27 +244,24 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def("read_config", &Tile::read_config);
 
     // From Database.cpp
-    def("load_database", load_database);
-    def("find_device_by_name", find_device_by_name);
-    def("find_device_by_idcode", find_device_by_idcode);
-    def("get_chip_info", get_chip_info);
-    def("get_device_tilegrid", get_device_tilegrid);
-    def("get_tile_bitdata", get_tile_bitdata);
+    m.def("load_database", load_database);
+    m.def("find_device_by_name", find_device_by_name);
+    m.def("find_device_by_idcode", find_device_by_idcode);
+    m.def("get_chip_info", get_chip_info);
+    m.def("get_device_tilegrid", get_device_tilegrid);
+    m.def("get_tile_bitdata", get_tile_bitdata);
 
     // From BitDatabase.cpp
-    register_exception_translator<DatabaseConflictError>(&translate_dbce);
-    class_<ConfigBit>("ConfigBit")
+    class_<ConfigBit>(m, "ConfigBit")
             .def_readwrite("frame", &ConfigBit::frame)
             .def_readwrite("bit", &ConfigBit::bit)
             .def_readwrite("inv", &ConfigBit::inv);
 
-    def("cbit_from_str", cbit_from_str);
-    class_<vector<ConfigBit>>("ConfigBitVector")
-            .def(vector_indexing_suite<vector<ConfigBit>>());
-    class_<set<ConfigBit>>("ConfigBitSet")
-            .def(bond::python::set_indexing_suite<set<ConfigBit>, true>());
-
-    class_<BitGroup>("BitGroup")
+    m.def("cbit_from_str", cbit_from_str);
+    py::bind_vector<vector<ConfigBit>>(m, "ConfigBitVector");
+    class_<std::set<ConfigBit>>(m, "ConfigBitSet");
+ 
+    class_<BitGroup>(m, "BitGroup")
             .def(init<const CRAMDelta &>())
             .def_readwrite("bits", &BitGroup::bits)
             .def("match", &BitGroup::match)
@@ -272,50 +269,46 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def("set_group", &BitGroup::set_group)
             .def("clear_group", &BitGroup::clear_group);
 
-    class_<vector<BitGroup>>("BitGroupVector")
-            .def(vector_indexing_suite<vector<BitGroup>>());
+    py::bind_vector<vector<BitGroup>>(m, "BitGroupVector");
 
-    class_<ArcData>("ArcData")
+    class_<ArcData>(m, "ArcData")
             .def_readwrite("source", &ArcData::source)
             .def_readwrite("sink", &ArcData::sink)
             .def_readwrite("bits", &ArcData::bits);
 
-    class_<map<string, ArcData>>("ArcDataMap")
-            .def(map_indexing_suite<map<string, ArcData>>());
+    py::bind_map<map<string, ArcData>>(m, "ArcDataMap");
 
-    class_<MuxBits>("MuxBits")
+    class_<MuxBits>(m, "MuxBits")
             .def_readwrite("sink", &MuxBits::sink)
             .def_readwrite("arcs", &MuxBits::arcs)
             .def("get_sources", &MuxBits::get_sources)
             .def("get_driver", &MuxBits::get_driver)
             .def("set_driver", &MuxBits::set_driver);
 
-    class_<WordSettingBits>("WordSettingBits")
+    class_<WordSettingBits>(m, "WordSettingBits")
             .def_readwrite("name", &WordSettingBits::name)
             .def_readwrite("bits", &WordSettingBits::bits)
             .def_readwrite("defval", &WordSettingBits::defval)
             .def("get_value", &WordSettingBits::get_value)
             .def("set_value", &WordSettingBits::set_value);
 
-    class_<map<string, BitGroup>>("BitGroupMap")
-            .def(map_indexing_suite<map<string, BitGroup>>());
+    py::bind_map<map<string, BitGroup>>(m, "BitGroupMap");
 
-    class_<EnumSettingBits>("EnumSettingBits")
+    class_<EnumSettingBits>(m, "EnumSettingBits")
             .def_readwrite("name", &EnumSettingBits::name)
             .def_readwrite("options", &EnumSettingBits::options)
             .def("get_options", &EnumSettingBits::get_options)
-            .add_property("defval", &EnumSettingBits::get_defval, &EnumSettingBits::set_defval)
+            .def_property("defval", &EnumSettingBits::get_defval, &EnumSettingBits::set_defval)
             .def("get_value", &EnumSettingBits::get_value)
             .def("set_value", &EnumSettingBits::set_value);
 
-    class_<FixedConnection>("FixedConnection")
+    class_<FixedConnection>(m, "FixedConnection")
             .def_readwrite("source", &FixedConnection::source)
             .def_readwrite("sink", &FixedConnection::sink);
 
-    class_<vector<FixedConnection>>("FixedConnectionVector")
-            .def(vector_indexing_suite<vector<FixedConnection>>());
+    py::bind_vector<vector<FixedConnection>>(m, "FixedConnectionVector");
 
-    class_<TileBitDatabase, shared_ptr<TileBitDatabase>>("TileBitDatabase", no_init)
+    class_<TileBitDatabase, shared_ptr<TileBitDatabase>>(m, "TileBitDatabase")
             .def("config_to_tile_cram", &TileBitDatabase::config_to_tile_cram)
             .def("tile_cram_to_config", &TileBitDatabase::tile_cram_to_config)
             .def("get_sinks", &TileBitDatabase::get_sinks)
@@ -335,39 +328,32 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def("remove_setting_enum", &TileBitDatabase::remove_setting_enum)
             .def("save", &TileBitDatabase::save);
 
-    typedef pair<string, bool> StringBoolPair;
-    typedef pair<string, bool> StringBoolPair;
-    class_<StringBoolPair>("StringBoolPair")
-            .def_readwrite("first", &StringBoolPair::first)
-            .def_readwrite("second", &StringBoolPair::second);
+    class_<StringBoolPair>(m, "StringBoolPair")
+            .def_readonly("first", &StringBoolPair::first)
+            .def_readonly("second", &StringBoolPair::second);
 
-    class_<vector<StringBoolPair>>("StringBoolPairVector")
-            .def(vector_indexing_suite<vector<StringBoolPair>>());
+    py::bind_vector<vector<StringBoolPair>>(m, "StringBoolPairVector");
 
     // From TileConfig.hpp
-    class_<ConfigArc>("ConfigArc")
+    class_<ConfigArc>(m, "ConfigArc")
             .def_readwrite("source", &ConfigArc::source)
             .def_readwrite("sink", &ConfigArc::sink);
-    class_<ConfigWord>("ConfigWord")
+    class_<ConfigWord>(m, "ConfigWord")
             .def_readwrite("name", &ConfigWord::name)
             .def_readwrite("value", &ConfigWord::value);
-    class_<ConfigEnum>("ConfigEnum")
+    class_<ConfigEnum>(m, "ConfigEnum")
             .def_readwrite("name", &ConfigEnum::name)
             .def_readwrite("value", &ConfigEnum::value);
-    class_<ConfigUnknown>("ConfigUnknown")
+    class_<ConfigUnknown>(m, "ConfigUnknown")
             .def_readwrite("frame", &ConfigUnknown::frame)
             .def_readwrite("bit", &ConfigUnknown::bit);
 
-    class_<vector<ConfigArc>>("ConfigArcVector")
-            .def(vector_indexing_suite<vector<ConfigArc>>());
-    class_<vector<ConfigWord>>("ConfigWordVector")
-            .def(vector_indexing_suite<vector<ConfigWord>>());
-    class_<vector<ConfigEnum>>("ConfigEnumVector")
-            .def(vector_indexing_suite<vector<ConfigEnum>>());
-    class_<vector<ConfigUnknown>>("ConfigUnknownVector")
-            .def(vector_indexing_suite<vector<ConfigUnknown>>());
+    py::bind_vector<vector<ConfigArc>>(m, "ConfigArcVector");
+    py::bind_vector<vector<ConfigWord>>(m, "ConfigWordVector");
+    py::bind_vector<vector<ConfigEnum>>(m, "ConfigEnumVector");
+    py::bind_vector<vector<ConfigUnknown>>(m, "ConfigUnknownVector");
 
-    class_<TileConfig>("TileConfig")
+    class_<TileConfig>(m, "TileConfig")
             .def_readwrite("carcs", &TileConfig::carcs)
             .def_readwrite("cwords", &TileConfig::cwords)
             .def_readwrite("cenums", &TileConfig::cenums)
@@ -377,107 +363,93 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def("add_word", &TileConfig::add_word)
             .def("add_unknown", &TileConfig::add_unknown)
             .def("to_string", &TileConfig::to_string)
-            .def("from_string", &TileConfig::from_string)
-            .staticmethod("from_string");
+            .def_static("from_string", &TileConfig::from_string);
 
     // From ChipConfig.hpp
-    class_<map<string, TileConfig>>("TileConfigMap")
-            .def(map_indexing_suite<map<string, TileConfig>>());
-    class_<vector<uint16_t>>("Uint16Vector")
-            .def(vector_indexing_suite<vector<uint16_t>>());
-    class_<map<uint16_t, vector<uint16_t>>>("Uint16VMap")
-            .def(map_indexing_suite<map<uint16_t, vector<uint16_t>>>());
+    py::bind_map<map<string, TileConfig>>(m, "TileConfigMap");
+    py::bind_vector<vector<uint16_t>>(m, "Uint16Vector");
+    py::bind_map<map<uint16_t, vector<uint16_t>>>(m, "Uint16VMap");
 
-    class_<ChipConfig>("ChipConfig")
+    class_<ChipConfig>(m, "ChipConfig")
             .def_readwrite("chip_name", &ChipConfig::chip_name)
             .def_readwrite("metadata", &ChipConfig::metadata)
             .def_readwrite("tiles", &ChipConfig::tiles)
             .def_readwrite("tilegroups", &ChipConfig::tilegroups)
             .def_readwrite("bram_data", &ChipConfig::bram_data)
             .def("to_string", &ChipConfig::to_string)
-            .def("from_string", &ChipConfig::from_string)
-            .staticmethod("from_string")
+            .def_static("from_string", &ChipConfig::from_string)
             .def("to_chip", &ChipConfig::to_chip)
-            .def("from_chip", &ChipConfig::from_chip)
-            .staticmethod("from_chip");
+            .def_static("from_chip", &ChipConfig::from_chip);
 
     // From RoutingGraph.hpp
-    class_<Location>("Location", init<int, int>())
+    class_<Location>(m, "Location")
+            .def(init<int, int>())
             .def_readwrite("x", &Location::x)
             .def_readwrite("y", &Location::y)
             .def(self + self)
             .def(self == self)
             .def(self != self);
 
-    class_<RoutingId>("RoutingId")
+    class_<RoutingId>(m, "RoutingId")
             .def_readwrite("loc", &RoutingId::loc)
             .def_readwrite("id", &RoutingId::id)
             .def(self == self)
             .def(self != self);
 
-    class_<vector<RoutingId>>("RoutingIdVector")
-            .def(vector_indexing_suite<vector<RoutingId>>());
+    py::bind_vector<vector<RoutingId>>(m, "RoutingIdVector");
 
-    typedef pair<RoutingId, ident_t> BelPin;
-    class_<BelPin>("BelPin")
-            .def_readwrite("bel", &BelPin::first)
-            .def_readwrite("pin", &BelPin::second);
+    class_<BelPin>(m, "BelPin")
+            .def_readonly("bel", &BelPin::first)
+            .def_readonly("pin", &BelPin::second);
 
-    typedef pair<RoutingId, PortDirection> BelWireDir;
-    class_<BelWireDir>("BelWireDir")
-            .def_readwrite("wire", &BelWireDir::first)
-            .def_readwrite("dir", &BelWireDir::second);
+    class_<BelWireDir>(m, "BelWireDir")
+            .def_readonly("wire", &BelWireDir::first)
+            .def_readonly("dir", &BelWireDir::second);
 
-    enum_<PortDirection>("PortDirection")
+    enum_<PortDirection>(m, "PortDirection")
             .value("PORT_IN", PORT_IN)
             .value("PORT_OUT", PORT_OUT)
             .value("PORT_INOUT", PORT_INOUT);
 
-    class_<vector<BelPin>>("BelPinVector")
-            .def(vector_indexing_suite<vector<BelPin>>());
+    py::bind_vector<vector<BelPin>>(m, "BelPinVector");
 
-    class_<RoutingWire>("RoutingWire")
+    class_<RoutingWire>(m, "RoutingWire")
             .def_readwrite("id", &RoutingWire::id)
             .def_readwrite("uphill", &RoutingWire::uphill)
             .def_readwrite("downhill", &RoutingWire::downhill)
             .def_readwrite("belsUphill", &RoutingWire::belsUphill)
             .def_readwrite("belsDownhill", &RoutingWire::belsDownhill);
 
-    class_<RoutingArc>("RoutingArc")
+    class_<RoutingArc>(m, "RoutingArc")
             .def_readwrite("id", &RoutingArc::id)
             .def_readwrite("tiletype", &RoutingArc::tiletype)
             .def_readwrite("source", &RoutingArc::source)
             .def_readwrite("sink", &RoutingArc::sink)
             .def_readwrite("configurable", &RoutingArc::configurable);
 
-    class_<map<ident_t, BelWireDir>>("RoutingPinMap")
-            .def(map_indexing_suite<map<ident_t, BelWireDir>>());
+    py::bind_map<map<ident_t, BelWireDir>>(m, "RoutingPinMap");
 
-    class_<RoutingBel>("RoutingBel")
+    class_<RoutingBel>(m, "RoutingBel")
             .def_readwrite("name", &RoutingBel::name)
             .def_readwrite("type", &RoutingBel::type)
             .def_readwrite("pins", &RoutingBel::pins)
             .def_readwrite("z", &RoutingBel::z);
 
-    class_<map<ident_t, RoutingWire>>("RoutingWireMap")
-            .def(map_indexing_suite<map<ident_t, RoutingWire>>());
+    py::bind_map<map<ident_t, RoutingWire>>(m, "RoutingWireMap");
 
-    class_<map<ident_t, RoutingArc>>("RoutingArcMap")
-            .def(map_indexing_suite<map<ident_t, RoutingArc>>());
+    py::bind_map<map<ident_t, RoutingArc>>(m, "RoutingArcMap");
 
-    class_<map<ident_t, RoutingBel>>("RoutingBelMap")
-            .def(map_indexing_suite<map<ident_t, RoutingBel>>());
+    py::bind_map<map<ident_t, RoutingBel>>(m, "RoutingBelMap");
 
-    class_<RoutingTileLoc>("RoutingTileLoc")
+    class_<RoutingTileLoc>(m, "RoutingTileLoc")
             .def_readwrite("loc", &RoutingTileLoc::loc)
             .def_readwrite("wires", &RoutingTileLoc::wires)
             .def_readwrite("arcs", &RoutingTileLoc::arcs)
             .def_readwrite("bels", &RoutingTileLoc::bels);
 
-    class_<map<Location, RoutingTileLoc>>("RoutingTileMap")
-            .def(map_indexing_suite<map<Location, RoutingTileLoc>>());
+    py::bind_map<map<Location, RoutingTileLoc>>(m, "RoutingTileMap");
 
-    class_<RoutingGraph, shared_ptr<RoutingGraph>>("RoutingGraph", no_init)
+    class_<RoutingGraph, shared_ptr<RoutingGraph>>(m, "RoutingGraph")
             .def_readonly("chip_name", &RoutingGraph::chip_name)
             .def_readonly("chip_family", &RoutingGraph::chip_family)
             .def_readonly("max_row", &RoutingGraph::max_row)
@@ -491,94 +463,88 @@ BOOST_PYTHON_MODULE (pytrellis)
             .def("add_wire", &RoutingGraph::add_wire);
 
     // DedupChipdb
-    using namespace DDChipDb;
-    class_<RelId>("RelId")
+    class_<RelId>(m, "RelId")
             .def_readwrite("rel", &RelId::rel)
             .def_readwrite("id", &RelId::id)
             .def(self == self)
             .def(self != self);
 
-    class_<BelPort>("BelPort")
+    class_<BelPort>(m, "BelPort")
             .def_readwrite("bel", &BelPort::bel)
             .def_readwrite("pin", &BelPort::pin);
-    class_<BelWire>("BelWire")
+    class_<BelWire>(m, "BelWire")
             .def_readwrite("wire", &BelWire::wire)
             .def_readwrite("pin", &BelWire::pin)
             .def_readwrite("dir", &BelWire::dir);
 
-    class_<vector<BelPort>>("BelPortVector")
-            .def(vector_indexing_suite<vector<BelPort>>());
-    class_<vector<BelWire>>("BelWireVector")
-            .def(vector_indexing_suite<vector<BelWire>>());
-    class_<vector<RelId>>("RelIdVector")
-            .def(vector_indexing_suite<vector<RelId>>());
-    class_<set<RelId>>("RelIdSet")
-            .def(bond::python::set_indexing_suite<set<RelId>,true>());
+    py::bind_vector<vector<BelPort>>(m, "BelPortVector");
+    py::bind_vector<vector<BelWire>>(m, "BelWireVector");
+    py::bind_vector<vector<RelId>>(m, "RelIdVector");
+    class_<std::set<RelId>>(m, "RelIdSet")
+        .def("__len__", [](const std::set<RelId> &v) { return v.size(); })
+        .def("__iter__", [](std::set<RelId> &v) {
+            return py::make_iterator(v.begin(), v.end());
+        }, py::keep_alive<0, 1>()); /* Keep vector alive while iterator is used */
 
-    enum_<ArcClass>("ArcClass")
+    enum_<ArcClass>(m, "ArcClass")
             .value("ARC_STANDARD", ARC_STANDARD)
             .value("ARC_FIXED", ARC_FIXED);
-    class_<DdArcData>("DdArcData")
+    class_<DdArcData>(m, "DdArcData")
             .def_readwrite("srcWire", &DdArcData::srcWire)
             .def_readwrite("sinkWire", &DdArcData::sinkWire)
             .def_readwrite("cls", &DdArcData::cls)
             .def_readwrite("delay", &DdArcData::delay)
             .def_readwrite("tiletype", &DdArcData::tiletype);
 
-    class_<WireData>("WireData")
+    class_<WireData>(m, "WireData")
             .def_readwrite("name", &WireData::name)
             .def_readwrite("arcsDownhill", &WireData::arcsDownhill)
             .def_readwrite("arcsUphill", &WireData::arcsUphill)
             .def_readwrite("belPins", &WireData::belPins);
 
-    class_<BelData>("BelData")
+    class_<BelData>(m, "BelData")
             .def_readwrite("name", &BelData::name)
             .def_readwrite("type", &BelData::type)
             .def_readwrite("z", &BelData::z)
             .def_readwrite("wires", &BelData::wires);
 
-    class_<vector<BelData>>("BelDataVector")
-            .def(vector_indexing_suite<vector<BelData>>());
-    class_<vector<WireData>>("WireDataVector")
-            .def(vector_indexing_suite<vector<WireData>>());
-    class_<vector<DdArcData>>("DdArcDataVector")
-            .def(vector_indexing_suite<vector<DdArcData>>());
+    py::bind_vector<vector<BelData>>(m, "BelDataVector");
+    py::bind_vector<vector<WireData>>(m, "WireDataVector");
+    py::bind_vector<vector<DdArcData>>(m, "DdArcDataVector");
 
-    class_<LocationData>("LocationData")
+    class_<LocationData>(m, "LocationData")
             .def_readwrite("wires", &LocationData::wires)
             .def_readwrite("arcs", &LocationData::arcs)
             .def_readwrite("bels", &LocationData::bels)
             .def("checksum", &LocationData::checksum);
 
-    class_<map<Location, checksum_t>>("LocationMap")
-            .def(map_indexing_suite<map<Location, checksum_t>>());
+    py::bind_map<map<Location, checksum_t>>(m, "LocationMap");
 
-    class_<map<checksum_t, LocationData>>("LocationTypesMap")
-            .def(map_indexing_suite<map<checksum_t, LocationData>>());
+    py::bind_map<map<checksum_t, LocationData>>(m, "LocationTypesMap");
 
-    class_<map<Location, LocationData>>("LocationMapDirect")
-            .def(map_indexing_suite<map<Location, LocationData>>());
+    py::bind_map<map<Location, LocationData>>(m, "LocationMapDirect");
 
-    class_<checksum_t>("checksum_t")
-            .def_readwrite("first", &checksum_t::first)
-            .def_readwrite("second", &checksum_t::second)
+    class_<checksum_t>(m, "checksum_t")
+            .def_readonly("first", &checksum_t::first)
+            .def_readonly("second", &checksum_t::second)
+            .def("key", [](const checksum_t &v) { return v; })
             .def(self == self);
 
-    class_<DedupChipdb, shared_ptr<DedupChipdb>>("DedupChipdb")
+    class_<DedupChipdb, shared_ptr<DedupChipdb>>(m, "DedupChipdb")
             .def_readwrite("locationTypes", &DedupChipdb::locationTypes)
             .def_readwrite("typeAtLocation", &DedupChipdb::typeAtLocation)
             .def("get_cs_data", &DedupChipdb::get_cs_data)
             .def("ident", &DedupChipdb::ident)
             .def("to_str", &DedupChipdb::to_str);
 
-    def("make_dedup_chipdb", make_dedup_chipdb);
+    m.def("make_dedup_chipdb", make_dedup_chipdb);
 
-    class_<OptimizedChipdb, shared_ptr<OptimizedChipdb>>("OptimizedChipdb")
+    class_<OptimizedChipdb, shared_ptr<OptimizedChipdb>>(m, "OptimizedChipdb")
             .def_readwrite("tiles", &OptimizedChipdb::tiles)
             .def("ident", &OptimizedChipdb::ident)
             .def("to_str", &OptimizedChipdb::to_str);
 
-    def("make_optimized_chipdb", make_optimized_chipdb);
+    m.def("make_optimized_chipdb", make_optimized_chipdb);
 
 }
 
