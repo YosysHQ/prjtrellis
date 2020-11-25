@@ -6,8 +6,7 @@ def pos_from_name(tile, chip_size, bias):
     """
     Extract the tile position as a (row, column) tuple from its name
     """
-    pair = pytrellis.make_IntPair(chip_size[0],chip_size[1])
-    size = pytrellis.IntPair(pair)
+    size = pytrellis.make_IntPair(chip_size[0],chip_size[1])
     pos = pytrellis.get_row_col_pair_from_chipsize(tile, size, bias)
     return int(pos.first), int(pos.second)
 

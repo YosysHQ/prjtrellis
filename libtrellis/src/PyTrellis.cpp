@@ -24,18 +24,17 @@ using namespace DDChipDb;
 
 namespace py = pybind11;
 
-    typedef pair<int, int> IntPair;
-    typedef pair<string, bool> StringBoolPair;
-    typedef pair<RoutingId, ident_t> BelPin;
-    typedef pair<RoutingId, PortDirection> BelWireDir;
+typedef pair<int, int> IntPair;
+typedef pair<string, bool> StringBoolPair;
+typedef pair<RoutingId, ident_t> BelPin;
+typedef pair<RoutingId, PortDirection> BelWireDir;
 
-    // Common Types
-    PYBIND11_MAKE_OPAQUE(IntPair)
-    PYBIND11_MAKE_OPAQUE(LocationData)
-    PYBIND11_MAKE_OPAQUE(checksum_t)
-    PYBIND11_MAKE_OPAQUE(map<checksum_t, LocationData>)
-    PYBIND11_MAKE_OPAQUE(Location)
-    PYBIND11_MAKE_OPAQUE(std::set<RelId>)
+// Common Types
+PYBIND11_MAKE_OPAQUE(IntPair)
+PYBIND11_MAKE_OPAQUE(LocationData)
+PYBIND11_MAKE_OPAQUE(checksum_t)
+PYBIND11_MAKE_OPAQUE(map<checksum_t, LocationData>)
+PYBIND11_MAKE_OPAQUE(Location)
 
 PYBIND11_MODULE (pytrellis, m)
 {
@@ -47,10 +46,8 @@ PYBIND11_MODULE (pytrellis, m)
     py::bind_vector<vector<bool>>(m, "BoolVector");
 
     class_<IntPair>(m, "IntPair")
-            .def(init<IntPair>())
             .def_readonly("first", &std::pair<int, int>::first)
             .def_readonly("second", &std::pair<int, int>::second);
-
 
     m.def("make_IntPair", [](int first, int second) {
         return std::make_pair(first, second);
@@ -75,7 +72,7 @@ PYBIND11_MODULE (pytrellis, m)
             .def("write_bit", &Bitstream::write_bit_py)
             .def_readwrite("metadata", &Bitstream::metadata)
             .def_readwrite("data", &Bitstream::data)
-        .def("deserialise_chip", static_cast<Chip (Bitstream::*)()>(&Bitstream::deserialise_chip));
+            .def("deserialise_chip", static_cast<Chip (Bitstream::*)()>(&Bitstream::deserialise_chip));
 
     class_<DeviceLocator>(m, "DeviceLocator")
             .def_readwrite("family", &DeviceLocator::family)
@@ -259,8 +256,12 @@ PYBIND11_MODULE (pytrellis, m)
 
     m.def("cbit_from_str", cbit_from_str);
     py::bind_vector<vector<ConfigBit>>(m, "ConfigBitVector");
-    class_<std::set<ConfigBit>>(m, "ConfigBitSet");
- 
+    class_<std::set<ConfigBit>>(m, "ConfigBitSet")
+        .def("__len__", [](const std::set<ConfigBit> &v) { return v.size(); })
+        .def("__iter__", [](std::set<ConfigBit> &v) {
+            return py::make_iterator(v.begin(), v.end());
+        }, py::keep_alive<0, 1>()); /* Keep vector alive while iterator is used */
+
     class_<BitGroup>(m, "BitGroup")
             .def(init<const CRAMDelta &>())
             .def_readwrite("bits", &BitGroup::bits)
