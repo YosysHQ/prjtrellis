@@ -133,7 +133,7 @@ int main(int argc, char** argv){
     cerr << "Copyright (C) 2018-2019 David Shah <david@symbioticeda.com>" << endl;
     cerr << endl;
     cerr << options << endl;
-    return 1;
+    return vm.count("help") ? 0 : 1;
   }
   if(vm.count("clkin") != 1 || vm.count("clkout0") != 1){
     cerr << "Error: missing input or output frequency!\n";
@@ -279,7 +279,7 @@ void calc_pll_params(pll_params &params, float input, float output){
     for(int feedback_div=1;feedback_div <= 80; feedback_div++){
       for(int output_div=1;output_div <= 128; output_div++){
 	float fvco = fpfd * (float)feedback_div * (float) output_div;
-	
+
 	if(fvco < VCO_MIN || fvco > VCO_MAX)
 	  continue;
 
@@ -311,7 +311,7 @@ void calc_pll_params_highres(pll_params &params, float input, float output){
     for(int feedback_div=1;feedback_div <= 80; feedback_div++){
       for(int output_div=1;output_div <= 128; output_div++){
 	float fvco = fpfd * (float)feedback_div * (float) output_div;
-	
+
 	if(fvco < VCO_MIN || fvco > VCO_MAX)
 	  continue;
 	float ffeedback = fvco / (float) output_div;
