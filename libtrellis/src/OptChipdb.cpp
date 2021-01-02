@@ -40,7 +40,6 @@ shared_ptr<OptimizedChipdb> make_optimized_chipdb(Chip &chip)
     }
     shared_ptr<OptimizedChipdb> cdb = make_shared<OptimizedChipdb>(IdStore(*graph));
     for (const auto &loc : graph->tiles) {
-        int x = loc.first.x, y = loc.first.y;
         LocationData ld;
         const auto &td = loc.second;
         for (const auto &bel : td.bels) {
