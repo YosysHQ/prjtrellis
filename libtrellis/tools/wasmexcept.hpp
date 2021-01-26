@@ -11,7 +11,11 @@ void __cxa_throw(void *thrown_exception, struct std::type_info *tinfo, void (*de
 }
 
 namespace boost {
+struct source_location;
 void throw_exception(std::exception const &e) { 
+	std::cerr << "boost::exception(): " << e.what() << std::endl;
+}
+void throw_exception(std::exception const &e, boost::source_location const &) { 
 	std::cerr << "boost::exception(): " << e.what() << std::endl;
 }
 } // namespace boost

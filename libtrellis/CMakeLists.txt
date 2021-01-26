@@ -57,54 +57,7 @@ endif()
 
 find_package(Boost REQUIRED COMPONENTS ${boost_libs})
 
-if (BUILD_PYTHON)
-    # Find Boost::Python of a suitable version in a cross-platform way
-    # Some distributions (Arch) call it libboost_python3, others such as Ubuntu
-    # call it libboost_python35. In the latter case we must consider all minor versions
-    # Original source: https://github.com/BVLC/caffe/blob/master/cmake/Dependencies.cmake#L148
-    set(version ${PYTHONLIBS_VERSION_STRING})
-
-    STRING(REGEX REPLACE "[^0-9]" "" boost_py_version "${version}")
-    find_package(Boost QUIET COMPONENTS "python-py${boost_py_version}" ${boost_libs})
-    set(Boost_PYTHON_FOUND ${Boost_PYTHON-PY${boost_py_version}_FOUND})
-
-    while (NOT "${version}" STREQUAL "" AND NOT Boost_PYTHON_FOUND)
-        STRING(REGEX REPLACE "([0-9.]+).[0-9]+" "\\1" version "${version}")
-
-        STRING(REGEX REPLACE "[^0-9]" "" boost_py_version "${version}")
-        find_package(Boost QUIET COMPONENTS "python-py${boost_py_version}" ${boost_libs})
-        set(Boost_PYTHON_FOUND ${Boost_PYTHON-PY${boost_py_version}_FOUND})
-
-        STRING(REGEX MATCHALL "([0-9.]+).[0-9]+" has_more_version "${version}")
-        if ("${has_more_version}" STREQUAL "")
-            break()
-        endif ()
-    endwhile ()
-
-    if (NOT Boost_PYTHON_FOUND)
-        foreach (PyVer 3 36 37 38 39)
-            find_package(Boost QUIET COMPONENTS python${PyVer} ${boost_libs})
-            if ("${Boost_LIBRARIES}" MATCHES ".*(python|PYTHON).*" )
-                set(Boost_PYTHON_FOUND TRUE)
-                break()
-            endif ()
-        endforeach ()
-    endif ()
-
-    if (NOT Boost_PYTHON_FOUND)
-        STRING(REGEX REPLACE "([0-9]+\\.[0-9]+).*" "\\1" gentoo_version "${PYTHONLIBS_VERSION_STRING}")
-        find_package(Boost QUIET COMPONENTS python-${gentoo_version} ${boost_libs})
-        if ("${Boost_LIBRARIES}" MATCHES ".*(python|PYTHON).*" )
-            set(Boost_PYTHON_FOUND TRUE)
-        endif ()
-    endif ()
-
-    if (NOT Boost_PYTHON_FOUND )
-        message( FATAL_ERROR "No version of Boost::Python 3.x could be found.")
-    endif ()
-endif()
-
-include_directories(include/ ${Boost_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS})
+include_directories(include/ ${Boost_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} 3rdparty/pybind11/include)
 
 aux_source_directory(include/ INCLUDE_FILES)
 aux_source_directory(src/ SOURCE_FILES)

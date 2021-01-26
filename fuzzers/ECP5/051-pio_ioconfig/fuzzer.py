@@ -173,7 +173,10 @@ def main():
                     "cfg_vio": "3.3"
                 }
                 if extracfg is not None:
-                    substs["extra_attrs"] = '(* {}="{}" *)'.format(extracfg[0], extracfg[1])
+                    pullcfg = ""
+                    if extracfg[0] == "CLAMP":
+                        pullcfg = ", PULLMODE=\"UP\""
+                    substs["extra_attrs"] = '(* {}="{}"{} *)'.format(extracfg[0], extracfg[1], pullcfg)
                 if side == "B":
                     substs["cfg_vio"] = get_cfg_vccio(type)
                 return substs
@@ -201,10 +204,9 @@ def main():
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.OPENDRAIN".format(pio), ["ON", "OFF"],
                                          lambda x: get_substs(iomode="OUTPUT_LVCMOS33", extracfg=("OPENDRAIN", x)),
                                          empty_bitfile)
-            if loc in ('T', 'B'):
+            if side in ('T', 'B'):
                 nonrouting.fuzz_enum_setting(cfg, "PIO{}.CLAMP".format(pio), ["ON", "OFF"],
-                                             lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("CLAMP", x)),
-                                             empty_bitfile)
+                                             lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("CLAMP", x)))
 
         fuzzloops.parallel_foreach(pins, per_pin)
 

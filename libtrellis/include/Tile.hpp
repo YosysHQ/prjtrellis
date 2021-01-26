@@ -7,6 +7,7 @@
 #include <utility>
 #include <regex>
 #include <cassert>
+#include <map>
 #include "CRAM.hpp"
 
 namespace Trellis {
