@@ -291,11 +291,17 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2()
                 MachXO2Bels::add_lc(*rg, x, y, z);
 
         // PIO Bels
-        if (tile->info.type.find("PIC_L0") != string::npos || tile->info.type.find("PIC_LS0") != string::npos ||
-            tile->info.type.find("PIC_T") != string::npos ||
-            tile->info.type.find("PIC_R0") != string::npos || tile->info.type.find("PIC_RS0") != string::npos ||
-            tile->info.type.find("PIC_B") != string::npos)
+        // DUMMY and CIB tiles can have the below strings and can possibly
+        // have BELs. But they will not have PIO BELs.
+        if (tile->info.type.find("DUMMY") == string::npos && tile->info.type.find("CIB") == string::npos &&
+            (tile->info.type.find("PIC_L0") != string::npos || tile->info.type.find("PIC_T") != string::npos ||
+             tile->info.type.find("PIC_R0") != string::npos || tile->info.type.find("PIC_B") != string::npos))
             for (int z = 0; z < 4; z++)
+                MachXO2Bels::add_pio(*rg, x, y, z);
+
+        // Single I/O pair.
+        if (tile->info.type.find("PIC_LS0") != string::npos || tile->info.type.find("PIC_RS0") != string::npos)
+            for (int z = 0; z < 2; z++)
                 MachXO2Bels::add_pio(*rg, x, y, z);
 
         // DCC/DCM Bels

@@ -33,7 +33,7 @@ def main(args):
     max_col = chip.get_max_col()
 
     if chip.info.family == "MachXO2":
-        # I/O Grouping
+        # I/O Grouping is present in MachXO2 pinouts but not ECP5.
         pkg_index_start = 8
     else:
         pkg_index_start = 7
@@ -69,9 +69,9 @@ def main(args):
                 else:
                     metadata[bel] = bank, function, dqs
                 for i in range(len(package_indicies)):
-                    if splitline[7+i] == "-":
+                    if splitline[pkg_index_start+i] == "-":
                         continue
-                    package_data[package_indicies[i]][splitline[7+i]] = bel
+                    package_data[package_indicies[i]][splitline[pkg_index_start+i]] = bel
     json_data = {"packages": {}, "pio_metadata": []}
     for pkg, pins in package_data.items():
         json_data["packages"][pkg] = {}
