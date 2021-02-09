@@ -179,10 +179,25 @@ RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::strin
                       // wonderful 1-based column numbering, and lack of dedicated
                       // PIO tiles on the left and right.
                       // Top and bottom unaffected due to dedicated PIO tiles.
-                      bool pio_wire = (db_name.find("PADD") != string::npos ||
+                      // TODO: Convert to regex.
+                      bool pio_wire = (
+                          db_name.find("DI") != string::npos ||
+                          db_name.find("JDI") != string::npos ||
+                          db_name.find("PADD") != string::npos ||
+                          db_name.find("INDD") != string::npos ||
                           db_name.find("IOLDO") != string::npos ||
                           db_name.find("IOLTO") != string::npos ||
-                          db_name.find("JINCK") != string::npos);
+                          db_name.find("JCE") != string::npos ||
+                          db_name.find("JCLK") != string::npos ||
+                          db_name.find("JLSR") != string::npos ||
+                          db_name.find("JONEG") != string::npos ||
+                          db_name.find("JOPOS") != string::npos ||
+                          db_name.find("JTS") != string::npos ||
+                          db_name.find("JIN") != string::npos ||
+                          db_name.find("JIP") != string::npos ||
+                          // Connections to global mux
+                          db_name.find("JINCK") != string::npos
+                      );
 
                       if((id.loc.x == -1) && pio_wire)
                           id.loc.x = 0;
@@ -192,10 +207,24 @@ RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::strin
                   id.loc.x += std::stoi(g.substr(1));
 
                   if(id.loc.x > max_col) {
-                      bool pio_wire = (db_name.find("PADD") != string::npos ||
-                        db_name.find("IOLDO") != string::npos ||
-                        db_name.find("IOLTO") != string::npos||
-                        db_name.find("JINCK") != string::npos);
+                      bool pio_wire = (
+                          db_name.find("DI") != string::npos ||
+                          db_name.find("JDI") != string::npos ||
+                          db_name.find("PADD") != string::npos ||
+                          db_name.find("INDD") != string::npos ||
+                          db_name.find("IOLDO") != string::npos ||
+                          db_name.find("IOLTO") != string::npos ||
+                          db_name.find("JCE") != string::npos ||
+                          db_name.find("JCLK") != string::npos ||
+                          db_name.find("JLSR") != string::npos ||
+                          db_name.find("JONEG") != string::npos ||
+                          db_name.find("JOPOS") != string::npos ||
+                          db_name.find("JTS") != string::npos ||
+                          db_name.find("JIN") != string::npos ||
+                          db_name.find("JIP") != string::npos ||
+                          // Connections to global mux
+                          db_name.find("JINCK") != string::npos
+                      );
 
                       // Same deal as left side, except the position exceeds
                       // the maximum row.

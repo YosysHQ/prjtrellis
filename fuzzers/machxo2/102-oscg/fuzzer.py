@@ -71,9 +71,11 @@ def main(args):
         cfg_r.setup()
         interconnect.fuzz_interconnect_with_netnames(
             cfg_r,
-            ["R1C4_JOSC_OSC"],
+            ["R1C4_JOSC_OSC",
+            "R1C4_JSTDBY_OSC"],
             bidir=True,
-            netdir_override={"R1C4_JOSC_OSC" : "driver"})
+            netdir_override={"R1C4_JOSC_OSC" : "driver",
+                             "R1C4_JSTDBY_OSC" : "sink"})
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="OSCH Fuzzer.")

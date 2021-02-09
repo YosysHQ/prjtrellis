@@ -304,6 +304,7 @@ PYBIND11_MODULE (pytrellis, m)
             .def("set_value", &EnumSettingBits::set_value);
 
     class_<FixedConnection>(m, "FixedConnection")
+            .def(init<>())
             .def_readwrite("source", &FixedConnection::source)
             .def_readwrite("sink", &FixedConnection::sink);
 
