@@ -11,5 +11,11 @@ all: ${PROJ}.bit
 %.bit: %_out.config
 	ecppack $< $@
 
+clean:
+	rm *.bit *.svf *_out.config *.json
+
 prog: ${PROJ}.bit
 	tinyprog -p $<
+
+.PHONY: clean
+

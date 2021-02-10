@@ -21,5 +21,8 @@ attosoc.bit: attosoc_out.config
 prog: attosoc.bit
 	tinyprog -p $<
 
+clean:
+	rm -f *.vvp *.vcd *.elf *.bin *.hex *.bit *.svf *_out.config *.json
+
 .PHONY: attosoc_sim clean prog
 .PRECIOUS: attosoc.json attosoc_out.config attosoc.bit

@@ -19,5 +19,8 @@ attosoc_out.config: attosoc.json
 attosoc.bit: attosoc_out.config
 	ecppack $< $@
 
+clean:
+	rm *.vvp *.vcd *.elf *.bin *.hex *.bit *.svf *_out.config *.json
+
 .PHONY: attosoc_sim clean prog
 .PRECIOUS: attosoc.json attosoc_out.config attosoc.bit

@@ -21,5 +21,8 @@ ${PROJ}.svf: ${PROJ}.bit
 prog: ${PROJ}.svf
 	openocd -f ${TRELLIS}/misc/openocd/ecp5-versa5g.cfg -c "transport select jtag; init; svf $<; exit"
 
-.PHONY: prog
+clean:
+	rm -f *.bit *.svf *_out.config *.json pattern.vh
+
+.PHONY: prog clean
 .PRECIOUS: ${PROJ}.json ${PROJ}_out.config

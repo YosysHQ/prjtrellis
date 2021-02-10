@@ -29,5 +29,8 @@ attosoc.bit: attosoc_out.config
 prog: attosoc.svf
 	openocd -f ${TRELLIS}/misc/openocd/ecp5-versa5g.cfg -c "transport select jtag; init; svf $<; exit"
 
+clean:
+	rm -f *.vvp *.vcd *.elf *.bin *.hex *.bit *.svf *_out.config *.json
+
 .PHONY: attosoc_sim clean prog
 .PRECIOUS: attosoc.json attosoc_out.config attosoc.bit

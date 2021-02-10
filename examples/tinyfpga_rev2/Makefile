@@ -13,5 +13,9 @@ all: ${PROJ}.bit
 
 prog: ${PROJ}.bit
 	tinyprog -p $<
-	
+
+clean:
+	rm -f *.bit *.svf *_out.config *.json
+
+.PHONY: clean
 .PRECIOUS: ${PROJ}.json ${PROJ}_out.config
