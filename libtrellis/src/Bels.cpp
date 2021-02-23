@@ -753,9 +753,9 @@ namespace MachXO2Bels {
         bel.loc.y = y;
         bel.z = z;
 
-        graph.add_bel_input(bel, graph.ident("CLKI"), x, y, graph.ident(fmt("G_CLKI" << name << "_DCC")));
-        graph.add_bel_input(bel, graph.ident("CE"), x, y, graph.ident(fmt("G_JCE" << name << "_DCC")));
-        graph.add_bel_output(bel, graph.ident("CLKO"), x, y, graph.ident(fmt("G_CLKO" << name << "_DCC")));
+        graph.add_bel_input(bel, graph.ident("CLKI"), x, y, graph.ident(fmt("G_CLKI" << z << "_DCC")));
+        graph.add_bel_input(bel, graph.ident("CE"), x, y, graph.ident(fmt("G_JCE" << z << "_DCC")));
+        graph.add_bel_output(bel, graph.ident("CLKO"), x, y, graph.ident(fmt("G_CLKO" << z << "_DCC")));
 
         graph.add_bel(bel);
     }
