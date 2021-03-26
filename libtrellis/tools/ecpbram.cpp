@@ -22,7 +22,7 @@
 #include <stdint.h>
 #ifdef _WIN32
 #define NOMINMAX
-#include "Windows.h"
+#include "windows.h"
 #undef NOMINMAX
 #else
 #include <unistd.h>
