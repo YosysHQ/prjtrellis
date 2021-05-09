@@ -390,7 +390,7 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
 
   file << "    output locked\n";
   file << ");\n";
-  if(params.internal_feedback)
+  if(params.internal_feedback || params.mode == pll_mode::HIGHRES)
     file << "wire clkfb;\n";
   if(params.dynamic)
   {
