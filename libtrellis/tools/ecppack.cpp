@@ -85,7 +85,7 @@ help:
         cerr << "Version " << git_describe_str << endl;
         cerr << argv[0] << ": ECP5 bitstream packer" << endl;
         cerr << endl;
-        cerr << "Copyright (C) 2018 David Shah <david@symbioticeda.com>" << endl;
+        cerr << "Copyright (C) 2018 gatecat <gatecat@ds0.me>" << endl;
         cerr << endl;
         cerr << "Usage: " << argv[0] << " input.config [output.bit] [options]" << endl;
         cerr << options << endl;

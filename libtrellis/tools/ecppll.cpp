@@ -130,7 +130,7 @@ int main(int argc, char** argv){
     cerr << endl;
     cerr << "This tool is experimental! Use at your own risk!" << endl;
     cerr << endl;
-    cerr << "Copyright (C) 2018-2019 David Shah <david@symbioticeda.com>" << endl;
+    cerr << "Copyright (C) 2018-2019 gatecat <gatecat@ds0.me>" << endl;
     cerr << endl;
     cerr << options << endl;
     return vm.count("help") ? 0 : 1;

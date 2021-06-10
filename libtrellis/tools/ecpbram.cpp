@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2016  Clifford Wolf <clifford@clifford.at>
+//  Copyright (C) 2016  Claire Xenia Wolf <claire@yosyshq.com>
 //  Copyright (C) 2019  Sylvain Munaut <tnt@246tNt.com>
 //
 //  Permission to use, copy, modify, and/or distribute this software for any
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
         cerr << argv[0] << ": ECP5 BRAM content initialization tool" << endl;
         cerr << endl;
         cerr << "Copyright (C) 2019  Sylvain Munaut <tnt@246tNt.com>" << endl;
-        cerr << "Copyright (C) 2016  Clifford Wolf <clifford@clifford.at>" << endl;
+        cerr << "Copyright (C) 2016  Claire Xenia Wolf <claire@yosyshq.com>" << endl;
         cerr << endl;
         cerr << options << endl;
         return vm.count("help") ? 0 : 1;
