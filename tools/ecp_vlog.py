@@ -452,9 +452,11 @@ def filter_node(node: Node) -> bool:
         # 07:55 <daveshah> They are for the dedicated interconnect between IOLOGIC and PIO
         return False
     if node.pin_name == "INDD":
-        # I don't know what this pin is, but it often appears to be connected to $DI.
-        # Disabling it because sometimes it ends up in a multi-root configuration with PIO$O,
-        # which makes it (probably) redundant?
+        # INDD is the input after the delay block. This is currently redundant because
+        # the input source (PIO$O) will be exposed as an independent input, so the module's
+        # caller can simply hard-code an appropriate delay to the module input.
+        # If the I/O modules are ever implemented, it will be necessary to disambiguate
+        # PIO$O from INDD for the IOLOGIC$DI input to avoid a multi-root situation.
         return False
     return True
 
@@ -622,9 +624,9 @@ class SliceModule(Module):
 
         print(
             f"""
-/* Use the cells_sim library from yosys/techlibs/ecp5 */
-`define NO_INCLUDES 1
-`include "cells_sim.v"
+/* This module requires the cells_sim library from yosys/techlibs/ecp5/cells.sim.v
+   for the TRELLIS_SLICE definition. Include that cell library before including this
+   file. */
 module ECP5_SLICE(
     input {", ".join(cls.input_pins)},
     output {", ".join(cls.output_pins)}
