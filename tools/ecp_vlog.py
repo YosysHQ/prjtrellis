@@ -452,6 +452,8 @@ def filter_node(node: Node) -> bool:
         # https://freenode.irclog.whitequark.org/~h~openfpga/2018-12-25#23748701;
         # 07:55 <daveshah> kbeckmann: IOLDO and IOLTO are for internal use only
         # 07:55 <daveshah> They are for the dedicated interconnect between IOLOGIC and PIO
+        # Since we don't currently implement I/O modules, these pins do not
+        # need to be exported to Verilog.
         return False
     if node.pin_name == "INDD":
         # INDD is the input after the delay block. This is currently redundant because
