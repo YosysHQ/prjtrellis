@@ -2,7 +2,6 @@ import os
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
-from enum import IntEnum
 from functools import lru_cache
 from typing import Callable, ClassVar, Dict, List, Optional, Sequence, Set, Tuple, Type
 
@@ -83,6 +82,7 @@ class Node:
     x: int
     id: Ident
     pin: Optional[Ident] = None
+    mod_name_map: ClassVar[Optional[Dict[str, str]]] = None
 
     @property
     def loc(self) -> pytrellis.Location:
@@ -90,7 +90,10 @@ class Node:
 
     @property
     def mod_name(self) -> str:
-        return f"R{self.y}C{self.x}_{self.name}"
+        res = f"R{self.y}C{self.x}_{self.name}"
+        if self.mod_name_map:
+            return self.mod_name_map.get(res, res)
+        return res
 
     @property
     def name(self) -> str:
@@ -358,8 +361,6 @@ def gen_config_graph(chip: pytrellis.Chip, rgraph: pytrellis.RoutingGraph, tiles
 
 
 # Verilog generation
-
-
 def filter_node(node: Node) -> bool:
     if node.pin is None:
         # This is a bit extreme, but we assume that all *useful* wires
@@ -539,7 +540,8 @@ class SliceModule(Module):
             "D1MUX",
         ]
 
-        print(f"""
+        print(
+            f"""
 /* Use the cells_sim library from yosys/techlibs/ecp5 */
 `include "../inc/cells_sim.v"
 module ECP5_SLICE(
@@ -583,7 +585,8 @@ module ECP5_SLICE(
         {", ".join(f".{pin}({pin})" for pin in cls.output_pins)}
     );
 endmodule
-""".strip())
+""".strip()
+        )
 
     def print_instance(self, instname: str) -> None:
         print("ECP5_SLICE #(")
@@ -626,9 +629,9 @@ class EBRModule(Module):
         "ADB11",
         "ADB12",
         "ADB13",
-        "CEB", # CER
-        "CLKA", # CLKW
-        "CLKB", # CLKR
+        "CEB",  # CER
+        "CLKA",  # CLKW
+        "CLKB",  # CLKR
         # DI
         "DIA0",
         "DIA1",
@@ -711,7 +714,8 @@ class EBRModule(Module):
     @classmethod
     def print_definition(cls) -> None:
         """ Print the Verilog code for the module definition """
-        print(f"""
+        print(
+            f"""
 module ECP5_EBR(
     input {", ".join(cls.input_pins)},
     output {", ".join(cls.output_pins)}
@@ -744,7 +748,8 @@ module ECP5_EBR(
     /* TODO! */
 
 endmodule
-""".strip())
+""".strip()
+        )
 
     def print_instance(self, instname: str) -> None:
         print("ECB5_EBR #(")
@@ -877,16 +882,32 @@ def print_verilog(graph: ConnectionGraph, tiles_by_loc: TilesByLoc) -> None:
 
 def main(argv: List[str]) -> None:
     import argparse
+    import json
 
     parser = argparse.ArgumentParser("Convert a .bit file into a .v verilog file for simulation")
 
     parser.add_argument("bitfile", help="Input .bit file")
+    parser.add_argument("--package", help="Physical package (e.g. CABGA256), for renaming I/O-related wires")
     args = parser.parse_args(argv)
 
     pytrellis.load_database(database.get_db_root())
 
     bitstream = pytrellis.Bitstream.read_bit(args.bitfile)
     chip = bitstream.deserialise_chip()
+
+    if args.package:
+        dbfn = os.path.join(database.get_db_subdir(chip.info.family, chip.info.name), "iodb.json")
+        with open(dbfn, "r") as f:
+            iodb = json.load(f)
+
+        # Rename PIO and IOLOGIC BELs based on their connected pins, for readability
+        mod_renames = {}
+        for pin_name, pin_data in iodb["packages"][args.package].items():
+            mod_renames["R{row}C{col}_PIO{pio}".format(**pin_data)] = f"{pin_name}_PIO"
+            mod_renames["R{row}C{col}_IOLOGIC{pio}".format(**pin_data)] = f"{pin_name}_IOLOGIC"
+
+        Node.mod_name_map = mod_renames
+
     rgraph = chip.get_routing_graph()
 
     tiles_by_loc = make_tiles_by_loc(chip)
