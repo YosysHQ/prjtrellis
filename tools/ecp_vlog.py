@@ -1,9 +1,10 @@
 import os
+import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import Callable, ClassVar, Dict, List, Optional, Sequence, Set, Tuple, Type
+from typing import Callable, ClassVar, Dict, List, Optional, Set, Tuple, Type
 
 try:
     # optional import to get natural sorting of integers (i.e. 1, 5, 9, 10 instead of 1, 10, 5, 9)
@@ -82,7 +83,7 @@ class Node:
     x: int
     id: Ident
     pin: Optional[Ident] = None
-    mod_name_map: ClassVar[Optional[Dict[str, str]]] = None
+    mod_name_map: ClassVar[Dict[str, str]] = {}
 
     @property
     def loc(self) -> pytrellis.Location:
@@ -91,9 +92,7 @@ class Node:
     @property
     def mod_name(self) -> str:
         res = f"R{self.y}C{self.x}_{self.name}"
-        if self.mod_name_map:
-            return self.mod_name_map.get(res, res)
-        return res
+        return self.mod_name_map.get(res, res)
 
     @property
     def name(self) -> str:
@@ -127,7 +126,7 @@ class Component:
         def visit(node: Node) -> None:
             if node in seen:
                 if seen[node] == 0:
-                    print(f"Warning: node {node} is part of a cycle!")
+                    print(f"Warning: node {node} is part of a cycle!", file=sys.stderr)
                 return
             seen[node] = 0
             if not self.graph.edges_rev[node]:
@@ -149,7 +148,7 @@ class Component:
         def visit(node: Node) -> None:
             if node in seen:
                 if seen[node] == 0:
-                    print(f"Warning: node {node} is part of a cycle!")
+                    print(f"Warning: node {node} is part of a cycle!", file=sys.stderr)
                 return
             seen[node] = 0
             if not self.graph.edges_fwd[node]:
@@ -233,6 +232,83 @@ def gen_config_graph(chip: pytrellis.Chip, rgraph: pytrellis.RoutingGraph, tiles
         id = Ident.from_id(rgraph, rid.id)
         return Node(x=rid.loc.x, y=rid.loc.y, id=id)
 
+    def _get_enum_value(cfg: pytrellis.TileConfig, enum_name: str) -> Optional[str]:
+        for cenum in cfg.cenums:
+            if cenum.name == enum_name:
+                return cenum.value
+        return None
+
+    def _filter_data_pin(node: Node) -> bool:
+        # IOLOGIC[AC].[RT]XDATA[456] are mutually exclusive with IOLOGIC[BD].[RT]XDATA[0123],
+        # depending on whether 7:1 gearing is used, becacuse 7:1 gearing occupies two adjacent
+        # IOLOGIC units (A+B or C+D). Because they're mutually exclusive, some of the pins are
+        # hardwired together (e.g. 4A and 0B). To avoid a multi-root situation and spurious
+        # inputs/outputs, we need to pick which set to include based on the IO configuration.
+
+        bel_id = node.mod_name[-1]
+        assert bel_id in "ABCD"
+        pin_id = node.pin_name[-1]
+        assert pin_id in "0123456"
+
+        if bel_id in "AC" and pin_id in "0123":
+            # These pins are unconflicted
+            return True
+
+        if bel_id in "AB":
+            tiles = tiles_by_loc[node.x, node.y]
+            main_mod = "IOLOGICA"
+        else:
+            # HACK: The IOLOGICC enums seem to be the PIC[LR]2 tiles,
+            # which appear to always be exactly two tiles down from
+            # the PIC[LR]0 tiles where the actual pins are.
+            # This seems very fragile.
+            tiles = tiles_by_loc[node.x, node.y + 2]
+            main_mod = "IOLOGICC"
+
+        # Make sure we get the right tile on the tile location
+        for tiledata in tiles:
+            if any(site.type == main_mod for site in tiledata.tile.info.sites):
+                break
+        else:
+            print("error: could not locate IOLOGIC enums", file=sys.stderr)
+            return True
+
+        if node.pin_name.startswith("RX"):
+            is_71_mode = _get_enum_value(tiledata.cfg, main_mod + "IDDRXN.MODE") == "IDDR71"
+        else:
+            is_71_mode = _get_enum_value(tiledata.cfg, main_mod + "ODDRXN.MODE") == "ODDR71"
+
+        # Note that [456][BD] do not exist.
+        if pin_id in "456" and is_71_mode:
+            return True
+        elif pin_id in "0123" and not is_71_mode:
+            return True
+        return False
+
+    def add_edge(graph: ConnectionGraph, sourcenode: Node, sinknode: Node) -> None:
+        """ Add an edge subject to special-case filtering """
+
+        if re.match(r"^F[5X][ABCD]_SLICE$", sourcenode.name) and re.match(r"^F\d$", sinknode.name):
+            # Some of the -> Fn muxes use the same bits as the CCU2.INJECT enums.
+            # In CCU2 mode, these muxes should be fixed to Fn_SLICE -> Fn, and should
+            # not be set to F[5X] -> Fn no matter what the value of the mux bits are
+            # (since they represent CCU2_INJECT instead)
+            enum_name = f"SLICE{sourcenode.name[2]}.MODE"
+            for tiledata in tiles_by_loc[sourcenode.x, sinknode.y]:
+                if tiledata.tile.info.type.startswith("PLC2") and _get_enum_value(tiledata.cfg, enum_name) == "CCU2":
+                    # CCU2: correct F[5X]n_SLICE connection to Fn_SLICE -> Fn
+                    newsource = Ident.from_label(rgraph, sinknode.name + "_SLICE")
+                    sourcenode = Node(x=sourcenode.x, y=sourcenode.y, id=newsource)
+                    break
+        elif sourcenode.pin_name.startswith("RXDATA") and not _filter_data_pin(sourcenode):
+            # See comment in _filter_data_pin
+            return
+        elif sinknode.pin_name.startswith("TXDATA") and not _filter_data_pin(sinknode):
+            # See comment in _filter_data_pin
+            return
+
+        graph.add_edge(sourcenode, sinknode)
+
     config_graph = ConnectionGraph()
 
     for loc in tiles_by_loc:
@@ -243,7 +319,7 @@ def gen_config_graph(chip: pytrellis.Chip, rgraph: pytrellis.RoutingGraph, tiles
                 rarc = rtile.arcs[rgraph.ident(f"{arc.source}->{arc.sink}")]
                 sourcenode = wire_to_node(rarc.source)
                 sinknode = wire_to_node(rarc.sink)
-                config_graph.add_edge(sourcenode, sinknode)
+                add_edge(config_graph, sourcenode, sinknode)
 
     # Expand configuration arcs to include BEL connections and zero-bit arcs
     arc_graph = ConnectionGraph()
@@ -275,15 +351,15 @@ def gen_config_graph(chip: pytrellis.Chip, rgraph: pytrellis.RoutingGraph, tiles
                 for source in sources:
                     sourceid = Ident.from_label(rgraph, source)
                     sourcenode = Node(x=node.x, y=node.y, id=sourceid)
-                    arc_graph.add_edge(sourcenode, node)
+                    add_edge(arc_graph, sourcenode, node)
                     visit_node(sourcenode, bel_func)
 
         # Add fixed connections
         for bel in rwire.belsUphill:
-            arc_graph.add_edge(bel_to_node(bel), node)
+            add_edge(arc_graph, bel_to_node(bel), node)
             bel_func(wire_to_node(bel[0]))
         for bel in rwire.belsDownhill:
-            arc_graph.add_edge(node, bel_to_node(bel))
+            add_edge(arc_graph, node, bel_to_node(bel))
             bel_func(wire_to_node(bel[0]))
         for routes in [rwire.uphill, rwire.downhill]:
             for rarcrid in routes:
@@ -293,7 +369,7 @@ def gen_config_graph(chip: pytrellis.Chip, rgraph: pytrellis.RoutingGraph, tiles
                     rarc = rgraph.tiles[rarcrid.loc].arcs[rarcrid.id]
                     sourcenode = wire_to_node(rarc.source)
                     sinknode = wire_to_node(rarc.sink)
-                    arc_graph.add_edge(sourcenode, sinknode)
+                    add_edge(arc_graph, sourcenode, sinknode)
                     visit_node(sourcenode, bel_func)
                     visit_node(sinknode, bel_func)
 
@@ -307,7 +383,7 @@ def gen_config_graph(chip: pytrellis.Chip, rgraph: pytrellis.RoutingGraph, tiles
                 tap_name = node.name.replace("G_HPBX", "R_HPBX")
             tap_id = Ident.from_label(rgraph, tap_name)
             tap_node = Node(x=tap.col, y=node.y, id=tap_id)
-            arc_graph.add_edge(tap_node, node)
+            add_edge(arc_graph, tap_node, node)
             visit_node(tap_node, bel_func)
 
         elif node.name.startswith("G_VPTX"):
@@ -318,7 +394,7 @@ def gen_config_graph(chip: pytrellis.Chip, rgraph: pytrellis.RoutingGraph, tiles
                 quadrant = chip.global_data.get_quadrant(node.y, node.x)
                 spine = chip.global_data.get_spine_driver(quadrant, node.x)
                 spine_node = Node(x=spine.second, y=spine.first, id=node.id)
-                arc_graph.add_edge(spine_node, node)
+                add_edge(arc_graph, spine_node, node)
                 visit_node(spine_node, bel_func)
 
         elif node.name.startswith("G_HPRX"):
@@ -328,14 +404,14 @@ def gen_config_graph(chip: pytrellis.Chip, rgraph: pytrellis.RoutingGraph, tiles
             clkid = int(node.name[6:-2])
             global_id = Ident.from_label(rgraph, f"G_{quadrant}PCLK{clkid}")
             global_node = Node(x=0, y=0, id=global_id)
-            arc_graph.add_edge(global_node, node)
+            add_edge(arc_graph, global_node, node)
             visit_node(global_node, bel_func)
 
     # Visit every configured arc and record all BELs seen
     bels_todo: Set[Node] = set()
     for sourcenode, nodes in config_graph.edges_fwd.items():
         for sinknode in nodes:
-            arc_graph.add_edge(sourcenode, sinknode)
+            add_edge(arc_graph, sourcenode, sinknode)
             visit_node(sourcenode, bels_todo.add)
             visit_node(sinknode, bels_todo.add)
 
@@ -350,11 +426,11 @@ def gen_config_graph(chip: pytrellis.Chip, rgraph: pytrellis.RoutingGraph, tiles
             wirenode = Node(x=node.x, y=node.y, id=wireident)
             for bel in rwire.belsUphill:
                 if bel[0].id == node.id.id:
-                    arc_graph.add_edge(bel_to_node(bel), wirenode)
+                    add_edge(arc_graph, bel_to_node(bel), wirenode)
                     visit_node(wirenode, lambda node: None)
             for bel in rwire.belsDownhill:
                 if bel[0].id == node.id.id:
-                    arc_graph.add_edge(wirenode, bel_to_node(bel))
+                    add_edge(arc_graph, wirenode, bel_to_node(bel))
                     visit_node(wirenode, lambda node: None)
 
     return arc_graph
@@ -363,8 +439,11 @@ def gen_config_graph(chip: pytrellis.Chip, rgraph: pytrellis.RoutingGraph, tiles
 # Verilog generation
 def filter_node(node: Node) -> bool:
     if node.pin is None:
-        # This is a bit extreme, but we assume that all *useful* wires
-        # go between BELs.
+        # We assume that all *useful* wires go between BELs.
+        return False
+    if "_ECLKSYNC" in node.mod_name:
+        # ECLKSYNC BELs appear to basically coincide with ECLKBUF BELs, making them redundant
+        # for the purposes of Verilog generation.
         return False
     if node.pin_name.startswith("IOLDO") or node.pin_name.startswith("IOLTO"):
         # IOLDO/IOLTO are for internal use:
@@ -543,7 +622,8 @@ class SliceModule(Module):
         print(
             f"""
 /* Use the cells_sim library from yosys/techlibs/ecp5 */
-`include "../inc/cells_sim.v"
+`define NO_INCLUDES 1
+`include "cells_sim.v"
 module ECP5_SLICE(
     input {", ".join(cls.input_pins)},
     output {", ".join(cls.output_pins)}
@@ -752,7 +832,7 @@ endmodule
         )
 
     def print_instance(self, instname: str) -> None:
-        print("ECB5_EBR #(")
+        print("ECP5_EBR #(")
         self._print_parameters({})
         print(f") {instname} (")
         self._print_pins()
@@ -777,15 +857,6 @@ def print_verilog(graph: ConnectionGraph, tiles_by_loc: TilesByLoc) -> None:
     mod_sources: Set[Node] = set()
     mod_sinks: Dict[Node, Node] = {}
     mod_globals: Set[Node] = set()
-
-    def print_component(roots: Sequence[Node]) -> None:
-        def visit(node: Node, level: int) -> None:
-            print(" " * level, node, sep="")
-            for x in graph.edges_fwd[node]:
-                visit(x, level + 1)
-
-        for root in roots:
-            visit(root, 0)
 
     modules: Dict[str, Module] = {}
 
@@ -817,14 +888,14 @@ def print_verilog(graph: ConnectionGraph, tiles_by_loc: TilesByLoc) -> None:
     # filter out any globals that are just copies of inputs or other outputs
     for node in mod_globals:
         if node in mod_sinks and mod_sinks[node] in mod_globals:
-            print(f"filtered out useless output: {mod_sinks[node]} -> {node}")
+            print(f"filtered out passed-through output: {mod_sinks[node]} -> {node}")
             del mod_sinks[node]
     all_sources: Set[Node] = set()
     for sink in mod_sinks:
         all_sources.add(mod_sinks[sink])
     for node in mod_globals:
         if node in mod_sources and node not in all_sources:
-            print(f"filtered out useless input: {node}")
+            print(f"filtered out unused input: {node}")
             mod_sources.discard(node)
     print("*/")
 
@@ -892,6 +963,7 @@ def main(argv: List[str]) -> None:
 
     pytrellis.load_database(database.get_db_root())
 
+    print("Loading bitstream...", file=sys.stderr)
     bitstream = pytrellis.Bitstream.read_bit(args.bitfile)
     chip = bitstream.deserialise_chip()
 
@@ -908,11 +980,17 @@ def main(argv: List[str]) -> None:
 
         Node.mod_name_map = mod_renames
 
+    print("Computing routing graph...", file=sys.stderr)
     rgraph = chip.get_routing_graph()
 
+    print("Computing connection graph...", file=sys.stderr)
     tiles_by_loc = make_tiles_by_loc(chip)
     graph = gen_config_graph(chip, rgraph, tiles_by_loc)
+
+    print("Generating Verilog...", file=sys.stderr)
     print_verilog(graph, tiles_by_loc)
+
+    print("Done!", file=sys.stderr)
 
 
 if __name__ == "__main__":
