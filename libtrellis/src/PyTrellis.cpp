@@ -250,6 +250,7 @@ PYBIND11_MODULE (pytrellis, m)
 
     // From BitDatabase.cpp
     class_<ConfigBit>(m, "ConfigBit")
+            .def(init<>())
             .def_readwrite("frame", &ConfigBit::frame)
             .def_readwrite("bit", &ConfigBit::bit)
             .def_readwrite("inv", &ConfigBit::inv);
@@ -263,6 +264,7 @@ PYBIND11_MODULE (pytrellis, m)
         }, py::keep_alive<0, 1>()); /* Keep vector alive while iterator is used */
 
     class_<BitGroup>(m, "BitGroup")
+            .def(init<>())
             .def(init<const CRAMDelta &>())
             .def_readwrite("bits", &BitGroup::bits)
             .def("match", &BitGroup::match)
@@ -273,6 +275,7 @@ PYBIND11_MODULE (pytrellis, m)
     py::bind_vector<vector<BitGroup>>(m, "BitGroupVector");
 
     class_<ArcData>(m, "ArcData")
+            .def(init<>())
             .def_readwrite("source", &ArcData::source)
             .def_readwrite("sink", &ArcData::sink)
             .def_readwrite("bits", &ArcData::bits);
@@ -287,6 +290,7 @@ PYBIND11_MODULE (pytrellis, m)
             .def("set_driver", &MuxBits::set_driver);
 
     class_<WordSettingBits>(m, "WordSettingBits")
+            .def(init<>())
             .def_readwrite("name", &WordSettingBits::name)
             .def_readwrite("bits", &WordSettingBits::bits)
             .def_readwrite("defval", &WordSettingBits::defval)
@@ -296,6 +300,7 @@ PYBIND11_MODULE (pytrellis, m)
     py::bind_map<map<string, BitGroup>>(m, "BitGroupMap");
 
     class_<EnumSettingBits>(m, "EnumSettingBits")
+            .def(init<>())
             .def_readwrite("name", &EnumSettingBits::name)
             .def_readwrite("options", &EnumSettingBits::options)
             .def("get_options", &EnumSettingBits::get_options)
@@ -356,6 +361,7 @@ PYBIND11_MODULE (pytrellis, m)
     py::bind_vector<vector<ConfigUnknown>>(m, "ConfigUnknownVector");
 
     class_<TileConfig>(m, "TileConfig")
+            .def(init<>())
             .def_readwrite("carcs", &TileConfig::carcs)
             .def_readwrite("cwords", &TileConfig::cwords)
             .def_readwrite("cenums", &TileConfig::cenums)
