@@ -41,7 +41,7 @@ if $WINDOWS; then
 else
 	export LD_LIBRARY_PATH="${bindir}:${fpgabindir}"
 fi
-export LM_LICENSE_FILE="${diamonddir}/license/license.dat"
+export LM_LICENSE_FILE="${LM_LICENSE_FILE:=${diamonddir}/license/license.dat}"
 
 if $WINDOWS; then
     $FOUNDRY/userware/NT/bin/nt64/ispTcl $1
