@@ -92,7 +92,7 @@ class Node:
     @property
     def mod_name(self) -> str:
         res = f"R{self.y}C{self.x}_{self.name}"
-        return self.mod_name_map.get(res, res)
+        return res
 
     @property
     def name(self) -> str:
@@ -105,9 +105,11 @@ class Node:
         return self.pin.label
 
     def __str__(self) -> str:
-        res = self.mod_name
-        if self.pin is not None:
-            res += "$" + self.pin_name
+        mod_name = self.mod_name
+        pin_name = self.pin_name
+        res = self.mod_name_map.get(mod_name, mod_name)
+        if pin_name:
+            res += "$" + pin_name
         return res
 
 
@@ -531,7 +533,7 @@ class Module:
         output_pins = natsorted(pin_map_pins - all_input_pins)
         input_pins = natsorted(pin_map_pins & all_input_pins)
         for pin in input_pins + output_pins:
-            strs.append(f"  .{pin}({self.pin_map[pin]})")
+            strs.append(f"  .{pin}( {self.pin_map[pin]} )")
 
         if strs:
             print(",\n".join(strs))
@@ -843,7 +845,7 @@ endmodule
         print()
 
 
-def print_verilog(graph: ConnectionGraph, tiles_by_loc: TilesByLoc) -> None:
+def print_verilog(graph: ConnectionGraph, tiles_by_loc: TilesByLoc, top_name: str) -> None:
     # Extract connected components and their roots & leaves
     sorted_components: List[Tuple[Component, List[Node], List[Node]]] = []
     for component in graph.get_components():
@@ -905,24 +907,24 @@ def print_verilog(graph: ConnectionGraph, tiles_by_loc: TilesByLoc) -> None:
     for mod_type in set(type(mod_def) for mod_def in modules.values()):
         mod_type.print_definition()
 
-    print("module top(")
+    print(f"module {top_name}(")
     mod_globals_vars = ["  input wire " + str(node) for node in mod_sources & mod_globals]
     mod_globals_vars += ["  output wire " + str(node) for node in set(mod_sinks) & mod_globals]
-    print(",\n".join(natsorted(mod_globals_vars)))
+    print(" ,\n".join(natsorted(mod_globals_vars)))
     print(");")
     print()
 
     # sources are either connected to global inputs
     # or are outputs from some other node
     for node in natsorted(mod_sources - mod_globals, key=str):
-        print(f"wire {node};")
+        print(f"wire {node} ;")
     print()
 
     # sinks are either fed directly into a BEL,
     # in which case they are directly substituted,
     # or they are global outputs
     for node in natsorted(set(mod_sinks) & mod_globals, key=str):
-        print(f"assign {node} = {mod_sinks[node]};")
+        print(f"assign {node} = {mod_sinks[node]} ;")
     print()
 
     for modname in natsorted(modules):
@@ -954,6 +956,33 @@ def print_verilog(graph: ConnectionGraph, tiles_by_loc: TilesByLoc) -> None:
     print("endmodule")
 
 
+def parse_lpf(filename: str) -> Dict[str, str]:
+    import shlex
+
+    lines = []
+    with open(filename, "r") as f:
+        for row in f:
+            row = row.split("#", 1)[0].split("//", 1)[0].strip()
+            if row:
+                lines.append(row)
+
+    sites: Dict[str, str] = {}
+
+    commands = " ".join(lines).split(";")
+    for cmd in commands:
+        cmd = cmd.strip()
+        if not cmd:
+            continue
+
+        words = shlex.split(cmd)
+        if words[0] == "LOCATE":
+            if len(words) != 5 or words[1] != "COMP" or words[3] != "SITE":
+                print("ignoring malformed LOCATE in LPF:", cmd, file=sys.stderr)
+            sites[words[4]] = words[2]
+
+    return sites
+
+
 def main(argv: List[str]) -> None:
     import argparse
     import json
@@ -961,8 +990,13 @@ def main(argv: List[str]) -> None:
     parser = argparse.ArgumentParser("Convert a .bit file into a .v verilog file for simulation")
 
     parser.add_argument("bitfile", help="Input .bit file")
-    parser.add_argument("--package", help="Physical package (e.g. CABGA256), for renaming I/O-related wires")
+    parser.add_argument("--package", help="Physical package (e.g. CABGA256), for renaming I/O ports")
+    parser.add_argument("--lpf", help="Use LOCATE COMP commands from this LPF file to name I/O ports")
+    parser.add_argument("-n", "--module-name", help="Name for the top-level module (default: top)", default="top")
     args = parser.parse_args(argv)
+
+    if args.lpf and not args.package:
+        parser.error("Cannot use a LPF file without specifying the chip package")
 
     pytrellis.load_database(database.get_db_root())
 
@@ -975,12 +1009,22 @@ def main(argv: List[str]) -> None:
         with open(dbfn, "r") as f:
             iodb = json.load(f)
 
+        if args.lpf:
+            lpf_map = parse_lpf(args.lpf)
+        else:
+            lpf_map = {}
+
         # Rename PIO and IOLOGIC BELs based on their connected pins, for readability
         mod_renames = {}
         for pin_name, pin_data in iodb["packages"][args.package].items():
-            mod_renames["R{row}C{col}_PIO{pio}".format(**pin_data)] = f"{pin_name}_PIO"
-            mod_renames["R{row}C{col}_IOLOGIC{pio}".format(**pin_data)] = f"{pin_name}_IOLOGIC"
+            if pin_name in lpf_map:
+                # escape LPF name in case it has funny characters
+                pin_name = "\\" + lpf_map[pin_name]
+            # PIO and IOLOGIC do not share pin names except for IOLDO/IOLTO
+            mod_renames["R{row}C{col}_PIO{pio}".format(**pin_data)] = f"{pin_name}"
+            mod_renames["R{row}C{col}_IOLOGIC{pio}".format(**pin_data)] = f"{pin_name}"
 
+        # Note: the mod_name_map only affects str(node), not node.mod_name
         Node.mod_name_map = mod_renames
 
     print("Computing routing graph...", file=sys.stderr)
@@ -991,7 +1035,7 @@ def main(argv: List[str]) -> None:
     graph = gen_config_graph(chip, rgraph, tiles_by_loc)
 
     print("Generating Verilog...", file=sys.stderr)
-    print_verilog(graph, tiles_by_loc)
+    print_verilog(graph, tiles_by_loc, args.module_name)
 
     print("Done!", file=sys.stderr)
 
