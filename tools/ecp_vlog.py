@@ -524,11 +524,12 @@ class Module:
         strs: List[str] = []
 
         # Dump input/output pins (already referenced to root pins), inputs first
-        output_pins = set(self.pin_map.keys()) - set(self.input_pins)
-        allpins = self.input_pins + natsorted(output_pins)
-        defpin = "1'b0"
-        for pin in allpins:
-            strs.append(f"  .{pin}({self.pin_map.get(pin, defpin)})")
+        pin_map_pins = set(self.pin_map.keys())
+        all_input_pins = set(self.input_pins)
+        output_pins = natsorted(pin_map_pins - all_input_pins)
+        input_pins = natsorted(pin_map_pins & all_input_pins)
+        for pin in input_pins + output_pins:
+            strs.append(f"  .{pin}({self.pin_map[pin]})")
 
         if strs:
             print(",\n".join(strs))
