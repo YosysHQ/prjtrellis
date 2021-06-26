@@ -261,7 +261,8 @@ PYBIND11_MODULE (pytrellis, m)
         .def("__len__", [](const std::set<ConfigBit> &v) { return v.size(); })
         .def("__iter__", [](std::set<ConfigBit> &v) {
             return py::make_iterator(v.begin(), v.end());
-        }, py::keep_alive<0, 1>()); /* Keep vector alive while iterator is used */
+        }, py::keep_alive<0, 1>()) /* Keep vector alive while iterator is used */
+        .def("add", [](std::set<ConfigBit> &v, const ConfigBit& value) { v.insert(value); });
 
     class_<BitGroup>(m, "BitGroup")
             .def(init<>())
