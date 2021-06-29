@@ -24,7 +24,7 @@ import recommonmark
 import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
-from markdown_code_symlinks import LinkParser, MarkdownSymlinksDomain
+from markdown_code_symlinks import MarkdownCodeSymlinks
 
 # -- General configuration ------------------------------------------------
 
@@ -36,13 +36,8 @@ from markdown_code_symlinks import LinkParser, MarkdownSymlinksDomain
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.doctest',
-    'sphinx.ext.imgmath',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.todo',
-    'sphinx_markdown_tables',
+    'sphinx.ext.imgmath', 'sphinx.ext.autodoc', 'sphinx.ext.doctest',
+    'sphinx.ext.autosummary', 'sphinx.ext.napoleon', 'sphinx.ext.todo'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -52,7 +47,7 @@ templates_path = ['_templates']
 # You can specify multiple suffix as a list of string:
 source_suffix = ['.rst', '.md']
 source_parsers = {
-    '.md': 'markdown_code_symlinks.LinkParser',
+    '.md': 'recommonmark.parser.CommonMarkParser',
 }
 
 # The master toctree document.
@@ -62,24 +57,6 @@ master_doc = 'index'
 project = u'Project Trellis'
 copyright = u'2018, SymbiFlow Team'
 author = u'SymbiFlow Team'
-
-# Enable github links when not on readthedocs
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if not on_rtd:
-    html_context = {
-        "display_github": True,  # Integrate GitHub
-        "github_user": "symbiflow",  # Username
-        "github_repo": "prjtrellis",  # Repo name
-        "github_version": "master",  # Version
-        "conf_py_path": "/doc/",
-    }
-else:
-    docs_dir = os.path.abspath(os.path.dirname(__file__))
-    print("Docs dir is:", docs_dir)
-    import subprocess
-    subprocess.call('git fetch origin --unshallow', cwd=docs_dir, shell=True)
-    subprocess.check_call('git fetch origin --tags', cwd=docs_dir, shell=True)
-    subprocess.check_call('make links', cwd=docs_dir, shell=True)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -100,10 +77,10 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['_build', 'venv', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'default'
+pygments_style = 'sphinx'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
@@ -113,67 +90,24 @@ todo_include_todos = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_materialdesign_theme'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-html_theme_options = {
-    # Specify a list of menu in Header.
-    # Tuples forms:
-    #  ('Name', 'external url or path of pages in the document', boolean, 'icon name')
-    #
-    # Third argument:
-    # True indicates an external link.
-    # False indicates path of pages in the document.
-    #
-    # Fourth argument:
-    # Specify the icon name.
-    # For details see link.
-    # https://material.io/icons/
-    'header_links': [
-        ('Home', 'index', False, 'home'),
-        ("GitHub", "https://github.com/SymbiFlow/prjtrellis", True, 'link')
-    ],
+# html_theme_options = {}
 
-    # Customize css colors.
-    # For details see link.
-    # https://getmdl.io/customize/index.html
-    #
-    # Values: amber, blue, brown, cyan deep_orange, deep_purple, green, grey, indigo, light_blue,
-    #         light_green, lime, orange, pink, purple, red, teal, yellow(Default: indigo)
-    'primary_color':
-    'deep_purple',
-    # Values: Same as primary_color. (Default: pink)
-    'accent_color':
-    'purple',
-
-    # Customize layout.
-    # For details see link.
-    # https://getmdl.io/components/index.html#layout-section
-    'fixed_drawer':
-    True,
-    'fixed_header':
-    True,
-    'header_waterfall':
-    True,
-    'header_scroll':
-    False,
-
-    # Render title in header.
-    # Values: True, False (Default: False)
-    'show_header_title':
-    False,
-    # Render title in drawer.
-    # Values: True, False (Default: True)
-    'show_drawer_title':
-    True,
-    # Render footer.
-    # Values: True, False (Default: True)
-    'show_footer':
-    True
-}
+# Enable github links when not on readthedocs
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+if not on_rtd:
+    html_context = {
+        "display_github": True,  # Integrate GitHub
+        "github_user": "symbiflow",  # Username
+        "github_repo": "prjtrellis",  # Repo name
+        "github_version": "master",  # Version
+        "conf_py_path": "/doc/",
+    }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -250,17 +184,9 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 
 
 def setup(app):
-    github_code_repo = 'https://github.com/SymbiFlow/prjtrellis/'
-    github_code_branch = 'blob/master/'
-
-    docs_root_dir = os.path.realpath(os.path.dirname(__file__))
-    code_root_dir = os.path.realpath(os.path.join(docs_root_dir, ".."))
-
-    MarkdownSymlinksDomain.init_domain(
-        github_code_repo, github_code_branch, docs_root_dir, code_root_dir)
-    MarkdownSymlinksDomain.find_links()
-    app.add_domain(MarkdownSymlinksDomain)
+    MarkdownCodeSymlinks.find_links()
     app.add_config_value(
         'recommonmark_config', {
-            'github_code_repo': github_code_repo,
+            'github_code_repo': 'https://github.com/SymbiFlow/prjtrellis',
         }, True)
+    app.add_transform(MarkdownCodeSymlinks)

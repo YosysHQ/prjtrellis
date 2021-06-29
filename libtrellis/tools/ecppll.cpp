@@ -130,7 +130,7 @@ int main(int argc, char** argv){
     cerr << endl;
     cerr << "This tool is experimental! Use at your own risk!" << endl;
     cerr << endl;
-    cerr << "Copyright (C) 2018-2019 David Shah <david@symbioticeda.com>" << endl;
+    cerr << "Copyright (C) 2018-2019 gatecat <gatecat@ds0.me>" << endl;
     cerr << endl;
     cerr << options << endl;
     return vm.count("help") ? 0 : 1;
@@ -390,7 +390,7 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
 
   file << "    output locked\n";
   file << ");\n";
-  if(params.internal_feedback)
+  if(params.internal_feedback || params.mode == pll_mode::HIGHRES)
     file << "wire clkfb;\n";
   if(params.dynamic)
   {
@@ -398,7 +398,10 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
     file << "assign phasesel_hw = phasesel - 1;\n";
   }
   file << "(* FREQUENCY_PIN_CLKI=\"" << params.clkin_frequency << "\" *)\n";
-  file << "(* FREQUENCY_PIN_CLKOP=\"" << params.fout << "\" *)\n";
+
+  if(params.mode != pll_mode::HIGHRES)
+    file << "(* FREQUENCY_PIN_CLKOP=\"" << params.fout << "\" *)\n";
+
   if(params.secondary[0].enabled)
     file << "(* FREQUENCY_PIN_CLKOS=\"" << params.secondary[0].freq << "\" *)\n";
   if(params.secondary[1].enabled)
@@ -453,7 +456,12 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
   else
     file << "        .STDBY(1'b0),\n";
   file << "        .CLKI(" << params.clkin_name << "),\n";
-  file << "        .CLKOP(" << params.clkout0_name << "),\n";
+
+  if(params.mode == pll_mode::HIGHRES)
+    file << "        .CLKOP(clkfb),\n";
+  else
+    file << "        .CLKOP(" << params.clkout0_name << "),\n";
+
   if(params.secondary[0].enabled){
     if(params.mode == pll_mode::HIGHRES)
       file << "        .CLKOS(" << params.clkout0_name << "),\n";
@@ -466,16 +474,17 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
   if(params.secondary[2].enabled){
     file << "        .CLKOS3(" << params.secondary[2].name << "),\n";
   }
-  if(params.internal_feedback)
-  {
+
+  if(params.internal_feedback || params.mode == pll_mode::HIGHRES)
     file << "        .CLKFB(clkfb),\n";
-    file << "        .CLKINTFB(clkfb),\n";
-  }
   else
-  {
     file << "        .CLKFB(" <<  params.feedback_wname[params.feedback_clkout] << "),\n";
+
+  if(params.internal_feedback)
+    file << "        .CLKINTFB(clkfb),\n";
+  else
     file << "        .CLKINTFB(),\n";
-  }
+
   if(params.dynamic)
   {
     file << "        .PHASESEL0(phasesel_hw[0]),\n";
