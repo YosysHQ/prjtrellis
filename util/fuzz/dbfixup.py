@@ -56,15 +56,14 @@ def remove_enum_bits(family, device, tiletype, lowerright, upperleft=(0, 0)):
     for enum in db.get_settings_enums():
         fixed_enum = pytrellis.EnumSettingBits()
 
-        for option in db.get_data_for_enum(enum).options:
-            key = option.key()
+        for (option, data) in db.get_data_for_enum(enum).options.items():
             fixed_bg = pytrellis.BitGroup()
 
-            for bit in option.data().bits:
+            for bit in data.bits:
                 if in_bounding_box(bit):
                     fixed_bg.bits.add(bit)
 
-            fixed_enum.options[key] = fixed_bg
+            fixed_enum.options[option] = fixed_bg
 
         fixed_enum.name = db.get_data_for_enum(enum).name
         fixed_enum.defval = db.get_data_for_enum(enum).defval
