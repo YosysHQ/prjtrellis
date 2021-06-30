@@ -60,6 +60,30 @@ jobs = [
             "side": "T",
             "pins": [("28", "C"), ("27", "D")]
         },
+
+        {
+            "cfg": FuzzConfig(job="PICRS0_IO", family="MachXO2", device="LCMXO2-1200HC",
+                        ncl="empty.ncl", tiles=["PR3:PIC_RS0"]),
+            "side": "R",
+            "pins": [("71", "A"), ("70", "B")],
+            "package": "TQFP100"
+        },
+
+        {
+            "cfg": FuzzConfig(job="PICLS0_IO", family="MachXO2", device="LCMXO2-1200HC",
+                        ncl="empty.ncl", tiles=["PL9:PIC_LS0"]),
+            "side": "L",
+            "pins": [("20", "A"), ("21", "B")],
+            "package": "TQFP100"
+        },
+
+        {
+            "cfg": FuzzConfig(job="PICL0VREF_IO", family="MachXO2", device="LCMXO2-1200HC",
+                        ncl="empty.ncl", tiles=["PL4:PIC_L0_VREF3"]),
+            "side": "L",
+            "pins": [("11", "A"), ("12", "B"), ("13", "C"), ("14", "D")],
+            "package": "TQFP144"
+        },
 ]
 
 # Function constructed from reading the MachXO2 sysIO Usage Guide.
