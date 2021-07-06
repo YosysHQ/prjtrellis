@@ -167,6 +167,10 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5()
         if (tile->info.type == "BMID_0V" || tile->info.type == "BMID_0H")
             for (int z = 0; z < 16; z++)
                 Ecp5Bels::add_dcc(*rg, x, y, "B", std::to_string(z));
+        if (tile->info.type == "EBR_CMUX_UL" || tile->info.type == "DSP_CMUX_UL")
+            Ecp5Bels::add_dcs(*rg, x, y, 0);
+        if (tile->info.type == "EBR_CMUX_LL" || tile->info.type == "EBR_CMUX_LL_25K")
+            Ecp5Bels::add_dcs(*rg, x, y, 1);
         // RAM Bels
         if (tile->info.type == "MIB_EBR0" || tile->info.type == "EBR_CMUX_UR" || tile->info.type == "EBR_CMUX_LR"
             || tile->info.type == "EBR_CMUX_LR_25K")
