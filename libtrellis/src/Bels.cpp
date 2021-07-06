@@ -128,6 +128,24 @@ void add_dcc(RoutingGraph &graph, int x, int y, string side, string z) {
 
 }
 
+void add_dcs(RoutingGraph &graph, int x, int y, int z) {
+    string name = string("DCS") + std::to_string(z);
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("DCSC");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    bel.z = z + 4;
+    graph.add_bel_input(bel, graph.ident("CLK0"), 0, 0, graph.ident(fmt("G_CLK0_" << "DCS" << z)));
+    graph.add_bel_input(bel, graph.ident("CLK1"), 0, 0, graph.ident(fmt("G_CLK1_" << "DCS" << z)));
+    graph.add_bel_output(bel, graph.ident("DCSOUT"), 0, 0, graph.ident(fmt("G_DCSOUT_" << "DCS" << z)));
+    graph.add_bel_input(bel, graph.ident("MODESEL"), 0, 0, graph.ident(fmt("G_JMODESEL_" << "DCS" << z)));
+    graph.add_bel_input(bel, graph.ident("SEL0"), 0, 0, graph.ident(fmt("G_JSEL0_" << "DCS" << z)));
+    graph.add_bel_input(bel, graph.ident("SEL1"), 0, 0, graph.ident(fmt("G_JSEL1_" << "DCS" << z)));
+    graph.add_bel(bel);
+
+}
+
 void add_bram(RoutingGraph &graph, int x, int y, int z) {
     string name = string("EBR") + std::to_string(z);
     RoutingBel bel;
