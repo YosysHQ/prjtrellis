@@ -54,6 +54,8 @@ struct secondary_params{
 
   float freq;
   float phase;
+  float phase_vco_step;
+  float phase_div_step;
 };
 
 struct pll_params{
@@ -62,6 +64,10 @@ struct pll_params{
   int feedback_div;
   int output_div;
   int primary_cphase;
+  int primary_fphase;
+  float primary_phase_vco_step;
+  float primary_phase_div_step;
+
   string clkin_name;
   string clkout0_name;
   int dynamic;
@@ -85,6 +91,8 @@ struct pll_params{
   }
 };
 
+float calc_vco_phase_step(int fphase, int div);
+float calc_div_phase_step(int cphase, int div);
 void calc_pll_params(pll_params &params, float input, float output);
 void calc_pll_params_highres(pll_params &params, float input, float output);
 void generate_secondary_output(pll_params &params, int channel, string name, float frequency, float phase);
@@ -245,28 +253,52 @@ int main(int argc, char** argv){
   cout << "Feedback divisor: " << params.feedback_div << endl;
   cout << "clkout0 divisor: " << params.output_div << "" << endl;
   cout << "clkout0 frequency: " << params.fout << " MHz" << endl;
+  if(params.dynamic){
+    cout << "clkout0 vco step: " << params.primary_phase_vco_step << " degrees" << endl;
+    cout << "clkout0 div step: " << params.primary_phase_div_step << " degrees" << endl;
+  }
   if(params.secondary[0].enabled){
     cout << "clkout1 divisor: " << params.secondary[0].div << endl;
     cout << "clkout1 frequency: " << params.secondary[0].freq << " MHz" << endl;
     cout << "clkout1 phase shift: " << params.secondary[0].phase << " degrees" << endl;
+    if(params.dynamic){
+      cout << "clkout1 vco step: " << params.secondary[0].phase_vco_step << " degrees" << endl;
+      cout << "clkout1 div step: " << params.secondary[0].phase_div_step << " degrees" << endl;
+    }
   }
   if(params.secondary[1].enabled){
     cout << "clkout2 divisor: " << params.secondary[1].div << endl;
     cout << "clkout2 frequency: " << params.secondary[1].freq << " MHz" << endl;
     cout << "clkout2 phase shift: " << params.secondary[1].phase << " degrees" << endl;
+    if(params.dynamic){
+      cout << "clkout2 vco step: " << params.secondary[1].phase_vco_step << " degrees" << endl;
+      cout << "clkout2 div step: " << params.secondary[1].phase_div_step << " degrees" << endl;
+    }
   }
   if(params.secondary[2].enabled){
     cout << "clkout3 divisor: " << params.secondary[2].div << endl;
     cout << "clkout3 frequency: " << params.secondary[2].freq << " MHz" << endl;
     cout << "clkout3 phase shift: " << params.secondary[2].phase << " degrees" << endl;
+    if(params.dynamic){
+      cout << "clkout3 vco step: " << params.secondary[2].phase_vco_step << " degrees" << endl;
+      cout << "clkout3 div step: " << params.secondary[2].phase_div_step << " degrees" << endl;
+    }
   }
-  cout << "VCO frequency: " << params.fvco << endl;
+  cout << "VCO frequency: " << params.fvco << " Mhz" << endl;
   if(vm.count("file")){
     ofstream f;
     f.open(vm["file"].as<string>().c_str());
     write_pll_config(params, module_name, f);
     f.close();
   }
+}
+
+float calc_vco_phase_step(int fphase, int div){
+  return (360.f * (float)fphase) / (8.f * (float)div);
+}
+
+float calc_div_phase_step(int cphase, int div){
+  return (360.f * ((float)cphase - (float)div)) / (1.f + (float)div);
 }
 
 void calc_pll_params(pll_params &params, float input, float output){
@@ -294,7 +326,12 @@ void calc_pll_params(pll_params &params, float input, float output){
           params.fvco = fvco;
           // shift the primary by 180 degrees. Lattice seems to do this
           float ns_phase = 1/(fout * 1e6) * 0.5;
-          params.primary_cphase = ns_phase * (fvco * 1e6);
+          float phase_count = ns_phase * (fvco * 1e6);
+          params.primary_cphase = phase_count;
+          int cphase = (int) phase_count;
+          params.primary_fphase = (int) ((phase_count - cphase) * 8);
+          params.primary_phase_vco_step = calc_vco_phase_step(params.primary_fphase, params.output_div);
+          params.primary_phase_div_step = calc_div_phase_step(params.primary_cphase, params.output_div);
         }
       }
     }
@@ -331,6 +368,15 @@ void calc_pll_params_highres(pll_params &params, float input, float output){
             params.secondary[0].freq = fout;
             params.fout = fout;
             params.fvco = fvco;
+
+            // Is this correct for highres mode?
+            float ns_phase = 1/(fout * 1e6) * 0.5;
+            float phase_count = ns_phase * (fvco * 1e6);
+            params.primary_cphase = phase_count;
+            int cphase = (int) phase_count;
+            params.primary_fphase = (int) ((phase_count - cphase) * 8);
+            params.primary_phase_vco_step = calc_vco_phase_step(params.primary_fphase, params.output_div);
+            params.primary_phase_div_step = calc_div_phase_step(params.primary_cphase, params.output_div);
           }
         }
       }
@@ -359,6 +405,8 @@ void generate_secondary_output(pll_params &params, int channel, string name, flo
   params.secondary[channel].cphase = cphase + params.primary_cphase;
   params.secondary[channel].fphase = fphase;
   params.secondary[channel].name = name;
+  params.secondary[channel].phase_vco_step = calc_vco_phase_step(fphase, div);
+  params.secondary[channel].phase_div_step = calc_div_phase_step(params.secondary[channel].cphase, div);
 }
 
 void write_pll_config(const pll_params & params, const string &name, ofstream& file)
@@ -376,8 +424,22 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
   {
     file << "    input [1:0] phasesel, // clkout[] index affected by dynamic phase shift (except clkfb), 5 ns min before apply\n";
     file << "    input phasedir, // 0:delayed (lagging), 1:advence (leading), 5 ns min before apply\n";
-    file << "    input phasestep, // 45 deg step, high for 5 ns min, falling edge = apply\n";
-    file << "    input phaseloadreg, // high for 10 ns min, falling edge = apply\n";
+    file << "    // high for 5 ns min, falling edge = apply\n";
+    file << "    // " << params.primary_phase_vco_step << " deg step for " << params.clkout0_name << "\n";
+    for (int i = 0; i < 3; ++i){
+      if(params.secondary[i].enabled){
+        file << "    // " << params.secondary[i].phase_vco_step << " deg step for " << params.secondary[i].name << "\n";
+      }
+    }
+    file << "    input phasestep,\n";
+    file << "    // high for 10 ns min, falling edge = apply\n";
+    file << "    // " << params.primary_phase_div_step << " deg step for " << params.clkout0_name << "\n";
+    for (int i = 0; i < 3; ++i){
+      if(params.secondary[i].enabled){
+        file << "    // " << params.secondary[i].phase_div_step << " deg step for " << params.secondary[i].name << "\n";
+      }
+    }
+    file << "    input phaseloadreg,\n";
   }
   file << "    input " << params.clkin_name << ", // " << params.clkin_frequency << " MHz, 0 deg\n";
   file << "    output " << params.clkout0_name << ", // " << params.fout << " MHz, 0 deg\n";
@@ -422,7 +484,7 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
   file << "        .CLKOP_ENABLE(\"ENABLED\"),\n";
   file << "        .CLKOP_DIV(" << params.output_div << "),\n";
   file << "        .CLKOP_CPHASE(" << params.primary_cphase << "),\n";
-  file << "        .CLKOP_FPHASE(0),\n";
+  file << "        .CLKOP_FPHASE(" << params.primary_fphase << "),\n";
   if(params.secondary[0].enabled){
     file << "        .CLKOS_ENABLE(\"ENABLED\"),\n";
     file << "        .CLKOS_DIV(" << params.secondary[0].div << "),\n";
