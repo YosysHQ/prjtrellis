@@ -278,24 +278,24 @@ void calc_pll_params(pll_params &params, float input, float output){
       continue;
     for(int feedback_div=1;feedback_div <= 80; feedback_div++){
       for(int output_div=1;output_div <= 128; output_div++){
-	float fvco = fpfd * (float)feedback_div * (float) output_div;
+        float fvco = fpfd * (float)feedback_div * (float) output_div;
 
-	if(fvco < VCO_MIN || fvco > VCO_MAX)
-	  continue;
+        if(fvco < VCO_MIN || fvco > VCO_MAX)
+          continue;
 
-	float fout = fvco / (float) output_div;
-	if(fabsf(fout - output) < error ||
-	   (fabsf(fout-output) == error && fabsf(fvco - 600) < fabsf(params.fvco - 600))){
-	  error = fabsf(fout-output);
-	  params.refclk_div = input_div;
-	  params.feedback_div = feedback_div;
-	  params.output_div = output_div;
-	  params.fout = fout;
-	  params.fvco = fvco;
-	  // shift the primary by 180 degrees. Lattice seems to do this
-	  float ns_phase = 1/(fout * 1e6) * 0.5;
-	  params.primary_cphase = ns_phase * (fvco * 1e6);
-	}
+        float fout = fvco / (float) output_div;
+        if(fabsf(fout - output) < error ||
+           (fabsf(fout-output) == error && fabsf(fvco - 600) < fabsf(params.fvco - 600))){
+          error = fabsf(fout-output);
+          params.refclk_div = input_div;
+          params.feedback_div = feedback_div;
+          params.output_div = output_div;
+          params.fout = fout;
+          params.fvco = fvco;
+          // shift the primary by 180 degrees. Lattice seems to do this
+          float ns_phase = 1/(fout * 1e6) * 0.5;
+          params.primary_cphase = ns_phase * (fvco * 1e6);
+        }
       }
     }
   }
@@ -310,29 +310,29 @@ void calc_pll_params_highres(pll_params &params, float input, float output){
       continue;
     for(int feedback_div=1;feedback_div <= 80; feedback_div++){
       for(int output_div=1;output_div <= 128; output_div++){
-	float fvco = fpfd * (float)feedback_div * (float) output_div;
+        float fvco = fpfd * (float)feedback_div * (float) output_div;
 
-	if(fvco < VCO_MIN || fvco > VCO_MAX)
-	  continue;
-	float ffeedback = fvco / (float) output_div;
-	if(ffeedback < OUTPUT_MIN || ffeedback > OUTPUT_MAX)
-	  continue;
-	for(int secondary_div = 1; secondary_div <= 128; secondary_div++){
-	  float fout = fvco / (float) secondary_div;
-	  if(fabsf(fout - output) < error ||
-	     (fabsf(fout-output) == error && fabsf(fvco - 600) < fabsf(params.fvco - 600))){
-	    error = fabsf(fout-output);
-	    params.mode = pll_mode::HIGHRES;
-	    params.refclk_div = input_div;
-	    params.feedback_div = feedback_div;
-	    params.output_div = output_div;
-	    params.secondary[0].div = secondary_div;
-	    params.secondary[0].enabled = true;
-	    params.secondary[0].freq = fout;
-	    params.fout = fout;
-	    params.fvco = fvco;
-	  }
-	}
+        if(fvco < VCO_MIN || fvco > VCO_MAX)
+          continue;
+        float ffeedback = fvco / (float) output_div;
+        if(ffeedback < OUTPUT_MIN || ffeedback > OUTPUT_MAX)
+          continue;
+        for(int secondary_div = 1; secondary_div <= 128; secondary_div++){
+          float fout = fvco / (float) secondary_div;
+          if(fabsf(fout - output) < error ||
+             (fabsf(fout-output) == error && fabsf(fvco - 600) < fabsf(params.fvco - 600))){
+            error = fabsf(fout-output);
+            params.mode = pll_mode::HIGHRES;
+            params.refclk_div = input_div;
+            params.feedback_div = feedback_div;
+            params.output_div = output_div;
+            params.secondary[0].div = secondary_div;
+            params.secondary[0].enabled = true;
+            params.secondary[0].freq = fout;
+            params.fout = fout;
+            params.fvco = fvco;
+          }
+        }
       }
     }
   }
@@ -504,6 +504,6 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
   file << "        .PLLWAKESYNC(1'b0),\n";
   file << "        .ENCLKOP(1'b0),\n";
   file << "        .LOCK(locked)\n";
-  file << "	);\n";
+  file << "        );\n";
   file << "endmodule\n";
 }
