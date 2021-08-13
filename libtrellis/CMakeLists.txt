@@ -58,6 +58,8 @@ endif()
 
 find_package(Boost REQUIRED COMPONENTS ${boost_libs})
 
+find_package(Git)
+
 include_directories(include/ ${Boost_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} 3rdparty/pybind11/include)
 
 aux_source_directory(include/ INCLUDE_FILES)
@@ -113,7 +115,7 @@ string(STRIP "${CURRENT_GIT_VERSION}" CURRENT_GIT_VERSION)
 if (EXISTS "${CMAKE_BINARY_DIR}/generated/last_git_version")
     file(READ "${CMAKE_BINARY_DIR}/generated/last_git_version" LAST_GIT_VERSION)
 endif()
-if (NOT ("${LAST_GIT_VERSION}" STREQUAL "${CURRENT_GIT_VERSION}"))
+if (NOT ("${LAST_GIT_VERSION}" STREQUAL "${CURRENT_GIT_VERSION}") OR NOT GIT_EXECUTABLE)
     configure_file(
       ${CMAKE_SOURCE_DIR}/tools/version.cpp.in
       ${CMAKE_BINARY_DIR}/generated/version.cpp
