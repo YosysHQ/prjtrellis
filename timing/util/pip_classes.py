@@ -147,7 +147,7 @@ zero_delay_classes = {
     "q_to_span2vn_n1",
     "q_to_span6he_e3",
     "q_to_span6hw_w3",
-    "span0hl_to_c"
+    "span0hl_to_c",
     "span0hl_to_ce",
     "span0hl_to_d",
     "span0hl_to_m",
