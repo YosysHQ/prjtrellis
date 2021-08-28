@@ -24,14 +24,14 @@ Install _libtrellis_ and associated tools. You _must_ run `cmake` from the libtr
 Out-of-tree builds are currently unsupported when coupled with `nextpnr`:
 
     cd libtrellis
-    cmake -DCMAKE_INSTALL_PREFIX=/usr .
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local .
     make
     sudo make install
 
 Clone and install **latest git master** versions (Yosys 0.8 is not sufficient for ECP5 development) of [Yosys](https://github.com/YosysHQ/yosys)
  and [nextpnr](https://github.com/YosysHQ/nextpnr) according to their own instructions. Ensure
  to include the [ECP5 architecture](https://github.com/YosysHQ/nextpnr#nextpnr-ecp5) when building nextpnr; and point it towards your prjtrellis
- folder.  (for example: `cmake -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr .`)
+ folder.  (for example: `cmake -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local .`)
 
 You should now be able to build the [examples](examples).
 
