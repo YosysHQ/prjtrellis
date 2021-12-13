@@ -81,12 +81,13 @@ struct DdArcData
     ArcClass cls;
     int32_t delay;
     ident_t tiletype;
+    int16_t lutperm_flags;
 };
 
 inline bool operator==(const DdArcData &a, const DdArcData &b)
 {
     return a.srcWire == b.srcWire && a.sinkWire == b.sinkWire && a.cls == b.cls && a.delay == b.delay &&
-           a.tiletype == b.tiletype;
+           a.tiletype == b.tiletype && a.lutperm_flags == b.lutperm_flags;
 }
 
 struct WireData
@@ -241,6 +242,7 @@ struct hash<Trellis::DDChipDb::DdArcData>
         boost::hash_combine(seed, hash<int8_t>()(arc.cls));
         boost::hash_combine(seed, hash<int32_t>()(arc.delay));
         boost::hash_combine(seed, hash<Trellis::ident_t>()(arc.tiletype));
+        boost::hash_combine(seed, hash<uint16_t>()(arc.lutperm_flags));
         return seed;
     }
 };
@@ -355,7 +357,7 @@ struct DedupChipdb : public IdStore
     LocationData get_cs_data(checksum_t id);
 };
 
-shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip);
+shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip, bool include_lutperm_pips = false);
 
 /*
 An optimized chip database is a database with the following properties, intended to be used in place-and-route flows.

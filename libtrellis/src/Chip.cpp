@@ -113,17 +113,17 @@ ChipDelta operator-(const Chip &a, const Chip &b)
     return delta;
 }
 
-shared_ptr<RoutingGraph> Chip::get_routing_graph()
+shared_ptr<RoutingGraph> Chip::get_routing_graph(bool include_lutperm_pips)
 {
     if(info.family == "ECP5") {
-        return get_routing_graph_ecp5();
+        return get_routing_graph_ecp5(include_lutperm_pips);
     } else if(info.family == "MachXO2") {
         return get_routing_graph_machxo2();
     } else
       throw runtime_error("Unknown chip family: " + info.family);
 }
 
-shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5()
+shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips)
 {
     shared_ptr<RoutingGraph> rg(new RoutingGraph(*this));
     //cout << "Building routing graph" << endl;
@@ -136,8 +136,32 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5()
         tie(y, x) = tile->info.get_row_col();
         // SLICE Bels
         if (tile->info.type == "PLC2") {
-            for (int z = 0; z < 4; z++)
+            for (int z = 0; z < 4; z++) {
                 Ecp5Bels::add_lc(*rg, x, y, z);
+                if (include_lutperm_pips) {
+                    // Add permutation pseudo-pips as a crossbar in front of each LUT's inputs
+                    Location loc(x, y);
+                    const string abcd = "ABCD";
+                    for (int k = (z*2); k < ((z+1)*2); k++) {
+                        for (int i = 0; i < 4; i++) {
+                            for (int j = 0; j < 4; j++) {
+                                if (i == j)
+                                    continue;
+                                string input = fmt(abcd[j] << k);
+                                string output = fmt(abcd[i] << k << "_SLICE");
+                                RoutingArc rarc;
+                                rarc.id = rg->ident(fmt(input << "->" << output));
+                                rarc.source = RoutingId{loc, rg->ident(input)};
+                                rarc.sink = RoutingId{loc, rg->ident(output)};
+                                rarc.tiletype = rg->ident(tile->info.type);
+                                rarc.configurable = false;
+                                rarc.lutperm_flags = (0x4000 | (k << 4) | ((i & 0x3) << 2) |(j & 0x3));
+                                rg->add_arc(loc, rarc);
+                            }
+                        }
+                    }
+                }
+            }
         }
         // PIO Bels
         if (tile->info.type.find("PICL0") != string::npos || tile->info.type.find("PICR0") != string::npos)

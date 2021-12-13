@@ -503,7 +503,8 @@ PYBIND11_MODULE (pytrellis, m)
             .def_readwrite("sinkWire", &DdArcData::sinkWire)
             .def_readwrite("cls", &DdArcData::cls)
             .def_readwrite("delay", &DdArcData::delay)
-            .def_readwrite("tiletype", &DdArcData::tiletype);
+            .def_readwrite("tiletype", &DdArcData::tiletype)
+            .def_readwrite("lutperm_flags", &DdArcData::lutperm_flags);
 
     class_<WireData>(m, "WireData")
             .def_readwrite("name", &WireData::name)
@@ -546,7 +547,8 @@ PYBIND11_MODULE (pytrellis, m)
             .def("ident", &DedupChipdb::ident)
             .def("to_str", &DedupChipdb::to_str);
 
-    m.def("make_dedup_chipdb", make_dedup_chipdb);
+    m.def("make_dedup_chipdb", make_dedup_chipdb,
+        py::arg("chip"), py::arg("include_lutperm_pips")=false);
 
     class_<OptimizedChipdb, shared_ptr<OptimizedChipdb>>(m, "OptimizedChipdb")
             .def_readwrite("tiles", &OptimizedChipdb::tiles)
