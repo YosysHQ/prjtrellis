@@ -64,6 +64,7 @@ struct RoutingArc
     RoutingId source;
     RoutingId sink;
     bool configurable = false;
+    uint16_t lutperm_flags = 0;
     mutable int cdb_id = 0;
 };
 

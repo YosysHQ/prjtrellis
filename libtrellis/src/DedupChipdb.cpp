@@ -32,9 +32,9 @@ DedupChipdb::DedupChipdb()
 DedupChipdb::DedupChipdb(const IdStore &base) : IdStore(base)
 {}
 
-shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
+shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip, bool include_lutperm_pips)
 {
-    shared_ptr<RoutingGraph> graph = chip.get_routing_graph();
+    shared_ptr<RoutingGraph> graph = chip.get_routing_graph(include_lutperm_pips);
     for (auto &loc : graph->tiles) {
         const auto &td = loc.second;
         // Index bels, wires and arcs
@@ -87,6 +87,7 @@ shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip)
             ad.delay = 1;
             ad.sinkWire = RelId{Location(ra.sink.loc.x - x, ra.sink.loc.y - y), graph->tiles.at(ra.sink.loc).wires.at(ra.sink.id).cdb_id};
             ad.srcWire = RelId{Location(ra.source.loc.x - x, ra.source.loc.y - y), graph->tiles.at(ra.source.loc).wires.at(ra.source.id).cdb_id};
+            ad.lutperm_flags = ra.lutperm_flags;
             ld.arcs.push_back(ad);
         }
 
