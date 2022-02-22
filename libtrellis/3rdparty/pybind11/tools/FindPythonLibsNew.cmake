@@ -57,6 +57,8 @@ endif()
 
 if(PythonLibsNew_FIND_QUIETLY)
   set(_pythonlibs_quiet QUIET)
+else()
+  set(_pythonlibs_quiet "")
 endif()
 
 if(PythonLibsNew_FIND_REQUIRED)
@@ -90,7 +92,7 @@ endif()
 
 # Use the Python interpreter to find the libs.
 if(NOT PythonLibsNew_FIND_VERSION)
-  set(PythonLibsNew_FIND_VERSION "")
+  set(PythonLibsNew_FIND_VERSION "3.6")
 endif()
 
 find_package(PythonInterp ${PythonLibsNew_FIND_VERSION} ${_pythonlibs_required}
