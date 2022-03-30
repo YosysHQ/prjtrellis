@@ -357,7 +357,7 @@ struct DedupChipdb : public IdStore
     LocationData get_cs_data(checksum_t id);
 };
 
-shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip, bool include_lutperm_pips = false);
+shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip, bool include_lutperm_pips = false, bool split_slice_mode = false);
 
 /*
 An optimized chip database is a database with the following properties, intended to be used in place-and-route flows.

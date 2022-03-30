@@ -177,7 +177,7 @@ public:
     int get_max_col() const;
 
     // Build the routing graph for the chip
-    shared_ptr<RoutingGraph> get_routing_graph(bool include_lutperm_pips = false);
+    shared_ptr<RoutingGraph> get_routing_graph(bool include_lutperm_pips = false, bool split_slice_mode = false);
 
     vector<vector<vector<pair<string, string>>>> tiles_at_location;
 
@@ -191,7 +191,7 @@ public:
 
 private:
     // Factory functions
-    shared_ptr<RoutingGraph> get_routing_graph_ecp5(bool include_lutperm_pips = false);
+    shared_ptr<RoutingGraph> get_routing_graph_ecp5(bool include_lutperm_pips = false, bool split_slice_mode = false);
     shared_ptr<RoutingGraph> get_routing_graph_machxo2();
 };
 

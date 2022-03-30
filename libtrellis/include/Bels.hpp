@@ -21,6 +21,12 @@ void add_pcsclkdiv(RoutingGraph &graph, int x, int y, int z);
 void add_iologic(RoutingGraph &graph, int x, int y, int z, bool s);
 void add_misc(RoutingGraph &graph, const std::string &name, int x, int y);
 void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, int i, int bank = -1);
+
+// Split SLICE Bels
+void add_logic_comb(RoutingGraph &graph, int x, int y, int z);
+void add_ff(RoutingGraph &graph, int x, int y, int z);
+void add_ramw(RoutingGraph &graph, int x, int y);
+
 }
 
 namespace MachXO2Bels {

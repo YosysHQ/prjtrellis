@@ -113,17 +113,17 @@ ChipDelta operator-(const Chip &a, const Chip &b)
     return delta;
 }
 
-shared_ptr<RoutingGraph> Chip::get_routing_graph(bool include_lutperm_pips)
+shared_ptr<RoutingGraph> Chip::get_routing_graph(bool include_lutperm_pips, bool split_slice_mode)
 {
     if(info.family == "ECP5") {
-        return get_routing_graph_ecp5(include_lutperm_pips);
+        return get_routing_graph_ecp5(include_lutperm_pips, split_slice_mode);
     } else if(info.family == "MachXO2") {
         return get_routing_graph_machxo2();
     } else
       throw runtime_error("Unknown chip family: " + info.family);
 }
 
-shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips)
+shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips, bool split_slice_mode)
 {
     shared_ptr<RoutingGraph> rg(new RoutingGraph(*this));
     //cout << "Building routing graph" << endl;
@@ -137,7 +137,15 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips)
         // SLICE Bels
         if (tile->info.type == "PLC2") {
             for (int z = 0; z < 4; z++) {
-                Ecp5Bels::add_lc(*rg, x, y, z);
+                if (split_slice_mode) {
+                    for (int i = z*2; i < (z+1)*2; i++) {
+                        Ecp5Bels::add_logic_comb(*rg, x, y, i);
+                        Ecp5Bels::add_ff(*rg, x, y, i);
+                    }
+                } else {
+                    for (int z = 0; z < 4; z++)
+                        Ecp5Bels::add_lc(*rg, x, y, z);
+                }
                 if (include_lutperm_pips) {
                     // Add permutation pseudo-pips as a crossbar in front of each LUT's inputs
                     Location loc(x, y);
@@ -162,6 +170,8 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips)
                     }
                 }
             }
+            if (split_slice_mode)
+                Ecp5Bels::add_ramw(*rg, x, y);
         }
         // PIO Bels
         if (tile->info.type.find("PICL0") != string::npos || tile->info.type.find("PICR0") != string::npos)

@@ -548,7 +548,7 @@ PYBIND11_MODULE (pytrellis, m)
             .def("to_str", &DedupChipdb::to_str);
 
     m.def("make_dedup_chipdb", make_dedup_chipdb,
-        py::arg("chip"), py::arg("include_lutperm_pips")=false);
+        py::arg("chip"), py::arg("include_lutperm_pips")=false, py::arg("split_slice_mode")=false);
 
     class_<OptimizedChipdb, shared_ptr<OptimizedChipdb>>(m, "OptimizedChipdb")
             .def_readwrite("tiles", &OptimizedChipdb::tiles)
