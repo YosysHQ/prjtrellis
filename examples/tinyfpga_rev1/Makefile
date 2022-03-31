@@ -3,7 +3,7 @@ PROJ=morse
 all: ${PROJ}.bit
 
 %.json: %.v
-	yosys -p "synth_ecp5 -noccu2 -nomux -nodram -json $@" $<
+	yosys -p "synth_ecp5 -top top -json $@" $<
 
 %_out.config: %.json
 	nextpnr-ecp5 --json $< --textcfg $@ --85k --package CSFBGA285

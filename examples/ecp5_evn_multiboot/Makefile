@@ -1,7 +1,7 @@
 all: multiboot.mcs
 
 %.json: %.v
-	yosys -p "synth_ecp5 -json $@" $<
+	yosys -p "synth_ecp5 -top top -json $@" $<
 
 %_out.config: %.json
 	nextpnr-ecp5 --json $< --textcfg $@ --um5g-85k --package CABGA381 --lpf ecp5evn.lpf

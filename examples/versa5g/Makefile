@@ -8,7 +8,7 @@ pattern.vh: make_14seg.py text.in
 	python3 make_14seg.py < text.in > pattern.vh
 
 %.json: %.v pattern.vh
-	yosys -p "synth_ecp5 -json $@" $<
+	yosys -p "synth_ecp5 -top top -json $@" $<
 
 %_out.config: %.json
 	nextpnr-ecp5 --json $< --lpf ${CONSTR} --textcfg $@ --um5g-45k --package CABGA381

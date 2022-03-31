@@ -13,7 +13,7 @@ attosoc_sim: attosoc_tb.vvp firmware.hex
 	vvp -N $<
 
 attosoc.json: io_wrapper.v attosoc.v picorv32.v firmware.hex
-	yosys -p "synth_ecp5 -nomux -json $@ -top top" io_wrapper.v attosoc.v picorv32.v
+	yosys -p "synth_ecp5 -top top -json $@ -top top" io_wrapper.v attosoc.v picorv32.v
 
 attosoc_out.config: attosoc.json
 	nextpnr-ecp5 --json $< --textcfg $@ --um5g-45k --package CABGA381

@@ -6,7 +6,7 @@ IDCODE ?= 0x21111043 # 12f
 
 %.json: %.v
 	yosys \
-		-p "synth_ecp5 -json $@" \
+		-p "synth_ecp5 -top top -json $@" \
 		-E .$(basename $@).d \
 		$<
 
