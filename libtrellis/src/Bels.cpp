@@ -83,6 +83,137 @@ void add_lc(RoutingGraph &graph, int x, int y, int z) {
     graph.add_bel(bel);
 }
 
+// For split-SLICE (fine-grain) mode
+
+void add_logic_comb(RoutingGraph &graph, int x, int y, int z) {
+    char l = "ABCD"[z/2];
+    char i = "01"[z%2];
+    string name = string("SLICE") + l + string(".K") + i;
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("TRELLIS_COMB");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    bel.z = z * 4;
+    // LUT inputs
+    graph.add_bel_input(bel, graph.ident("A"), x, y, graph.ident(fmt("A" << z << "_SLICE")));
+    graph.add_bel_input(bel, graph.ident("B"), x, y, graph.ident(fmt("B" << z << "_SLICE")));
+    graph.add_bel_input(bel, graph.ident("C"), x, y, graph.ident(fmt("C" << z << "_SLICE")));
+    graph.add_bel_input(bel, graph.ident("D"), x, y, graph.ident(fmt("D" << z << "_SLICE")));
+    // MUX select input
+    graph.add_bel_input(bel, graph.ident("M"), x, y, graph.ident(fmt("M" << z << "_SLICE")));
+
+    // Distributed RAM inputs
+    if (z < 4) {
+        // Write address 
+        graph.add_bel_input(bel, graph.ident("WAD0"), x, y, graph.ident(fmt("WAD0" << l << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("WAD1"), x, y, graph.ident(fmt("WAD1" << l << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("WAD2"), x, y, graph.ident(fmt("WAD2" << l << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("WAD3"), x, y, graph.ident(fmt("WAD3" << l << "_SLICE")));
+        // Write data
+        graph.add_bel_input(bel, graph.ident("WD"), x, y, graph.ident(fmt("WD" << i << l << "_SLICE")));
+        // Write enable and clock
+        graph.add_bel_input(bel, graph.ident("WRE"), x, y, graph.ident(fmt("WRE" << (z/2) << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("WCK"), x, y, graph.ident(fmt("WCK" << (z/2) << "_SLICE")));
+    }
+
+    // Carry input
+    if (z == 0)
+        graph.add_bel_input(bel, graph.ident("FCI"), x, y, graph.ident("FCI_SLICE"));
+    else if ((z % 2) == 0)
+        graph.add_bel_input(bel, graph.ident("FCI"), x, y, graph.ident(fmt("FCI" << l << "_SLICE")));
+    else
+        graph.add_bel_input(bel, graph.ident("FCI"), x, y, graph.ident(fmt("FCI" << l << "1_SLICE")));
+
+    // LUT output
+    graph.add_bel_output(bel, graph.ident("F"), x, y, graph.ident(fmt("F" << z << "_SLICE")));
+    if ((z % 2) == 0) {
+        // Loopback from F1 side to LUT5 mux 'B' input
+        graph.add_bel_input(bel, graph.ident("F1"), x, y, graph.ident(fmt("F" << (z + 1) << "_SLICE")));
+        // LUT5 mux output
+        graph.add_bel_output(bel, graph.ident("OFX"), x, y, graph.ident(fmt("F5" << l << "_SLICE")));
+    } else {
+        // LUT[678] mux inputs
+        graph.add_bel_input(bel, graph.ident("FXA"), x, y, graph.ident(fmt("FXA" << l << "_SLICE")));
+        graph.add_bel_input(bel, graph.ident("FXB"), x, y, graph.ident(fmt("FXB" << l << "_SLICE")));
+        // LUT[678] mux outputs
+        graph.add_bel_output(bel, graph.ident("OFX"), x, y, graph.ident(fmt("FX" << l << "_SLICE")));
+    }
+
+    // Carry output
+    if (z == 7)
+        graph.add_bel_output(bel, graph.ident("FCO"), x, y, graph.ident("FCO_SLICE"));
+    else if ((z % 2) == 1)
+        graph.add_bel_output(bel, graph.ident("FCO"), x, y, graph.ident(fmt("FCO" << l << "_SLICE")));
+    else
+        graph.add_bel_output(bel, graph.ident("FCO"), x, y, graph.ident(fmt("FCI" << l << "1_SLICE")));
+
+    graph.add_bel(bel);
+}
+
+void add_ff(RoutingGraph &graph, int x, int y, int z) {
+    char l = "ABCD"[z/2];
+    char i = "01"[z%2];
+    string name = string("SLICE") + l + string(".FF") + i;
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("TRELLIS_FF");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    bel.z = z * 4 + 1;
+    // DI from COMB
+    graph.add_bel_input(bel, graph.ident("DI"), x, y, graph.ident(fmt("DI" << z << "_SLICE")));
+    // DI from fabric
+    graph.add_bel_input(bel, graph.ident("M"), x, y, graph.ident(fmt("M" << z << "_SLICE")));
+
+    // Control set
+    graph.add_bel_input(bel, graph.ident("CLK"), x, y, graph.ident(fmt("CLK" << (z/2) << "_SLICE")));
+    graph.add_bel_input(bel, graph.ident("LSR"), x, y, graph.ident(fmt("LSR" << (z/2) << "_SLICE")));
+    graph.add_bel_input(bel, graph.ident("CE"), x, y, graph.ident(fmt("CE" << (z/2) << "_SLICE")));
+
+    // Output
+    graph.add_bel_output(bel, graph.ident("Q"), x, y, graph.ident(fmt("Q" << z << "_SLICE")));
+
+    graph.add_bel(bel);
+}
+
+
+void add_ramw(RoutingGraph &graph, int x, int y) {
+    string name = string("SLICEC.RAMW");
+    RoutingBel bel;
+    bel.name = graph.ident(name);
+    bel.type = graph.ident("TRELLIS_RAMW");
+    bel.loc.x = x;
+    bel.loc.y = y;
+    bel.z = 4 * 4 + 2;
+
+    int lc0 = 4;
+    int lc1 = 5;
+
+    // Input
+    graph.add_bel_input(bel, graph.ident("A0"), x, y, graph.ident(fmt("A" << lc0 << "_SLICE")));
+    graph.add_bel_input(bel, graph.ident("B0"), x, y, graph.ident(fmt("B" << lc0 << "_SLICE")));
+    graph.add_bel_input(bel, graph.ident("C0"), x, y, graph.ident(fmt("C" << lc0 << "_SLICE")));
+    graph.add_bel_input(bel, graph.ident("D0"), x, y, graph.ident(fmt("D" << lc0 << "_SLICE")));
+
+    graph.add_bel_input(bel, graph.ident("A1"), x, y, graph.ident(fmt("A" << lc1 << "_SLICE")));
+    graph.add_bel_input(bel, graph.ident("B1"), x, y, graph.ident(fmt("B" << lc1 << "_SLICE")));
+    graph.add_bel_input(bel, graph.ident("C1"), x, y, graph.ident(fmt("C" << lc1 << "_SLICE")));
+    graph.add_bel_input(bel, graph.ident("D1"), x, y, graph.ident(fmt("D" << lc1 << "_SLICE")));
+
+    // Output
+    graph.add_bel_output(bel, graph.ident("WDO0"), x, y, graph.ident("WDO0C_SLICE"));
+    graph.add_bel_output(bel, graph.ident("WDO1"), x, y, graph.ident("WDO1C_SLICE"));
+    graph.add_bel_output(bel, graph.ident("WDO2"), x, y, graph.ident("WDO2C_SLICE"));
+    graph.add_bel_output(bel, graph.ident("WDO3"), x, y, graph.ident("WDO3C_SLICE"));
+
+    graph.add_bel_output(bel, graph.ident("WADO0"), x, y, graph.ident("WADO0C_SLICE"));
+    graph.add_bel_output(bel, graph.ident("WADO1"), x, y, graph.ident("WADO1C_SLICE"));
+    graph.add_bel_output(bel, graph.ident("WADO2"), x, y, graph.ident("WADO2C_SLICE"));
+    graph.add_bel_output(bel, graph.ident("WADO3"), x, y, graph.ident("WADO3C_SLICE"));
+    graph.add_bel(bel);
+}
+
 void add_pio(RoutingGraph &graph, int x, int y, int z) {
     char l = "ABCD"[z];
     string name = string("PIO") + l;

@@ -1,6 +1,8 @@
 #include "DedupChipdb.hpp"
 #include "Chip.hpp"
 
+#include <iostream>
+
 namespace Trellis {
 namespace DDChipDb {
 
@@ -32,9 +34,9 @@ DedupChipdb::DedupChipdb()
 DedupChipdb::DedupChipdb(const IdStore &base) : IdStore(base)
 {}
 
-shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip, bool include_lutperm_pips)
+shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip, bool include_lutperm_pips, bool split_slice_mode)
 {
-    shared_ptr<RoutingGraph> graph = chip.get_routing_graph(include_lutperm_pips);
+    shared_ptr<RoutingGraph> graph = chip.get_routing_graph(include_lutperm_pips, split_slice_mode);
     for (auto &loc : graph->tiles) {
         const auto &td = loc.second;
         // Index bels, wires and arcs
@@ -104,6 +106,12 @@ shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip, bool include_lutperm_pips)
                 bp.pin = bdh.second;
                 bp.bel = RelId{Location(bdh.first.loc.x - x, bdh.first.loc.y - y), graph->tiles.at(bdh.first.loc).bels.at(bdh.first.id).cdb_id};
                 wd.belPins.push_back(bp);
+            }
+            if (rw.belsUphill.size() > 1) {
+                cerr << cdb->to_str(rw.id) << endl;
+                for (auto bel : rw.belsUphill) {
+                    cerr << cdb->to_str(bel.first.id) << "/" << cdb->to_str(bel.second) << endl;
+                }
             }
             assert(rw.belsUphill.size() <= 1);
             if (rw.belsUphill.size() == 1) {
