@@ -60,7 +60,12 @@ find_package(Boost REQUIRED COMPONENTS ${boost_libs})
 
 find_package(Git)
 
-include_directories(include/ ${Boost_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} 3rdparty/pybind11/include)
+if (NOT DEFINED PYBIND11_INCLUDE_DIR)
+    # Use bundled pybind11
+    set(PYBIND11_INCLUDE_DIR "3rdparty/pybind11/include")
+endif()
+
+include_directories(include/ ${Boost_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${PYBIND11_INCLUDE_DIR})
 
 aux_source_directory(include/ INCLUDE_FILES)
 aux_source_directory(src/ SOURCE_FILES)
