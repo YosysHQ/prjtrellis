@@ -39,3 +39,5 @@ pll_%.v:
 clean:
 	$(RM) *.config *.bit .*.d *.svf
 -include .*.d
+
+.PHONY: all clean

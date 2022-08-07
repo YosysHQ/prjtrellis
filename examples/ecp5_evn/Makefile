@@ -20,4 +20,4 @@ prog: ${PROJ}.svf
 clean:
 	rm -f *.svf *.bit *.config *.json
 
-.PHONY: prog clean
+.PHONY: all prog clean

@@ -46,3 +46,5 @@ ${PROJ}-nextpnr.txt: ${PROJ}.json
 clean:
 	rm -rf ${PROJ}.tmp ${PROJ}_out.ncl ${PROJ}*.bit ${PROJ}.jed ${PROJ}.dump \
 		${PROJ}.twr ${PROJ}*.txt ${PROJ}.json ${PROJ}-nextpnr.* ${PROJ}*.hex
+
+.PHONY: all stats clean

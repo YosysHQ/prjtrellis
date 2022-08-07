@@ -24,5 +24,5 @@ prog: ${PROJ}.svf
 clean:
 	rm -f *.bit *.svf *_out.config *.json pattern.vh
 
-.PHONY: prog clean
+.PHONY: all prog clean
 .PRECIOUS: ${PROJ}.json ${PROJ}_out.config

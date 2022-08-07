@@ -17,5 +17,5 @@ prog: ${PROJ}.bit
 clean:
 	rm -f *.bit *.svf *_out.config *.json
 
-.PHONY: clean
+.PHONY: all prog clean
 .PRECIOUS: ${PROJ}.json ${PROJ}_out.config

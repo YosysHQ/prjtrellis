@@ -17,5 +17,5 @@ clean:
 prog: ${PROJ}.bit
 	tinyprog -p $<
 
-.PHONY: clean
+.PHONY: all clean prog
 
