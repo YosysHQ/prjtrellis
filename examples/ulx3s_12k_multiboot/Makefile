@@ -19,5 +19,5 @@ multiboot.mcs: multiboot.bin
 clean:
 	rm -f *.svf *.bit *.config *.json multiboot.bin multiboot.mcs
 
-.PHONY: prog clean
+.PHONY: all clean
 .PRECIOUS: blinky1.json blinky1_out.config blinky1.bit blinky2.json blinky2_out.config blinky2.bit multiboot.bin multiboot.mcs
