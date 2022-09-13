@@ -101,14 +101,14 @@ inline PyTypeObject *make_static_property_type() {
 inline PyTypeObject *make_static_property_type() {
     auto d = dict();
     PyObject *result = PyRun_String(R"(\
-        class pybind11_static_property(property):
-            def __get__(self, obj, cls):
-                return property.__get__(self, cls, cls)
+class pybind11_static_property(property):
+    def __get__(self, obj, cls):
+        return property.__get__(self, cls, cls)
 
-            def __set__(self, obj, value):
-                cls = obj if isinstance(obj, type) else type(obj)
-                property.__set__(self, cls, value)
-        )",
+    def __set__(self, obj, value):
+        cls = obj if isinstance(obj, type) else type(obj)
+        property.__set__(self, cls, value)
+)",
                                     Py_file_input,
                                     d.ptr(),
                                     d.ptr());
@@ -455,6 +455,8 @@ extern "C" inline void pybind11_object_dealloc(PyObject *self) {
 #endif
 }
 
+std::string error_string();
+
 /** Create the type which can be used as a common base for all classes.  This is
     needed in order to satisfy Python's requirements for multiple inheritance.
     Return value: New reference. */
@@ -490,7 +492,7 @@ inline PyObject *make_object_base_type(PyTypeObject *metaclass) {
     type->tp_weaklistoffset = offsetof(instance, weakrefs);
 
     if (PyType_Ready(type) < 0) {
-        pybind11_fail("PyType_Ready failed in make_object_base_type():" + error_string());
+        pybind11_fail("PyType_Ready failed in make_object_base_type(): " + error_string());
     }
 
     setattr((PyObject *) type, "__module__", str("pybind11_builtins"));
@@ -500,35 +502,14 @@ inline PyObject *make_object_base_type(PyTypeObject *metaclass) {
     return (PyObject *) heap_type;
 }
 
-/// dynamic_attr: Support for `d = instance.__dict__`.
-extern "C" inline PyObject *pybind11_get_dict(PyObject *self, void *) {
-    PyObject *&dict = *_PyObject_GetDictPtr(self);
-    if (!dict) {
-        dict = PyDict_New();
-    }
-    Py_XINCREF(dict);
-    return dict;
-}
-
-/// dynamic_attr: Support for `instance.__dict__ = dict()`.
-extern "C" inline int pybind11_set_dict(PyObject *self, PyObject *new_dict, void *) {
-    if (!PyDict_Check(new_dict)) {
-        PyErr_Format(PyExc_TypeError,
-                     "__dict__ must be set to a dictionary, not a '%.200s'",
-                     get_fully_qualified_tp_name(Py_TYPE(new_dict)).c_str());
-        return -1;
-    }
-    PyObject *&dict = *_PyObject_GetDictPtr(self);
-    Py_INCREF(new_dict);
-    Py_CLEAR(dict);
-    dict = new_dict;
-    return 0;
-}
-
 /// dynamic_attr: Allow the garbage collector to traverse the internal instance `__dict__`.
 extern "C" inline int pybind11_traverse(PyObject *self, visitproc visit, void *arg) {
     PyObject *&dict = *_PyObject_GetDictPtr(self);
     Py_VISIT(dict);
+// https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_traverse
+#if PY_VERSION_HEX >= 0x03090000
+    Py_VISIT(Py_TYPE(self));
+#endif
     return 0;
 }
 
@@ -543,14 +524,26 @@ extern "C" inline int pybind11_clear(PyObject *self) {
 inline void enable_dynamic_attributes(PyHeapTypeObject *heap_type) {
     auto *type = &heap_type->ht_type;
     type->tp_flags |= Py_TPFLAGS_HAVE_GC;
+#if PY_VERSION_HEX < 0x030B0000
     type->tp_dictoffset = type->tp_basicsize;           // place dict at the end
     type->tp_basicsize += (ssize_t) sizeof(PyObject *); // and allocate enough space for it
+#else
+    type->tp_flags |= Py_TPFLAGS_MANAGED_DICT;
+#endif
     type->tp_traverse = pybind11_traverse;
     type->tp_clear = pybind11_clear;
 
-    static PyGetSetDef getset[] = {
-        {const_cast<char *>("__dict__"), pybind11_get_dict, pybind11_set_dict, nullptr, nullptr},
-        {nullptr, nullptr, nullptr, nullptr, nullptr}};
+    static PyGetSetDef getset[] = {{
+#if PY_VERSION_HEX < 0x03070000
+                                       const_cast<char *>("__dict__"),
+#else
+                                       "__dict__",
+#endif
+                                       PyObject_GenericGetDict,
+                                       PyObject_GenericSetDict,
+                                       nullptr,
+                                       nullptr},
+                                   {nullptr, nullptr, nullptr, nullptr, nullptr}};
     type->tp_getset = getset;
 }
 
@@ -707,7 +700,7 @@ inline PyObject *make_new_python_type(const type_record &rec) {
     }
 
     if (PyType_Ready(type) < 0) {
-        pybind11_fail(std::string(rec.name) + ": PyType_Ready failed (" + error_string() + ")!");
+        pybind11_fail(std::string(rec.name) + ": PyType_Ready failed: " + error_string());
     }
 
     assert(!rec.dynamic_attr || PyType_HasFeature(type, Py_TPFLAGS_HAVE_GC));

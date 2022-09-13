@@ -27,6 +27,9 @@
 #    pragma warning(disable : 4127) // C4127: conditional expression is constant
 #    pragma warning(disable : 5054) // https://github.com/pybind/pybind11/pull/3741
 //       C5054: operator '&': deprecated between enumerations of different types
+#elif defined(__MINGW32__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 
 #include <Eigen/Core>
@@ -34,6 +37,8 @@
 
 #if defined(_MSC_VER)
 #    pragma warning(pop)
+#elif defined(__MINGW32__)
+#    pragma GCC diagnostic pop
 #endif
 
 // Eigen prior to 3.2.7 doesn't have proper move constructors--but worse, some classes get implicit
@@ -111,10 +116,16 @@ struct EigenConformable {
     bool stride_compatible() const {
         // To have compatible strides, we need (on both dimensions) one of fully dynamic strides,
         // matching strides, or a dimension size of 1 (in which case the stride value is
-        // irrelevant)
-        return !negativestrides
-               && (props::inner_stride == Eigen::Dynamic || props::inner_stride == stride.inner()
-                   || (EigenRowMajor ? cols : rows) == 1)
+        // irrelevant). Alternatively, if any dimension size is 0, the strides are not relevant
+        // (and numpy ≥ 1.23 sets the strides to 0 in that case, so we need to check explicitly).
+        if (negativestrides) {
+            return false;
+        }
+        if (rows == 0 || cols == 0) {
+            return true;
+        }
+        return (props::inner_stride == Eigen::Dynamic || props::inner_stride == stride.inner()
+                || (EigenRowMajor ? cols : rows) == 1)
                && (props::outer_stride == Eigen::Dynamic || props::outer_stride == stride.outer()
                    || (EigenRowMajor ? rows : cols) == 1);
     }
@@ -668,7 +679,7 @@ struct type_caster<Type, enable_if_t<is_eigen_sparse<Type>::value>> {
                                      Type::Flags &(Eigen::RowMajor | Eigen::ColMajor),
                                      StorageIndex>(shape[0].cast<Index>(),
                                                    shape[1].cast<Index>(),
-                                                   nnz,
+                                                   std::move(nnz),
                                                    outerIndices.mutable_data(),
                                                    innerIndices.mutable_data(),
                                                    values.mutable_data());
@@ -686,8 +697,9 @@ struct type_caster<Type, enable_if_t<is_eigen_sparse<Type>::value>> {
         array outerIndices((rowMajor ? src.rows() : src.cols()) + 1, src.outerIndexPtr());
         array innerIndices(src.nonZeros(), src.innerIndexPtr());
 
-        return matrix_type(std::make_tuple(data, innerIndices, outerIndices),
-                           std::make_pair(src.rows(), src.cols()))
+        return matrix_type(pybind11::make_tuple(
+                               std::move(data), std::move(innerIndices), std::move(outerIndices)),
+                           pybind11::make_tuple(src.rows(), src.cols()))
             .release();
     }
 

@@ -12,7 +12,15 @@
 #include "detail/common.h"
 #include "buffer_info.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <exception>
+#include <frameobject.h>
+#include <iterator>
+#include <memory>
+#include <string>
 #include <type_traits>
+#include <typeinfo>
 #include <utility>
 
 #if defined(PYBIND11_HAS_OPTIONAL)
@@ -85,7 +93,9 @@ public:
         or `object` subclass causes a call to ``__setitem__``.
     \endrst */
     item_accessor operator[](handle key) const;
-    /// See above (the only difference is that they key is provided as a string literal)
+    /// See above (the only difference is that the key's reference is stolen)
+    item_accessor operator[](object &&key) const;
+    /// See above (the only difference is that the key is provided as a string literal)
     item_accessor operator[](const char *key) const;
 
     /** \rst
@@ -95,7 +105,9 @@ public:
         or `object` subclass causes a call to ``setattr``.
     \endrst */
     obj_attr_accessor attr(handle key) const;
-    /// See above (the only difference is that they key is provided as a string literal)
+    /// See above (the only difference is that the key's reference is stolen)
+    obj_attr_accessor attr(object &&key) const;
+    /// See above (the only difference is that the key is provided as a string literal)
     str_attr_accessor attr(const char *key) const;
 
     /** \rst
@@ -143,23 +155,23 @@ public:
     object operator-() const;
     object operator~() const;
     object operator+(object_api const &other) const;
-    object operator+=(object_api const &other) const;
+    object operator+=(object_api const &other);
     object operator-(object_api const &other) const;
-    object operator-=(object_api const &other) const;
+    object operator-=(object_api const &other);
     object operator*(object_api const &other) const;
-    object operator*=(object_api const &other) const;
+    object operator*=(object_api const &other);
     object operator/(object_api const &other) const;
-    object operator/=(object_api const &other) const;
+    object operator/=(object_api const &other);
     object operator|(object_api const &other) const;
-    object operator|=(object_api const &other) const;
+    object operator|=(object_api const &other);
     object operator&(object_api const &other) const;
-    object operator&=(object_api const &other) const;
+    object operator&=(object_api const &other);
     object operator^(object_api const &other) const;
-    object operator^=(object_api const &other) const;
+    object operator^=(object_api const &other);
     object operator<<(object_api const &other) const;
-    object operator<<=(object_api const &other) const;
+    object operator<<=(object_api const &other);
     object operator>>(object_api const &other) const;
-    object operator>>=(object_api const &other) const;
+    object operator>>=(object_api const &other);
 
     PYBIND11_DEPRECATED("Use py::str(obj) instead")
     pybind11::str str() const;
@@ -178,7 +190,16 @@ private:
     bool rich_compare(object_api const &other, int value) const;
 };
 
+template <typename T>
+using is_pyobj_ptr_or_nullptr_t = detail::any_of<std::is_same<T, PyObject *>,
+                                                 std::is_same<T, PyObject *const>,
+                                                 std::is_same<T, std::nullptr_t>>;
+
 PYBIND11_NAMESPACE_END(detail)
+
+#if !defined(PYBIND11_HANDLE_REF_DEBUG) && !defined(NDEBUG)
+#    define PYBIND11_HANDLE_REF_DEBUG
+#endif
 
 /** \rst
     Holds a reference to a Python object (no reference counting)
@@ -195,9 +216,23 @@ class handle : public detail::object_api<handle> {
 public:
     /// The default constructor creates a handle with a ``nullptr``-valued pointer
     handle() = default;
-    /// Creates a ``handle`` from the given raw Python object pointer
+
+    /// Enable implicit conversion from ``PyObject *`` and ``nullptr``.
+    /// Not using ``handle(PyObject *ptr)`` to avoid implicit conversion from ``0``.
+    template <typename T,
+              detail::enable_if_t<detail::is_pyobj_ptr_or_nullptr_t<T>::value, int> = 0>
     // NOLINTNEXTLINE(google-explicit-constructor)
-    handle(PyObject *ptr) : m_ptr(ptr) {} // Allow implicit conversion from PyObject*
+    handle(T ptr) : m_ptr(ptr) {}
+
+    /// Enable implicit conversion through ``T::operator PyObject *()``.
+    template <
+        typename T,
+        detail::enable_if_t<detail::all_of<detail::none_of<std::is_base_of<handle, T>,
+                                                           detail::is_pyobj_ptr_or_nullptr_t<T>>,
+                                           std::is_convertible<T, PyObject *>>::value,
+                            int> = 0>
+    // NOLINTNEXTLINE(google-explicit-constructor)
+    handle(T &obj) : m_ptr(obj) {}
 
     /// Return the underlying ``PyObject *`` pointer
     PyObject *ptr() const { return m_ptr; }
@@ -209,6 +244,9 @@ public:
         this function automatically. Returns a reference to itself.
     \endrst */
     const handle &inc_ref() const & {
+#ifdef PYBIND11_HANDLE_REF_DEBUG
+        inc_ref_counter(1);
+#endif
         Py_XINCREF(m_ptr);
         return *this;
     }
@@ -244,6 +282,18 @@ public:
 
 protected:
     PyObject *m_ptr = nullptr;
+
+#ifdef PYBIND11_HANDLE_REF_DEBUG
+private:
+    static std::size_t inc_ref_counter(std::size_t add) {
+        thread_local std::size_t counter = 0;
+        counter += add;
+        return counter;
+    }
+
+public:
+    static std::size_t inc_ref_counter() { return inc_ref_counter(0); }
+#endif
 };
 
 /** \rst
@@ -268,10 +318,7 @@ public:
     /// Copy constructor; always increases the reference count
     object(const object &o) : handle(o) { inc_ref(); }
     /// Move constructor; steals the object from ``other`` and preserves its reference count
-    object(object &&other) noexcept {
-        m_ptr = other.m_ptr;
-        other.m_ptr = nullptr;
-    }
+    object(object &&other) noexcept : handle(other) { other.m_ptr = nullptr; }
     /// Destructor; automatically calls `handle::dec_ref()`
     ~object() { dec_ref(); }
 
@@ -287,12 +334,15 @@ public:
     }
 
     object &operator=(const object &other) {
-        other.inc_ref();
-        // Use temporary variable to ensure `*this` remains valid while
-        // `Py_XDECREF` executes, in case `*this` is accessible from Python.
-        handle temp(m_ptr);
-        m_ptr = other.m_ptr;
-        temp.dec_ref();
+        // Skip inc_ref and dec_ref if both objects are the same
+        if (!this->is(other)) {
+            other.inc_ref();
+            // Use temporary variable to ensure `*this` remains valid while
+            // `Py_XDECREF` executes, in case `*this` is accessible from Python.
+            handle temp(m_ptr);
+            m_ptr = other.m_ptr;
+            temp.dec_ref();
+        }
         return *this;
     }
 
@@ -305,6 +355,20 @@ public:
         }
         return *this;
     }
+
+#define PYBIND11_INPLACE_OP(iop)                                                                  \
+    object iop(object_api const &other) { return operator=(handle::iop(other)); }
+
+    PYBIND11_INPLACE_OP(operator+=)
+    PYBIND11_INPLACE_OP(operator-=)
+    PYBIND11_INPLACE_OP(operator*=)
+    PYBIND11_INPLACE_OP(operator/=)
+    PYBIND11_INPLACE_OP(operator|=)
+    PYBIND11_INPLACE_OP(operator&=)
+    PYBIND11_INPLACE_OP(operator^=)
+    PYBIND11_INPLACE_OP(operator<<=)
+    PYBIND11_INPLACE_OP(operator>>=)
+#undef PYBIND11_INPLACE_OP
 
     // Calling cast() on an object lvalue just copies (via handle::cast)
     template <typename T>
@@ -363,7 +427,182 @@ T reinterpret_steal(handle h) {
 }
 
 PYBIND11_NAMESPACE_BEGIN(detail)
+
+// Equivalent to obj.__class__.__name__ (or obj.__name__ if obj is a class).
+inline const char *obj_class_name(PyObject *obj) {
+    if (Py_TYPE(obj) == &PyType_Type) {
+        return reinterpret_cast<PyTypeObject *>(obj)->tp_name;
+    }
+    return Py_TYPE(obj)->tp_name;
+}
+
 std::string error_string();
+
+struct error_fetch_and_normalize {
+    // Immediate normalization is long-established behavior (starting with
+    // https://github.com/pybind/pybind11/commit/135ba8deafb8bf64a15b24d1513899eb600e2011
+    // from Sep 2016) and safest. Normalization could be deferred, but this could mask
+    // errors elsewhere, the performance gain is very minor in typical situations
+    // (usually the dominant bottleneck is EH unwinding), and the implementation here
+    // would be more complex.
+    explicit error_fetch_and_normalize(const char *called) {
+        PyErr_Fetch(&m_type.ptr(), &m_value.ptr(), &m_trace.ptr());
+        if (!m_type) {
+            pybind11_fail("Internal error: " + std::string(called)
+                          + " called while "
+                            "Python error indicator not set.");
+        }
+        const char *exc_type_name_orig = detail::obj_class_name(m_type.ptr());
+        if (exc_type_name_orig == nullptr) {
+            pybind11_fail("Internal error: " + std::string(called)
+                          + " failed to obtain the name "
+                            "of the original active exception type.");
+        }
+        m_lazy_error_string = exc_type_name_orig;
+        // PyErr_NormalizeException() may change the exception type if there are cascading
+        // failures. This can potentially be extremely confusing.
+        PyErr_NormalizeException(&m_type.ptr(), &m_value.ptr(), &m_trace.ptr());
+        if (m_type.ptr() == nullptr) {
+            pybind11_fail("Internal error: " + std::string(called)
+                          + " failed to normalize the "
+                            "active exception.");
+        }
+        const char *exc_type_name_norm = detail::obj_class_name(m_type.ptr());
+        if (exc_type_name_orig == nullptr) {
+            pybind11_fail("Internal error: " + std::string(called)
+                          + " failed to obtain the name "
+                            "of the normalized active exception type.");
+        }
+#if defined(PYPY_VERSION_NUM) && PYPY_VERSION_NUM < 0x07030a00
+        // This behavior runs the risk of masking errors in the error handling, but avoids a
+        // conflict with PyPy, which relies on the normalization here to change OSError to
+        // FileNotFoundError (https://github.com/pybind/pybind11/issues/4075).
+        m_lazy_error_string = exc_type_name_norm;
+#else
+        if (exc_type_name_norm != m_lazy_error_string) {
+            std::string msg = std::string(called)
+                              + ": MISMATCH of original and normalized "
+                                "active exception types: ";
+            msg += "ORIGINAL ";
+            msg += m_lazy_error_string;
+            msg += " REPLACED BY ";
+            msg += exc_type_name_norm;
+            msg += ": " + format_value_and_trace();
+            pybind11_fail(msg);
+        }
+#endif
+    }
+
+    error_fetch_and_normalize(const error_fetch_and_normalize &) = delete;
+    error_fetch_and_normalize(error_fetch_and_normalize &&) = delete;
+
+    std::string format_value_and_trace() const {
+        std::string result;
+        std::string message_error_string;
+        if (m_value) {
+            auto value_str = reinterpret_steal<object>(PyObject_Str(m_value.ptr()));
+            if (!value_str) {
+                message_error_string = detail::error_string();
+                result = "<MESSAGE UNAVAILABLE DUE TO ANOTHER EXCEPTION>";
+            } else {
+                result = value_str.cast<std::string>();
+            }
+        } else {
+            result = "<MESSAGE UNAVAILABLE>";
+        }
+        if (result.empty()) {
+            result = "<EMPTY MESSAGE>";
+        }
+
+        bool have_trace = false;
+        if (m_trace) {
+#if !defined(PYPY_VERSION)
+            auto *tb = reinterpret_cast<PyTracebackObject *>(m_trace.ptr());
+
+            // Get the deepest trace possible.
+            while (tb->tb_next) {
+                tb = tb->tb_next;
+            }
+
+            PyFrameObject *frame = tb->tb_frame;
+            Py_XINCREF(frame);
+            result += "\n\nAt:\n";
+            while (frame) {
+#    if PY_VERSION_HEX >= 0x030900B1
+                PyCodeObject *f_code = PyFrame_GetCode(frame);
+#    else
+                PyCodeObject *f_code = frame->f_code;
+                Py_INCREF(f_code);
+#    endif
+                int lineno = PyFrame_GetLineNumber(frame);
+                result += "  ";
+                result += handle(f_code->co_filename).cast<std::string>();
+                result += '(';
+                result += std::to_string(lineno);
+                result += "): ";
+                result += handle(f_code->co_name).cast<std::string>();
+                result += '\n';
+                Py_DECREF(f_code);
+#    if PY_VERSION_HEX >= 0x030900B1
+                auto *b_frame = PyFrame_GetBack(frame);
+#    else
+                auto *b_frame = frame->f_back;
+                Py_XINCREF(b_frame);
+#    endif
+                Py_DECREF(frame);
+                frame = b_frame;
+            }
+
+            have_trace = true;
+#endif //! defined(PYPY_VERSION)
+        }
+
+        if (!message_error_string.empty()) {
+            if (!have_trace) {
+                result += '\n';
+            }
+            result += "\nMESSAGE UNAVAILABLE DUE TO EXCEPTION: " + message_error_string;
+        }
+
+        return result;
+    }
+
+    std::string const &error_string() const {
+        if (!m_lazy_error_string_completed) {
+            m_lazy_error_string += ": " + format_value_and_trace();
+            m_lazy_error_string_completed = true;
+        }
+        return m_lazy_error_string;
+    }
+
+    void restore() {
+        if (m_restore_called) {
+            pybind11_fail("Internal error: pybind11::detail::error_fetch_and_normalize::restore() "
+                          "called a second time. ORIGINAL ERROR: "
+                          + error_string());
+        }
+        PyErr_Restore(m_type.inc_ref().ptr(), m_value.inc_ref().ptr(), m_trace.inc_ref().ptr());
+        m_restore_called = true;
+    }
+
+    bool matches(handle exc) const {
+        return (PyErr_GivenExceptionMatches(m_type.ptr(), exc.ptr()) != 0);
+    }
+
+    // Not protecting these for simplicity.
+    object m_type, m_value, m_trace;
+
+private:
+    // Only protecting invariants.
+    mutable std::string m_lazy_error_string;
+    mutable bool m_lazy_error_string_completed = false;
+    mutable bool m_restore_called = false;
+};
+
+inline std::string error_string() {
+    return error_fetch_and_normalize("pybind11::detail::error_string").error_string();
+}
+
 PYBIND11_NAMESPACE_END(detail)
 
 #if defined(_MSC_VER)
@@ -376,38 +615,37 @@ PYBIND11_NAMESPACE_END(detail)
 /// thrown to propagate python-side errors back through C++ which can either be caught manually or
 /// else falls back to the function dispatcher (which then raises the captured error back to
 /// python).
-class PYBIND11_EXPORT_EXCEPTION error_already_set : public std::runtime_error {
+class PYBIND11_EXPORT_EXCEPTION error_already_set : public std::exception {
 public:
-    /// Constructs a new exception from the current Python error indicator, if any.  The current
-    /// Python error indicator will be cleared.
-    error_already_set() : std::runtime_error(detail::error_string()) {
-        PyErr_Fetch(&m_type.ptr(), &m_value.ptr(), &m_trace.ptr());
-    }
+    /// Fetches the current Python exception (using PyErr_Fetch()), which will clear the
+    /// current Python error indicator.
+    error_already_set()
+        : m_fetched_error{new detail::error_fetch_and_normalize("pybind11::error_already_set"),
+                          m_fetched_error_deleter} {}
 
-    error_already_set(const error_already_set &) = default;
-    error_already_set(error_already_set &&) = default;
+    /// The what() result is built lazily on demand.
+    /// WARNING: This member function needs to acquire the Python GIL. This can lead to
+    ///          crashes (undefined behavior) if the Python interpreter is finalizing.
+    const char *what() const noexcept override;
 
-    inline ~error_already_set() override;
-
-    /// Give the currently-held error back to Python, if any.  If there is currently a Python error
-    /// already set it is cleared first.  After this call, the current object no longer stores the
-    /// error variables (but the `.what()` string is still available).
-    void restore() {
-        PyErr_Restore(m_type.release().ptr(), m_value.release().ptr(), m_trace.release().ptr());
-    }
+    /// Restores the currently-held Python error (which will clear the Python error indicator first
+    /// if already set).
+    /// NOTE: This member function will always restore the normalized exception, which may or may
+    ///       not be the original Python exception.
+    /// WARNING: The GIL must be held when this member function is called!
+    void restore() { m_fetched_error->restore(); }
 
     /// If it is impossible to raise the currently-held error, such as in a destructor, we can
     /// write it out using Python's unraisable hook (`sys.unraisablehook`). The error context
     /// should be some object whose `repr()` helps identify the location of the error. Python
-    /// already knows the type and value of the error, so there is no need to repeat that. After
-    /// this call, the current object no longer stores the error variables, and neither does
-    /// Python.
+    /// already knows the type and value of the error, so there is no need to repeat that.
     void discard_as_unraisable(object err_context) {
         restore();
         PyErr_WriteUnraisable(err_context.ptr());
     }
     /// An alternate version of `discard_as_unraisable()`, where a string provides information on
     /// the location of the error. For example, `__func__` could be helpful.
+    /// WARNING: The GIL must be held when this member function is called!
     void discard_as_unraisable(const char *err_context) {
         discard_as_unraisable(reinterpret_steal<object>(PYBIND11_FROM_STRING(err_context)));
     }
@@ -419,16 +657,18 @@ public:
     /// Check if the currently trapped error type matches the given Python exception class (or a
     /// subclass thereof).  May also be passed a tuple to search for any exception class matches in
     /// the given tuple.
-    bool matches(handle exc) const {
-        return (PyErr_GivenExceptionMatches(m_type.ptr(), exc.ptr()) != 0);
-    }
+    bool matches(handle exc) const { return m_fetched_error->matches(exc); }
 
-    const object &type() const { return m_type; }
-    const object &value() const { return m_value; }
-    const object &trace() const { return m_trace; }
+    const object &type() const { return m_fetched_error->m_type; }
+    const object &value() const { return m_fetched_error->m_value; }
+    const object &trace() const { return m_fetched_error->m_trace; }
 
 private:
-    object m_type, m_value, m_trace;
+    std::shared_ptr<detail::error_fetch_and_normalize> m_fetched_error;
+
+    /// WARNING: This custom deleter needs to acquire the Python GIL. This can lead to
+    ///          crashes (undefined behavior) if the Python interpreter is finalizing.
+    static void m_fetched_error_deleter(detail::error_fetch_and_normalize *raw_ptr);
 };
 #if defined(_MSC_VER)
 #    pragma warning(pop)
@@ -464,8 +704,7 @@ inline void raise_from(PyObject *type, const char *message) {
 
 /// Sets the current Python error indicator with the chosen error, performing a 'raise from'
 /// from the error contained in error_already_set to indicate that the chosen error was
-/// caused by the original error. After this function is called error_already_set will
-/// no longer contain an error.
+/// caused by the original error.
 inline void raise_from(error_already_set &err, PyObject *type, const char *message) {
     err.restore();
     raise_from(type, message);
@@ -603,13 +842,13 @@ inline handle get_function(handle value) {
 inline PyObject *dict_getitemstring(PyObject *v, const char *key) {
     PyObject *kv = nullptr, *rv = nullptr;
     kv = PyUnicode_FromString(key);
-    if (kv == NULL) {
+    if (kv == nullptr) {
         throw error_already_set();
     }
 
     rv = PyDict_GetItemWithError(v, kv);
     Py_DECREF(kv);
-    if (rv == NULL && PyErr_Occurred()) {
+    if (rv == nullptr && PyErr_Occurred()) {
         throw error_already_set();
     }
     return rv;
@@ -617,7 +856,7 @@ inline PyObject *dict_getitemstring(PyObject *v, const char *key) {
 
 inline PyObject *dict_getitem(PyObject *v, PyObject *key) {
     PyObject *rv = PyDict_GetItemWithError(v, key);
-    if (rv == NULL && PyErr_Occurred()) {
+    if (rv == nullptr && PyErr_Occurred()) {
         throw error_already_set();
     }
     return rv;
@@ -660,7 +899,7 @@ public:
     }
     template <typename T>
     void operator=(T &&value) & {
-        get_cache() = reinterpret_borrow<object>(object_or_cast(std::forward<T>(value)));
+        get_cache() = ensure_object(object_or_cast(std::forward<T>(value)));
     }
 
     template <typename T = Policy>
@@ -688,6 +927,9 @@ public:
     }
 
 private:
+    static object ensure_object(object &&o) { return std::move(o); }
+    static object ensure_object(handle h) { return reinterpret_borrow<object>(h); }
+
     object &get_cache() const {
         if (!cache) {
             cache = Policy::get(obj, key);
@@ -1038,17 +1280,17 @@ public:                                                                         
     Name(const object &o)                                                                         \
         : Parent(check_(o) ? o.inc_ref().ptr() : ConvertFun(o.ptr()), stolen_t{}) {               \
         if (!m_ptr)                                                                               \
-            throw error_already_set();                                                            \
+            throw ::pybind11::error_already_set();                                                \
     }                                                                                             \
     /* NOLINTNEXTLINE(google-explicit-constructor) */                                             \
     Name(object &&o) : Parent(check_(o) ? o.release().ptr() : ConvertFun(o.ptr()), stolen_t{}) {  \
         if (!m_ptr)                                                                               \
-            throw error_already_set();                                                            \
+            throw ::pybind11::error_already_set();                                                \
     }
 
 #define PYBIND11_OBJECT_CVT_DEFAULT(Name, Parent, CheckFun, ConvertFun)                           \
     PYBIND11_OBJECT_CVT(Name, Parent, CheckFun, ConvertFun)                                       \
-    Name() : Parent() {}
+    Name() = default;
 
 #define PYBIND11_OBJECT_CHECK_FAILED(Name, o_ptr)                                                 \
     ::pybind11::type_error("Object of type '"                                                     \
@@ -1071,7 +1313,7 @@ public:                                                                         
 
 #define PYBIND11_OBJECT_DEFAULT(Name, Parent, CheckFun)                                           \
     PYBIND11_OBJECT(Name, Parent, CheckFun)                                                       \
-    Name() : Parent() {}
+    Name() = default;
 
 /// \addtogroup pytypes
 /// @{
@@ -1243,8 +1485,8 @@ public:
         }
         char *buffer = nullptr;
         ssize_t length = 0;
-        if (PYBIND11_BYTES_AS_STRING_AND_SIZE(temp.ptr(), &buffer, &length)) {
-            pybind11_fail("Unable to extract string contents! (invalid type)");
+        if (PyBytes_AsStringAndSize(temp.ptr(), &buffer, &length) != 0) {
+            throw error_already_set();
         }
         return std::string(buffer, (size_t) length);
     }
@@ -1299,14 +1541,7 @@ public:
     explicit bytes(const pybind11::str &s);
 
     // NOLINTNEXTLINE(google-explicit-constructor)
-    operator std::string() const {
-        char *buffer = nullptr;
-        ssize_t length = 0;
-        if (PYBIND11_BYTES_AS_STRING_AND_SIZE(m_ptr, &buffer, &length)) {
-            pybind11_fail("Unable to extract bytes contents!");
-        }
-        return std::string(buffer, (size_t) length);
-    }
+    operator std::string() const { return string_op<std::string>(); }
 
 #ifdef PYBIND11_HAS_STRING_VIEW
     // enable_if is needed to avoid "ambiguous conversion" errors (see PR #3521).
@@ -1318,15 +1553,18 @@ public:
     // valid so long as the `bytes` instance remains alive and so generally should not outlive the
     // lifetime of the `bytes` instance.
     // NOLINTNEXTLINE(google-explicit-constructor)
-    operator std::string_view() const {
+    operator std::string_view() const { return string_op<std::string_view>(); }
+#endif
+private:
+    template <typename T>
+    T string_op() const {
         char *buffer = nullptr;
         ssize_t length = 0;
-        if (PYBIND11_BYTES_AS_STRING_AND_SIZE(m_ptr, &buffer, &length)) {
-            pybind11_fail("Unable to extract bytes contents!");
+        if (PyBytes_AsStringAndSize(m_ptr, &buffer, &length) != 0) {
+            throw error_already_set();
         }
         return {buffer, static_cast<size_t>(length)};
     }
-#endif
 };
 // Note: breathe >= 4.17.0 will fail to build docs if the below two constructors
 // are included in the doxygen group; close here and reopen after as a workaround
@@ -1337,13 +1575,13 @@ inline bytes::bytes(const pybind11::str &s) {
     if (PyUnicode_Check(s.ptr())) {
         temp = reinterpret_steal<object>(PyUnicode_AsUTF8String(s.ptr()));
         if (!temp) {
-            pybind11_fail("Unable to extract string contents! (encoding issue)");
+            throw error_already_set();
         }
     }
     char *buffer = nullptr;
     ssize_t length = 0;
-    if (PYBIND11_BYTES_AS_STRING_AND_SIZE(temp.ptr(), &buffer, &length)) {
-        pybind11_fail("Unable to extract string contents! (invalid type)");
+    if (PyBytes_AsStringAndSize(temp.ptr(), &buffer, &length) != 0) {
+        throw error_already_set();
     }
     auto obj = reinterpret_steal<object>(PYBIND11_BYTES_FROM_STRING_AND_SIZE(buffer, length));
     if (!obj) {
@@ -1355,8 +1593,8 @@ inline bytes::bytes(const pybind11::str &s) {
 inline str::str(const bytes &b) {
     char *buffer = nullptr;
     ssize_t length = 0;
-    if (PYBIND11_BYTES_AS_STRING_AND_SIZE(b.ptr(), &buffer, &length)) {
-        pybind11_fail("Unable to extract bytes contents!");
+    if (PyBytes_AsStringAndSize(b.ptr(), &buffer, &length) != 0) {
+        throw error_already_set();
     }
     auto obj = reinterpret_steal<object>(PyUnicode_FromStringAndSize(buffer, length));
     if (!obj) {
@@ -1523,8 +1761,8 @@ private:
 class slice : public object {
 public:
     PYBIND11_OBJECT_DEFAULT(slice, object, PySlice_Check)
-    slice(handle start, handle stop, handle step) {
-        m_ptr = PySlice_New(start.ptr(), stop.ptr(), step.ptr());
+    slice(handle start, handle stop, handle step)
+        : object(PySlice_New(start.ptr(), stop.ptr(), step.ptr()), stolen_t{}) {
         if (!m_ptr) {
             pybind11_fail("Could not allocate slice object!");
         }
@@ -1574,7 +1812,7 @@ public:
                      void (*destructor)(PyObject *) = nullptr)
         : object(PyCapsule_New(const_cast<void *>(value), name, destructor), stolen_t{}) {
         if (!m_ptr) {
-            pybind11_fail("Could not allocate capsule object!");
+            throw error_already_set();
         }
     }
 
@@ -1582,34 +1820,46 @@ public:
     capsule(const void *value, void (*destruct)(PyObject *))
         : object(PyCapsule_New(const_cast<void *>(value), nullptr, destruct), stolen_t{}) {
         if (!m_ptr) {
-            pybind11_fail("Could not allocate capsule object!");
+            throw error_already_set();
         }
     }
 
     capsule(const void *value, void (*destructor)(void *)) {
         m_ptr = PyCapsule_New(const_cast<void *>(value), nullptr, [](PyObject *o) {
+            // guard if destructor called while err indicator is set
+            error_scope error_guard;
             auto destructor = reinterpret_cast<void (*)(void *)>(PyCapsule_GetContext(o));
-            void *ptr = PyCapsule_GetPointer(o, nullptr);
+            if (destructor == nullptr) {
+                if (PyErr_Occurred()) {
+                    throw error_already_set();
+                }
+                pybind11_fail("Unable to get capsule context");
+            }
+            const char *name = get_name_in_error_scope(o);
+            void *ptr = PyCapsule_GetPointer(o, name);
+            if (ptr == nullptr) {
+                throw error_already_set();
+            }
             destructor(ptr);
         });
 
-        if (!m_ptr) {
-            pybind11_fail("Could not allocate capsule object!");
-        }
-
-        if (PyCapsule_SetContext(m_ptr, (void *) destructor) != 0) {
-            pybind11_fail("Could not set capsule context!");
+        if (!m_ptr || PyCapsule_SetContext(m_ptr, (void *) destructor) != 0) {
+            throw error_already_set();
         }
     }
 
     explicit capsule(void (*destructor)()) {
         m_ptr = PyCapsule_New(reinterpret_cast<void *>(destructor), nullptr, [](PyObject *o) {
-            auto destructor = reinterpret_cast<void (*)()>(PyCapsule_GetPointer(o, nullptr));
+            const char *name = get_name_in_error_scope(o);
+            auto destructor = reinterpret_cast<void (*)()>(PyCapsule_GetPointer(o, name));
+            if (destructor == nullptr) {
+                throw error_already_set();
+            }
             destructor();
         });
 
         if (!m_ptr) {
-            pybind11_fail("Could not allocate capsule object!");
+            throw error_already_set();
         }
     }
 
@@ -1624,8 +1874,7 @@ public:
         const auto *name = this->name();
         T *result = static_cast<T *>(PyCapsule_GetPointer(m_ptr, name));
         if (!result) {
-            PyErr_Clear();
-            pybind11_fail("Unable to extract capsule contents!");
+            throw error_already_set();
         }
         return result;
     }
@@ -1633,12 +1882,37 @@ public:
     /// Replaces a capsule's pointer *without* calling the destructor on the existing one.
     void set_pointer(const void *value) {
         if (PyCapsule_SetPointer(m_ptr, const_cast<void *>(value)) != 0) {
-            PyErr_Clear();
-            pybind11_fail("Could not set capsule pointer");
+            throw error_already_set();
         }
     }
 
-    const char *name() const { return PyCapsule_GetName(m_ptr); }
+    const char *name() const {
+        const char *name = PyCapsule_GetName(m_ptr);
+        if ((name == nullptr) && PyErr_Occurred()) {
+            throw error_already_set();
+        }
+        return name;
+    }
+
+    /// Replaces a capsule's name *without* calling the destructor on the existing one.
+    void set_name(const char *new_name) {
+        if (PyCapsule_SetName(m_ptr, new_name) != 0) {
+            throw error_already_set();
+        }
+    }
+
+private:
+    static const char *get_name_in_error_scope(PyObject *o) {
+        error_scope error_guard;
+
+        const char *name = PyCapsule_GetName(o);
+        if ((name == nullptr) && PyErr_Occurred()) {
+            // write out and consume error raised by call to PyCapsule_GetName
+            PyErr_WriteUnraisable(o);
+        }
+
+        return name;
+    }
 };
 
 class tuple : public object {
@@ -1655,7 +1929,10 @@ public:
     size_t size() const { return (size_t) PyTuple_Size(m_ptr); }
     bool empty() const { return size() == 0; }
     detail::tuple_accessor operator[](size_t index) const { return {*this, index}; }
-    detail::item_accessor operator[](handle h) const { return object::operator[](h); }
+    template <typename T, detail::enable_if_t<detail::is_pyobject<T>::value, int> = 0>
+    detail::item_accessor operator[](T &&o) const {
+        return object::operator[](std::forward<T>(o));
+    }
     detail::tuple_iterator begin() const { return {*this, 0}; }
     detail::tuple_iterator end() const { return {*this, PyTuple_GET_SIZE(m_ptr)}; }
 };
@@ -1715,7 +1992,10 @@ public:
     }
     bool empty() const { return size() == 0; }
     detail::sequence_accessor operator[](size_t index) const { return {*this, index}; }
-    detail::item_accessor operator[](handle h) const { return object::operator[](h); }
+    template <typename T, detail::enable_if_t<detail::is_pyobject<T>::value, int> = 0>
+    detail::item_accessor operator[](T &&o) const {
+        return object::operator[](std::forward<T>(o));
+    }
     detail::sequence_iterator begin() const { return {*this, 0}; }
     detail::sequence_iterator end() const { return {*this, PySequence_Size(m_ptr)}; }
 };
@@ -1734,7 +2014,10 @@ public:
     size_t size() const { return (size_t) PyList_Size(m_ptr); }
     bool empty() const { return size() == 0; }
     detail::list_accessor operator[](size_t index) const { return {*this, index}; }
-    detail::item_accessor operator[](handle h) const { return object::operator[](h); }
+    template <typename T, detail::enable_if_t<detail::is_pyobject<T>::value, int> = 0>
+    detail::item_accessor operator[](T &&o) const {
+        return object::operator[](std::forward<T>(o));
+    }
     detail::list_iterator begin() const { return {*this, 0}; }
     detail::list_iterator end() const { return {*this, PyList_GET_SIZE(m_ptr)}; }
     template <typename T>
@@ -1757,25 +2040,35 @@ class kwargs : public dict {
     PYBIND11_OBJECT_DEFAULT(kwargs, dict, PyDict_Check)
 };
 
-class set : public object {
+class anyset : public object {
 public:
-    PYBIND11_OBJECT_CVT(set, object, PySet_Check, PySet_New)
-    set() : object(PySet_New(nullptr), stolen_t{}) {
+    PYBIND11_OBJECT(anyset, object, PyAnySet_Check)
+    size_t size() const { return static_cast<size_t>(PySet_Size(m_ptr)); }
+    bool empty() const { return size() == 0; }
+    template <typename T>
+    bool contains(T &&val) const {
+        return PySet_Contains(m_ptr, detail::object_or_cast(std::forward<T>(val)).ptr()) == 1;
+    }
+};
+
+class set : public anyset {
+public:
+    PYBIND11_OBJECT_CVT(set, anyset, PySet_Check, PySet_New)
+    set() : anyset(PySet_New(nullptr), stolen_t{}) {
         if (!m_ptr) {
             pybind11_fail("Could not allocate set object!");
         }
     }
-    size_t size() const { return (size_t) PySet_Size(m_ptr); }
-    bool empty() const { return size() == 0; }
     template <typename T>
     bool add(T &&val) /* py-non-const */ {
         return PySet_Add(m_ptr, detail::object_or_cast(std::forward<T>(val)).ptr()) == 0;
     }
     void clear() /* py-non-const */ { PySet_Clear(m_ptr); }
-    template <typename T>
-    bool contains(T &&val) const {
-        return PySet_Contains(m_ptr, detail::object_or_cast(std::forward<T>(val)).ptr()) == 1;
-    }
+};
+
+class frozenset : public anyset {
+public:
+    PYBIND11_OBJECT_CVT(frozenset, anyset, PyFrozenSet_Check, PyFrozenSet_New)
 };
 
 class function : public object {
@@ -1887,8 +2180,8 @@ public:
         return memoryview::from_buffer(reinterpret_cast<void *>(ptr),
                                        sizeof(T),
                                        format_descriptor<T>::value,
-                                       shape,
-                                       strides,
+                                       std::move(shape),
+                                       std::move(strides),
                                        readonly);
     }
 
@@ -1896,7 +2189,8 @@ public:
     static memoryview from_buffer(const T *ptr,
                                   detail::any_container<ssize_t> shape,
                                   detail::any_container<ssize_t> strides) {
-        return memoryview::from_buffer(const_cast<T *>(ptr), shape, strides, true);
+        return memoryview::from_buffer(
+            const_cast<T *>(ptr), std::move(shape), std::move(strides), true);
     }
 
     /** \rst
@@ -2023,12 +2317,20 @@ item_accessor object_api<D>::operator[](handle key) const {
     return {derived(), reinterpret_borrow<object>(key)};
 }
 template <typename D>
+item_accessor object_api<D>::operator[](object &&key) const {
+    return {derived(), std::move(key)};
+}
+template <typename D>
 item_accessor object_api<D>::operator[](const char *key) const {
     return {derived(), pybind11::str(key)};
 }
 template <typename D>
 obj_attr_accessor object_api<D>::attr(handle key) const {
     return {derived(), reinterpret_borrow<object>(key)};
+}
+template <typename D>
+obj_attr_accessor object_api<D>::attr(object &&key) const {
+    return {derived(), std::move(key)};
 }
 template <typename D>
 str_attr_accessor object_api<D>::attr(const char *key) const {
@@ -2086,29 +2388,39 @@ bool object_api<D>::rich_compare(object_api const &other, int value) const {
         return result;                                                                            \
     }
 
+#define PYBIND11_MATH_OPERATOR_BINARY_INPLACE(iop, fn)                                            \
+    template <typename D>                                                                         \
+    object object_api<D>::iop(object_api const &other) {                                          \
+        object result = reinterpret_steal<object>(fn(derived().ptr(), other.derived().ptr()));    \
+        if (!result.ptr())                                                                        \
+            throw error_already_set();                                                            \
+        return result;                                                                            \
+    }
+
 PYBIND11_MATH_OPERATOR_UNARY(operator~, PyNumber_Invert)
 PYBIND11_MATH_OPERATOR_UNARY(operator-, PyNumber_Negative)
 PYBIND11_MATH_OPERATOR_BINARY(operator+, PyNumber_Add)
-PYBIND11_MATH_OPERATOR_BINARY(operator+=, PyNumber_InPlaceAdd)
+PYBIND11_MATH_OPERATOR_BINARY_INPLACE(operator+=, PyNumber_InPlaceAdd)
 PYBIND11_MATH_OPERATOR_BINARY(operator-, PyNumber_Subtract)
-PYBIND11_MATH_OPERATOR_BINARY(operator-=, PyNumber_InPlaceSubtract)
+PYBIND11_MATH_OPERATOR_BINARY_INPLACE(operator-=, PyNumber_InPlaceSubtract)
 PYBIND11_MATH_OPERATOR_BINARY(operator*, PyNumber_Multiply)
-PYBIND11_MATH_OPERATOR_BINARY(operator*=, PyNumber_InPlaceMultiply)
+PYBIND11_MATH_OPERATOR_BINARY_INPLACE(operator*=, PyNumber_InPlaceMultiply)
 PYBIND11_MATH_OPERATOR_BINARY(operator/, PyNumber_TrueDivide)
-PYBIND11_MATH_OPERATOR_BINARY(operator/=, PyNumber_InPlaceTrueDivide)
+PYBIND11_MATH_OPERATOR_BINARY_INPLACE(operator/=, PyNumber_InPlaceTrueDivide)
 PYBIND11_MATH_OPERATOR_BINARY(operator|, PyNumber_Or)
-PYBIND11_MATH_OPERATOR_BINARY(operator|=, PyNumber_InPlaceOr)
+PYBIND11_MATH_OPERATOR_BINARY_INPLACE(operator|=, PyNumber_InPlaceOr)
 PYBIND11_MATH_OPERATOR_BINARY(operator&, PyNumber_And)
-PYBIND11_MATH_OPERATOR_BINARY(operator&=, PyNumber_InPlaceAnd)
+PYBIND11_MATH_OPERATOR_BINARY_INPLACE(operator&=, PyNumber_InPlaceAnd)
 PYBIND11_MATH_OPERATOR_BINARY(operator^, PyNumber_Xor)
-PYBIND11_MATH_OPERATOR_BINARY(operator^=, PyNumber_InPlaceXor)
+PYBIND11_MATH_OPERATOR_BINARY_INPLACE(operator^=, PyNumber_InPlaceXor)
 PYBIND11_MATH_OPERATOR_BINARY(operator<<, PyNumber_Lshift)
-PYBIND11_MATH_OPERATOR_BINARY(operator<<=, PyNumber_InPlaceLshift)
+PYBIND11_MATH_OPERATOR_BINARY_INPLACE(operator<<=, PyNumber_InPlaceLshift)
 PYBIND11_MATH_OPERATOR_BINARY(operator>>, PyNumber_Rshift)
-PYBIND11_MATH_OPERATOR_BINARY(operator>>=, PyNumber_InPlaceRshift)
+PYBIND11_MATH_OPERATOR_BINARY_INPLACE(operator>>=, PyNumber_InPlaceRshift)
 
 #undef PYBIND11_MATH_OPERATOR_UNARY
 #undef PYBIND11_MATH_OPERATOR_BINARY
+#undef PYBIND11_MATH_OPERATOR_BINARY_INPLACE
 
 PYBIND11_NAMESPACE_END(detail)
 PYBIND11_NAMESPACE_END(PYBIND11_NAMESPACE)

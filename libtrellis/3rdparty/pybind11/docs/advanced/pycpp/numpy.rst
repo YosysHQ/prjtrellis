@@ -87,7 +87,7 @@ buffer objects (e.g. a NumPy matrix).
             /* Request a buffer descriptor from Python */
             py::buffer_info info = b.request();
 
-            /* Some sanity checks ... */
+            /* Some basic validation checks ... */
             if (info.format != py::format_descriptor<Scalar>::format())
                 throw std::runtime_error("Incompatible format: expected a double array!");
 
@@ -433,7 +433,7 @@ following:
             { 2, 4 },                                  // shape (rows, cols)
             { sizeof(uint8_t) * 4, sizeof(uint8_t) }   // strides in bytes
         );
-    })
+    });
 
 This approach is meant for providing a ``memoryview`` for a C/C++ buffer not
 managed by Python. The user is responsible for managing the lifetime of the
@@ -449,7 +449,7 @@ We can also use ``memoryview::from_memory`` for a simple 1D contiguous buffer:
             buffer,               // buffer pointer
             sizeof(uint8_t) * 8   // buffer size
         );
-    })
+    });
 
 .. versionchanged:: 2.6
     ``memoryview::from_memory`` added.
