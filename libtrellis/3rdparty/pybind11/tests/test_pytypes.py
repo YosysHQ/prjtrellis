@@ -1,11 +1,17 @@
 import contextlib
 import sys
+import types
 
 import pytest
 
 import env
-from pybind11_tests import debug_enabled
+from pybind11_tests import detailed_error_messages_enabled
 from pybind11_tests import pytypes as m
+
+
+def test_handle_from_move_only_type_with_operator_PyObject():  # noqa: N802
+    assert m.handle_from_move_only_type_with_operator_PyObject_ncnst()
+    assert m.handle_from_move_only_type_with_operator_PyObject_const()
 
 
 def test_bool(doc):
@@ -18,6 +24,22 @@ def test_int(doc):
 
 def test_iterator(doc):
     assert doc(m.get_iterator) == "get_iterator() -> Iterator"
+
+
+@pytest.mark.parametrize(
+    "pytype, from_iter_func",
+    [
+        (frozenset, m.get_frozenset_from_iterable),
+        (list, m.get_list_from_iterable),
+        (set, m.get_set_from_iterable),
+        (tuple, m.get_tuple_from_iterable),
+    ],
+)
+def test_from_iterable(pytype, from_iter_func):
+    my_iter = iter(range(10))
+    s = from_iter_func(my_iter)
+    assert type(s) == pytype
+    assert s == pytype(range(10))
 
 
 def test_iterable(doc):
@@ -66,11 +88,12 @@ def test_none(capture, doc):
 
 def test_set(capture, doc):
     s = m.get_set()
+    assert isinstance(s, set)
     assert s == {"key1", "key2", "key3"}
 
+    s.add("key4")
     with capture:
-        s.add("key4")
-        m.print_set(s)
+        m.print_anyset(s)
     assert (
         capture.unordered
         == """
@@ -81,12 +104,43 @@ def test_set(capture, doc):
     """
     )
 
-    assert not m.set_contains(set(), 42)
-    assert m.set_contains({42}, 42)
-    assert m.set_contains({"foo"}, "foo")
+    m.set_add(s, "key5")
+    assert m.anyset_size(s) == 5
 
-    assert doc(m.get_list) == "get_list() -> list"
-    assert doc(m.print_list) == "print_list(arg0: list) -> None"
+    m.set_clear(s)
+    assert m.anyset_empty(s)
+
+    assert not m.anyset_contains(set(), 42)
+    assert m.anyset_contains({42}, 42)
+    assert m.anyset_contains({"foo"}, "foo")
+
+    assert doc(m.get_set) == "get_set() -> set"
+    assert doc(m.print_anyset) == "print_anyset(arg0: anyset) -> None"
+
+
+def test_frozenset(capture, doc):
+    s = m.get_frozenset()
+    assert isinstance(s, frozenset)
+    assert s == frozenset({"key1", "key2", "key3"})
+
+    with capture:
+        m.print_anyset(s)
+    assert (
+        capture.unordered
+        == """
+        key: key1
+        key: key2
+        key: key3
+    """
+    )
+    assert m.anyset_size(s) == 3
+    assert not m.anyset_empty(s)
+
+    assert not m.anyset_contains(frozenset(), 42)
+    assert m.anyset_contains(frozenset({42}), 42)
+    assert m.anyset_contains(frozenset({"foo"}), "foo")
+
+    assert doc(m.get_frozenset) == "get_frozenset() -> frozenset"
 
 
 def test_dict(capture, doc):
@@ -196,6 +250,19 @@ def test_capsule(capture):
     )
 
     with capture:
+        a = m.return_renamed_capsule_with_destructor()
+        del a
+        pytest.gc_collect()
+    assert (
+        capture.unordered
+        == """
+        creating capsule
+        renaming capsule
+        destructing capsule
+    """
+    )
+
+    with capture:
         a = m.return_capsule_with_destructor_2()
         del a
         pytest.gc_collect()
@@ -203,6 +270,19 @@ def test_capsule(capture):
         capture.unordered
         == """
         creating capsule
+        destructing capsule: 1234
+    """
+    )
+
+    with capture:
+        a = m.return_renamed_capsule_with_destructor_2()
+        del a
+        pytest.gc_collect()
+    assert (
+        capture.unordered
+        == """
+        creating capsule
+        renaming capsule
         destructing capsule: 1234
     """
     )
@@ -259,6 +339,14 @@ def test_accessors():
     assert d["var"] == 99
 
 
+def test_accessor_moves():
+    inc_refs = m.accessor_moves()
+    if inc_refs:
+        assert inc_refs == [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
+    else:
+        pytest.skip("Not defined: PYBIND11_HANDLE_REF_DEBUG")
+
+
 def test_constructors():
     """C++ default and converting constructors are equivalent to type calls in Python"""
     types = [bytes, bytearray, str, bool, int, float, tuple, list, dict, set]
@@ -276,6 +364,7 @@ def test_constructors():
         list: range(3),
         dict: [("two", 2), ("one", 1), ("three", 3)],
         set: [4, 4, 5, 6, 6, 6],
+        frozenset: [4, 4, 5, 6, 6, 6],
         memoryview: b"abc",
     }
     inputs = {k.__name__: v for k, v in data.items()}
@@ -390,8 +479,8 @@ def test_print(capture):
         m.print_failure()
     assert str(excinfo.value) == "Unable to convert call argument " + (
         "'1' of type 'UnregisteredType' to Python object"
-        if debug_enabled
-        else "to Python object (compile in debug mode for details)"
+        if detailed_error_messages_enabled
+        else "to Python object (#define PYBIND11_DETAILED_ERROR_MESSAGES or compile in debug mode for details)"
     )
 
 
@@ -634,3 +723,107 @@ def test_implementation_details():
     assert m.tuple_item_set_ssize_t() == ("emely", "edmond")
     assert m.tuple_item_get_size_t(tup) == 93
     assert m.tuple_item_set_size_t() == ("candy", "cat")
+
+
+def test_external_float_():
+    r1 = m.square_float_(2.0)
+    assert r1 == 4.0
+
+
+def test_tuple_rvalue_getter():
+    pop = 1000
+    tup = tuple(range(pop))
+    m.tuple_rvalue_getter(tup)
+
+
+def test_list_rvalue_getter():
+    pop = 1000
+    my_list = list(range(pop))
+    m.list_rvalue_getter(my_list)
+
+
+def test_populate_dict_rvalue():
+    pop = 1000
+    my_dict = {i: i for i in range(pop)}
+    assert m.populate_dict_rvalue(pop) == my_dict
+
+
+def test_populate_obj_str_attrs():
+    pop = 1000
+    o = types.SimpleNamespace(**{str(i): i for i in range(pop)})
+    new_o = m.populate_obj_str_attrs(o, pop)
+    new_attrs = {k: v for k, v in new_o.__dict__.items() if not k.startswith("_")}
+    assert all(isinstance(v, str) for v in new_attrs.values())
+    assert len(new_attrs) == pop
+
+
+@pytest.mark.parametrize(
+    "a,b", [("foo", "bar"), (1, 2), (1.0, 2.0), (list(range(3)), list(range(3, 6)))]
+)
+def test_inplace_append(a, b):
+    expected = a + b
+    assert m.inplace_append(a, b) == expected
+
+
+@pytest.mark.parametrize("a,b", [(3, 2), (3.0, 2.0), (set(range(3)), set(range(2)))])
+def test_inplace_subtract(a, b):
+    expected = a - b
+    assert m.inplace_subtract(a, b) == expected
+
+
+@pytest.mark.parametrize("a,b", [(3, 2), (3.0, 2.0), ([1], 3)])
+def test_inplace_multiply(a, b):
+    expected = a * b
+    assert m.inplace_multiply(a, b) == expected
+
+
+@pytest.mark.parametrize("a,b", [(6, 3), (6.0, 3.0)])
+def test_inplace_divide(a, b):
+    expected = a / b
+    assert m.inplace_divide(a, b) == expected
+
+
+@pytest.mark.parametrize(
+    "a,b",
+    [
+        (False, True),
+        (
+            set(),
+            {
+                1,
+            },
+        ),
+    ],
+)
+def test_inplace_or(a, b):
+    expected = a | b
+    assert m.inplace_or(a, b) == expected
+
+
+@pytest.mark.parametrize(
+    "a,b",
+    [
+        (True, False),
+        (
+            {1, 2, 3},
+            {
+                1,
+            },
+        ),
+    ],
+)
+def test_inplace_and(a, b):
+    expected = a & b
+    assert m.inplace_and(a, b) == expected
+
+
+@pytest.mark.parametrize("a,b", [(8, 1), (-3, 2)])
+def test_inplace_lshift(a, b):
+    expected = a << b
+    assert m.inplace_lshift(a, b) == expected
+
+
+@pytest.mark.parametrize("a,b", [(8, 1), (-2, 2)])
+def test_inplace_rshift(a, b):
+    expected = a >> b
+    assert m.inplace_rshift(a, b) == expected

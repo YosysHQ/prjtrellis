@@ -20,7 +20,8 @@ public:
     std::string arg = "(default arg inspector 2)";
 };
 class ArgAlwaysConverts {};
-namespace pybind11 {
+
+namespace PYBIND11_NAMESPACE {
 namespace detail {
 template <>
 struct type_caster<ArgInspector1> {
@@ -73,7 +74,7 @@ public:
     }
 };
 } // namespace detail
-} // namespace pybind11
+} // namespace PYBIND11_NAMESPACE
 
 // test_custom_caster_destruction
 class DestructionTester {
@@ -91,7 +92,7 @@ public:
         return *this;
     }
 };
-namespace pybind11 {
+namespace PYBIND11_NAMESPACE {
 namespace detail {
 template <>
 struct type_caster<DestructionTester> {
@@ -103,7 +104,35 @@ struct type_caster<DestructionTester> {
     }
 };
 } // namespace detail
-} // namespace pybind11
+} // namespace PYBIND11_NAMESPACE
+
+// Define type caster outside of `pybind11::detail` and then alias it.
+namespace other_lib {
+struct MyType {};
+// Corrupt `py` shorthand alias for surrounding context.
+namespace py {}
+// Corrupt unqualified relative `pybind11` namespace.
+namespace PYBIND11_NAMESPACE {}
+// Correct alias.
+namespace py_ = ::pybind11;
+// Define caster. This is effectively no-op, we only ensure it compiles and we
+// don't have any symbol collision when using macro mixin.
+struct my_caster {
+    PYBIND11_TYPE_CASTER(MyType, py_::detail::const_name("MyType"));
+    bool load(py_::handle, bool) { return true; }
+
+    static py_::handle cast(const MyType &, py_::return_value_policy, py_::handle) {
+        return py_::bool_(true).release();
+    }
+};
+} // namespace other_lib
+// Effectively "alias" it into correct namespace (via inheritance).
+namespace PYBIND11_NAMESPACE {
+namespace detail {
+template <>
+struct type_caster<other_lib::MyType> : public other_lib::my_caster {};
+} // namespace detail
+} // namespace PYBIND11_NAMESPACE
 
 TEST_SUBMODULE(custom_type_casters, m) {
     // test_custom_type_casters
@@ -175,4 +204,6 @@ TEST_SUBMODULE(custom_type_casters, m) {
     m.def("destruction_tester_cstats",
           &ConstructorStats::get<DestructionTester>,
           py::return_value_policy::reference);
+
+    m.def("other_lib_type", [](other_lib::MyType x) { return x; });
 }

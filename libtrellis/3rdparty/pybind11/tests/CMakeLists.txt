@@ -215,6 +215,7 @@ tests_extra_targets("test_exceptions.py;test_local_bindings.py;test_stl.py;test_
                     "pybind11_cross_module_tests")
 
 # And add additional targets for other tests.
+tests_extra_targets("test_exceptions.py" "cross_module_interleaved_error_already_set")
 tests_extra_targets("test_gil_scoped.py" "cross_module_gil_utils")
 
 set(PYBIND11_EIGEN_REPO
@@ -351,7 +352,7 @@ endif()
 # Compile with compiler warnings turned on
 function(pybind11_enable_warnings target_name)
   if(MSVC)
-    target_compile_options(${target_name} PRIVATE /W4)
+    target_compile_options(${target_name} PRIVATE /W4 /wd4189)
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Intel|Clang)" AND NOT PYBIND11_CUDA_TESTS)
     target_compile_options(
       ${target_name}

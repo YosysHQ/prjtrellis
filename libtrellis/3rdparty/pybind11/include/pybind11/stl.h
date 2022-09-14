@@ -13,9 +13,9 @@
 #include "detail/common.h"
 
 #include <deque>
-#include <iostream>
 #include <list>
 #include <map>
+#include <ostream>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -45,7 +45,7 @@ using forwarded_type = conditional_t<std::is_lvalue_reference<T>::value,
 /// Forwards a value U as rvalue or lvalue according to whether T is rvalue or lvalue; typically
 /// used for forwarding a container's elements.
 template <typename T, typename U>
-forwarded_type<T, U> forward_like(U &&u) {
+constexpr forwarded_type<T, U> forward_like(U &&u) {
     return std::forward<detail::forwarded_type<T, U>>(std::forward<U>(u));
 }
 
@@ -55,10 +55,10 @@ struct set_caster {
     using key_conv = make_caster<Key>;
 
     bool load(handle src, bool convert) {
-        if (!isinstance<pybind11::set>(src)) {
+        if (!isinstance<anyset>(src)) {
             return false;
         }
-        auto s = reinterpret_borrow<pybind11::set>(src);
+        auto s = reinterpret_borrow<anyset>(src);
         value.clear();
         for (auto entry : s) {
             key_conv conv;
@@ -78,8 +78,8 @@ struct set_caster {
         pybind11::set s;
         for (auto &&value : src) {
             auto value_ = reinterpret_steal<object>(
-                key_conv::cast(forward_like<T>(value), policy, parent));
-            if (!value_ || !s.add(value_)) {
+                key_conv::cast(detail::forward_like<T>(value), policy, parent));
+            if (!value_ || !s.add(std::move(value_))) {
                 return handle();
             }
         }
@@ -122,13 +122,13 @@ struct map_caster {
         }
         for (auto &&kv : src) {
             auto key = reinterpret_steal<object>(
-                key_conv::cast(forward_like<T>(kv.first), policy_key, parent));
+                key_conv::cast(detail::forward_like<T>(kv.first), policy_key, parent));
             auto value = reinterpret_steal<object>(
-                value_conv::cast(forward_like<T>(kv.second), policy_value, parent));
+                value_conv::cast(detail::forward_like<T>(kv.second), policy_value, parent));
             if (!key || !value) {
                 return handle();
             }
-            d[key] = value;
+            d[std::move(key)] = std::move(value);
         }
         return d.release();
     }
@@ -178,7 +178,7 @@ public:
         ssize_t index = 0;
         for (auto &&value : src) {
             auto value_ = reinterpret_steal<object>(
-                value_conv::cast(forward_like<T>(value), policy, parent));
+                value_conv::cast(detail::forward_like<T>(value), policy, parent));
             if (!value_) {
                 return handle();
             }
@@ -242,7 +242,7 @@ public:
         ssize_t index = 0;
         for (auto &&value : src) {
             auto value_ = reinterpret_steal<object>(
-                value_conv::cast(forward_like<T>(value), policy, parent));
+                value_conv::cast(detail::forward_like<T>(value), policy, parent));
             if (!value_) {
                 return handle();
             }
@@ -372,7 +372,7 @@ struct variant_caster<V<Ts...>> {
     bool load_alternative(handle src, bool convert, type_list<U, Us...>) {
         auto caster = make_caster<U>();
         if (caster.load(src, convert)) {
-            value = cast_op<U>(caster);
+            value = cast_op<U>(std::move(caster));
             return true;
         }
         return load_alternative(src, convert, type_list<Us...>{});
@@ -406,6 +406,9 @@ struct variant_caster<V<Ts...>> {
 #if defined(PYBIND11_HAS_VARIANT)
 template <typename... Ts>
 struct type_caster<std::variant<Ts...>> : variant_caster<std::variant<Ts...>> {};
+
+template <>
+struct type_caster<std::monostate> : public void_caster<std::monostate> {};
 #endif
 
 PYBIND11_NAMESPACE_END(detail)
