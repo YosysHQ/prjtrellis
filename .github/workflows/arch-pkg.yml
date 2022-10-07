@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build Arch Linux package
-        uses: FFY00/build-arch-package@master
+        uses: FFY00/build-arch-package@v1
         with:
           PKGBUILD: $GITHUB_WORKSPACE/.github/archlinux/PKGBUILD
 
