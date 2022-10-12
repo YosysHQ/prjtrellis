@@ -30,7 +30,7 @@ module top(
     wire uart_rxd_strobe;
     wire [7:0] uart_rxd;
 
-    uart #(.DIVISOR(40)) uart_i(
+    uart #(.DIVISOR(12500)) uart_i(
 	.clk(clk),
 	.reset(reset),
 	// physical interface
