@@ -40,7 +40,14 @@ if $WINDOWS; then
 			;;
 	esac
 else
-	diamonddir="${DIAMONDDIR:-/usr/local/diamond/${diamondver}_x64}"
+	case $diamondver in
+		"3.12")
+			diamonddir="${DIAMONDDIR:-/usr/local/diamond/${diamondver}}"
+			;;
+		*)
+			diamonddir="${DIAMONDDIR:-/usr/local/diamond/${diamondver}_x64}"
+			;;
+	esac
 fi
 export FOUNDRY="${diamonddir}/ispfpga"
 
