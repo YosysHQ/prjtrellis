@@ -31,7 +31,14 @@ else
 fi
 
 if $WINDOWS; then
-	diamonddir="${DIAMONDDIR:-/c/lscc/diamond/${diamondver}_x64}"
+	case $diamondver in
+		"3.12")
+			diamonddir="${DIAMONDDIR:-/c/lscc/diamond/${diamondver}}"
+			;;
+		*)
+			diamonddir="${DIAMONDDIR:-/c/lscc/diamond/${diamondver}_x64}"
+			;;
+	esac
 else
 	diamonddir="${DIAMONDDIR:-/usr/local/diamond/${diamondver}_x64}"
 fi
