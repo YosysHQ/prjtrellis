@@ -18,7 +18,7 @@ if (MSVC)
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra -O3")
 endif()
-set(CMAKE_DEFIN)
+
 set(link_param "")
 if (STATIC_BUILD)
     set(Boost_USE_STATIC_LIBS ON)
@@ -34,18 +34,20 @@ else()
         set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
     endif()
 endif()
+
+find_package(Threads)
+
 if (WASI)
-    set(USE_THREADS OFF)
     add_definitions(
         -DBOOST_EXCEPTION_DISABLE
-        -DBOOST_NO_EXCEPTIONS
-        -DBOOST_NO_CXX11_HDR_MUTEX
-    )
-else()
-    set(USE_THREADS ON)
+        -DBOOST_NO_EXCEPTIONS)
+    if (NOT Threads_FOUND)
+        add_definitions(-DBOOST_NO_CXX11_HDR_MUTEX)
+    endif()
 endif()
+
 set(boost_libs filesystem program_options system)
-if (USE_THREADS)
+if (Threads_FOUND)
     list(APPEND boost_libs thread)
 else()
     add_definitions(-DNO_THREADS)
