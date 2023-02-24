@@ -187,6 +187,6 @@ def setup(app):
     MarkdownCodeSymlinks.find_links()
     app.add_config_value(
         'recommonmark_config', {
-            'github_code_repo': 'https://github.com/SymbiFlow/prjtrellis',
+            'github_code_repo': 'https://github.com/YosysHQ/prjtrellis',
         }, True)
     app.add_transform(MarkdownCodeSymlinks)

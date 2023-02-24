@@ -6,7 +6,7 @@ Welcome to Project Trellis
 development of open-source tools.  Our goal is to provide sufficient information
 to develop a free and open Verilog to bitstream toolchain for these devices.
 
-.. _Project Trellis: https://github.com/SymbiFlow/prjtrellis
+.. _Project Trellis: https://github.com/YosysHQ/prjtrellis
 .. _Lattice: http://www.latticesemi.com/
 
 .. toctree::
