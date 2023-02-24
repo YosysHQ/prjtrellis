@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Script to run Lattice Diamond on a Verilog source file and LPF constraints file, then run some extra commands
 # to create debug/dump output for the design

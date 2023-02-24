@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Script to start a Diamond ispTcl console
 if [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]; then
