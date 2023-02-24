@@ -27,6 +27,7 @@ cat > "${USER_ENV}" << EOT
 # Changes to this file will be automatically ignored by Git
 
 # export DIAMONDDIR=/usr/local/diamond/3.10_x64
+# export DIAMONDDIR="$(realpath "$(dirname "$(realpath "$(which diamond)")")"/../diamond)"  # suitable for NixOS
 EOT
 fi
 
