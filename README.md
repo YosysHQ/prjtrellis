@@ -74,7 +74,7 @@ this includes;
  * [libtrellis Documentation](http://prjtrellis.readthedocs.io/en/latest/libtrellis/overview.html)
 
 This follows the lead of
-[Project X-Ray](https://github.com/SymbiFlow/prjxray) - which is documenting
+[Project X-Ray](https://github.com/f4pga/prjxray) - which is documenting
 the bitstream format for the Xilinx Series 7 devices.
 
 ### Quickstart Guide
@@ -115,7 +115,7 @@ resulting bit streams are then cross correlated to discover what different bits
 do.
 
 This follows the same process as
-[Project X-Ray](https://github.com/SymbiFlow/prjxray) -
+[Project X-Ray](https://github.com/f4pga/prjxray) -
 [more documentation can be found here](https://prjxray.readthedocs.org).
 
 ### Parts
