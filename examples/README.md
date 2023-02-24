@@ -11,7 +11,7 @@ use with a development board that you cannot afford to lose!
 
 ## Prerequisites
 
-You must have [Yosys](https://github.com/YosysHQ/yosys), [nextpnr](https://github.com/YosysHQ/nextpnr) and [Trellis](https://github.com/SymbiFlow/prjtrellis)
+You must have [Yosys](https://github.com/YosysHQ/yosys), [nextpnr](https://github.com/YosysHQ/nextpnr) and [Trellis](https://github.com/YosysHQ/prjtrellis)
 installed **from the latest Git master** to use the flow. Refer to the READMEs of each project for more information on building and installing them.
 
 ## Included Projects
