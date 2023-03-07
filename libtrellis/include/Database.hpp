@@ -38,6 +38,9 @@ DeviceLocator find_device_by_name(string name);
 // Search the device list by ID
 DeviceLocator find_device_by_idcode(uint32_t idcode);
 
+// Search the device list by frames
+DeviceLocator find_device_by_frames(uint32_t frames);
+
 struct ChipInfo;
 
 // Obtain basic information about a device

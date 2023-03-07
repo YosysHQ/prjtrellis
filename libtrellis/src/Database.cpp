@@ -68,6 +68,16 @@ DeviceLocator find_device_by_idcode(uint32_t idcode) {
     return *found;
 }
 
+DeviceLocator find_device_by_frames(uint32_t frames) {
+    auto found = find_device_generic([frames](const string &n, const pt::ptree &p) -> bool {
+        UNUSED(n);
+        return parse_uint32(p.get<string>("frames")) == frames;
+    });
+    if (!found)
+        throw runtime_error("no device in database with frames " + uint32_to_hexstr(frames));
+    return *found;
+}
+
 ChipInfo get_chip_info(const DeviceLocator &part) {
     pt::ptree dev = devices_info.get_child("families").get_child(part.family).get_child("devices").get_child(
             part.device);

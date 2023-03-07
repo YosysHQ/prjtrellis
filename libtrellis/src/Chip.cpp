@@ -35,7 +35,7 @@ Chip::Chip(const Trellis::ChipInfo &info) : info(info), cram(info.num_frames, in
 
     if(info.family == "ECP5")
         global_data_ecp5 = get_global_info_ecp5(DeviceLocator{info.family, info.name});
-    else if(info.family == "MachXO2")
+    else if(info.family == "MachXO" || info.family == "MachXO2")
         global_data_machxo2 = get_global_info_machxo2(DeviceLocator{info.family, info.name});
     else
         throw runtime_error("Unknown chip family " + info.family);
@@ -117,7 +117,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph(bool include_lutperm_pips, bool
 {
     if(info.family == "ECP5") {
         return get_routing_graph_ecp5(include_lutperm_pips, split_slice_mode);
-    } else if(info.family == "MachXO2") {
+    } else if(info.family == "MachXO" || info.family == "MachXO2") {
         return get_routing_graph_machxo2();
     } else
       throw runtime_error("Unknown chip family: " + info.family);
