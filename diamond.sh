@@ -173,6 +173,28 @@ case "${PART}" in
 		DEVICE="LCMXO2-7000HC"
 		LSE_ARCH="MachXO2"
 		;;
+
+	LCMXO256C)
+		PACKAGE="${DEV_PACKAGE:-TQFP100}"
+		DEVICE="LCMXO256C"
+		LSE_ARCH="MachXO"
+		;;
+	LCMXO640C)
+		PACKAGE="${DEV_PACKAGE:-TQFP100}"
+		DEVICE="LCMXO640C"
+		LSE_ARCH="MachXO"
+		;;
+	LCMXO1200C)
+		PACKAGE="${DEV_PACKAGE:-TQFP100}"
+		DEVICE="LCMXO1200C"
+		LSE_ARCH="MachXO"
+		;;
+	LCMXO2280C)
+		PACKAGE="${DEV_PACKAGE:-TQFP100}"
+		DEVICE="LCMXO2280C"
+		LSE_ARCH="MachXO"
+		;;
+
 	LCMXO3LF-9400C)
 		PACKAGE="${DEV_PACKAGE:-CABGA256}"
 		DEVICE="LCMXO3LF-9400C"
@@ -269,7 +291,9 @@ EOT
 fi
 
 # Forcefully disable compression
-echo "SYSCONFIG COMPRESS_CONFIG=OFF ;" >> synth_impl.prf
+if [ "$LSE_ARCH" -ne "MachXO"]; then
+	echo "SYSCONFIG COMPRESS_CONFIG=OFF ;" >> synth_impl.prf
+fi
 
 # make bitmap
 "$fpgabindir"/bitgen -d par_impl.ncd $BITARGS output.bit synth_impl.prf
