@@ -26,6 +26,7 @@ struct ChipInfo
     int max_row;
     int max_col;
     // Trellis uses 0-based indexing, but some devices don't.
+    int row_bias;
     int col_bias;
 };
 

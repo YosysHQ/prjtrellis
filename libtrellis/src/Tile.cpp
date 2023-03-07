@@ -20,52 +20,78 @@ static const regex tile_b_re(R"([A-Za-z0-9_]*B(\d+))");
 static const regex tile_l_re(R"([A-Za-z0-9_]*L(\d+))");
 static const regex tile_r_re(R"([A-Za-z0-9_]*R(\d+))");
 
+static const regex tile_clk_dummy_re(R"(CLK_DUMMY(\d+))");
+static const regex tile_clk_dummy_b_re(R"(CLK_DUMMY_PICB)");
+static const regex tile_clk_dummy_t_re(R"(CLK_DUMMY_PICT)");
+
 // Given the zero-indexed max chip_size, return the zero-indexed
 // center. Mainly for MachXO2, it is based on the location of the entry
 // to global routing.
 // TODO: Make const.
 map<pair<int, int>, pair<int, int>> center_map = {
-    // 256HC
+    // LCMXO2-256HC
     {make_pair(7, 9), make_pair(3, 4)},
-    // 640HC
+    // LCMXO2-640HC
     {make_pair(8, 17), make_pair(3, 7)},
-    // 1200HC
+    // LCMXO2-1200HC
     {make_pair(12, 21), make_pair(6, 12)},
-    // 2000HC
+    // LCMXO2-2000HC
     {make_pair(15, 25), make_pair(8, 13)},
-    // 4000HC
+    // LCMXO2-4000HC
     {make_pair(22, 31), make_pair(11, 15)},
-    // 7000HC
-    {make_pair(26, 40), make_pair(13, 18)},
+    // LCMXO2-7000HC
+    {make_pair(27, 40), make_pair(14, 18)},
+
+    // LCMXO256
+    {make_pair(9, 5), make_pair(0, 2)},
+    // LCMXO640
+    {make_pair(11, 9), make_pair(0, 4)},
+    // LCMXO1200
+    {make_pair(16, 11), make_pair(0, 5)},
+    // LCMXO2280
+    {make_pair(20, 16), make_pair(0, 8)},
 };
 
 // Universal function to get a zero-indexed row/column pair.
-pair<int, int> get_row_col_pair_from_chipsize(string name, pair<int, int> chip_size, int bias) {
+pair<int, int> get_row_col_pair_from_chipsize(string name, pair<int, int> chip_size, int row_bias, int col_bias) {
     smatch m;
 
     // Special-cases... CENTER30 will match wrong regex. Only on 7000HC,
     // this position is a best-guess.
     if(name.find("CENTER30") != std::string::npos) {
         return make_pair(20, 29);
+    } else if(regex_search(name, m, tile_clk_dummy_t_re)) {
+        return make_pair(0, center_map[chip_size].second);
+    } else if(regex_search(name, m, tile_clk_dummy_b_re)) {
+        return make_pair(chip_size.first - row_bias, center_map[chip_size].second);
+    } else if(regex_search(name, m, tile_clk_dummy_re)) {
+        return make_pair(stoi(m.str(1)) - row_bias, center_map[chip_size].second);
+    } else if(name.find("CLK") == 0 && name.find("_2K") != std::string::npos) {
+        return make_pair(stoi(name.substr(7)) - row_bias, center_map[chip_size].second);
+    } else if(name.find("CLK") == 0) {
+        return make_pair(stoi(name.substr(4)) - row_bias, center_map[chip_size].second);
+    } else if(name.find("EBR") != std::string::npos && regex_search(name, m, tile_rxcx_re) && row_bias==1) {
+        // MachXO only - EBR_RxxC0 should be on position 1
+        return make_pair(stoi(m.str(1)) - row_bias, stoi(m.str(2)) - col_bias + 1);
     } else if(regex_search(name, m, tile_rxcx_re)) {
-        return make_pair(stoi(m.str(1)), stoi(m.str(2)) - bias);
+        return make_pair(stoi(m.str(1)) - row_bias, stoi(m.str(2)) - col_bias);
     } else if(regex_search(name, m, tile_centert_re)) {
         return make_pair(0, center_map[chip_size].second);
     } else if(regex_search(name, m, tile_centerb_re)) {
-        return make_pair(chip_size.first, center_map[chip_size].second);
+        return make_pair(chip_size.first - row_bias, center_map[chip_size].second);
     } else if(regex_search(name, m, tile_centerebr_re)) {
         // TODO: This may not apply to devices larger than 1200.
-        return make_pair(center_map[chip_size].first, stoi(m.str(1)) - bias);
+        return make_pair(center_map[chip_size].first - row_bias, stoi(m.str(1)) - col_bias);
     } else if(regex_search(name, m, tile_center_re)) {
-        return make_pair(stoi(m.str(1)), center_map[chip_size].second);
+        return make_pair(stoi(m.str(1)) - row_bias, center_map[chip_size].second);
     } else if(regex_search(name, m, tile_t_re)) {
-        return make_pair(0, stoi(m.str(1)) - bias);
+        return make_pair(0, stoi(m.str(1)) - col_bias);
     } else if(regex_search(name, m, tile_b_re)) {
-        return make_pair(chip_size.first, stoi(m.str(1)) - bias);
+        return make_pair(chip_size.first, stoi(m.str(1)) - col_bias);
     } else if(regex_search(name, m, tile_l_re)) {
-        return make_pair(stoi(m.str(1)), 0);
+        return make_pair(stoi(m.str(1)) - row_bias, 0);
     } else if(regex_search(name, m, tile_r_re)) {
-        return make_pair(stoi(m.str(1)), chip_size.second);
+        return make_pair(stoi(m.str(1)) - row_bias, chip_size.second);
     } else {
         throw runtime_error(fmt("Could not extract position from " << name));
     }

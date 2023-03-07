@@ -81,6 +81,7 @@ ChipInfo get_chip_info(const DeviceLocator &part) {
     ci.idcode = parse_uint32(dev.get<string>("idcode"));
     ci.max_row = dev.get<int>("max_row");
     ci.max_col = dev.get<int>("max_col");
+    ci.row_bias = dev.get<int>("row_bias");
     ci.col_bias = dev.get<int>("col_bias");
     return ci;
 }
@@ -219,6 +220,7 @@ vector<TileInfo> get_device_tilegrid(const DeviceLocator &part) {
             ti.device = part.device;
             ti.max_col = info.max_col;
             ti.max_row = info.max_row;
+            ti.row_bias = info.row_bias;
             ti.col_bias = info.col_bias;
 
             ti.name = tile.first;

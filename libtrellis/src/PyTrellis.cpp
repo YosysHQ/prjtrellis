@@ -95,6 +95,7 @@ PYBIND11_MODULE (pytrellis, m)
             .def_readonly("pad_bits_after_frame", &ChipInfo::pad_bits_after_frame)
             .def_readonly("max_row", &ChipInfo::max_row)
             .def_readonly("max_col", &ChipInfo::max_col)
+            .def_readonly("row_bias", &ChipInfo::row_bias)
             .def_readonly("col_bias", &ChipInfo::col_bias);
 
     py::bind_map<map<string, shared_ptr<Tile>>>(m, "TileMap");

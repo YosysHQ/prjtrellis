@@ -11,7 +11,8 @@ class Autorouter:
     def __init__(self, chip):
         self.chip = chip
         self.chip_size = (self.chip.get_max_row(), self.chip.get_max_col())
-        self.bias = self.chip.info.col_bias
+        self.row_bias = self.chip.info.row_bias
+        self.col_bias = self.chip.info.col_bias
         self.dh_arc_cache = {}
         self.net_to_wire = {}
         self.wire_to_net = {}
@@ -25,7 +26,7 @@ class Autorouter:
             drivers = []
             chip_size = (self.chip.get_max_row(), self.chip.get_max_col())
             try:
-                npos = tiles.pos_from_name(wire, chip_size, self.bias)
+                npos = tiles.pos_from_name(wire, chip_size, self.row_bias, self.col_bias)
             except AssertionError:
                 return []
             wname = wire.split("_", 1)[1]
@@ -43,7 +44,7 @@ class Autorouter:
                     tname = tinf.name
                     if tname.startswith("TAP"):
                         continue
-                    pos = tiles.pos_from_name(tname, chip_size, self.bias)
+                    pos = tiles.pos_from_name(tname, chip_size, self.row_bias, self.col_bias)
 
                     if abs(pos[0] - npos[0]) not in (vspan, 0) or abs(pos[1] - npos[1]) not in (hspan, 0):
                         continue
@@ -56,7 +57,7 @@ class Autorouter:
                         pytrellis.TileLocator(self.chip.info.family, self.chip.info.name, tinf.type))
                     downhill = tdb.get_downhill_wires(twire)
                     for sink in downhill:
-                        nn = nets.canonicalise_name(self.chip_size, tname, sink.first, self.bias)
+                        nn = nets.canonicalise_name(self.chip_size, tname, sink.first, self.row_bias, self.col_bias)
                         if nn is not None:
                             drivers.append((nn, sink.second, tname))
             self.dh_arc_cache[wire] = drivers
@@ -91,9 +92,9 @@ class Autorouter:
     def route_net_to_wire(self, net, wire, config):
         print("     Routing net '{}' to wire/pin '{}'...".format(net, wire))
         chip_size = (self.chip.get_max_row(), self.chip.get_max_col())
-        dest_pos = tiles.pos_from_name(wire, chip_size, self.bias)
+        dest_pos = tiles.pos_from_name(wire, chip_size, self.row_bias, self.col_bias)
         def get_score(x_wire):
-            pos = tiles.pos_from_name(x_wire, chip_size, self.bias)
+            pos = tiles.pos_from_name(x_wire, chip_size, self.row_bias, self.col_bias)
             score = abs(pos[0] - dest_pos[0]) + abs(pos[1] - dest_pos[1])
             x_wname = x_wire.split("_", 1)[1]
             if x_wname[1:3].isdigit() and score > 3:
