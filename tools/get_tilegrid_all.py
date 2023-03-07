@@ -26,7 +26,7 @@ def main():
                 output_file = path.join(database.get_db_subdir(family, device), "tilegrid.json")
                 if family in ["MachXO2"]:
                     extract_tilegrid.main(["extract_tilegrid", "-m", "work_tilegrid/wire.tmp/output.test", output_file])
-                else:
+                else: # ECP5 and MachXO
                     extract_tilegrid.main(["extract_tilegrid", "work_tilegrid/wire.tmp/output.test", output_file])
 
 

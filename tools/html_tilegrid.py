@@ -24,6 +24,8 @@ def get_colour(ttype):
         colour = "#88FFFF"
     elif ttype.startswith("CIB"):
         colour = "#FF8888"
+    elif ttype.startswith("FPLC"):
+        colour = "#8888FF"
     elif ttype.startswith("PLC"):
         colour = "#8888FF"
     elif ttype.startswith("DUMMY"):
