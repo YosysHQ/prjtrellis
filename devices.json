@@ -137,9 +137,8 @@
 
     "MachXO2" : {
         "devices" : {
-            "LCMXO2-256HC": {
+            "LCMXO2-256": {
                 "packages": ["QFN32", "QFN48", "UCBGA64", "TQFP100", "CSBGA132"],
-                "idcode": "0x012b8043",
                 "frames": 186,
                 "bits_per_frame": 504,
                 "pad_bits_after_frame": 0,
@@ -148,11 +147,20 @@
                 "max_col" : 9,
                 "row_bias" : 0,
                 "col_bias" : 1,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO2-256HC": {
+                        "idcode": "0x012b8043",
+                        "packages": ["QFN32", "QFN48", "UCBGA64", "TQFP100", "CSBGA132"]
+                    },
+                    "LCMXO2-256ZE": {
+                        "idcode": "0x012b0043",
+                        "packages": ["QFN32", "UCBGA64", "TQFP100", "CSBGA132"]
+                    }
+                }
             },
-            "LCMXO2-640HC": {
+            "LCMXO2-640": {
                 "packages": ["QFN48", "TQFP100", "CSBGA132"],
-                "idcode": "0x012b9043",
                 "frames": 215,
                 "bits_per_frame": 888,
                 "pad_bits_after_frame": 0,
@@ -161,11 +169,20 @@
                 "max_col" : 17,
                 "row_bias" : 0,
                 "col_bias" : 1,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO2-640HC": {
+                        "idcode": "0x012b9043",
+                        "packages": ["QFN48", "TQFP100", "CSBGA132"]
+                    },
+                    "LCMXO2-640ZE": {
+                        "idcode": "0x012b1043",
+                        "packages": ["TQFP100", "CSBGA132"]
+                    }
+                }
             },
-            "LCMXO2-1200HC": {
-                "packages": ["QFN32", "TQFP100", "CSBGA132", "TQFP144"],
-                "idcode": "0x012ba043",
+            "LCMXO2-1200": {
+                "packages": ["WLCSP25", "QFN32", "WLCSP36", "TQFP100", "CSBGA132", "TQFP144"],
                 "frames": 333,
                 "bits_per_frame": 1080,
                 "pad_bits_after_frame": 0,
@@ -174,11 +191,24 @@
                 "max_col" : 21,
                 "row_bias" : 0,
                 "col_bias" : 1,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO2-1200HC": {
+                        "idcode": "0x012ba043",
+                        "packages": ["QFN32", "TQFP100", "CSBGA132", "TQFP144"]
+                    },
+                    "LCMXO2-640UHC": {
+                        "idcode": "0x012ba043",
+                        "packages": ["TQFP144"]
+                    },
+                    "LCMXO2-1200ZE": {
+                        "idcode": "0x012b2043",
+                        "packages": ["WLCSP25", "QFN32", "WLCSP36", "TQFP100", "CSBGA132", "TQFP144"]
+                    }
+                }
             },
-            "LCMXO2-2000HC": {
-                "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ],
-                "idcode": "0x012bb043",
+            "LCMXO2-2000": {
+                "packages": ["WLCSP49", "TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256"],
                 "frames": 420,
                 "bits_per_frame": 1272,
                 "pad_bits_after_frame": 0,
@@ -187,11 +217,28 @@
                 "max_col" : 25,
                 "row_bias" : 0,
                 "col_bias" : 1,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO2-2000HC": {
+                        "idcode": "0x012bb043",
+                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ]
+                    },
+                    "LCMXO2-1200UHC": {
+                        "idcode": "0x012bb043",
+                        "packages": ["FTBGA256"]
+                    },
+                    "LCMXO2-2000HE": {
+                        "idcode": "0x012b3043",
+                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ]
+                    },
+                    "LCMXO2-2000ZE": {
+                        "idcode": "0x012b3043",
+                        "packages": ["WLCSP49", "TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256"]
+                    }
+                }
             },
-            "LCMXO2-4000HC": {
-                "packages": ["QFN84", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484"],
-                "idcode": "0x012bc043",
+            "LCMXO2-4000": {
+                "packages": ["WLCSP81", "QFN84", "CSBGA132", "TQFP144", "CSBGA184", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484"],
                 "frames": 623,
                 "bits_per_frame": 1560,
                 "pad_bits_after_frame": 0,
@@ -200,11 +247,32 @@
                 "max_col" : 31,
                 "row_bias" : 0,
                 "col_bias" : 1,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO2-4000HC": {
+                        "idcode": "0x012bc043",
+                        "packages": ["QFN84", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484"]
+                    },
+                    "LCMXO2-2000UHC": {
+                        "idcode": "0x012bc043",
+                        "packages": ["FPBGA484"]
+                    },
+                    "LCMXO2-4000HE": {
+                        "idcode": "0x012b4043",
+                        "packages": ["CSBGA132", "TQFP144", "CSBGA184", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484"]
+                    },
+                    "LCMXO2-2000UHE": {
+                        "idcode": "0x012b4043",
+                        "packages": ["FPBGA484"]
+                    },
+                    "LCMXO2-4000ZE": {
+                        "idcode": "0x012b4043",
+                        "packages": ["WLCSP81", "QFN84", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484"]
+                    }
+                }
             },
-            "LCMXO2-7000HC": {
+            "LCMXO2-7000": {
                 "packages": ["TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484" ],
-                "idcode": "0x012bd043",
                 "frames": 770,
                 "bits_per_frame": 1992,
                 "pad_bits_after_frame": 0,
@@ -213,16 +281,29 @@
                 "max_col" : 40,
                 "row_bias" : 0,
                 "col_bias" : 1,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO2-7000HC": {
+                        "idcode": "0x012bd043",
+                        "packages": ["TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484" ]
+                    },
+                    "LCMXO2-7000HE": {
+                        "idcode": "0x012b5043",
+                        "packages": ["TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484" ]
+                    },
+                    "LCMXO2-7000ZE": {
+                        "idcode": "0x012b5043",
+                        "packages": ["TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484" ]
+                    }
+                }
             }
         }
     },
 
     "MachXO" : {
         "devices" : {
-            "LCMXO256C": {
+            "LCMXO256": {
                 "packages": ["CSBGA100", "TQFP100"],
-                "idcode": "0x41800127",
                 "frames": 295,
                 "bits_per_frame": 192,
                 "pad_bits_after_frame": 0,
@@ -231,11 +312,20 @@
                 "max_col" : 5,
                 "row_bias" : 1,
                 "col_bias" : 1,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO256C": {
+                        "idcode": "0x01281043",
+                        "packages": ["CSBGA100", "TQFP100"]
+                    },
+                    "LCMXO256E": {
+                        "idcode": "0x01280043",
+                        "packages": ["CSBGA100", "TQFP100"]
+                    }
+                }
             },
-            "LCMXO640C": {
+            "LCMXO640": {
                 "packages": ["CSBGA100", "TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ],
-                "idcode": "0x41800227",
                 "frames": 551,
                 "bits_per_frame": 236,
                 "pad_bits_after_frame": 0,
@@ -244,11 +334,20 @@
                 "max_col" : 9,
                 "row_bias" : 1,
                 "col_bias" : 1,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO640C": {
+                        "idcode": "0x01285043",
+                        "packages": ["CSBGA100", "TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ]
+                    },
+                    "LCMXO640E": {
+                        "idcode": "0x01284043",
+                        "packages": ["CSBGA100", "TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ]
+                    }
+                }
             },
-            "LCMXO1200C": {
+            "LCMXO1200": {
                 "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ],
-                "idcode": "0x4180031C",
                 "frames": 796,
                 "bits_per_frame": 348,
                 "pad_bits_after_frame": 0,
@@ -257,11 +356,20 @@
                 "max_col" : 11,
                 "row_bias" : 1,
                 "col_bias" : 1,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO1200C": {
+                        "idcode": "0x01289043",
+                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ]
+                    },
+                    "LCMXO1200E": {
+                        "idcode": "0x01288043",
+                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ]
+                    }
+                }
             },
-            "LCMXO2280C": {
+            "LCMXO2280": {
                 "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256", "FTBGA324" ],
-                "idcode": "0x4180045C",
                 "frames": 1116,
                 "bits_per_frame": 436,
                 "pad_bits_after_frame": 0,
@@ -270,7 +378,17 @@
                 "max_col" : 16,
                 "row_bias" : 1,
                 "col_bias" : 1,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO2280C": {
+                        "idcode": "0x012d043",
+                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256", "FTBGA324" ]
+                    },
+                    "LCMXO2280E": {
+                        "idcode": "0x0128c043",
+                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256", "FTBGA324" ]
+                    }
+                }
             }
         }
     }
