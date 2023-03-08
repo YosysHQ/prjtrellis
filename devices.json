@@ -151,11 +151,15 @@
                 "variants": {
                     "LCMXO2-256HC": {
                         "idcode": "0x012b8043",
-                        "packages": ["QFN32", "QFN48", "UCBGA64", "TQFP100", "CSBGA132"]
+                        "packages": ["QFN32", "QFN48", "UCBGA64", "TQFP100", "CSBGA132"],
+                        "speeds": [ 4, 5, 6 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO2-256ZE": {
                         "idcode": "0x012b0043",
-                        "packages": ["QFN32", "UCBGA64", "TQFP100", "CSBGA132"]
+                        "packages": ["QFN32", "UCBGA64", "TQFP100", "CSBGA132"],
+                        "speeds": [ 1, 2, 3 ],
+                        "suffixes": [ "C", "I" ]
                     }
                 }
             },
@@ -173,11 +177,15 @@
                 "variants": {
                     "LCMXO2-640HC": {
                         "idcode": "0x012b9043",
-                        "packages": ["QFN48", "TQFP100", "CSBGA132"]
+                        "packages": ["QFN48", "TQFP100", "CSBGA132"],
+                        "speeds": [ 4, 5, 6 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO2-640ZE": {
                         "idcode": "0x012b1043",
-                        "packages": ["TQFP100", "CSBGA132"]
+                        "packages": ["TQFP100", "CSBGA132"],
+                        "speeds": [ 1, 2, 3 ],
+                        "suffixes": [ "C", "I" ]
                     }
                 }
             },
@@ -195,15 +203,21 @@
                 "variants": {
                     "LCMXO2-1200HC": {
                         "idcode": "0x012ba043",
-                        "packages": ["QFN32", "TQFP100", "CSBGA132", "TQFP144"]
+                        "packages": ["QFN32", "TQFP100", "CSBGA132", "TQFP144"],
+                        "speeds": [ 4, 5, 6 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO2-640UHC": {
                         "idcode": "0x012ba043",
-                        "packages": ["TQFP144"]
+                        "packages": ["TQFP144"],
+                        "speeds": [ 4, 5, 6 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO2-1200ZE": {
                         "idcode": "0x012b2043",
-                        "packages": ["WLCSP25", "QFN32", "WLCSP36", "TQFP100", "CSBGA132", "TQFP144"]
+                        "packages": ["WLCSP25", "QFN32", "WLCSP36", "TQFP100", "CSBGA132", "TQFP144"],
+                        "speeds": [ 1, 2, 3 ],
+                        "suffixes": [ "C", "I" ]
                     }
                 }
             },
@@ -221,19 +235,27 @@
                 "variants": {
                     "LCMXO2-2000HC": {
                         "idcode": "0x012bb043",
-                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ]
+                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ],
+                        "speeds": [ 4, 5, 6 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO2-1200UHC": {
                         "idcode": "0x012bb043",
-                        "packages": ["FTBGA256"]
+                        "packages": ["FTBGA256"],
+                        "speeds": [ 4, 5, 6 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO2-2000HE": {
                         "idcode": "0x012b3043",
-                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ]
+                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ],
+                        "speeds": [ 4, 5, 6 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO2-2000ZE": {
                         "idcode": "0x012b3043",
-                        "packages": ["WLCSP49", "TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256"]
+                        "packages": ["WLCSP49", "TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256"],
+                        "speeds": [ 1, 2, 3 ],
+                        "suffixes": [ "C", "I" ]
                     }
                 }
             },
@@ -251,23 +273,33 @@
                 "variants": {
                     "LCMXO2-4000HC": {
                         "idcode": "0x012bc043",
-                        "packages": ["QFN84", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484"]
+                        "packages": ["QFN84", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484"],
+                        "speeds": [ 4, 5, 6 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO2-2000UHC": {
                         "idcode": "0x012bc043",
-                        "packages": ["FPBGA484"]
+                        "packages": ["FPBGA484"],
+                        "speeds": [ 4, 5, 6 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO2-4000HE": {
                         "idcode": "0x012b4043",
-                        "packages": ["CSBGA132", "TQFP144", "CSBGA184", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484"]
+                        "packages": ["CSBGA132", "TQFP144", "CSBGA184", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484"],
+                        "speeds": [ 4, 5, 6 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO2-2000UHE": {
                         "idcode": "0x012b4043",
-                        "packages": ["FPBGA484"]
+                        "packages": ["FPBGA484"],
+                        "speeds": [ 4, 5, 6 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO2-4000ZE": {
                         "idcode": "0x012b4043",
-                        "packages": ["WLCSP81", "QFN84", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484"]
+                        "packages": ["WLCSP81", "QFN84", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484"],
+                        "speeds": [ 1, 2, 3 ],
+                        "suffixes": [ "C", "I" ]
                     }
                 }
             },
@@ -285,15 +317,21 @@
                 "variants": {
                     "LCMXO2-7000HC": {
                         "idcode": "0x012bd043",
-                        "packages": ["TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484" ]
+                        "packages": ["TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484" ],
+                        "speeds": [ 4, 5, 6 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO2-7000HE": {
                         "idcode": "0x012b5043",
-                        "packages": ["TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484" ]
+                        "packages": ["TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484" ],
+                        "speeds": [ 4, 5, 6 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO2-7000ZE": {
                         "idcode": "0x012b5043",
-                        "packages": ["TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484" ]
+                        "packages": ["TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484" ],
+                        "speeds": [ 1, 2, 3 ],
+                        "suffixes": [ "C", "I" ]
                     }
                 }
             }
@@ -316,11 +354,15 @@
                 "variants": {
                     "LCMXO256C": {
                         "idcode": "0x01281043",
-                        "packages": ["CSBGA100", "TQFP100"]
+                        "packages": ["CSBGA100", "TQFP100"],
+                        "speeds": [3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO256E": {
                         "idcode": "0x01280043",
-                        "packages": ["CSBGA100", "TQFP100"]
+                        "packages": ["CSBGA100", "TQFP100"],
+                        "speeds": [3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
                     }
                 }
             },
@@ -338,11 +380,15 @@
                 "variants": {
                     "LCMXO640C": {
                         "idcode": "0x01285043",
-                        "packages": ["CSBGA100", "TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ]
+                        "packages": ["CSBGA100", "TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ],
+                        "speeds": [3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO640E": {
                         "idcode": "0x01284043",
-                        "packages": ["CSBGA100", "TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ]
+                        "packages": ["CSBGA100", "TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ],
+                        "speeds": [3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
                     }
                 }
             },
@@ -360,11 +406,15 @@
                 "variants": {
                     "LCMXO1200C": {
                         "idcode": "0x01289043",
-                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ]
+                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ],
+                        "speeds": [3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO1200E": {
                         "idcode": "0x01288043",
-                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ]
+                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256" ],
+                        "speeds": [3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
                     }
                 }
             },
@@ -382,11 +432,15 @@
                 "variants": {
                     "LCMXO2280C": {
                         "idcode": "0x012d043",
-                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256", "FTBGA324" ]
+                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256", "FTBGA324" ],
+                        "speeds": [3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
                     },
                     "LCMXO2280E": {
                         "idcode": "0x0128c043",
-                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256", "FTBGA324" ]
+                        "packages": ["TQFP100", "CSBGA132", "TQFP144", "CABGA256", "FTBGA256", "FTBGA324" ],
+                        "speeds": [3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
                     }
                 }
             }
