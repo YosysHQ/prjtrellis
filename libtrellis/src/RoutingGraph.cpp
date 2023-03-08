@@ -53,7 +53,7 @@ RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), chip_family(
         assert(false);
 
     if(c.info.family == "MachXO" ||c.info.family == "MachXO2")
-        global_data_machxo2 = get_global_info_machxo2(DeviceLocator{c.info.family, c.info.name});
+        global_data_machxo2 = get_global_info_machxo2(DeviceLocator{c.info.family, c.info.name, c.info.variant});
 }
 
 ident_t IdStore::ident(const std::string &str) const

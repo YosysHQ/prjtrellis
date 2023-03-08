@@ -14,12 +14,15 @@ namespace Trellis {
 Chip::Chip(string name) : Chip(get_chip_info(find_device_by_name(name)))
 {}
 
+Chip::Chip(string name, string variant) : Chip(get_chip_info(find_device_by_name_and_variant(name, variant)))
+{}
+
 Chip::Chip(uint32_t idcode) : Chip(get_chip_info(find_device_by_idcode(idcode)))
 {}
 
 Chip::Chip(const Trellis::ChipInfo &info) : info(info), cram(info.num_frames, info.bits_per_frame)
 {
-    vector<TileInfo> allTiles = get_device_tilegrid(DeviceLocator{info.family, info.name});
+    vector<TileInfo> allTiles = get_device_tilegrid(DeviceLocator{info.family, info.name, info.variant});
     for (const auto &tile : allTiles) {
         tiles[tile.name] = make_shared<Tile>(tile, *this);
         int row, col;
@@ -34,9 +37,9 @@ Chip::Chip(const Trellis::ChipInfo &info) : info(info), cram(info.num_frames, in
     }
 
     if(info.family == "ECP5")
-        global_data_ecp5 = get_global_info_ecp5(DeviceLocator{info.family, info.name});
+        global_data_ecp5 = get_global_info_ecp5(DeviceLocator{info.family, info.name, info.variant});
     else if(info.family == "MachXO" || info.family == "MachXO2")
-        global_data_machxo2 = get_global_info_machxo2(DeviceLocator{info.family, info.name});
+        global_data_machxo2 = get_global_info_machxo2(DeviceLocator{info.family, info.name, info.variant});
     else
         throw runtime_error("Unknown chip family " + info.family);
 }

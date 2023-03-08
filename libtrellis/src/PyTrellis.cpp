@@ -76,7 +76,8 @@ PYBIND11_MODULE (pytrellis, m)
 
     class_<DeviceLocator>(m, "DeviceLocator")
             .def_readwrite("family", &DeviceLocator::family)
-            .def_readwrite("device", &DeviceLocator::device);
+            .def_readwrite("device", &DeviceLocator::device)
+            .def_readwrite("variant", &DeviceLocator::variant);
 
     class_<TileLocator>(m, "TileLocator")
             .def(init<string, string, string>())
@@ -88,6 +89,7 @@ PYBIND11_MODULE (pytrellis, m)
     class_<ChipInfo>(m, "ChipInfo")
             .def_readwrite("name", &ChipInfo::name)
             .def_readwrite("family", &ChipInfo::family)
+            .def_readwrite("variant", &ChipInfo::variant)
             .def_readwrite("idcode", &ChipInfo::idcode)
             .def_readonly("num_frames", &ChipInfo::num_frames)
             .def_readonly("bits_per_frame", &ChipInfo::bits_per_frame)
@@ -244,7 +246,9 @@ PYBIND11_MODULE (pytrellis, m)
     // From Database.cpp
     m.def("load_database", load_database);
     m.def("find_device_by_name", find_device_by_name);
+    m.def("find_device_by_name_and_variant", find_device_by_name_and_variant);
     m.def("find_device_by_idcode", find_device_by_idcode);
+    m.def("find_device_by_frames", find_device_by_frames);
     m.def("get_chip_info", get_chip_info);
     m.def("get_device_tilegrid", get_device_tilegrid);
     m.def("get_tile_bitdata", get_tile_bitdata);
@@ -382,6 +386,7 @@ PYBIND11_MODULE (pytrellis, m)
 
     class_<ChipConfig>(m, "ChipConfig")
             .def_readwrite("chip_name", &ChipConfig::chip_name)
+            .def_readwrite("chip_variant", &ChipConfig::chip_variant)
             .def_readwrite("metadata", &ChipConfig::metadata)
             .def_readwrite("tiles", &ChipConfig::tiles)
             .def_readwrite("tilegroups", &ChipConfig::tilegroups)

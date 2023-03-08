@@ -17,6 +17,7 @@ void load_database(string root);
 struct DeviceLocator {
     string family;
     string device;
+    string variant;
 };
 
 // Locator for a given tile type (formed of family, device and tile type)
@@ -34,6 +35,9 @@ inline bool operator==(const TileLocator &a, const TileLocator &b) {
 
 // Search the device list by part name
 DeviceLocator find_device_by_name(string name);
+
+// Search the device list by part name
+DeviceLocator find_device_by_name_and_variant(string name, string variant);
 
 // Search the device list by ID
 DeviceLocator find_device_by_idcode(uint32_t idcode);

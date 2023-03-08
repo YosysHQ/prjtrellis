@@ -12,6 +12,8 @@ string ChipConfig::to_string() const
 {
     stringstream ss;
     ss << ".device " << chip_name << endl << endl;
+    if (!chip_variant.empty())
+        ss << ".variant " << chip_variant << endl << endl;
     for (const auto &meta : metadata)
         ss << ".comment " << meta << endl;
     for (const auto &sc : sysconfig)
@@ -58,6 +60,8 @@ ChipConfig ChipConfig::from_string(const string &config)
         ss >> verb;
         if (verb == ".device") {
             ss >> cc.chip_name;
+        } else if (verb == ".variant") {
+            ss >> cc.chip_variant;
         } else if (verb == ".comment") {
             std::string line;
             ss.get(); //skip space
@@ -105,7 +109,7 @@ ChipConfig ChipConfig::from_string(const string &config)
 
 Chip ChipConfig::to_chip() const
 {
-    Chip c(chip_name);
+    Chip c(chip_name, chip_variant);
     c.metadata = metadata;
     c.bram_data = bram_data;
     set<string> processed_tiles;
@@ -147,6 +151,7 @@ ChipConfig ChipConfig::from_chip(const Chip &chip)
 {
     ChipConfig cc;
     cc.chip_name = chip.info.name;
+    cc.chip_variant = chip.info.variant;
     cc.metadata = chip.metadata;
     cc.bram_data = chip.bram_data;
     for (auto tile : chip.tiles) {
