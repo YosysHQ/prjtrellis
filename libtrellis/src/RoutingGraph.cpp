@@ -183,10 +183,12 @@ RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::strin
 
   if (stripped_name.find("G_") == 0 || stripped_name.find("L_") == 0 || stripped_name.find("R_") == 0 ||
       stripped_name.find("U_") == 0 || stripped_name.find("D_") == 0 || stripped_name.find("BRANCH_") == 0) {
-      // Global prefix detected, use the prefix and row/col to map "logical"
-      // globals on a tile basis to physical globals which are shared between
-      // tiles.
-      return find_machxo2_global_position(row, col, stripped_name);
+        // Global prefix detected, use the prefix and row/col to map "logical"
+        // globals on a tile basis to physical globals which are shared between
+        // tiles.
+        if (db_name.find("1200_") == 0) // For now only working for LCMXO2-1200
+            return find_machxo2_global_position(row, col, stripped_name);
+        return RoutingId();
   } else {
       RoutingId id;
       id.loc.x = int16_t(col);
