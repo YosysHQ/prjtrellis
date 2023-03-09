@@ -332,6 +332,12 @@
                         "packages": ["TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484" ],
                         "speeds": [ 1, 2, 3 ],
                         "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO2-4000UHC": {
+                        "idcode": "0x012bd043",
+                        "packages": ["TQFP144", "CABGA256", "FTBGA256", "CABGA332", "FPBGA484" ],
+                        "speeds": [ 4, 5, 6 ],
+                        "suffixes": [ "C", "I" ]
                     }
                 }
             }
