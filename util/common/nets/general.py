@@ -174,15 +174,10 @@ def normalise_name(chip_size, tile, wire, family):
             return ecp5.handle_family_net(tile, wire, prefix_pos, tile_pos, netname)
         row_bias = 0
         col_bias = 0
-    elif family == "MachXO2":
+    elif family.startswith("MachXO"):
         def handle_family_net(tile, wire, prefix_pos, tile_pos, netname):
             return machxo2.handle_family_net(tile, wire, prefix_pos, tile_pos, netname)
-        row_bias = 0
-        col_bias = 1
-    elif family == "MachXO":
-        def handle_family_net(tile, wire, prefix_pos, tile_pos, netname):
-            return machxo2.handle_family_net(tile, wire, prefix_pos, tile_pos, netname)
-        row_bias = 1
+        row_bias = 1 if family == "MachXO" else 0
         col_bias = 1
     else:
         raise ValueError("Unknown device family.")

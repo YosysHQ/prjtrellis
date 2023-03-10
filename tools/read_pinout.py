@@ -32,7 +32,7 @@ def main(args):
     max_row = chip.get_max_row()
     max_col = chip.get_max_col()
 
-    if chip.info.family in ["MachXO", "MachXO2"]:
+    if chip.info.family.startswith("MachXO"):
         # I/O Grouping is present in MachXO2 pinouts but not ECP5.
         pkg_index_start = 8
     else:
@@ -63,7 +63,7 @@ def main(args):
                 bank = int(splitline[2])
                 function = splitline[3]
                 dqs = splitline[6]
-                if chip.info.family in ["MachXO", "MachXO2"]:
+                if chip.info.family.startswith("MachXO"):
                     io_grouping = splitline[7]
                     metadata[bel] = bank, function, dqs, io_grouping
                 else:
@@ -78,7 +78,7 @@ def main(args):
         for pin, bel in pins.items():
             json_data["packages"][pkg][pin] = {"col": bel[0], "row": bel[1], "pio": bel[2]}
     for bel, data in sorted(metadata.items()):
-        if chip.info.family in ["MachXO", "MachXO2"]:
+        if chip.info.family.startswith("MachXO"):
             bank, function, dqs, io_grouping = data
         else:
             bank, function, dqs = data
@@ -93,7 +93,7 @@ def main(args):
         if dqs != "-" and len(dqs)>0:
             meta["dqs"] = dqs
 
-        if chip.info.family in ["MachXO", "MachXO2"]:
+        if chip.info.family.startswith("MachXO"):
             # Since "+" is used, "-" means "minus" presumably, as opposed to
             # "not applicable".
             meta["io_grouping"] = io_grouping
