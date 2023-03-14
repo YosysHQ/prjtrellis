@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 rm -rf database
 mkdir -p database
 echo '*' > database/.gitignore
