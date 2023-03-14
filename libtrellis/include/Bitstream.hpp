@@ -83,6 +83,8 @@ private:
 
     // Private constructor
     Bitstream(const vector<uint8_t> &data, const vector<string> &metadata);
+    // Serialization of MachXO bitstream
+    static Bitstream serialise_chip_machxo(const Chip &chip, const map<string, string> options);
 };
 
 // Represents an error that occurs while parsing the bitstream

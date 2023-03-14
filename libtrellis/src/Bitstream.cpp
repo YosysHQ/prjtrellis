@@ -789,6 +789,9 @@ Bitstream Bitstream::serialise_chip_py(const Chip &chip) {
 }
 
 Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> options) {
+    if (chip.info.family == "MachXO")
+        return serialise_chip_machxo(chip, options);
+
     BitstreamReadWriter wr;
 
     BitstreamOptions ops(chip);
@@ -798,65 +801,6 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
     // Padding
     wr.insert_dummy(ops.dummy_bytes_after_preamble);
 
-    if (chip.info.family == "MachXO") {
-        // Set control reg 0 to 0x00000000
-        wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_CNTRL0_2));
-        wr.insert_zeros(3);
-        wr.insert_zeros(4);
-        // Reset Address Frame - same code as VERIFY_ID
-        wr.write_byte(uint8_t(BitstreamCommand::VERIFY_ID));
-        wr.insert_zeros(3);
-        wr.reset_crc16();
-        // Write Increment Frame
-        wr.write_byte(uint8_t(BitstreamCommand::WRITE_INC_FRAME));
-        wr.write_byte(ops.crc_meta);
-        uint16_t frames = uint16_t(chip.info.num_frames);
-        wr.write_byte(uint8_t((frames >> 8) & 0xFF));
-        wr.write_byte(uint8_t(frames & 0xFF));
-        size_t bytes_per_frame = (chip.info.bits_per_frame + chip.info.pad_bits_after_frame +
-                                  chip.info.pad_bits_before_frame) / 8U;
-        unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
-        for (size_t i = 0; i < frames; i++) {
-            size_t idx = ops.reversed_frames? (chip.info.num_frames - 1) - i : i;
-            fill(frame_bytes.get(), frame_bytes.get() + bytes_per_frame, 0x00);
-            for (int j = 0; j < chip.info.bits_per_frame; j++) {
-                size_t ofs = j + chip.info.pad_bits_after_frame;
-                assert(((bytes_per_frame - 1) - (ofs / 8)) < bytes_per_frame);
-                frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] |=
-                        ((chip.cram.bit(idx, j) & 0x01) ^ 0x01) << (ofs % 8);
-            }
-            wr.write_bytes(frame_bytes.get(), bytes_per_frame);
-            if(ops.crc_after_each_frame) {
-                wr.insert_crc16();
-            }
-            for(size_t j = 0; j < ops.dummy_bytes_after_frame; j++) {
-                wr.write_byte(0xFF);
-            }
-        }
-        // End Fuse Data Frame
-        for(size_t j = 0; j < 20; j++) {
-            wr.write_byte(0xFF);
-        }
-        if(ops.crc_after_each_frame) {
-            wr.insert_crc16();
-        }
-        // Usercode Frame
-        wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_USERCODE_2));
-        wr.insert_zeros(3);
-        wr.write_uint32(chip.usercode);
-        // Program Security Frame
-        wr.insert_dummy(ops.security_sed_space);
-        // Program Done Frame
-        wr.reset_crc16();
-        wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_DONE_2));
-        wr.write_byte(0x80);
-        wr.insert_zeros(2);
-        wr.insert_crc16();
-        // End Frame
-        wr.insert_dummy(4);
-        return Bitstream(wr.get(), chip.metadata);
-    }
- 
     if (options.count("spimode")) {
         auto spimode = find_if(spi_modes.begin(), spi_modes.end(), [&](const pair<string, uint8_t> &fp){
             return fp.first == options.at("spimode");
@@ -1017,6 +961,74 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
     wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_DONE));
     wr.insert_zeros(3);
     // Trailing padding
+    wr.insert_dummy(4);
+    return Bitstream(wr.get(), chip.metadata);
+}
+
+Bitstream Bitstream::serialise_chip_machxo(const Chip &chip, const map<string, string> ) {
+    BitstreamReadWriter wr;
+
+    BitstreamOptions ops(chip);
+
+    // Preamble
+    wr.write_bytes(preamble.begin(), preamble.size());
+    // Padding
+    wr.insert_dummy(ops.dummy_bytes_after_preamble);
+
+    // Set control reg 0 to 0x00000000
+    wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_CNTRL0_2));
+    wr.insert_zeros(3);
+    wr.insert_zeros(4);
+    // Reset Address Frame - same code as VERIFY_ID
+    wr.write_byte(uint8_t(BitstreamCommand::VERIFY_ID));
+    wr.insert_zeros(3);
+    wr.reset_crc16();
+    // Write Increment Frame
+    wr.write_byte(uint8_t(BitstreamCommand::WRITE_INC_FRAME));
+    wr.write_byte(ops.crc_meta);
+    uint16_t frames = uint16_t(chip.info.num_frames);
+    wr.write_byte(uint8_t((frames >> 8) & 0xFF));
+    wr.write_byte(uint8_t(frames & 0xFF));
+    size_t bytes_per_frame = (chip.info.bits_per_frame + chip.info.pad_bits_after_frame +
+                                chip.info.pad_bits_before_frame) / 8U;
+    unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
+    for (size_t i = 0; i < frames; i++) {
+        size_t idx = ops.reversed_frames? (chip.info.num_frames - 1) - i : i;
+        fill(frame_bytes.get(), frame_bytes.get() + bytes_per_frame, 0x00);
+        for (int j = 0; j < chip.info.bits_per_frame; j++) {
+            size_t ofs = j + chip.info.pad_bits_after_frame;
+            assert(((bytes_per_frame - 1) - (ofs / 8)) < bytes_per_frame);
+            frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] |=
+                    ((chip.cram.bit(idx, j) & 0x01) ^ 0x01) << (ofs % 8);
+        }
+        wr.write_bytes(frame_bytes.get(), bytes_per_frame);
+        if(ops.crc_after_each_frame) {
+            wr.insert_crc16();
+        }
+        for(size_t j = 0; j < ops.dummy_bytes_after_frame; j++) {
+            wr.write_byte(0xFF);
+        }
+    }
+    // End Fuse Data Frame
+    for(size_t j = 0; j < 20; j++) {
+        wr.write_byte(0xFF);
+    }
+    if(ops.crc_after_each_frame) {
+        wr.insert_crc16();
+    }
+    // Usercode Frame
+    wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_USERCODE_2));
+    wr.insert_zeros(3);
+    wr.write_uint32(chip.usercode);
+    // Program Security Frame
+    wr.insert_dummy(ops.security_sed_space);
+    // Program Done Frame
+    wr.reset_crc16();
+    wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_DONE_2));
+    wr.write_byte(0x80);
+    wr.insert_zeros(2);
+    wr.insert_crc16();
+    // End Frame
     wr.insert_dummy(4);
     return Bitstream(wr.get(), chip.metadata);
 }
