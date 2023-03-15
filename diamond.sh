@@ -291,7 +291,7 @@ EOT
 fi
 
 # Forcefully disable compression
-if [ "$LSE_ARCH" -ne "MachXO"]; then
+if [ "$LSE_ARCH" != "MachXO" ]; then
 	echo "SYSCONFIG COMPRESS_CONFIG=OFF ;" >> synth_impl.prf
 fi
 
