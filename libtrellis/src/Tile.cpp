@@ -29,18 +29,18 @@ static const regex tile_clk_dummy_t_re(R"(CLK_DUMMY_PICT)");
 // to global routing.
 // TODO: Make const.
 map<pair<int, int>, pair<int, int>> center_map = {
-    // LCMXO2-256HC
+    // LCMXO2-256
     {make_pair(7, 9), make_pair(3, 4)},
-    // LCMXO2-640HC
+    // LCMXO2-640
     {make_pair(8, 17), make_pair(3, 7)},
-    // LCMXO2-1200HC
+    // LCMXO2-1200
     {make_pair(12, 21), make_pair(6, 12)},
-    // LCMXO2-2000HC
+    // LCMXO2-2000
     {make_pair(15, 25), make_pair(8, 13)},
-    // LCMXO2-4000HC
+    // LCMXO2-4000
     {make_pair(22, 31), make_pair(11, 15)},
-    // LCMXO2-7000HC
-    {make_pair(27, 40), make_pair(14, 18)},
+    // LCMXO2-7000
+    {make_pair(27, 40), make_pair(13, 18)},
 
     // LCMXO256
     {make_pair(9, 5), make_pair(0, 2)},
@@ -58,8 +58,8 @@ pair<int, int> get_row_col_pair_from_chipsize(string name, pair<int, int> chip_s
 
     // Special-cases... CENTER30 will match wrong regex. Only on 7000HC,
     // this position is a best-guess.
-    if(name.find("CENTER30") != std::string::npos) {
-        return make_pair(20, 29);
+    if((name.find("CENTER30") != std::string::npos) && (chip_size == make_pair(27, 40))) {
+        return make_pair(20, center_map[chip_size].second);
     } else if(regex_search(name, m, tile_clk_dummy_t_re)) {
         return make_pair(0, center_map[chip_size].second);
     } else if(regex_search(name, m, tile_clk_dummy_b_re)) {
@@ -80,8 +80,7 @@ pair<int, int> get_row_col_pair_from_chipsize(string name, pair<int, int> chip_s
     } else if(regex_search(name, m, tile_centerb_re)) {
         return make_pair(chip_size.first, center_map[chip_size].second);
     } else if(regex_search(name, m, tile_centerebr_re)) {
-        // TODO: This may not apply to devices larger than 1200.
-        return make_pair(center_map[chip_size].first - row_bias, stoi(m.str(1)) - col_bias);
+        return make_pair(center_map[chip_size].first, center_map[chip_size].second);
     } else if(regex_search(name, m, tile_center_re)) {
         return make_pair(stoi(m.str(1)) - row_bias, center_map[chip_size].second);
     } else if(regex_search(name, m, tile_t_re)) {
