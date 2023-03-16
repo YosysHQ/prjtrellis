@@ -237,6 +237,8 @@ PYBIND11_MODULE (pytrellis, m)
 
     class_<Tile, shared_ptr<Tile>>(m, "Tile")
             .def_readonly("info", &Tile::info)
+            .def_readonly("row", &Tile::row)
+            .def_readonly("col", &Tile::col)
             .def_readwrite("cram", &Tile::cram)
             .def_readwrite("known_bits", &Tile::known_bits)
             .def_readwrite("unknown_bits", &Tile::unknown_bits)

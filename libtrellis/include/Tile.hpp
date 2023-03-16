@@ -67,6 +67,8 @@ public:
     Tile(TileInfo info, Chip &parent);
     TileInfo info;
     CRAMView cram;
+    int row;
+    int col;
 
     // Dump the tile textual config as a string
     string dump_config() const;
