@@ -49,10 +49,26 @@ RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), chip_family(
         chip_prefix = "4000_";
     else if (chip_name.find("LCMXO2-7000") != string::npos)
         chip_prefix = "7000_";
+    // MachXO3
+    else if (chip_name.find("LCMXO3-1300") != string::npos)
+        chip_prefix = "1300_";
+    else if (chip_name.find("LCMXO3-2100") != string::npos)
+        chip_prefix = "2100_";
+    else if (chip_name.find("LCMXO3-4300") != string::npos)
+        chip_prefix = "4300_";
+    else if (chip_name.find("LCMXO3-6900") != string::npos)
+        chip_prefix = "6900_";
+    else if (chip_name.find("LCMXO3-9400") != string::npos)
+        chip_prefix = "9400_";
+    // MachXO3D
+    else if (chip_name.find("LCMXO3D-4300") != string::npos)
+        chip_prefix = "4300D_";
+    else if (chip_name.find("LCMXO3D-9400") != string::npos)
+        chip_prefix = "9400D_";
     else
         assert(false);
 
-    if(c.info.family == "MachXO2")
+    if(c.info.family == "MachXO2" || c.info.family == "MachXO3" || c.info.family == "MachXO3D")
         global_data_machxo2 = get_global_info_machxo2(DeviceLocator{c.info.family, c.info.name, c.info.variant});
 }
 
@@ -86,7 +102,7 @@ RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_na
         return globalise_net_ecp5(row, col, db_name);
     } else if(chip_family == "MachXO") {
         return RoutingId();
-    } else if(chip_family == "MachXO2") {
+    } else if(chip_family == "MachXO2" || chip_family == "MachXO3" || chip_family == "MachXO3D") {
         return globalise_net_machxo2(row, col, db_name);
     } else
         throw runtime_error("Unknown chip family: " + chip_family);
@@ -165,10 +181,19 @@ RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::strin
       }
   }
 
-  if (db_name.find("1200_") == 0 || db_name.find("2000_") == 0 ||
-      db_name.find("4000_") == 0 || db_name.find("7000_") == 0) {
+  if (db_name.find("1200_") == 0 || db_name.find("1300_") == 0 || db_name.find("2000_") == 0 ||
+      db_name.find("2100_") == 0 || db_name.find("4000_") == 0 || db_name.find("4300_") == 0 ||
+      db_name.find("6900_") == 0 || db_name.find("7000_") == 0 || db_name.find("9400_") == 0) {
       if (db_name.substr(0, 5) == chip_prefix) {
           stripped_name = db_name.substr(5);
+      } else {
+          return RoutingId();
+      }
+  }
+
+  if (db_name.find("4300D_") == 0 || db_name.find("9400D_") == 0) {
+      if (db_name.substr(0, 5) == chip_prefix) {
+          stripped_name = db_name.substr(6);
       } else {
           return RoutingId();
       }
