@@ -28,7 +28,7 @@ h_wire_regex = re.compile(r'H(\d{2})([EW])(\d{2})(\d{2})')
 v_wire_regex = re.compile(r'V(\d{2})([NS])(\d{2})(\d{2})')
 
 
-def handle_edge_name(chip_size, tile_pos, wire_pos, netname, bias):
+def handle_edge_name(chip_size, tile_pos, wire_pos, netname, row_bias, col_bias):
     """
     At the edges of the device, canonical wire names do not follow normal naming conventions, as they
     would mean the nominal position of the wire would be outside the bounds of the chip. Before we add routing to the
@@ -39,7 +39,8 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname, bias):
     tile_pos: tile position as tuple (r, c)
     wire_pos: wire nominal position as tuple (r, c)
     netname: wire name without position prefix
-    bias: If "1", use Lattice's 1-based column indexing
+    row_bias: If "1", use Lattice's 1-based row indexing
+    col_bias: If "1", use Lattice's 1-based column indexing
 
     Returns a tuple (netname, wire_pos)
     """
@@ -53,19 +54,19 @@ def handle_edge_name(chip_size, tile_pos, wire_pos, netname, bias):
                 assert hm.group(4) == "00"
                 return "H01{}{}01".format(hm.group(2), hm.group(3)), (wire_pos[0], wire_pos[1] + 1)
         elif hm.group(1) == "02":
-            if tile_pos[1] == (1 - bias):
+            if tile_pos[1] == (1 - col_bias):
                 # H02E0002 --> x-1, H02E0001
                 # H02W0000 --> x-1, H02W00001
-                if hm.group(2) == "E" and wire_pos[1] == (1 - bias) and hm.group(4) == "02":
+                if hm.group(2) == "E" and wire_pos[1] == (1 - col_bias) and hm.group(4) == "02":
                     return "H02E{}01".format(hm.group(3)), (wire_pos[0], wire_pos[1] - 1)
-                elif hm.group(2) == "W" and wire_pos[1] == (1 - bias) and hm.group(4) == "00":
+                elif hm.group(2) == "W" and wire_pos[1] == (1 - col_bias) and hm.group(4) == "00":
                     return "H02W{}01".format(hm.group(3)), (wire_pos[0], wire_pos[1] - 1)
-            elif tile_pos[1] == (chip_size[1] - (1 - bias)):
+            elif tile_pos[1] == (chip_size[1] - (1 - col_bias)):
                 # H02E0000 --> x+1, H02E0001
                 # H02W0002 --> x+1, H02W00001
-                if hm.group(2) == "E" and wire_pos[1] == (chip_size[1] - (1 - bias)) and hm.group(4) == "00":
+                if hm.group(2) == "E" and wire_pos[1] == (chip_size[1] - (1 - col_bias)) and hm.group(4) == "00":
                     return "H02E{}01".format(hm.group(3)), (wire_pos[0], wire_pos[1] + 1)
-                elif hm.group(2) == "W" and wire_pos[1] == (chip_size[1] - (1 - bias)) and hm.group(4) == "02":
+                elif hm.group(2) == "W" and wire_pos[1] == (chip_size[1] - (1 - col_bias)) and hm.group(4) == "02":
                     return "H02W{}01".format(hm.group(3)), (wire_pos[0], wire_pos[1] + 1)
         # Bias only affects columns... span-6s seem to work fine without
         # a correction.
@@ -171,25 +172,27 @@ def normalise_name(chip_size, tile, wire, family):
     if family == "ECP5":
         def handle_family_net(tile, wire, prefix_pos, tile_pos, netname):
             return ecp5.handle_family_net(tile, wire, prefix_pos, tile_pos, netname)
-        bias = 0
-    elif family == "MachXO2":
+        row_bias = 0
+        col_bias = 0
+    elif family.startswith("MachXO"):
         def handle_family_net(tile, wire, prefix_pos, tile_pos, netname):
             return machxo2.handle_family_net(tile, wire, prefix_pos, tile_pos, netname)
-        bias = 1
+        row_bias = 1 if family == "MachXO" else 0
+        col_bias = 1
     else:
         raise ValueError("Unknown device family.")
 
     upos = wire.index("_")
     prefix = wire[:upos]
-    prefix_pos = tiles.pos_from_name(prefix, chip_size, bias)
-    tile_pos = tiles.pos_from_name(tile, chip_size, bias)
+    prefix_pos = tiles.pos_from_name(prefix, chip_size, row_bias, col_bias)
+    tile_pos = tiles.pos_from_name(tile, chip_size, row_bias, col_bias)
     netname = wire[upos+1:]
 
     family_net = handle_family_net(tile, wire, prefix_pos, tile_pos, netname)
     if family_net:
         return family_net
 
-    netname, prefix_pos = handle_edge_name(chip_size, tile_pos, prefix_pos, netname, bias)
+    netname, prefix_pos = handle_edge_name(chip_size, tile_pos, prefix_pos, netname, row_bias, col_bias)
     if tile_pos == prefix_pos:
         return netname
     else:
@@ -207,7 +210,7 @@ def normalise_name(chip_size, tile, wire, family):
 
 rel_netname_re = re.compile(r'^([NS]\d+)?([EW]\d+)?_.*')
 
-def canonicalise_name(chip_size, tile, wire, bias):
+def canonicalise_name(chip_size, tile, wire, row_bias, col_bias):
     """
     Convert a normalised name in a given tile back to a canonical global name
     :param chip_size: chip size as tuple (max_row, max_col)
@@ -218,7 +221,7 @@ def canonicalise_name(chip_size, tile, wire, bias):
     if wire.startswith("G_"):
         return wire
     m = rel_netname_re.match(wire)
-    tile_pos = tiles.pos_from_name(tile, chip_size, bias)
+    tile_pos = tiles.pos_from_name(tile, chip_size, row_bias, col_bias)
     wire_pos = tile_pos
     if m:
         assert len(m.groups()) >= 1

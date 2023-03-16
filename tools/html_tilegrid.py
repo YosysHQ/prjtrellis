@@ -24,6 +24,8 @@ def get_colour(ttype):
         colour = "#88FFFF"
     elif ttype.startswith("CIB"):
         colour = "#FF8888"
+    elif ttype.startswith("FPLC"):
+        colour = "#8888FF"
     elif ttype.startswith("PLC"):
         colour = "#8888FF"
     elif ttype.startswith("DUMMY"):
@@ -46,7 +48,8 @@ def main(argv):
 
     max_row = device_info["max_row"]
     max_col = device_info["max_col"]
-    bias = device_info["col_bias"]
+    row_bias = device_info["row_bias"]
+    col_bias = device_info["col_bias"]
 
     tiles = []
     for i in range(max_row + 1):
@@ -57,7 +60,7 @@ def main(argv):
 
     for identifier, data in sorted(tilegrid.items()):
         name = identifier.split(":")[0]
-        row, col = tilelib.pos_from_name(name, (max_row, max_col), bias)
+        row, col = tilelib.pos_from_name(name, (max_row, max_col), row_bias, col_bias)
         colour = get_colour(data["type"])
         tiles[row][col].append((name, data["type"], colour))
 

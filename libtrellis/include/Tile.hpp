@@ -13,7 +13,7 @@
 namespace Trellis {
 
 extern map<pair<int, int>, pair<int, int>> center_map;
-pair<int, int> get_row_col_pair_from_chipsize(string name, pair<int, int> chip_size, int bias);
+pair<int, int> get_row_col_pair_from_chipsize(string name, pair<int, int> chip_size, int row_bias, int col_bias);
 
 // Basic information about a site
 struct SiteInfo {
@@ -32,6 +32,7 @@ struct TileInfo {
     string device;
     size_t max_col;
     size_t max_row;
+    int row_bias;
     int col_bias;
 
     string name;
@@ -44,7 +45,7 @@ struct TileInfo {
 
     inline pair<int, int> get_row_col() const {
         auto chip_size = make_pair(int(max_row), int(max_col));
-        auto row_col = get_row_col_pair_from_chipsize(name, chip_size, col_bias);
+        auto row_col = get_row_col_pair_from_chipsize(name, chip_size, row_bias, col_bias);
         assert(row_col <= chip_size);
         return row_col;
     };

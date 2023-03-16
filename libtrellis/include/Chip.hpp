@@ -17,6 +17,7 @@ struct ChipInfo
 {
     string name;
     string family;
+    string variant;
     uint32_t idcode;
     int num_frames;
     int bits_per_frame;
@@ -26,6 +27,7 @@ struct ChipInfo
     int max_row;
     int max_col;
     // Trellis uses 0-based indexing, but some devices don't.
+    int row_bias;
     int col_bias;
 };
 
@@ -137,6 +139,9 @@ class Chip
 public:
     // Construct a chip by looking up part name
     explicit Chip(string name);
+
+    // Construct a chip by looking up part name and variant
+    explicit Chip(string name, string variant);
 
     // Construct a chip by looking up device ID
     explicit Chip(uint32_t idcode);

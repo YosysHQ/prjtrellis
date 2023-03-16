@@ -31,12 +31,23 @@ void load_database(string root) {
 // Iterate through all family and device permutations
 // T should return true in case of a match
 template<typename T>
-boost::optional<DeviceLocator> find_device_generic(T f) {
+boost::optional<DeviceLocator> find_device_generic(T f, string fixed_device = "") {
     for (const pt::ptree::value_type &family : devices_info.get_child("families")) {
         for (const pt::ptree::value_type &dev : family.second.get_child("devices")) {
-            bool res = f(dev.first, dev.second);
-            if (res)
-                return boost::make_optional(DeviceLocator{family.first, dev.first});
+            if (fixed_device.empty()) {
+                bool res = f(dev.first, dev.second);
+                if (res)
+                    return boost::make_optional(DeviceLocator{family.first, dev.first, ""});
+            } else {
+                if (dev.first != fixed_device) 
+                    continue;
+            }
+            if (!dev.second.count("variants")) continue;
+            for (const pt::ptree::value_type &var : dev.second.get_child("variants")) {
+                bool res = f(var.first, var.second);
+                if (res)
+                    return boost::make_optional(DeviceLocator{family.first, dev.first, var.first});
+            }
         }
     }
     return boost::optional<DeviceLocator>();
@@ -52,6 +63,18 @@ DeviceLocator find_device_by_name(string name) {
     return *found;
 }
 
+DeviceLocator find_device_by_name_and_variant(string name, string variant) {
+    if (variant.empty())
+        return find_device_by_name(name);
+    auto found = find_device_generic([variant](const string &n, const pt::ptree &p) -> bool {
+        UNUSED(p);
+        return n == variant;
+    }, name);
+    if (!found)
+        throw runtime_error("no variant in database with name " + variant + " for device " + name);
+    return *found;
+}
+
 // Hex is not allowed in JSON, to avoid an ugly decimal integer use a string instead
 // But we need to parse this back to a uint32_t
 uint32_t parse_uint32(string str) {
@@ -61,10 +84,39 @@ uint32_t parse_uint32(string str) {
 DeviceLocator find_device_by_idcode(uint32_t idcode) {
     auto found = find_device_generic([idcode](const string &n, const pt::ptree &p) -> bool {
         UNUSED(n);
-        return parse_uint32(p.get<string>("idcode")) == idcode;
+        if (p.count("idcode")!=0) {
+            return parse_uint32(p.get<string>("idcode")) == idcode;
+        } else {
+            return false;
+        }
     });
     if (!found)
         throw runtime_error("no device in database with IDCODE " + uint32_to_hexstr(idcode));
+    return *found;
+}
+
+DeviceLocator find_device_by_frames(uint32_t frames) {
+    auto found = find_device_generic([frames](const string &n, const pt::ptree &p) -> bool {
+        UNUSED(n);
+        if (p.count("frames")!=0) {
+            return parse_uint32(p.get<string>("frames")) == frames;
+        } else {
+            return false;
+        }
+    });
+    if (!found) {
+        throw runtime_error("no device in database with frames " + uint32_to_hexstr(frames));
+    } else {
+        // When search by frames take first variant always
+        pt::ptree devs = devices_info.get_child("families").get_child((*found).family).get_child("devices").get_child(
+            (*found).device);
+        if (devs.count("variants")) {
+            for (const pt::ptree::value_type &var : devs.get_child("variants")) {
+                (*found).variant = var.first;
+                return *found;
+            }
+        }
+    }
     return *found;
 }
 
@@ -74,13 +126,27 @@ ChipInfo get_chip_info(const DeviceLocator &part) {
     ChipInfo ci;
     ci.family = part.family;
     ci.name = part.device;
+    ci.variant = part.variant;
     ci.num_frames = dev.get<int>("frames");
     ci.bits_per_frame = dev.get<int>("bits_per_frame");
     ci.pad_bits_after_frame = dev.get<int>("pad_bits_after_frame");
     ci.pad_bits_before_frame = dev.get<int>("pad_bits_before_frame");
-    ci.idcode = parse_uint32(dev.get<string>("idcode"));
+    if (part.variant.empty()) {
+        if (dev.count("idcode")!=0) {
+            ci.idcode = parse_uint32(dev.get<string>("idcode"));
+        } else {
+            // When taking data for data with multiple variants
+            // we do not care about idcode
+            ci.idcode = 0xffffffff;
+        }
+    } else {
+        pt::ptree var = devices_info.get_child("families").get_child(part.family).get_child("devices").get_child(
+            part.device).get_child("variants").get_child(part.variant);
+        ci.idcode = parse_uint32(var.get<string>("idcode"));
+    }
     ci.max_row = dev.get<int>("max_row");
     ci.max_col = dev.get<int>("max_col");
+    ci.row_bias = dev.get<int>("row_bias");
     ci.col_bias = dev.get<int>("col_bias");
     return ci;
 }
@@ -219,6 +285,7 @@ vector<TileInfo> get_device_tilegrid(const DeviceLocator &part) {
             ti.device = part.device;
             ti.max_col = info.max_col;
             ti.max_row = info.max_row;
+            ti.row_bias = info.row_bias;
             ti.col_bias = info.col_bias;
 
             ti.name = tile.first;

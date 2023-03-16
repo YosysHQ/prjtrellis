@@ -30,6 +30,10 @@ enum class BitstreamCommand : uint8_t {
     LSC_EBR_ADDRESS = 0b11110110,
     LSC_EBR_WRITE = 0b10110010,
     ISC_PROGRAM_DONE = 0b01011110,
+    LSC_PROG_CNTRL0_2 = 0b11000100,
+    ISC_PROGRAM_USERCODE_2 = 0b11000011,
+    ISC_PROGRAM_DONE_2 = 0b01111010,
+    WRITE_INC_FRAME = 0b01000001,
     DUMMY = 0b11111111,
 };
 
@@ -79,6 +83,8 @@ private:
 
     // Private constructor
     Bitstream(const vector<uint8_t> &data, const vector<string> &metadata);
+    // Serialization of MachXO bitstream
+    static Bitstream serialise_chip_machxo(const Chip &chip, const map<string, string> options);
 };
 
 // Represents an error that occurs while parsing the bitstream

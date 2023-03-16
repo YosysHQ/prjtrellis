@@ -19,14 +19,14 @@ def is_denorm(wire):
 
 
 def get_distance(a, b):
-    ra, ca = tiles.pos_from_name(a, (126, 95), 0)
-    rb, cb = tiles.pos_from_name(b, (126, 95), 0)
+    ra, ca = tiles.pos_from_name(a, (126, 95), 0, 0)
+    rb, cb = tiles.pos_from_name(b, (126, 95), 0, 0)
     return abs(ra-rb) + abs(ca-cb)
 
 
 def format_rel(a, b):
-    ra, ca = tiles.pos_from_name(a, (126, 95), 0)
-    rb, cb = tiles.pos_from_name(b, (126, 95), 0)
+    ra, ca = tiles.pos_from_name(a, (126, 95), 0, 0)
+    rb, cb = tiles.pos_from_name(b, (126, 95), 0, 0)
     rel = ""
     if rb < ra:
         rel += "n{}".format(ra-rb)

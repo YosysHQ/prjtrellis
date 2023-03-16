@@ -20,20 +20,40 @@ RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), chip_family(
             tiles[loc].loc = loc;
         }
     }
+    // ECP5
     if (chip_name.find("25F") != string::npos || chip_name.find("12F") != string::npos)
         chip_prefix = "25K_";
     else if (chip_name.find("45F") != string::npos)
         chip_prefix = "45K_";
     else if (chip_name.find("85F") != string::npos)
         chip_prefix = "85K_";
-    else if (chip_name.find("1200HC") != string::npos)
-        // FIXME: Prefix to distinguish XO, XO2, and XO3?
+    // MachXO
+    else if (chip_name.find("LCMXO256") != string::npos)
+        chip_prefix = "256X_";
+    else if (chip_name.find("LCMXO640") != string::npos)
+        chip_prefix = "640X_";
+    else if (chip_name.find("LCMXO1200") != string::npos)
+        chip_prefix = "1200X_";
+    else if (chip_name.find("LCMXO2280") != string::npos)
+        chip_prefix = "2280X_";
+    // MachXO2
+    else if (chip_name.find("LCMXO2-256") != string::npos)
+        chip_prefix = "256_";
+    else if (chip_name.find("LCMXO2-640") != string::npos)
+        chip_prefix = "640_";
+    else if (chip_name.find("LCMXO2-1200") != string::npos)
         chip_prefix = "1200_";
+    else if (chip_name.find("LCMXO2-2000") != string::npos)
+        chip_prefix = "2000_";
+    else if (chip_name.find("LCMXO2-4000") != string::npos)
+        chip_prefix = "4000_";
+    else if (chip_name.find("LCMXO2-7000") != string::npos)
+        chip_prefix = "7000_";
     else
         assert(false);
 
-    if(c.info.family == "MachXO2")
-        global_data_machxo2 = get_global_info_machxo2(DeviceLocator{c.info.family, c.info.name});
+    if(c.info.family == "MachXO" ||c.info.family == "MachXO2")
+        global_data_machxo2 = get_global_info_machxo2(DeviceLocator{c.info.family, c.info.name, c.info.variant});
 }
 
 ident_t IdStore::ident(const std::string &str) const
@@ -64,7 +84,7 @@ RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_na
 {
     if(chip_family == "ECP5") {
         return globalise_net_ecp5(row, col, db_name);
-    } else if(chip_family == "MachXO2") {
+    } else if(chip_family == "MachXO" || chip_family == "MachXO2") {
         return globalise_net_machxo2(row, col, db_name);
     } else
         throw runtime_error("Unknown chip family: " + chip_family);
@@ -144,7 +164,8 @@ RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::strin
   }
 
   if (db_name.find("1200_") == 0 || db_name.find("2000_") == 0 ||
-      db_name.find("4000_") == 0 || db_name.find("7000_") == 0) {
+      db_name.find("4000_") == 0 || db_name.find("7000_") == 0 ||
+      db_name.find("256X_") == 0 || db_name.find("640X_") == 0) {
       if (db_name.substr(0, 5) == chip_prefix) {
           stripped_name = db_name.substr(5);
       } else {
@@ -152,12 +173,22 @@ RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::strin
       }
   }
 
+  if (db_name.find("1200X_") == 0 || db_name.find("2280X_") == 0) {
+      if (db_name.substr(0, 5) == chip_prefix) {
+          stripped_name = db_name.substr(6);
+      } else {
+          return RoutingId();
+      }
+  }
+
   if (stripped_name.find("G_") == 0 || stripped_name.find("L_") == 0 || stripped_name.find("R_") == 0 ||
       stripped_name.find("U_") == 0 || stripped_name.find("D_") == 0 || stripped_name.find("BRANCH_") == 0) {
-      // Global prefix detected, use the prefix and row/col to map "logical"
-      // globals on a tile basis to physical globals which are shared between
-      // tiles.
-      return find_machxo2_global_position(row, col, stripped_name);
+        // Global prefix detected, use the prefix and row/col to map "logical"
+        // globals on a tile basis to physical globals which are shared between
+        // tiles.
+        if (chip_prefix == "1200_") // For now only working for LCMXO2-1200
+            return find_machxo2_global_position(row, col, stripped_name);
+        return RoutingId();
   } else {
       RoutingId id;
       id.loc.x = int16_t(col);

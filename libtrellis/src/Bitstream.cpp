@@ -1,4 +1,5 @@
 #include "Bitstream.hpp"
+#include "Database.hpp"
 #include "Chip.hpp"
 #include "Util.hpp"
 #include <sstream>
@@ -57,6 +58,13 @@ public:
           crc_after_each_frame = true;
           dummy_bytes_after_frame = 1;
           security_sed_space = 12;
+      } else if (chip.info.family == "MachXO") {
+          reversed_frames = false;
+          dummy_bytes_after_preamble = 8;
+          crc_meta = 0x80;
+          crc_after_each_frame = true;
+          dummy_bytes_after_frame = 4;
+          security_sed_space = 4;
       } else
           throw runtime_error("Unknown chip family: " + chip.info.family);
     };
@@ -489,6 +497,8 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
 
     uint16_t current_ebr = 0;
     int addr_in_ebr = 0;
+    bool no_id_mode = false;
+    uint32_t cfg0 = 0;
 
     while (!rd.is_end()) {
         BitstreamCommand cmd = rd.get_command_opcode();
@@ -500,6 +510,10 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                 break;
             case BitstreamCommand::VERIFY_ID: {
                 rd.skip_bytes(3);
+                if (no_id_mode) { // Reset Address Frame
+                    rd.reset_crc16();
+                    break;
+                }
                 uint32_t id = rd.get_uint32();
                 if (idcode) {
                     BITSTREAM_NOTE("Overriding device ID from 0x" << hex << setw(8) << setfill('0') << id << " to 0x" << *idcode);
@@ -511,6 +525,14 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                 chip->metadata = metadata;
             }
                 break;
+            case BitstreamCommand::LSC_PROG_CNTRL0_2: {
+                no_id_mode = true;
+                rd.skip_bytes(3);
+                cfg0 = rd.get_uint32();
+                BITSTREAM_DEBUG("set control reg 0 to 0x" << hex << setw(8) << setfill('0') << cfg0);
+            }
+                break;
+                
             case BitstreamCommand::LSC_PROG_CNTRL0: {
                 rd.skip_bytes(3);
                 uint32_t cfg = rd.get_uint32();
@@ -518,22 +540,30 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                 BITSTREAM_DEBUG("set control reg 0 to 0x" << hex << setw(8) << setfill('0') << cfg);
             }
                 break;
-            case BitstreamCommand::ISC_PROGRAM_DONE:
-                rd.skip_bytes(3);
+            case BitstreamCommand::ISC_PROGRAM_DONE_2:
+            case BitstreamCommand::ISC_PROGRAM_DONE: {
+                bool check_crc = (rd.get_byte() & 0x80) != 0;
+                rd.skip_bytes(2);
                 BITSTREAM_NOTE("program DONE");
+                if (check_crc)
+                    rd.check_crc16();
+            }
                 break;
             case BitstreamCommand::ISC_PROGRAM_SECURITY:
                 rd.skip_bytes(3);
                 BITSTREAM_NOTE("program SECURITY");
                 break;
+            case BitstreamCommand::ISC_PROGRAM_USERCODE_2:
             case BitstreamCommand::ISC_PROGRAM_USERCODE: {
                 bool check_crc = (rd.get_byte() & 0x80) != 0;
                 rd.skip_bytes(2);
                 uint32_t uc = rd.get_uint32();
                 BITSTREAM_NOTE("set USERCODE to 0x" << hex << setw(8) << setfill('0') << uc);
                 chip->usercode = uc;
-                if (check_crc)
+                if (check_crc) {
                     rd.check_crc16();
+                }
+                rd.reset_crc16();
             }
                 break;
             case BitstreamCommand::LSC_WRITE_COMP_DIC: {
@@ -613,6 +643,42 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                       rd.check_crc16();
                     rd.skip_bytes(dummy_bytes);
                 }
+            }
+                break;
+            case BitstreamCommand::WRITE_INC_FRAME:{
+                uint8_t params[3];
+                rd.get_bytes(params, 3);
+                BITSTREAM_DEBUG("settings: " << hex << setw(2) << int(params[0]) << " " << int(params[1]) << " "
+                                            << int(params[2]));
+                bool check_crc = params[0] & 0x80U;
+                // inverted value: a 0 means check after every frame
+                bool crc_after_each_frame = check_crc && !(params[0] & 0x40U);
+                size_t dummy_bytes = 4;
+                size_t frame_count = (params[1] << 8U) | params[2];
+                chip = boost::make_optional(Chip(get_chip_info(find_device_by_frames(frame_count))));
+                chip->metadata = metadata;
+                chip->ctrl0 = cfg0;
+                BitstreamOptions ops(chip.get());
+                BITSTREAM_NOTE("reading " << std::dec << frame_count << " config frames (with " << std::dec << dummy_bytes << " dummy bytes)");
+                size_t bytes_per_frame = (chip->info.bits_per_frame + chip->info.pad_bits_after_frame +
+                                        chip->info.pad_bits_before_frame) / 8U;
+                unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
+                for (size_t i = 0; i < frame_count; i++) {
+                    size_t idx = ops.reversed_frames ? (chip->info.num_frames - 1) - i : i;
+                    rd.get_bytes(frame_bytes.get(), bytes_per_frame);
+
+                    for (int j = 0; j < chip->info.bits_per_frame; j++) {
+                        size_t ofs = j + chip->info.pad_bits_after_frame;
+                        chip->cram.bit(idx, j) = (char)
+                            ((frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] >> (ofs % 8)) & 0x01) ^ 1; // inverted data
+                    }
+                    if (crc_after_each_frame || (check_crc && (i == frame_count-1)))
+                        rd.check_crc16();
+                    rd.skip_bytes(dummy_bytes);
+                }
+                // End Fuse Data Frame
+                rd.skip_bytes(20);
+                rd.check_crc16();
             }
                 break;
             case BitstreamCommand::LSC_EBR_ADDRESS: {
@@ -723,6 +789,9 @@ Bitstream Bitstream::serialise_chip_py(const Chip &chip) {
 }
 
 Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> options) {
+    if (chip.info.family == "MachXO")
+        return serialise_chip_machxo(chip, options);
+
     BitstreamReadWriter wr;
 
     BitstreamOptions ops(chip);
@@ -892,6 +961,74 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
     wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_DONE));
     wr.insert_zeros(3);
     // Trailing padding
+    wr.insert_dummy(4);
+    return Bitstream(wr.get(), chip.metadata);
+}
+
+Bitstream Bitstream::serialise_chip_machxo(const Chip &chip, const map<string, string> ) {
+    BitstreamReadWriter wr;
+
+    BitstreamOptions ops(chip);
+
+    // Preamble
+    wr.write_bytes(preamble.begin(), preamble.size());
+    // Padding
+    wr.insert_dummy(ops.dummy_bytes_after_preamble);
+
+    // Set control reg 0 to 0x00000000
+    wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_CNTRL0_2));
+    wr.insert_zeros(3);
+    wr.insert_zeros(4);
+    // Reset Address Frame - same code as VERIFY_ID
+    wr.write_byte(uint8_t(BitstreamCommand::VERIFY_ID));
+    wr.insert_zeros(3);
+    wr.reset_crc16();
+    // Write Increment Frame
+    wr.write_byte(uint8_t(BitstreamCommand::WRITE_INC_FRAME));
+    wr.write_byte(ops.crc_meta);
+    uint16_t frames = uint16_t(chip.info.num_frames);
+    wr.write_byte(uint8_t((frames >> 8) & 0xFF));
+    wr.write_byte(uint8_t(frames & 0xFF));
+    size_t bytes_per_frame = (chip.info.bits_per_frame + chip.info.pad_bits_after_frame +
+                                chip.info.pad_bits_before_frame) / 8U;
+    unique_ptr<uint8_t[]> frame_bytes = make_unique<uint8_t[]>(bytes_per_frame);
+    for (size_t i = 0; i < frames; i++) {
+        size_t idx = ops.reversed_frames? (chip.info.num_frames - 1) - i : i;
+        fill(frame_bytes.get(), frame_bytes.get() + bytes_per_frame, 0x00);
+        for (int j = 0; j < chip.info.bits_per_frame; j++) {
+            size_t ofs = j + chip.info.pad_bits_after_frame;
+            assert(((bytes_per_frame - 1) - (ofs / 8)) < bytes_per_frame);
+            frame_bytes[(bytes_per_frame - 1) - (ofs / 8)] |=
+                    ((chip.cram.bit(idx, j) & 0x01) ^ 0x01) << (ofs % 8);
+        }
+        wr.write_bytes(frame_bytes.get(), bytes_per_frame);
+        if(ops.crc_after_each_frame) {
+            wr.insert_crc16();
+        }
+        for(size_t j = 0; j < ops.dummy_bytes_after_frame; j++) {
+            wr.write_byte(0xFF);
+        }
+    }
+    // End Fuse Data Frame
+    for(size_t j = 0; j < 20; j++) {
+        wr.write_byte(0xFF);
+    }
+    if(ops.crc_after_each_frame) {
+        wr.insert_crc16();
+    }
+    // Usercode Frame
+    wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_USERCODE_2));
+    wr.insert_zeros(3);
+    wr.write_uint32(chip.usercode);
+    // Program Security Frame
+    wr.insert_dummy(ops.security_sed_space);
+    // Program Done Frame
+    wr.reset_crc16();
+    wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_DONE_2));
+    wr.write_byte(0x80);
+    wr.insert_zeros(2);
+    wr.insert_crc16();
+    // End Frame
     wr.insert_dummy(4);
     return Bitstream(wr.get(), chip.metadata);
 }
