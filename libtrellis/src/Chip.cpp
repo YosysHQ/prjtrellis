@@ -27,6 +27,8 @@ Chip::Chip(const Trellis::ChipInfo &info) : info(info), cram(info.num_frames, in
         tiles[tile.name] = make_shared<Tile>(tile, *this);
         int row, col;
         tie(row, col) = tile.get_row_col();
+        tiles[tile.name]->row = row;
+        tiles[tile.name]->col = col;
         if (int(tiles_at_location.size()) <= row) {
             tiles_at_location.resize(row+1);
         }
@@ -53,7 +55,7 @@ vector<shared_ptr<Tile>> Chip::get_tiles_by_position(int row, int col)
 {
     vector<shared_ptr<Tile>> result;
     for (const auto &tile : tiles) {
-        if (tile.second->info.get_row_col() == make_pair(row, col))
+        if (tile.second->row == row && tile.second->col == col)
             result.push_back(tile.second);
     }
     return result;
@@ -135,8 +137,8 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips,
         //cout << "    Tile " << tile->info.name << endl;
         shared_ptr<TileBitDatabase> bitdb = get_tile_bitdata(TileLocator{info.family, info.name, tile->info.type});
         bitdb->add_routing(tile->info, *rg);
-        int x, y;
-        tie(y, x) = tile->info.get_row_col();
+        int x = tile->col;
+        int y = tile->row;
         // SLICE Bels
         if (tile->info.type == "PLC2") {
             for (int z = 0; z < 4; z++) {
@@ -323,8 +325,8 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2()
         //cout << "    Tile " << tile->info.name << endl;
         shared_ptr<TileBitDatabase> bitdb = get_tile_bitdata(TileLocator{info.family, info.name, tile->info.type});
         bitdb->add_routing(tile->info, *rg);
-        int x, y;
-        tie(y, x) = tile->info.get_row_col();
+        int x = tile->col;
+        int y = tile->row;
 
         // SLICE Bels
         if (tile->info.type == "PLC")
