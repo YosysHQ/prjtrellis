@@ -148,8 +148,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips,
                         CommonBels::add_ff(*rg, x, y, i);
                     }
                 } else {
-                    for (int z = 0; z < 4; z++)
-                        CommonBels::add_lc(*rg, x, y, z);
+                    CommonBels::add_lc(*rg, x, y, z);
                 }
                 if (include_lutperm_pips) {
                     // Add permutation pseudo-pips as a crossbar in front of each LUT's inputs
