@@ -1,6 +1,8 @@
 #include "DedupChipdb.hpp"
 #include "Chip.hpp"
 
+#include <iostream>
+
 namespace Trellis {
 namespace DDChipDb {
 
@@ -12,9 +14,9 @@ OptimizedChipdb::OptimizedChipdb()
 OptimizedChipdb::OptimizedChipdb(const IdStore &base) : IdStore(base)
 {}
 
-shared_ptr<OptimizedChipdb> make_optimized_chipdb(Chip &chip)
+shared_ptr<OptimizedChipdb> make_optimized_chipdb(Chip &chip, bool split_slice_mode)
 {
-    shared_ptr<RoutingGraph> graph = chip.get_routing_graph();
+    shared_ptr<RoutingGraph> graph = chip.get_routing_graph(split_slice_mode);
     for (auto &loc : graph->tiles) {
         const auto &td = loc.second;
         // Index bels, wires and arcs
@@ -82,6 +84,12 @@ shared_ptr<OptimizedChipdb> make_optimized_chipdb(Chip &chip)
                 bp.pin = bdh.second;
                 bp.bel = OptId{bdh.first.loc, graph->tiles.at(bdh.first.loc).bels.at(bdh.first.id).cdb_id};
                 wd.belPins.push_back(bp);
+            }
+            if (rw.belsUphill.size() > 1) {
+                cerr << cdb->to_str(rw.id) << endl;
+                for (auto bel : rw.belsUphill) {
+                    cerr << cdb->to_str(bel.first.id) << "/" << cdb->to_str(bel.second) << endl;
+                }
             }
             assert(rw.belsUphill.size() <= 1);
             if (rw.belsUphill.size() == 1) {

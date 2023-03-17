@@ -563,7 +563,8 @@ PYBIND11_MODULE (pytrellis, m)
             .def("ident", &OptimizedChipdb::ident)
             .def("to_str", &OptimizedChipdb::to_str);
 
-    m.def("make_optimized_chipdb", make_optimized_chipdb);
+    m.def("make_optimized_chipdb", make_optimized_chipdb,
+        py::arg("chip"), py::arg("split_slice_mode")=false);
 
 }
 

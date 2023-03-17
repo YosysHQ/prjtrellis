@@ -144,12 +144,12 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips,
             for (int z = 0; z < 4; z++) {
                 if (split_slice_mode) {
                     for (int i = z*2; i < (z+1)*2; i++) {
-                        Ecp5Bels::add_logic_comb(*rg, x, y, i);
-                        Ecp5Bels::add_ff(*rg, x, y, i);
+                        CommonBels::add_logic_comb(*rg, x, y, i);
+                        CommonBels::add_ff(*rg, x, y, i);
                     }
                 } else {
                     for (int z = 0; z < 4; z++)
-                        Ecp5Bels::add_lc(*rg, x, y, z);
+                        CommonBels::add_lc(*rg, x, y, z);
                 }
                 if (include_lutperm_pips) {
                     // Add permutation pseudo-pips as a crossbar in front of each LUT's inputs
@@ -176,21 +176,21 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips,
                 }
             }
             if (split_slice_mode)
-                Ecp5Bels::add_ramw(*rg, x, y);
+                CommonBels::add_ramw(*rg, x, y);
         }
         // PIO Bels
         if (tile->info.type.find("PICL0") != string::npos || tile->info.type.find("PICR0") != string::npos)
             for (int z = 0; z < 4; z++) {
-                Ecp5Bels::add_pio(*rg, x, y, z);
+                CommonBels::add_pio(*rg, x, y, z);
                 Ecp5Bels::add_iologic(*rg, x, y, z, false);
             }
         if (tile->info.type.find("PIOT0") != string::npos || (tile->info.type.find("PICB0") != string::npos && tile->info.type != "SPICB0"))
             for (int z = 0; z < 2; z++) {
-                Ecp5Bels::add_pio(*rg, x, y, z);
+                CommonBels::add_pio(*rg, x, y, z);
                 Ecp5Bels::add_iologic(*rg, x, y, z, true);
             }
         if (tile->info.type == "SPICB0") {
-            Ecp5Bels::add_pio(*rg, x, y, 0);
+            CommonBels::add_pio(*rg, x, y, 0);
             Ecp5Bels::add_iologic(*rg, x, y, 0, true);
         }
         // DCC Bels
@@ -316,7 +316,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips,
     return rg;
 }
 
-shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2()
+shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool split_slice_mode)
 {
     shared_ptr<RoutingGraph> rg(new RoutingGraph(*this));
 
@@ -329,10 +329,20 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2()
         int y = tile->row;
 
         // SLICE Bels
-        if (tile->info.type == "PLC")
-            for (int z = 0; z < 4; z++)
-                MachXO2Bels::add_lc(*rg, x, y, z);
-
+        if (tile->info.type == "PLC") {
+            for (int z = 0; z < 4; z++) {
+                if (split_slice_mode) {
+                    for (int i = z*2; i < (z+1)*2; i++) {
+                        CommonBels::add_logic_comb(*rg, x, y, i);
+                        CommonBels::add_ff(*rg, x, y, i);
+                    }
+                } else {
+                    CommonBels::add_lc(*rg, x, y, z);
+                }
+            }
+            if (split_slice_mode)
+                CommonBels::add_ramw(*rg, x, y);
+        }
         // PIO Bels
         // DUMMY and CIB tiles can have the below strings and can possibly
         // have BELs. But they will not have PIO BELs.
@@ -343,10 +353,10 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2()
             // Single I/O pair.
             if (tile->info.type.find("PIC_LS0") != string::npos || tile->info.type.find("PIC_RS0") != string::npos) {
                 for (int z = 0; z < 2; z++)
-                    MachXO2Bels::add_pio(*rg, x, y, z);
+                    CommonBels::add_pio(*rg, x, y, z);
             } else {
                 for (int z = 0; z < 4; z++)
-                    MachXO2Bels::add_pio(*rg, x, y, z);
+                    CommonBels::add_pio(*rg, x, y, z);
             }
         }
 
