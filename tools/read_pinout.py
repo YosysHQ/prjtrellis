@@ -7,19 +7,19 @@ import pytrellis
 import database
 
 # (X, Y, Z)
-def get_bel(pin):
+def get_bel(pin, info):
     assert pin[0] == "P"
     edge = pin[1]
     pos = int(pin[2:-1])
     pio = pin[-1]
     if edge == "T":
-        return (pos, 0, pio)
+        return (pos - info.col_bias, 0, pio)
     elif edge == "B":
-        return (pos, max_row, pio)
+        return (pos - info.col_bias, max_row, pio)
     elif edge == "L":
-        return (0, pos, pio)
+        return (0, pos - info.row_bias, pio)
     elif edge == "R":
-        return (max_col, pos, pio)
+        return (max_col, pos - info.row_bias, pio)
     else:
         assert False
 
@@ -59,7 +59,7 @@ def main(args):
             elif found_header:
                 if splitline[1][0] != "P" or splitline[1].startswith("PROGRAM"):
                     continue
-                bel = get_bel(splitline[1])
+                bel = get_bel(splitline[1], chip.info)
                 bank = int(splitline[2])
                 function = splitline[3]
                 dqs = splitline[6]
