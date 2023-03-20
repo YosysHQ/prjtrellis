@@ -215,7 +215,7 @@ void add_ramw(RoutingGraph &graph, int x, int y) {
 }
 
 void add_pio(RoutingGraph &graph, int x, int y, int z) {
-    char l = "ABCD"[z];
+    char l = "ABCDEF"[z];
     string name = string("PIO") + l;
     RoutingBel bel;
     bel.name = graph.ident(name);

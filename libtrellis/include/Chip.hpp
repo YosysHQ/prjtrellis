@@ -197,6 +197,7 @@ public:
 private:
     // Factory functions
     shared_ptr<RoutingGraph> get_routing_graph_ecp5(bool include_lutperm_pips = false, bool split_slice_mode = false);
+    shared_ptr<RoutingGraph> get_routing_graph_machxo(bool split_slice_mode = false);
     shared_ptr<RoutingGraph> get_routing_graph_machxo2(bool split_slice_mode = false);
 };
 
