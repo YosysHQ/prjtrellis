@@ -123,7 +123,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph(bool include_lutperm_pips, bool
     if(info.family == "ECP5") {
         return get_routing_graph_ecp5(include_lutperm_pips, split_slice_mode);
     } else if(info.family == "MachXO" || info.family == "MachXO2") {
-        return get_routing_graph_machxo2();
+        return get_routing_graph_machxo2(split_slice_mode);
     } else
       throw runtime_error("Unknown chip family: " + info.family);
 }
