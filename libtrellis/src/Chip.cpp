@@ -350,7 +350,8 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool split_slice_mode)
              tile->info.type.find("PIC_R") != string::npos || tile->info.type.find("PIC_B") != string::npos)) {
             
             // Single I/O pair.
-            if (tile->info.type.find("PIC_LS0") != string::npos || tile->info.type.find("PIC_RS0") != string::npos) {
+            if (tile->info.type.find("PIC_LS0") != string::npos || tile->info.type.find("PIC_RS0") != string::npos ||
+                tile->info.type.find("PIC_BS0") != string::npos || tile->info.type.find("PIC_TS0") != string::npos) {
                 for (int z = 0; z < 2; z++)
                     CommonBels::add_pio(*rg, x, y, z);
             } else {
