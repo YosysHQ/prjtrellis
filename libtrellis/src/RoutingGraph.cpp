@@ -52,7 +52,7 @@ RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), chip_family(
     else
         assert(false);
 
-    if(c.info.family == "MachXO" ||c.info.family == "MachXO2")
+    if(c.info.family == "MachXO2")
         global_data_machxo2 = get_global_info_machxo2(DeviceLocator{c.info.family, c.info.name, c.info.variant});
 }
 
@@ -84,7 +84,9 @@ RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_na
 {
     if(chip_family == "ECP5") {
         return globalise_net_ecp5(row, col, db_name);
-    } else if(chip_family == "MachXO" || chip_family == "MachXO2") {
+    } else if(chip_family == "MachXO") {
+        return RoutingId();
+    } else if(chip_family == "MachXO2") {
         return globalise_net_machxo2(row, col, db_name);
     } else
         throw runtime_error("Unknown chip family: " + chip_family);
@@ -164,18 +166,9 @@ RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::strin
   }
 
   if (db_name.find("1200_") == 0 || db_name.find("2000_") == 0 ||
-      db_name.find("4000_") == 0 || db_name.find("7000_") == 0 ||
-      db_name.find("256X_") == 0 || db_name.find("640X_") == 0) {
+      db_name.find("4000_") == 0 || db_name.find("7000_") == 0) {
       if (db_name.substr(0, 5) == chip_prefix) {
           stripped_name = db_name.substr(5);
-      } else {
-          return RoutingId();
-      }
-  }
-
-  if (db_name.find("1200X_") == 0 || db_name.find("2280X_") == 0) {
-      if (db_name.substr(0, 5) == chip_prefix) {
-          stripped_name = db_name.substr(6);
       } else {
           return RoutingId();
       }
