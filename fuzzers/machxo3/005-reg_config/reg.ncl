@@ -4,8 +4,8 @@ design top
     device
     {
         architecture xo3c00f;
-        device LCMXO3LF-9400C;
-        package CABGA484;
+        device LCMXO3LF-1300E;
+        package WLCSP36;
         performance "6";
     }
 
@@ -19,8 +19,6 @@ design top
                  "Q${r}:Q "
                  "GSR:${gsr} "
                  "REGMODE:${regmode} "
-                 "CLKMUX:${clkmode} "
-                 "CEMUX:1 "
                  "LSRMUX:LSR "
                  "SRMODE:LSR_OVER_CE "
                  "M0MUX:M0 ";

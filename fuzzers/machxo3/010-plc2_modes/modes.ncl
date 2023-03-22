@@ -14,15 +14,7 @@ design top
       logical
       {
          cellmodel-name SLICE;
-         program "MODE:LOGIC "
-                 "REG0:::REGSET=RESET:SD=0 "
-                 "Q0:Q "
-                 "GSR:DISABLED "
-                 "CLKMUX:CLK "
-                 "CEMUX:${cemux} "
-                 "LSRMUX:LSR "
-                 "SRMODE:LSR_OVER_CE "
-                 "M0MUX:M0 ";
+         program "MODE:${mode} ";
          primitive REG0 q_6;
       }
       site R10C11${slice};

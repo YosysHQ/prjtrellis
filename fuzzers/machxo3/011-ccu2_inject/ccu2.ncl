@@ -14,10 +14,11 @@ design top
       logical
       {
          cellmodel-name SLICE;
-         program "MODE:LOGIC "
-                 "K${k}::H${k}=${lut_func} "
-                 "F${k}:F ";
-         primitive K${k} i3_4_lut;
+         program "MODE:CCU2 "
+                 "CCU2::S0=0x9009,S1=0x9009:INJECT1_0=${ij1_0}, \"
+                    "INJECT1_1=${ij1_1} "
+                 "FCO:FCO ";
+         primitive CCU2 "CCU";
       }
       site R10C11${slice};
    }

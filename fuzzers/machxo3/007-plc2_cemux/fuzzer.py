@@ -5,7 +5,7 @@ import nets
 import pytrellis
 import re
 
-cfg = FuzzConfig(job="PLC2REG", family="MachXO3LF", device="LCMXO3LF-9400C", ncl="empty.ncl", tiles=["R10C11:PLC"])
+cfg = FuzzConfig(job="PLC2REG", family="MachXO3", device="LCMXO3-1300E", ncl="empty.ncl", tiles=["R10C11:PLC"])
 
 
 def main():

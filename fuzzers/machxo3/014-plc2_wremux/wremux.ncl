@@ -14,10 +14,10 @@ design top
       logical
       {
          cellmodel-name SLICE;
-         program "MODE:LOGIC "
-                 "K${k}::H${k}=${lut_func} "
-                 "F${k}:F ";
-         primitive K${k} i3_4_lut;
+         program "MODE:DPRAM "
+                 "DPRAM::DO0=0x0000,DO1=0x0000 "
+                 "WREMUX:${wremux} ";
+         primitive DPRAM q_6;
       }
       site R10C11${slice};
    }

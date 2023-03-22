@@ -4,7 +4,7 @@ import nets
 import pytrellis
 import re
 
-cfg = FuzzConfig(job="PLC2ROUTE", family="MachXO3LF", device="LCMXO3LF-9400C", ncl="plc2route.ncl", tiles=["R14C23:PLC"])
+cfg = FuzzConfig(job="PLC2ROUTE", family="MachXO3", device="LCMXO3LF-1300E", ncl="plc2route.ncl", tiles=["R5C10:PLC"])
 
 
 def main():
@@ -29,7 +29,7 @@ def main():
         """
         return not (nets.general_routing_re.match(arc[0]) and nets.general_routing_re.match(arc[1]))
 
-    interconnect.fuzz_interconnect(config=cfg, location=(14, 23),
+    interconnect.fuzz_interconnect(config=cfg, location=(5, 10),
                                    netname_predicate=nn_filter,
                                    arc_predicate=arc_filter,
                                    fc_predicate=fc_filter,

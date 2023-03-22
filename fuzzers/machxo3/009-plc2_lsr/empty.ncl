@@ -5,7 +5,7 @@ design top
    {
        architecture xo3c00f;
        device LCMXO3LF-1300E;
-       package WLCSP36;
+       package CSFBGA256;
        performance "6";
    }
 
