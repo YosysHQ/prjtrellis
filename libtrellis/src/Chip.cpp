@@ -40,7 +40,8 @@ Chip::Chip(const Trellis::ChipInfo &info) : info(info), cram(info.num_frames, in
 
     if(info.family == "ECP5")
         global_data_ecp5 = get_global_info_ecp5(DeviceLocator{info.family, info.name, info.variant});
-    else if(info.family == "MachXO" || info.family == "MachXO2")
+    else if(info.family == "MachXO") {} // No global routing
+    else if (info.family == "MachXO2")
         global_data_machxo2 = get_global_info_machxo2(DeviceLocator{info.family, info.name, info.variant});
     else
         throw runtime_error("Unknown chip family " + info.family);
@@ -122,7 +123,9 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph(bool include_lutperm_pips, bool
 {
     if(info.family == "ECP5") {
         return get_routing_graph_ecp5(include_lutperm_pips, split_slice_mode);
-    } else if(info.family == "MachXO" || info.family == "MachXO2") {
+    } else if(info.family == "MachXO") {
+        return get_routing_graph_machxo(split_slice_mode);
+    } else if(info.family == "MachXO2") {
         return get_routing_graph_machxo2(split_slice_mode);
     } else
       throw runtime_error("Unknown chip family: " + info.family);
@@ -350,7 +353,8 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool split_slice_mode)
              tile->info.type.find("PIC_R") != string::npos || tile->info.type.find("PIC_B") != string::npos)) {
             
             // Single I/O pair.
-            if (tile->info.type.find("PIC_LS0") != string::npos || tile->info.type.find("PIC_RS0") != string::npos) {
+            if (tile->info.type.find("PIC_LS0") != string::npos || tile->info.type.find("PIC_RS0") != string::npos ||
+                tile->info.type.find("PIC_BS0") != string::npos || tile->info.type.find("PIC_TS0") != string::npos) {
                 for (int z = 0; z < 2; z++)
                     CommonBels::add_pio(*rg, x, y, z);
             } else {
@@ -373,6 +377,51 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool split_slice_mode)
         }
     }
 
+    return rg;
+}
+
+shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo(bool split_slice_mode)
+{
+    shared_ptr<RoutingGraph> rg(new RoutingGraph(*this));
+    for (auto tile_entry : tiles) {
+        shared_ptr<Tile> tile = tile_entry.second;
+        //cout << "    Tile " << tile->info.name << endl;
+        shared_ptr<TileBitDatabase> bitdb = get_tile_bitdata(TileLocator{info.family, info.name, tile->info.type});
+        bitdb->add_routing(tile->info, *rg);
+        int x = tile->col;
+        int y = tile->row;
+
+        // SLICE Bels
+        if (tile->info.type == "PLC") {
+            for (int z = 0; z < 4; z++) {
+                if (split_slice_mode) {
+                    for (int i = z*2; i < (z+1)*2; i++) {
+                        CommonBels::add_logic_comb(*rg, x, y, i);
+                        CommonBels::add_ff(*rg, x, y, i);
+                    }
+                } else {
+                    CommonBels::add_lc(*rg, x, y, z);
+                }
+            }
+            if (split_slice_mode)
+                CommonBels::add_ramw(*rg, x, y);
+        }
+        // TODO:FSLICE Bels
+
+        // PIO Bels
+        if (tile->info.type.find("PIC2") != string::npos) {
+            for (int z = 0; z < 2; z++)
+                CommonBels::add_pio(*rg, x, y, z);
+        } else if (tile->info.type.find("PIC4") != string::npos ||
+                   tile->info.type.find("PIC_L") != string::npos ||
+                   tile->info.type.find("PIC_R") != string::npos) {
+            for (int z = 0; z < 4; z++)
+                CommonBels::add_pio(*rg, x, y, z);
+        } else if (tile->info.type.find("PIC6") != string::npos) {
+            for (int z = 0; z < 6; z++)
+                CommonBels::add_pio(*rg, x, y, z);
+        }
+    }
     return rg;
 }
 
