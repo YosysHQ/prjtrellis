@@ -3,9 +3,9 @@ design top
 {
    device
    {
-       architecture xo2c00;
-       device LCMXO2-1200HC;
-       package QFN32;
+       architecture xo3c00f;
+       device LCMXO3LF-1300E;
+       package WLCSP36;
        performance "6";
    }
 
