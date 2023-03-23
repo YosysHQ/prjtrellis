@@ -6,9 +6,9 @@ shared_tiles = ["CIB_PIC_T0", "CIB_PIC_T_DUMMY", "CIB_CFG0", "CIB_CFG1", "CIB_CF
 
 def copy(tile):
     srcdb = pytrellis.get_tile_bitdata(
-        pytrellis.TileLocator("MachXO2", "LCMXO2-1200HC", "CIB_PIC_T0"))
+        pytrellis.TileLocator("MachXO3", "LCMXO3LF-6900C", "CIB_PIC_T0"))
     dstdb = pytrellis.get_tile_bitdata(
-        pytrellis.TileLocator("MachXO3LF", "LCMXO3LF-9400C", tile))
+        pytrellis.TileLocator("MachXO3", "LCMXO3LF-6900C", tile))
 
     sinks = srcdb.get_sinks()
     for sink in sinks:

@@ -6,7 +6,7 @@ import nets
 import pytrellis
 import re
 
-cfg = FuzzConfig(job="CIBPICT0ROUTE", family="MachXO3LF", device="LCMXO3LF-9400C", ncl="cibroute.ncl", tiles=["CIB_R1C10:CIB_PIC_T0"])
+cfg = FuzzConfig(job="CIBPICT0ROUTE", family="MachXO3", device="LCMXO3-1300E", ncl="cibroute.ncl", tiles=["CIB_R1C10:CIB_PIC_T0"])
 
 
 def main():
@@ -30,7 +30,7 @@ def main():
                                    fc_predicate=fc_filter,
                                    netname_filter_union=True,
                                    enable_span1_fix=True,
-                                   netdir_override=defaultdict(lambda: "ignore"))
+                                   netdir_override=defaultdict(lambda : str("ignore")))
 
 
 if __name__ == "__main__":
