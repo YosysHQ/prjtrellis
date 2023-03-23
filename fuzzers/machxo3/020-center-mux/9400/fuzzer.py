@@ -23,7 +23,7 @@ jobs = [
         # *
         {
             "netnames" : eclk_out + eclk_cib + eclk_div,
-            "cfg" : FuzzConfig(job="GLOBAL_ECLK", family="MachXO3LF", device="LCMXO3LF-9400C", ncl="center-mux.ncl",
+            "cfg" : FuzzConfig(job="GLOBAL_ECLK", family="MachXO3", device="LCMXO3LF-9400C", ncl="center-mux.ncl",
                       tiles=["CENTER15:CENTER_EBR_CIB_10K", "CENTER_EBR34:CENTER_EBR",
                              "CENTER18:CENTER8", "CENTER17:CENTER7", "CENTER16:CENTER6",
                              "CENTER13:CENTER9", "CENTER14:CENTERA"]),
@@ -35,7 +35,7 @@ jobs = [
         # *
         {
             "netnames" : eclkbridge,
-            "cfg" : FuzzConfig(job="GLOBAL_ECLKBRIDGE", family="MachXO3LF", device="LCMXO3LF-9400C", ncl="center-mux.ncl",
+            "cfg" : FuzzConfig(job="GLOBAL_ECLKBRIDGE", family="MachXO3", device="LCMXO3LF-9400C", ncl="center-mux.ncl",
                       tiles=["CENTER15:CENTER_EBR_CIB_10K", "CENTER_EBR34:CENTER_EBR",
                              "CENTER18:CENTER8", "CENTER17:CENTER7", "CENTER16:CENTER6",
                              "CENTER13:CENTER9", "CENTER14:CENTERA"]),
@@ -49,7 +49,7 @@ jobs = [
 
         {
             "netnames" : dcm + dcc,
-            "cfg" : FuzzConfig(job="GLOBAL_DCM_DCC", family="MachXO3LF", device="LCMXO3LF-9400C", ncl="center-mux.ncl",
+            "cfg" : FuzzConfig(job="GLOBAL_DCM_DCC", family="MachXO3", device="LCMXO3LF-9400C", ncl="center-mux.ncl",
                       tiles=["CENTER15:CENTER_EBR_CIB_10K", "CENTER_EBR34:CENTER_EBR",
                              "CENTER18:CENTER8", "CENTER17:CENTER7", "CENTER16:CENTER6",
                              "CENTER13:CENTER9", "CENTER14:CENTERA"]),
@@ -60,7 +60,7 @@ jobs = [
 
         {
             "netnames" : hfsn_cib + hfsn_out + global_cib + global_out + pll + clock_pin,
-            "cfg" : FuzzConfig(job="GLOBAL_HFSN", family="MachXO3LF", device="LCMXO3LF-9400C", ncl="center-mux.ncl",
+            "cfg" : FuzzConfig(job="GLOBAL_HFSN", family="MachXO3", device="LCMXO3LF-9400C", ncl="center-mux.ncl",
                       tiles=["CENTER15:CENTER_EBR_CIB_10K", "CENTER_EBR34:CENTER_EBR",
                              "CENTER18:CENTER8", "CENTER17:CENTER7", "CENTER16:CENTER6",
                              "CENTER13:CENTER9", "CENTER14:CENTERA"]),
@@ -74,7 +74,7 @@ jobs = [
         {
             "netnames" : ["R15C25_VPRX0000", "R15C25_VPRX0100", "R15C25_VPRX0200", "R15C25_VPRX0300",
                           "R15C25_VPRX0400", "R15C25_VPRX0500", "R15C25_VPRX0600", "R15C25_VPRX0700"],
-            "cfg" : FuzzConfig(job="GLOBAL_DCC_OUT", family="MachXO3LF", device="LCMXO3LF-9400C", ncl="center-mux.ncl",
+            "cfg" : FuzzConfig(job="GLOBAL_DCC_OUT", family="MachXO3", device="LCMXO3LF-9400C", ncl="center-mux.ncl",
                       tiles=["CENTER15:CENTER_EBR_CIB_10K", "CENTER_EBR34:CENTER_EBR",
                              "CENTER18:CENTER8", "CENTER17:CENTER7", "CENTER16:CENTER6",
                              "CENTER13:CENTER9", "CENTER14:CENTERA"]),
@@ -86,7 +86,7 @@ jobs = [
 
 
 def main(args):
-    pytrellis.load_database("../../../database")
+    pytrellis.load_database("../../../../database")
 
     for job in [jobs[i] for i in args.ids]:
         cfg = job["cfg"]
