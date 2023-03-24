@@ -26,6 +26,12 @@ jobs = [
             "location": (6, 22),
             "nn_filter_extra": []
         },
+        {
+            "cfg": FuzzConfig(job="CIBEBR0_10KROUTE", family="MachXO3", device="LCMXO3-9400C",
+                        ncl="cibroute_9400.ncl", tiles=["CIB_R15C22:CIB_EBR0_10K"]),
+            "location": (15, 22),
+            "nn_filter_extra": []
+        },
 ]
 
 

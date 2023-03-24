@@ -11,6 +11,7 @@ import nets
 
 shared_tiles = ["CIB_EBR1", "CIB_EBR2", "CIB_EBR_DUMMY"]
 shared_tiles_no_lrudconns = ["CIB_PIC_B0", "CIB_PIC_B_DUMMY"]
+shared_tiles_10k = ["CIB_EBR1_10K", "CIB_EBR2_10K", "CIB_EBR_DUMMY_10K"]
 
 # Only globals are the BRANCH connections which are fed by U_/D_ conns with
 # G_ prefixes (muxed).
@@ -30,6 +31,9 @@ def main():
 
     for dest in shared_tiles:
         dbcopy.dbcopy("MachXO3", "LCMXO3-1300E", "CIB_EBR0", dest)
+
+    for dest in shared_tiles_10k:
+        dbcopy.dbcopy("MachXO3", "LCMXO3-9400C", "CIB_EBR0_10K", dest)
 
     for dest in shared_tiles_no_lrudconns:
         dbcopy.copy_muxes_with_predicate("MachXO3", "LCMXO3-1300E", "CIB_EBR0", dest, exclude_lrud_muxes)
