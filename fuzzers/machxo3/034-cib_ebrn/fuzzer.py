@@ -32,6 +32,7 @@ jobs = [
             "location": (15, 22),
             "nn_filter_extra": []
         },
+        #4
         # same as CIB_EBR0_END0 except globals
         {
             "cfg": FuzzConfig(job="CIB_EBR0_END0_10KROUTE", family="MachXO3", device="LCMXO3-9400C",
@@ -55,6 +56,19 @@ jobs = [
             "cfg": FuzzConfig(job="CIB_EBR0_END0_DLL5ROUTE", family="MachXO3", device="LCMXO3-9400C",
                         ncl="cibroute_9400.ncl", tiles=["CIB_R8C1:CIB_EBR0_END0_DLL5"]),
             "location": (8, 1),
+            "nn_filter_extra": ["G_HPBX0100", "G_HPBX0500"]
+        },
+        #8 CIB_EBR0_END2_DLL3 and CIB_EBR0_END2_DLL45 identical
+        {
+            "cfg": FuzzConfig(job="CIB_EBR0_END2_DLL3ROUTE", family="MachXO3", device="LCMXO3-6900C",
+                        ncl="cibroute_6900.ncl", tiles=["CIB_R20C1:CIB_EBR0_END2_DLL3"]),
+            "location": (20, 1),
+            "nn_filter_extra": ["G_HPBX0100", "G_HPBX0500"]
+        },
+        {
+            "cfg": FuzzConfig(job="CIB_EBR0_END2_DLL45ROUTE", family="MachXO3", device="LCMXO3-6900C",
+                        ncl="cibroute_6900.ncl", tiles=["CIB_R13C1:CIB_EBR0_END2_DLL45"]),
+            "location": (13, 1),
             "nn_filter_extra": ["G_HPBX0100", "G_HPBX0500"]
         },
 ]
