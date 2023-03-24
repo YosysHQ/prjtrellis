@@ -45,6 +45,18 @@ jobs = [
             "location": (15, 49),
             "nn_filter_extra": []
         },
+        {
+            "cfg": FuzzConfig(job="CIB_EBR0_END0_DLL3ROUTE", family="MachXO3", device="LCMXO3-9400C",
+                        ncl="cibroute_9400.ncl", tiles=["CIB_R22C1:CIB_EBR0_END0_DLL3"]),
+            "location": (22, 1),
+            "nn_filter_extra": ["G_HPBX0100", "G_HPBX0500"]
+        },
+        {
+            "cfg": FuzzConfig(job="CIB_EBR0_END0_DLL5ROUTE", family="MachXO3", device="LCMXO3-9400C",
+                        ncl="cibroute_9400.ncl", tiles=["CIB_R8C1:CIB_EBR0_END0_DLL5"]),
+            "location": (8, 1),
+            "nn_filter_extra": ["G_HPBX0100", "G_HPBX0500"]
+        },
 ]
 
 
