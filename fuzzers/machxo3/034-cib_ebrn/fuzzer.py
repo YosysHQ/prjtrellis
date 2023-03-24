@@ -71,6 +71,33 @@ jobs = [
             "location": (13, 1),
             "nn_filter_extra": ["G_HPBX0100", "G_HPBX0500"]
         },
+
+        {
+            "cfg": FuzzConfig(job="CIB_EBR2_END1ROUTE", family="MachXO3", device="LCMXO3-6900C",
+                        ncl="cibroute_6900.ncl", tiles=["CIB_R13C41:CIB_EBR2_END1"]),
+            "location": (13, 41),
+            "nn_filter_extra": []
+        },
+        {
+            "cfg": FuzzConfig(job="CIB_EBR2_END1_SPROUTE", family="MachXO3", device="LCMXO3-6900C",
+                        ncl="cibroute_6900.ncl", tiles=["CIB_R20C41:CIB_EBR2_END1_SP"]),
+            "location": (20, 41),
+            "nn_filter_extra": []
+        },
+
+        {
+            "cfg": FuzzConfig(job="CIB_EBR0_END1ROUTE", family="MachXO3", device="LCMXO3-4300C",
+                        ncl="cibroute_4300.ncl", tiles=["CIB_R11C1:CIB_EBR0_END1"]),
+            "location": (11, 1),
+            "nn_filter_extra": ["G_HPBX0100", "G_HPBX0500"]
+        },
+
+        {
+            "cfg": FuzzConfig(job="CIB_EBR_DUMMY_END3ROUTE", family="MachXO3", device="LCMXO3-2100C",
+                        ncl="cibroute_2100.ncl", tiles=["CIB_R8C1:CIB_EBR_DUMMY_END3"]),
+            "location": (8, 1),
+            "nn_filter_extra": ["G_HPBX0100", "G_HPBX0500"]
+        },
 ]
 
 
