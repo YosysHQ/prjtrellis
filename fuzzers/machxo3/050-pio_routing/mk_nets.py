@@ -31,32 +31,26 @@ def io_conns(tile, bank, ab_only=False):
         ("PG{}_PIO", "sink")
     ]
 
-    right = [
-        ("DQSW90{}_RIOLOGIC", "sink"),
-        ("DQSR90{}_RIOLOGIC", "sink"),
-        ("DDRCLKPOL{}_RIOLOGIC", "sink")
-    ]
-
     bottom = [
         ("JRXDA{2}_{1}IOLOGIC", "driver"),
         ("JRXD{2}{0}_{1}IOLOGIC", "driver"),
         ("JDEL{2}{0}_{1}IOLOGIC", "sink"),
-        ("JLIP{}_{}IOLOGIC", "sink"),
+        ("JSLIP{}_{}IOLOGIC", "sink"),
         ("ECLK{}_{}IOLOGIC", "sink"),
+        ("ECLK{}", "sink"),
     ]
 
     top = [
         ("JTXD{2}{0}_{1}IOLOGIC", "sink"),
         ("ECLK{}_{}IOLOGIC", "sink"),
         ("LVDS{}_PIO", "sink"),
+        ("ECLK{}", "sink"),
     ]
 
     if bank == "B":
         bank_template = bottom
     elif bank == "T":
         bank_template = top
-    elif bank.startswith("R"):
-        bank_template = right
     else:
         bank_template = []
 
@@ -83,9 +77,6 @@ def io_conns(tile, bank, ab_only=False):
                 io_prefix = "{}S".format(bank)
             else:
                 io_prefix = ""
-        # RIOLOGIC
-        elif bank.startswith("R"):
-            io_prefix = "R"
         # Just "LOGIC"
         else:
             io_prefix = ""
@@ -94,11 +85,7 @@ def io_conns(tile, bank, ab_only=False):
             suffix = f.format(pad, io_prefix)
             netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
 
-        if bank.startswith("R"):
-            for f, d in bank_template:
-                suffix = f.format(pad, io_prefix)
-                netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
-        elif bank == "B":
+        if bank == "B":
             for f, d in bank_template:
                 if del_re.match(f) and pad in ("A", "C"):
                     for n in range(5):
@@ -115,6 +102,8 @@ def io_conns(tile, bank, ab_only=False):
                 elif pad in ("A", "C") and not rxda_re.match(f):
                     suffix = f.format(pad, io_prefix)
                     netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
+            netlist.append(("R{}C{}_BECLK0".format(tile[0], tile[1]), "sink"))
+            netlist.append(("R{}C{}_BECLK1".format(tile[0], tile[1]), "sink"))
         elif bank == "T":
             for f, d in bank_template:
                 if txd_re.match(f) and pad in ("A", "C"):
@@ -128,6 +117,8 @@ def io_conns(tile, bank, ab_only=False):
                 elif not txd_re.match(f) and not eclk_re.match(f):
                     suffix = f.format(pad, io_prefix)
                     netlist.append(("R{}C{}_{}".format(tile[0], tile[1], suffix), d))
+            netlist.append(("R{}C{}_TECLK0".format(tile[0], tile[1]), "sink"))
+            netlist.append(("R{}C{}_TECLK1".format(tile[0], tile[1]), "sink"))
 
     return netlist
 
