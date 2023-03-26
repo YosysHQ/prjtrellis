@@ -9,84 +9,93 @@ import argparse
 import fuzzloops
 import nonrouting
 import os
+import sys
 
 jobs = [
         {
-            "cfg": FuzzConfig(job="PICB0_AB", family="MachXO2", device="LCMXO2-1200HC",
-                        ncl="empty.ncl", tiles=["PB11:PIC_B0"]),
-            "side": "B",
-            "pins": [("13", "A"), ("14", "B")]
-        },
-
-        # Split into multiple jobs, because Diamond chokes if the I/Os don't
-        # actually physically exist (QFN32 is default).
-        {
-            "cfg": FuzzConfig(job="PICB0_CD", family="MachXO2", device="LCMXO2-1200HC",
-                        ncl="empty.ncl", tiles=["PB6:PIC_B0"]),
-            "side": "B",
-            "pins": [("9", "C"), ("10", "D")]
-        },
-
-        {
-            "cfg": FuzzConfig(job="PICL0_IO", family="MachXO2", device="LCMXO2-1200HC",
-                        ncl="empty.ncl", tiles=["PL5:PIC_L0"]),
-            "side": "L",
-            "pins": [("12", "A"), ("13", "B"), ("14", "C"), ("15", "D")],
-            "package": "TQFP100"
-        },
-
-        {
-            "cfg": FuzzConfig(job="PICR0_IO", family="MachXO2", device="LCMXO2-1200HC",
-                        ncl="empty.ncl", tiles=["PR5:PIC_R0"]),
-            "side": "R",
-            "pins": [("65", "A"), ("64", "B"), ("63", "C"), ("62", "D")],
-            "package": "TQFP100"
-        },
-
-        {
-            "cfg": FuzzConfig(job="PICT0_IO", family="MachXO2", device="LCMXO2-1200HC",
-                        ncl="empty.ncl", tiles=["PT10:PIC_T0"]),
+            "cfg": FuzzConfig(job="PIC_T0", family="MachXO3", device="LCMXO3LF-6900C",
+                        ncl="empty.ncl", tiles=["PT26:PIC_T0"]),
             "side": "T",
-            "pins": [("97", "A"), ("96", "B")],
-            "package": "TQFP100"
-        },
-
-        # FIXME: WARNING - map: In "LOCATE COMP "pad" SITE "PT10{C,D} pin" ;":
-        # Current SYS_CONFIG setting prohibits pin be used as user IO. This
-        # preference has been disabled. Why?
-        {
-            "cfg": FuzzConfig(job="PICT0_IO", family="MachXO2", device="LCMXO2-1200HC",
-                        ncl="empty.ncl", tiles=["PT12:PIC_T0"]),
-            "side": "T",
-            "pins": [("28", "C"), ("27", "D")]
+            "pins": [("A14", "A"), ("B14", "B"), ("D12", "C"), ("C12", "D")],
+            "package": "CABGA400"
         },
 
         {
-            "cfg": FuzzConfig(job="PICRS0_IO", family="MachXO2", device="LCMXO2-1200HC",
-                        ncl="empty.ncl", tiles=["PR3:PIC_RS0"]),
+            "cfg": FuzzConfig(job="PIC_B0", family="MachXO3", device="LCMXO3LF-6900C",
+                        ncl="empty.ncl", tiles=["PB26:PIC_B0"]),
+            "side": "B",
+            "pins": [("Y13", "A"), ("W13", "B"), ("V12", "C"), ("V13", "D")],
+            "package": "CABGA400"
+        },
+
+        {
+            "cfg": FuzzConfig(job="PIC_L0", family="MachXO3", device="LCMXO3LF-1300E",
+                        ncl="empty_1300.ncl", tiles=["PL8:PIC_L0"]),
+            "side": "L",
+            "pins": [("G11", "A"), ("G10", "B"), ("G9", "C"), ("G8", "D")],
+            "package": "CSFBGA121"
+        },
+
+        {
+            "cfg": FuzzConfig(job="PIC_R0", family="MachXO3", device="LCMXO3LF-1300E",
+                        ncl="empty_1300.ncl", tiles=["PR8:PIC_R0"]),
             "side": "R",
-            "pins": [("71", "A"), ("70", "B")],
-            "package": "TQFP100"
+            "pins": [("G1", "A"), ("G2", "B"), ("G3", "C"), ("G4", "D")],
+            "package": "CSFBGA121"
+        },
+        #4
+
+        {
+            "cfg": FuzzConfig(job="PIC_RS0", family="MachXO3", device="LCMXO3LF-1300E",
+                        ncl="empty_1300.ncl", tiles=["PR3:PIC_RS0"]),
+            "side": "R",
+            "pins": [("D2", "A"), ("D1", "B")],
+            "package": "CSFBGA121"
         },
 
         {
-            "cfg": FuzzConfig(job="PICLS0_IO", family="MachXO2", device="LCMXO2-1200HC",
-                        ncl="empty.ncl", tiles=["PL9:PIC_LS0"]),
+            "cfg": FuzzConfig(job="PIC_LS0", family="MachXO3", device="LCMXO3LF-1300E",
+                        ncl="empty_1300.ncl", tiles=["PL9:PIC_LS0"]),
             "side": "L",
-            "pins": [("20", "A"), ("21", "B")],
-            "package": "TQFP100"
+            "pins": [("H11", "A"), ("H10", "B")],
+            "package": "CSFBGA121"
+        },
+
+
+        {
+            "cfg": FuzzConfig(job="PIC_L2", family="MachXO3", device="LCMXO3LF-6900C",
+                        ncl="empty.ncl", tiles=["PL7:PIC_L2"]),
+            "side": "L",
+            "pins": [("G4", "A"), ("G3", "B"), ("H3", "C"), ("H4", "D")],
+            "package": "CABGA400"
         },
 
         {
-            "cfg": FuzzConfig(job="PICL0VREF_IO", family="MachXO2", device="LCMXO2-1200HC",
-                        ncl="empty.ncl", tiles=["PL4:PIC_L0_VREF3"]),
-            "side": "L",
-            "pins": [("11", "A"), ("12", "B"), ("13", "C"), ("14", "D")],
-            "package": "TQFP144"
+            "cfg": FuzzConfig(job="PIC_R1", family="MachXO3", device="LCMXO3LF-6900C",
+                        ncl="empty.ncl", tiles=["PR15:PIC_R1"]),
+            "side": "R",
+            "pins": [("L19", "A"), ("L20", "B"), ("L14", "C"), ("L15", "D")],
+            "package": "CABGA400"
         },
+        #8
+        {
+            "cfg": FuzzConfig(job="PIC_L1", family="MachXO3", device="LCMXO3LF-4300C",
+                        ncl="empty_4300.ncl", tiles=["PL13:PIC_L1"]),
+            "side": "L",
+            "pins": [("J2", "A"), ("K1", "B"), ("H5", "C"), ("J4", "D")],
+            "package": "CABGA256"
+        },
+        {
+            "cfg": FuzzConfig(job="PIC_L3", family="MachXO3", device="LCMXO3LF-2100C",
+                        ncl="empty_2100.ncl", tiles=["PL13:PIC_L3"]),
+            "side": "L",
+            "pins": [("M3", "A"), ("N1", "B"), ("N2", "C"), ("P1", "D")],
+            "package": "CABGA256"
+        },
+       
 ]
 
-# Function constructed from reading the MachXO2 sysIO Usage Guide.
+# Function constructed from reading the MachXO3L sysIO Usage Guide.
 # Diamond is very sensitive to invalid I/O combinations, and will happily
 # change the I/O type out from under you if you give it a bad combination.
 # This can lead to further errors when the Diamond-assigned I/O type is
@@ -100,16 +109,10 @@ def get_io_types(dir, pio, side):
         "LVCMOS18",
         "LVCMOS15",
         "LVCMOS12",
-        "SSTL25_I",
-        "SSTL18_I",
-        "HSTL18_I"
     ]
 
     if dir == "INPUT":
         types += [
-            "SSTL25_II",
-            "SSTL18_II",
-            "HSTL18_II",
             "LVCMOS25R33",
             "LVCMOS18R33",
             "LVCMOS18R25",
@@ -125,24 +128,14 @@ def get_io_types(dir, pio, side):
             "LVCMOS10R25"
         ]
 
-    if side == "B":
-        # Only bottom bank supports PCI33.
-        types += [
-            "PCI33"
-        ]
-
     # Differential I/O types.
     if pio in ("A", "C"):
         types += [
-            "SSTL25D_I",
-            "SSTL18D_I",
-            "HSTL18D_I",
             "MIPI",
+            "LVTTL33D",
             "LVCMOS33D",
             "LVCMOS25D",
             "LVCMOS18D",
-            "LVCMOS15D",
-            "LVCMOS12D",
         ]
 
         if dir == "INPUT":
@@ -151,14 +144,10 @@ def get_io_types(dir, pio, side):
             # map_impl.mrp suggests no (warning: violates legal combination
             # and is ignored.)
             types += [
-                "SSTL25D_II",
-                "SSTL18D_II",
-                "HSTL18D_II",
                 "LVDS25",
                 "LVPECL33",
                 "MLVDS25",
-                "BLVDS25",
-                "RSDS25"
+                "BLVDS25"
             ]
 
         if dir == "OUTPUT":
@@ -168,8 +157,7 @@ def get_io_types(dir, pio, side):
                 "LVDS25E",
                 "LVPECL33E",
                 "MLVDS25E",
-                "BLVDS25E",
-                "RSDS25E"
+                "BLVDS25E"
             ]
 
             # True differential output. Only supported on Top and primary pair.
@@ -182,10 +170,14 @@ def get_io_types(dir, pio, side):
 
 def get_cfg_vccio(iotype):
     m = re.match(r".*(\d)(\d)$", iotype)
-    if not m:
-        return "3.3"
-    return "{}.{}".format(m.group(1), m.group(2))
-
+    if m:
+        return "{}.{}".format(m.group(1), m.group(2))
+    m = re.match(r".*(\d)(\d)[ED]$", iotype)
+    if m:
+        return "{}.{}".format(m.group(1), m.group(2))
+    if iotype == "MIPI":
+        return "2.5"
+    return "3.3"
 
 def main(args):
     pytrellis.load_database("../../../database")
@@ -229,15 +221,14 @@ def main(args):
                                          lambda x: get_substs(iomode=x),
                                          empty_bitfile, False)
 
-            nonrouting.fuzz_enum_setting(cfg, "PIO{}.PULLMODE".format(pio), ["UP", "DOWN", "NONE", "KEEPER", "FAILSAFE"],
+            nonrouting.fuzz_enum_setting(cfg, "PIO{}.PULLMODE".format(pio), ["UP", "DOWN", "NONE", "KEEPER"],
                                          lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("PULLMODE", x)),
                                          empty_bitfile)
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.SLEWRATE".format(pio), ["FAST", "SLOW"],
                                          lambda x: get_substs(iomode="OUTPUT_LVCMOS33", extracfg=("SLEWRATE", x)),
                                          empty_bitfile)
-            # # FIXME: Do LVCMOS12, which is 2/6mA.
-            nonrouting.fuzz_enum_setting(cfg, "PIO{}.DRIVE".format(pio), ["4", "8", "12", "16", "24"],
-                                         lambda x: get_substs(iomode="OUTPUT_LVCMOS33", extracfg=("DRIVE", x)),
+            nonrouting.fuzz_enum_setting(cfg, "PIO{}.DRIVE".format(pio), ["2", "4", "6", "8", "12", "16"],
+                                         lambda x: get_substs(iomode="OUTPUT_LVCMOS12" if x in ["2", "6"] else "OUTPUT_LVCMOS33", extracfg=("DRIVE", x)),
                                          empty_bitfile)
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.HYSTERESIS".format(pio), ["SMALL", "LARGE"],
                                          lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("HYSTERESIS", x)),
@@ -245,18 +236,17 @@ def main(args):
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.OPENDRAIN".format(pio), ["ON", "OFF"],
                                          lambda x: get_substs(iomode="OUTPUT_LVCMOS33", extracfg=("OPENDRAIN", x)),
                                          empty_bitfile)
+            nonrouting.fuzz_enum_setting(cfg, "PIO{}.CLAMP".format(pio), ["ON", "OFF"],
+                                            lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("CLAMP", x)),
+                                            empty_bitfile)
             if side in "B":
-                nonrouting.fuzz_enum_setting(cfg, "PIO{}.CLAMP".format(pio), ["PCI", "OFF"],
-                                             lambda x: get_substs(iomode="INPUT_PCI33", extracfg=("CLAMP", x)),
-                                             empty_bitfile)
-            else:
-                nonrouting.fuzz_enum_setting(cfg, "PIO{}.CLAMP".format(pio), ["ON", "OFF"],
-                                             lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("CLAMP", x)),
-                                             empty_bitfile)
-            if side in "T" and pio in "A":
-                nonrouting.fuzz_enum_setting(cfg, "PIO{}.DIFFDRIVE".format(pio), ["1.25"],
-                                             lambda x: get_substs(iomode="OUTPUT_LVDS25", extracfg=("DIFFDRIVE", x)),
-                                             empty_bitfile)
+                nonrouting.fuzz_enum_setting(cfg, "PIO{}.DIFFRESISTOR".format(pio), ["OFF", "100"],
+                                            lambda x: get_substs(iomode="INPUT_LVDS25", extracfg=("DIFFRESISTOR", x)),
+                                            empty_bitfile)
+            #if side in "T" and pio in "A":
+            #    nonrouting.fuzz_enum_setting(cfg, "PIO{}.DIFFDRIVE".format(pio), ["3.5"],
+            #                                 lambda x: get_substs(iomode="OUTPUT_LVDS25", extracfg=("DIFFDRIVE", x)),
+            #                                 empty_bitfile)
 
         fuzzloops.parallel_foreach(pins, per_pin)
 
