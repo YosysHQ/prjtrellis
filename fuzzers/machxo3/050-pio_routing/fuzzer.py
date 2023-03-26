@@ -27,27 +27,17 @@ def fc_filter(arc, netnames):
 # Bank of None means that the I/O connections are in another tile.
 jobs = [
         {
-           "pos" : (27, 12),
-           "cfg" : FuzzConfig(job="PIOROUTEB", family="MachXO3LF", device="LCMXO3LF-6900C", ncl="pioroute.ncl",
-                                  tiles=["PB12:PIC_B0"]),
+           "pos" : (12, 11),
+           "cfg" : FuzzConfig(job="PIOROUTEB", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
+                                  tiles=["PB11:PIC_B0"]),
            "missing_nets" : None,
            "nn_filter": nn_filter,
            "bank" : "B",
         },
         {
-           "pos" : (27, 11),
-           "cfg" : FuzzConfig(job="PIOROUTEB_CIB", family="MachXO3LF", device="LCMXO3LF-6900C", ncl="pioroute.ncl",
-                                  tiles=["CIB_R11C11:CIB_PIC_B0"]),
-            # A bug in the span1 fix prevents span1 nets from being included.
-            # Just fuzz manually for now.
-           "missing_nets" : None,
-           "nn_filter": nn_filter,
-           "bank" : None,
-        },
-        {
            "pos" : (10, 1),
-           "cfg" : FuzzConfig(job="PIOROUTEL", family="MachXO3LF", device="LCMXO3LF-6900C", ncl="pioroute.ncl",
-                                  tiles=["PL10:PIC_L2"]),
+           "cfg" : FuzzConfig(job="PIOROUTEL", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
+                                  tiles=["PL10:PIC_L0"]),
            "missing_nets" : None,
            "nn_filter": nn_filter,
            "bank" : "L"
@@ -55,23 +45,107 @@ jobs = [
 
         # Probably the same thing as PIC_L0 plus some additional fixed connections?
         {
+           "pos" : (11, 1),
+           "cfg" : FuzzConfig(job="PIOROUTELLC0", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
+                                  tiles=["PL11:LLC0"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "L"
+        },
+
+        {
+           "pos" : (10, 22),
+           "cfg" : FuzzConfig(job="PIOROUTER", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
+                                   tiles=["PR10:PIC_R0"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "R"
+        },
+        # 4
+        {
+           "pos" : (0, 12),
+           "cfg" : FuzzConfig(job="PIOROUTET", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
+                                  tiles=["PT12:PIC_T0"]),
+           "missing_nets" : None,
+           "nn_filter" : lambda x, nets: x.startswith("R0C12"),
+           "bank" : "T",
+        },
+
+        {
+           "pos" : (9, 1),
+           "cfg" : FuzzConfig(job="PIOROUTELS0", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
+                                  tiles=["PL9:PIC_LS0"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "LS",
+        },
+
+        {
+           "pos" : (3, 22),
+           "cfg" : FuzzConfig(job="PIOROUTERS0", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
+                                  tiles=["PR3:PIC_RS0"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "RS",
+        },
+
+        {
+           "pos" : (10, 1),
+           "cfg" : FuzzConfig(job="PIOROUTEL", family="MachXO3", device="LCMXO3LF-6900C", ncl="pioroute_6900.ncl",
+                                  tiles=["PL10:PIC_L2"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "L"
+        },
+
+        # 8
+        # Probably the same thing as PIC_L2 plus some additional fixed connections?
+        {
            "pos" : (26, 1),
-           "cfg" : FuzzConfig(job="PIOROUTELLC2", family="MachXO3LF", device="LCMXO3LF-6900C", ncl="pioroute.ncl",
+           "cfg" : FuzzConfig(job="PIOROUTELLC2", family="MachXO3", device="LCMXO3LF-6900C", ncl="pioroute_6900.ncl",
                                   tiles=["PL26:LLC2"]),
            "missing_nets" : None,
            "nn_filter": nn_filter,
            "bank" : "L"
         },
 
-        # 4
         {
            "pos" : (25, 41),
-           "cfg" : FuzzConfig(job="PIOROUTER", family="MachXO3LF", device="LCMXO3LF-6900C", ncl="pioroute.ncl",
+           "cfg" : FuzzConfig(job="PIOROUTER", family="MachXO3", device="LCMXO3LF-6900C", ncl="pioroute_6900.ncl",
                                    tiles=["PR25:PIC_R1"]),
            "missing_nets" : None,
            "nn_filter": nn_filter,
            "bank" : "R"
         },
+
+        {
+           "pos" : (10, 1),
+           "cfg" : FuzzConfig(job="PIOROUTEL", family="MachXO3", device="LCMXO3LF-2100C", ncl="pioroute_2100.ncl",
+                                  tiles=["PL10:PIC_L3"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "L"
+        },
+
+        {
+           "pos" : (14, 1),
+           "cfg" : FuzzConfig(job="PIOROUTEL", family="MachXO3", device="LCMXO3LF-4300C", ncl="pioroute_4300.ncl",
+                                  tiles=["PL14:PIC_L1"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "L"
+        },
+
+        # 12
+        {
+           "pos" : (21, 1),
+           "cfg" : FuzzConfig(job="PIOROUTELLC2", family="MachXO3", device="LCMXO3LF-4300C", ncl="pioroute_4300.ncl",
+                                  tiles=["PL21:LLC1"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "L"
+        },
+
 ]
 
 def main(args):
