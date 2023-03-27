@@ -14,7 +14,7 @@ import sys
 jobs = [
         {
             "cfg": FuzzConfig(job="PIC_T0", family="MachXO3", device="LCMXO3LF-6900C",
-                        ncl="empty.ncl", tiles=["PT26:PIC_T0"]),
+                        ncl="empty_6900.ncl", tiles=["PT26:PIC_T0"]),
             "side": "T",
             "pins": [("A14", "A"), ("B14", "B"), ("D12", "C"), ("C12", "D")],
             "package": "CABGA400"
@@ -22,7 +22,7 @@ jobs = [
 
         {
             "cfg": FuzzConfig(job="PIC_B0", family="MachXO3", device="LCMXO3LF-6900C",
-                        ncl="empty.ncl", tiles=["PB26:PIC_B0"]),
+                        ncl="empty_6900.ncl", tiles=["PB26:PIC_B0"]),
             "side": "B",
             "pins": [("Y13", "A"), ("W13", "B"), ("V12", "C"), ("V13", "D")],
             "package": "CABGA400"
@@ -64,7 +64,7 @@ jobs = [
 
         {
             "cfg": FuzzConfig(job="PIC_L2", family="MachXO3", device="LCMXO3LF-6900C",
-                        ncl="empty.ncl", tiles=["PL7:PIC_L2"]),
+                        ncl="empty_6900.ncl", tiles=["PL7:PIC_L2"]),
             "side": "L",
             "pins": [("G4", "A"), ("G3", "B"), ("H3", "C"), ("H4", "D")],
             "package": "CABGA400"
@@ -72,7 +72,7 @@ jobs = [
 
         {
             "cfg": FuzzConfig(job="PIC_R1", family="MachXO3", device="LCMXO3LF-6900C",
-                        ncl="empty.ncl", tiles=["PR15:PIC_R1"]),
+                        ncl="empty_6900.ncl", tiles=["PR15:PIC_R1"]),
             "side": "R",
             "pins": [("L19", "A"), ("L20", "B"), ("L14", "C"), ("L15", "D")],
             "package": "CABGA400"
@@ -92,7 +92,75 @@ jobs = [
             "pins": [("M3", "A"), ("N1", "B"), ("N2", "C"), ("P1", "D")],
             "package": "CABGA256"
         },
-       
+
+        {
+            "cfg": FuzzConfig(job="PIC_L0_VREF3", family="MachXO3", device="LCMXO3LF-1300E",
+                        ncl="empty_1300.ncl", tiles=["PL4:PIC_L0_VREF3"]),
+            "side": "L",
+            "pins": [("D10", "A"), ("D11", "B"), ("E10", "C"), ("E11", "D")],
+            "package": "CSFBGA121"
+        },
+
+        {
+            "cfg": FuzzConfig(job="PIC_L0_VREF4", family="MachXO3", device="LCMXO3LF-9400C",
+                        ncl="empty_9400.ncl", tiles=["PL12:PIC_L0_VREF4"]),
+            "side": "L",
+            "pins": [("J2", "A"), ("J1", "B"), ("K7", "C"), ("K6", "D")],
+            "package": "CABGA484"
+        },
+        #12
+        {
+            "cfg": FuzzConfig(job="PIC_L0_VREF5", family="MachXO3", device="LCMXO3LF-9400C",
+                        ncl="empty_9400.ncl", tiles=["PL2:PIC_L0_VREF5"]),
+            "side": "L",
+            "pins": [("D3", "A"), ("D4", "B"), ("F6", "C"), ("G7", "D")],
+            "package": "CABGA484"
+        },
+
+        {
+            "cfg": FuzzConfig(job="PIC_L1_VREF4", family="MachXO3", device="LCMXO3LF-4300C",
+                        ncl="empty_4300.ncl", tiles=["PL8:PIC_L1_VREF4"]),
+            "side": "L",
+            "pins": [("H2", "A"), ("H1", "B"), ("H6", "C"), ("J1", "D")],
+            "package": "CABGA324"
+        },
+        {
+            "cfg": FuzzConfig(job="PIC_L1_VREF5", family="MachXO3", device="LCMXO3LF-4300C",
+                        ncl="empty_4300.ncl", tiles=["PL2:PIC_L1_VREF5"]),
+            "side": "L",
+            "pins": [("B1", "A"), ("C2", "B"), ("D3", "C"), ("C1", "D")],
+            "package": "CABGA324"
+        },
+        {
+            "cfg": FuzzConfig(job="PIC_L2_VREF5", family="MachXO3", device="LCMXO3LF-6900C",
+                        ncl="empty_6900.ncl", tiles=["PL2:PIC_L2_VREF5"]),
+            "side": "L",
+            "pins": [("C4", "A"), ("C3", "B"), ("F6", "C"), ("G6", "D")],
+            "package": "CABGA400"
+        },
+        #16
+        {
+            "cfg": FuzzConfig(job="PIC_L2_VREF4", family="MachXO3", device="LCMXO3LF-6900C",
+                        ncl="empty_6900.ncl", tiles=["PL12:PIC_L2_VREF4"]),
+            "side": "L",
+            "pins": [("L1", "A"), ("L2", "B"), ("L3", "C"), ("L4", "D")],
+            "package": "CABGA400"
+        },
+
+        {
+            "cfg": FuzzConfig(job="PIC_L3_VREF4", family="MachXO3", device="LCMXO3LF-2100C",
+                        ncl="empty_2100.ncl", tiles=["PL5:PIC_L3_VREF4"]),
+            "side": "L",
+            "pins": [("E2", "A"), ("E3", "B"), ("C1", "C"), ("D2", "D")],
+            "package": "CABGA256"
+        },
+        {
+            "cfg": FuzzConfig(job="PIC_L3_VREF5", family="MachXO3", device="LCMXO3LF-2100C",
+                        ncl="empty_2100.ncl", tiles=["PL2:PIC_L3_VREF5"]),
+            "side": "L",
+            "pins": [("B1", "A"), ("C2", "B"), ("D3", "C"), ("C1", "D")],
+            "package": "CABGA256"
+        },
 ]
 
 # Function constructed from reading the MachXO3L sysIO Usage Guide.
