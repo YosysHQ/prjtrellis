@@ -151,14 +151,52 @@ jobs = [
             "cfg": FuzzConfig(job="PIC_L3_VREF4", family="MachXO3", device="LCMXO3LF-2100C",
                         ncl="empty_2100.ncl", tiles=["PL5:PIC_L3_VREF4"]),
             "side": "L",
-            "pins": [("E2", "A"), ("E3", "B"), ("C1", "C"), ("D2", "D")],
+            "pins": [("G2", "A"), ("G3", "B"), ("F5", "C"), ("H6", "D")],
             "package": "CABGA256"
         },
         {
             "cfg": FuzzConfig(job="PIC_L3_VREF5", family="MachXO3", device="LCMXO3LF-2100C",
                         ncl="empty_2100.ncl", tiles=["PL2:PIC_L3_VREF5"]),
             "side": "L",
-            "pins": [("B1", "A"), ("C2", "B"), ("D3", "C"), ("C1", "D")],
+            "pins": [("E2", "A"), ("E3", "B"), ("C1", "C"), ("D2", "D")],
+            "package": "CABGA256"
+        },
+
+        {
+            "cfg": FuzzConfig(job="LLC0PIC_VREF3", family="MachXO3", device="LCMXO3LF-9400C",
+                        ncl="empty_9400.ncl", tiles=["PL30:LLC0PIC_VREF3"]),
+            "side": "L",
+            "pins": [("Y3", "A"), ("W4", "B"), ("V5", "C"), ("T7", "D")],
+            "package": "CABGA484"
+        },
+
+        #20
+        {
+            "cfg": FuzzConfig(job="LLC3PIC_VREF3", family="MachXO3", device="LCMXO3LF-2100C",
+                        ncl="empty_2100.ncl", tiles=["PL14:LLC3PIC_VREF3"]),
+            "side": "L",
+            "pins": [("M2", "A"), ("N3", "B"), ("R1", "C"), ("P2", "D")],
+            "package": "CABGA256"
+        },
+        {
+            "cfg": FuzzConfig(job="LRC1PIC2", family="MachXO3", device="LCMXO3LF-2100C",
+                        ncl="empty_2100.ncl", tiles=["PR14:LRC1PIC2"]),
+            "side": "R",
+            "pins": [("N16", "A"), ("N14", "B"), ("P15", "C"), ("R16", "D")],
+            "package": "CABGA256"
+        },
+        {
+            "cfg": FuzzConfig(job="ULC3PIC", family="MachXO3", device="LCMXO3LF-2100C",
+                        ncl="empty_2100.ncl", tiles=["PL1:ULC3PIC"]),
+            "side": "L",
+            "pins": [("D3", "A"), ("D1", "B"), ("B1", "C"), ("C2", "D")],
+            "package": "CABGA256"
+        },
+        {
+            "cfg": FuzzConfig(job="URC1PIC", family="MachXO3", device="LCMXO3LF-2100C",
+                        ncl="empty_2100.ncl", tiles=["PR1:URC1PIC"]),
+            "side": "R",
+            "pins": [("D14", "A"), ("E15", "B"), ("C15", "C"), ("B16", "D")],
             "package": "CABGA256"
         },
 ]

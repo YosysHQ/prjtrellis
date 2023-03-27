@@ -28,5 +28,12 @@ def main():
     
     dbfixup.remove_enum_bits("MachXO3", "LCMXO3LF-1300E", "PIC_RS0", (29, 59), (0, 48))
 
+    dbfixup.remove_enum_bits("MachXO3", "LCMXO3LF-9400C", "LLC0PIC_VREF3", (29, 11))
+
+    dbfixup.remove_enum_bits("MachXO3", "LCMXO3LF-2100C", "LLC3PIC_VREF3", (29, 11))
+    dbfixup.remove_enum_bits("MachXO3", "LCMXO3LF-2100C", "ULC3PIC", (29, 11))
+
+    dbfixup.remove_enum_bits("MachXO3", "LCMXO3LF-2100C", "LRC1PIC2", (29, 59), (0, 48))
+    dbfixup.remove_enum_bits("MachXO3", "LCMXO3LF-2100C", "URC1PIC", (29, 59), (0, 48))
 if __name__ == "__main__":
     main()

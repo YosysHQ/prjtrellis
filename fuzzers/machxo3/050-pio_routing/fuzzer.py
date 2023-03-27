@@ -139,13 +139,89 @@ jobs = [
         # 12
         {
            "pos" : (21, 1),
-           "cfg" : FuzzConfig(job="PIOROUTELLC2", family="MachXO3", device="LCMXO3LF-4300C", ncl="pioroute_4300.ncl",
+           "cfg" : FuzzConfig(job="PIOROUTELLC1", family="MachXO3", device="LCMXO3LF-4300C", ncl="pioroute_4300.ncl",
                                   tiles=["PL21:LLC1"]),
            "missing_nets" : None,
            "nn_filter": nn_filter,
            "bank" : "L"
         },
 
+        {
+           "pos" : (11, 22),
+           "cfg" : FuzzConfig(job="PIOROUTELRC0", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
+                                  tiles=["PR11:LRC0"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "R"
+        },
+
+        {
+           "pos" : (21, 32),
+           "cfg" : FuzzConfig(job="PIOROUTELRC1", family="MachXO3", device="LCMXO3LF-4300C", ncl="pioroute_4300.ncl",
+                                  tiles=["PR21:LRC1"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "R"
+        },
+
+        {
+           "pos" : (14, 26),
+           "cfg" : FuzzConfig(job="PIOROUTELRC1PIC2", family="MachXO3", device="LCMXO3LF-2100C", ncl="pioroute_2100.ncl",
+                                  tiles=["PR14:LRC1PIC2"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "R"
+        },
+        #16
+        {
+           "pos" : (1, 1),
+           "cfg" : FuzzConfig(job="PIOROUTEULC1", family="MachXO3", device="LCMXO3LF-4300C", ncl="pioroute_4300.ncl",
+                                  tiles=["PL1:ULC1"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "L"
+        },
+        {
+           "pos" : (1, 1),
+           "cfg" : FuzzConfig(job="PIOROUTEULC2", family="MachXO3", device="LCMXO3LF-6900C", ncl="pioroute_6900.ncl",
+                                  tiles=["PL1:ULC2"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "L"
+        },
+        {
+           "pos" : (1, 1),
+           "cfg" : FuzzConfig(job="PIOROUTEULC3PIC", family="MachXO3", device="LCMXO3LF-2100C", ncl="pioroute_2100.ncl",
+                                  tiles=["PL1:ULC3PIC"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "L"
+        },
+        {
+           "pos" : (1, 26),
+           "cfg" : FuzzConfig(job="PIOROUTEURC1PIC", family="MachXO3", device="LCMXO3LF-2100C", ncl="pioroute_2100.ncl",
+                                  tiles=["PR1:URC1PIC"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "R"
+        },
+        #20
+        {
+           "pos" : (30, 1),
+           "cfg" : FuzzConfig(job="PIOROUTELLC0PIC_VREF3", family="MachXO3", device="LCMXO3LF-9400C", ncl="pioroute_9400.ncl",
+                                  tiles=["PL30:LLC0PIC_VREF3"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "L"
+        },
+        {
+           "pos" : (14, 1),
+           "cfg" : FuzzConfig(job="PIOROUTELLC1PIC_VREF3", family="MachXO3", device="LCMXO3LF-2100C", ncl="pioroute_2100.ncl",
+                                  tiles=["PL14:LLC3PIC_VREF3"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "L"
+        },
 ]
 
 def main(args):
