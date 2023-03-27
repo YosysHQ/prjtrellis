@@ -27,17 +27,17 @@ def fc_filter(arc, netnames):
 # Bank of None means that the I/O connections are in another tile.
 jobs = [
         {
-           "pos" : (12, 11),
+           "pos" : (12, 18),
            "cfg" : FuzzConfig(job="PIOROUTEB", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
-                                  tiles=["PB11:PIC_B0"]),
+                                  tiles=["PB18:PIC_B0"]),
            "missing_nets" : None,
            "nn_filter": nn_filter,
            "bank" : "B",
         },
         {
-           "pos" : (10, 1),
+           "pos" : (8, 1),
            "cfg" : FuzzConfig(job="PIOROUTEL", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
-                                  tiles=["PL10:PIC_L0"]),
+                                  tiles=["PL8:PIC_L0"]),
            "missing_nets" : None,
            "nn_filter": nn_filter,
            "bank" : "L"
@@ -63,11 +63,11 @@ jobs = [
         },
         # 4
         {
-           "pos" : (0, 12),
+           "pos" : (0, 16),
            "cfg" : FuzzConfig(job="PIOROUTET", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
-                                  tiles=["PT12:PIC_T0"]),
+                                  tiles=["PT16:PIC_T0"]),
            "missing_nets" : None,
-           "nn_filter" : lambda x, nets: x.startswith("R0C12"),
+           "nn_filter" : lambda x, nets: x.startswith("R0C16"),
            "bank" : "T",
         },
 

@@ -5,7 +5,7 @@ design top
     {
        architecture xo3c00f;
        device LCMXO3LF-1300E;
-       package WLCSP36;
+       package CSFBGA121;
        performance "6";
     }
 
@@ -24,7 +24,7 @@ design top
          primitive IOBUF PIO_pad;
          primitive PAD PIO;
       }
-      site "E3";
+      site "J7";
    }
 
     signal q_c
