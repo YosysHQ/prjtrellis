@@ -10,19 +10,19 @@ import argparse
 jobs = [
         {
             "cfg": FuzzConfig(job="CIBEBR0ROUTE", family="MachXO3", device="LCMXO3-1300E",
-                        ncl="cibroute.ncl", tiles=["CIB_R6C10:CIB_EBR0"]),
+                        ncl="cibroute_1300.ncl", tiles=["CIB_R6C10:CIB_EBR0"]),
             "location": (6, 10),
             "nn_filter_extra": []
         },
         {
             "cfg": FuzzConfig(job="CIBEBR0END0ROUTE", family="MachXO3", device="LCMXO3-1300E",
-                        ncl="cibroute.ncl", tiles=["CIB_R6C1:CIB_EBR0_END0"]),
+                        ncl="cibroute_1300.ncl", tiles=["CIB_R6C1:CIB_EBR0_END0"]),
             "location": (6, 1),
             "nn_filter_extra": ["G_HPBX0100", "G_HPBX0500"]
         },
         {
             "cfg": FuzzConfig(job="CIBEBR2END0ROUTE", family="MachXO3", device="LCMXO3-1300E",
-                        ncl="cibroute.ncl", tiles=["CIB_R6C22:CIB_EBR2_END0"]),
+                        ncl="cibroute_1300.ncl", tiles=["CIB_R6C22:CIB_EBR2_END0"]),
             "location": (6, 22),
             "nn_filter_extra": []
         },
