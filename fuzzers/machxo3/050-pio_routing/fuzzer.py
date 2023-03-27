@@ -222,6 +222,14 @@ jobs = [
            "nn_filter": nn_filter,
            "bank" : "L"
         },
+        {
+           "pos" : (1, 1),
+           "cfg" : FuzzConfig(job="PIOROUTEULC0", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
+                                  tiles=["PL1:ULC0"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "L"
+        },
 ]
 
 def main(args):
