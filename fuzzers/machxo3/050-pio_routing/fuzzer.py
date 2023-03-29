@@ -230,6 +230,41 @@ jobs = [
            "nn_filter": nn_filter,
            "bank" : "L"
         },
+        {
+           "pos" : (11, 11),
+           "cfg" : FuzzConfig(job="CIBPICB0ROUTE", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
+                                  tiles=["CIB_R11C11:CIB_PIC_B0"]),
+            # A bug in the span1 fix prevents span1 nets from being included.
+            # Just fuzz manually for now.
+           "missing_nets" : ["R10C11_V01N0001", "R10C11_V01N0101"],
+           "nn_filter": nn_filter,
+           "bank" : None,
+        },
+        #24
+        {
+           "pos" : (1, 10),
+           "cfg" : FuzzConfig(job="CIBPICT0ROUTE", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
+                                  tiles=["CIB_R1C10:CIB_PIC_T0"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : None,
+        },
+        {
+           "pos" : (1, 22),
+           "cfg" : FuzzConfig(job="PIOROUTEURC0", family="MachXO3", device="LCMXO3LF-1300E", ncl="pioroute_1300.ncl",
+                                  tiles=["PR1:URC0"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "R"
+        },
+        {
+           "pos" : (1, 32),
+           "cfg" : FuzzConfig(job="PIOROUTEURC0", family="MachXO3", device="LCMXO3LF-4300C", ncl="pioroute_4300.ncl",
+                                  tiles=["PR1:URC1"]),
+           "missing_nets" : None,
+           "nn_filter": nn_filter,
+           "bank" : "R"
+        },
 ]
 
 def main(args):
