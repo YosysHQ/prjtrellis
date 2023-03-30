@@ -68,6 +68,7 @@ shared_ptr<OptimizedChipdb> make_optimized_chipdb(Chip &chip, bool include_lutpe
             ad.delay = 1;
             ad.sinkWire = OptId{ra.sink.loc, graph->tiles.at(ra.sink.loc).wires.at(ra.sink.id).cdb_id};
             ad.srcWire = OptId{ra.source.loc, graph->tiles.at(ra.source.loc).wires.at(ra.source.id).cdb_id};
+            ad.lutperm_flags = ra.lutperm_flags;
             ld.arcs.push_back(ad);
         }
 
