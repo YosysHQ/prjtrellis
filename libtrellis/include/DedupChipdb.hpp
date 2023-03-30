@@ -383,7 +383,7 @@ struct OptimizedChipdb : public IdStore
     map<Location, LocationData> tiles;
 };
 
-shared_ptr<OptimizedChipdb> make_optimized_chipdb(Chip &chip, bool split_slice_mode = false);
+shared_ptr<OptimizedChipdb> make_optimized_chipdb(Chip &chip, bool include_lutperm_pips = false, bool split_slice_mode = false);
 
 }
 }

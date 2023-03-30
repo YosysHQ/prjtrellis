@@ -124,9 +124,9 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph(bool include_lutperm_pips, bool
     if(info.family == "ECP5") {
         return get_routing_graph_ecp5(include_lutperm_pips, split_slice_mode);
     } else if(info.family == "MachXO") {
-        return get_routing_graph_machxo(split_slice_mode);
+        return get_routing_graph_machxo(include_lutperm_pips, split_slice_mode);
     } else if(info.family == "MachXO2" || info.family == "MachXO3" || info.family == "MachXO3D") {
-        return get_routing_graph_machxo2(split_slice_mode);
+        return get_routing_graph_machxo2(include_lutperm_pips, split_slice_mode);
     } else
       throw runtime_error("Unknown chip family: " + info.family);
 }
@@ -318,7 +318,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips,
     return rg;
 }
 
-shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool split_slice_mode)
+shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool include_lutperm_pips, bool split_slice_mode)
 {
     shared_ptr<RoutingGraph> rg(new RoutingGraph(*this));
 
@@ -340,6 +340,29 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool split_slice_mode)
                     }
                 } else {
                     CommonBels::add_lc(*rg, x, y, z);
+                }
+                if (include_lutperm_pips) {
+                    // Add permutation pseudo-pips as a crossbar in front of each LUT's inputs
+                    Location loc(x, y);
+                    const string abcd = "ABCD";
+                    for (int k = (z*2); k < ((z+1)*2); k++) {
+                        for (int i = 0; i < 4; i++) {
+                            for (int j = 0; j < 4; j++) {
+                                if (i == j)
+                                    continue;
+                                string input = fmt(abcd[j] << k);
+                                string output = fmt(abcd[i] << k << "_SLICE");
+                                RoutingArc rarc;
+                                rarc.id = rg->ident(fmt(input << "->" << output));
+                                rarc.source = RoutingId{loc, rg->ident(input)};
+                                rarc.sink = RoutingId{loc, rg->ident(output)};
+                                rarc.tiletype = rg->ident(tile->info.type);
+                                rarc.configurable = false;
+                                rarc.lutperm_flags = (0x4000 | (k << 4) | ((i & 0x3) << 2) |(j & 0x3));
+                                rg->add_arc(loc, rarc);
+                            }
+                        }
+                    }
                 }
             }
             if (split_slice_mode)
@@ -380,7 +403,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool split_slice_mode)
     return rg;
 }
 
-shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo(bool split_slice_mode)
+shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo(bool include_lutperm_pips, bool split_slice_mode)
 {
     shared_ptr<RoutingGraph> rg(new RoutingGraph(*this));
     for (auto tile_entry : tiles) {
@@ -401,6 +424,29 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo(bool split_slice_mode)
                     }
                 } else {
                     CommonBels::add_lc(*rg, x, y, z);
+                }
+                if (include_lutperm_pips) {
+                    // Add permutation pseudo-pips as a crossbar in front of each LUT's inputs
+                    Location loc(x, y);
+                    const string abcd = "ABCD";
+                    for (int k = (z*2); k < ((z+1)*2); k++) {
+                        for (int i = 0; i < 4; i++) {
+                            for (int j = 0; j < 4; j++) {
+                                if (i == j)
+                                    continue;
+                                string input = fmt(abcd[j] << k);
+                                string output = fmt(abcd[i] << k << "_SLICE");
+                                RoutingArc rarc;
+                                rarc.id = rg->ident(fmt(input << "->" << output));
+                                rarc.source = RoutingId{loc, rg->ident(input)};
+                                rarc.sink = RoutingId{loc, rg->ident(output)};
+                                rarc.tiletype = rg->ident(tile->info.type);
+                                rarc.configurable = false;
+                                rarc.lutperm_flags = (0x4000 | (k << 4) | ((i & 0x3) << 2) |(j & 0x3));
+                                rg->add_arc(loc, rarc);
+                            }
+                        }
+                    }
                 }
             }
             if (split_slice_mode)
