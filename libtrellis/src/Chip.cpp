@@ -371,13 +371,12 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool include_lutperm_pi
         // PIO Bels
         // DUMMY and CIB tiles can have the below strings and can possibly
         // have BELs. But they will not have PIO BELs.
-        if (tile->info.type.find("DUMMY") == string::npos && tile->info.type.find("CIB") == string::npos &&
-            (tile->info.type.find("PIC_L") != string::npos || tile->info.type.find("PIC_T") != string::npos ||
-             tile->info.type.find("PIC_R") != string::npos || tile->info.type.find("PIC_B") != string::npos)) {
+        if (tile->info.type.find("DUMMY") == string::npos && tile->info.type.find("CIB") == string::npos && tile->info.type.find("PIC") != string::npos) {
             
             // Single I/O pair.
-            if (tile->info.type.find("PIC_LS0") != string::npos || tile->info.type.find("PIC_RS0") != string::npos ||
-                tile->info.type.find("PIC_BS0") != string::npos || tile->info.type.find("PIC_TS0") != string::npos) {
+            if (tile->info.type.find("LS0") != string::npos || tile->info.type.find("RS0") != string::npos ||
+                tile->info.type.find("BS0") != string::npos || tile->info.type.find("TS0") != string::npos ||
+                tile->info.type.find("LLC0PIC") != string::npos) {
                 for (int z = 0; z < 2; z++)
                     CommonBels::add_pio(*rg, x, y, z);
             } else {
