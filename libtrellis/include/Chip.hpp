@@ -120,10 +120,7 @@ inline bool operator==(const MissingDccs &a, const MissingDccs &b)
 
 struct MachXO2GlobalsInfo
 {
-    std::vector<LeftRightConn> lr_conns;
     std::vector<std::vector<int>> ud_conns;
-    std::vector<std::vector<pair<int, int>>> branch_spans;
-    std::vector<MissingDccs> missing_dccs;
 };
 
 class Tile;
@@ -186,6 +183,9 @@ public:
     shared_ptr<RoutingGraph> get_routing_graph(bool include_lutperm_pips = false, bool split_slice_mode = false);
 
     vector<vector<vector<pair<string, string>>>> tiles_at_location;
+
+    // Generate data needed for MachXO2/3 global routing
+    MachXO2GlobalsInfo generate_global_info_machxo2();
 
     // Block RAM initialisation (WIP)
     map<uint16_t, vector<uint16_t>> bram_data;

@@ -175,7 +175,7 @@ private:
     // We need access to globals.json to correctly assign global positions.
     // Internal use only- do NOT expose below methods, members, and types to
     // pytrellis for now.
-    MachXO2GlobalsInfo global_data_machxo2;
+    const MachXO2GlobalsInfo *global_data_machxo2;
     enum GlobalType {
         CENTER,
         LEFT_RIGHT,

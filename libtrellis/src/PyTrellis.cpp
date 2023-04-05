@@ -162,10 +162,7 @@ PYBIND11_MODULE (pytrellis, m)
     py::bind_vector<vector<std::pair<int, int>>>(m, "IntPairVector");
 
     class_<MachXO2GlobalsInfo>(m, "MachXO2GlobalsInfo")
-            .def_readwrite("lr_conns", &MachXO2GlobalsInfo::lr_conns)
-            .def_readwrite("ud_conns", &MachXO2GlobalsInfo::ud_conns)
-            .def_readwrite("branch_spans", &MachXO2GlobalsInfo::branch_spans)
-            .def_readwrite("missing_dccs", &MachXO2GlobalsInfo::missing_dccs);
+            .def_readwrite("ud_conns", &MachXO2GlobalsInfo::ud_conns);
 
     class_<Chip>(m, "Chip")
             .def(init<string>())

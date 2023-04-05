@@ -42,7 +42,7 @@ Chip::Chip(const Trellis::ChipInfo &info) : info(info), cram(info.num_frames, in
         global_data_ecp5 = get_global_info_ecp5(DeviceLocator{info.family, info.name, info.variant});
     else if(info.family == "MachXO") {} // No global routing
     else if (info.family == "MachXO2" || info.family == "MachXO3" || info.family == "MachXO3D")
-        global_data_machxo2 = get_global_info_machxo2(DeviceLocator{info.family, info.name, info.variant});
+        global_data_machxo2 = generate_global_info_machxo2();
     else
         throw runtime_error("Unknown chip family " + info.family);
 }
@@ -521,5 +521,57 @@ pair<int, int> Ecp5GlobalsInfo::get_spine_driver(std::string quadrant, int col) 
     throw runtime_error(fmt(quadrant << "C" << col << " matches no global SPINE segment"));
 }
 
+map<pair<int, int>, int> start_stride = {
+    // LCMXO2-256
+    {make_pair(7, 9), 0}, // (0, 4)
+    // LCMXO2-640
+    {make_pair(8, 17), 1}, // (1, 5)
+    // LCMXO2-1200, LCMXO3-1300
+    {make_pair(12, 21),0}, // (0, 4)
+    // LCMXO2-2000, LCMXO3-2100
+    {make_pair(15, 25), 3}, // (3, 7)
+    // LCMXO2-4000, LCMXO3-4300
+    {make_pair(22, 31), 1}, // (1, 5)
+    // LCMXO2-7000, LCMXO3-6900
+    {make_pair(27, 40), 2}, // (2, 6)
+    // LCMXO3-9400
+    {make_pair(31, 48), 0}, // (0, 4)
+};
+
+MachXO2GlobalsInfo Chip::generate_global_info_machxo2()
+{
+    MachXO2GlobalsInfo data;
+    int stride = start_stride[make_pair(info.max_row, info.max_col)];
+    // At column zero, always 6 wires, that do not
+    // match those in column 1
+    std::vector<int> items_col_0;
+    for (int i=0;i<4;i++) {
+        if (i!=stride) {
+            items_col_0.push_back(i);
+            items_col_0.push_back(i + 4);
+        }
+    }
+    data.ud_conns.push_back(items_col_0);
+
+    // For the rest of columns
+    for(int i=1; i < info.max_col; i++)
+    {
+        std::vector<int> items;
+        items.push_back(stride);
+        items.push_back(stride + 4);
+        stride = (stride + 1) & 3;
+        data.ud_conns.push_back(items);
+    }
+
+    // Last one have 4 wires
+    std::vector<int> items_col_last;
+    items_col_last.push_back(stride);
+    items_col_last.push_back(stride + 4);
+    stride = (stride + 1) & 3;
+    items_col_last.push_back(stride);
+    items_col_last.push_back(stride + 4);
+    data.ud_conns.push_back(items_col_last);
+    return data;
+}
 
 }

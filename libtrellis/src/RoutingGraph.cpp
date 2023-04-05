@@ -69,7 +69,7 @@ RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), chip_family(
         assert(false);
 
     if(c.info.family == "MachXO2" || c.info.family == "MachXO3" || c.info.family == "MachXO3D")
-        global_data_machxo2 = get_global_info_machxo2(DeviceLocator{c.info.family, c.info.name, c.info.variant});
+        global_data_machxo2 = &c.global_data_machxo2;
 }
 
 ident_t IdStore::ident(const std::string &str) const
@@ -426,7 +426,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // Both U_/D_ and G_ prefixes are handled here.
     } else if(strategy == GlobalType::UP_DOWN) {
         std::string db_copy = db_name;
-        std::vector<int> & ud_conns_in_col = global_data_machxo2.ud_conns[col];
+        const std::vector<int> & ud_conns_in_col = global_data_machxo2->ud_conns[col];
         auto conn_begin = ud_conns_in_col.begin();
         auto conn_end = ud_conns_in_col.end();
         int conn_no = std::stoi(m.str(1));
@@ -488,7 +488,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
             candidate_cols.push_back(col + 1);
 
         for(auto curr_col : candidate_cols) {
-            std::vector<int> & ud_conns_in_col = global_data_machxo2.ud_conns[curr_col];
+            const std::vector<int> & ud_conns_in_col = global_data_machxo2->ud_conns[curr_col];
             auto conn_begin = ud_conns_in_col.begin();
             auto conn_end = ud_conns_in_col.end();
             int conn_no = std::stoi(m.str(1));
