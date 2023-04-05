@@ -204,9 +204,7 @@ RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::strin
         // Global prefix detected, use the prefix and row/col to map "logical"
         // globals on a tile basis to physical globals which are shared between
         // tiles.
-        if (chip_prefix == "1200_") // For now only working for LCMXO2-1200
-            return find_machxo2_global_position(row, col, stripped_name);
-        return RoutingId();
+        return find_machxo2_global_position(row, col, stripped_name);
   } else {
       RoutingId id;
       id.loc.x = int16_t(col);
@@ -348,12 +346,37 @@ void RoutingGraph::add_bel_output(RoutingBel &bel, ident_t pin, int wire_x, int 
     tiles[wireId.loc].wires[wireId.id].belsUphill.push_back(make_pair(belId, pin));
 }
 
+struct SpineInfo {
+    int row;
+    int up;
+    int down;
+};
+
+// Rows of additional EBR_SPs, only 9400 have two spines
+static map<pair<int, int>, pair<SpineInfo, SpineInfo>> spine_map = {
+    // LCMXO2-256
+    {make_pair(7, 9),  make_pair(SpineInfo{ 3, 2, 3 }, SpineInfo{ -1, -1, -1 })},
+    // LCMXO2-640
+    {make_pair(8, 17), make_pair(SpineInfo{ 3, 2, 4 }, SpineInfo{ -1, -1, -1 })},
+    // LCMXO2-1200, LCMXO3-1300
+    {make_pair(12, 21), make_pair(SpineInfo{ 6, 5, 5 }, SpineInfo{ -1, -1, -1 })},
+    // LCMXO2-2000, LCMXO3-2100
+    {make_pair(15, 25), make_pair(SpineInfo{ 8, 7, 6 }, SpineInfo{ -1, -1, -1 })},
+    // LCMXO2-4000, LCMXO3-4300
+    {make_pair(22, 31), make_pair(SpineInfo{ 11, 10, 10 }, SpineInfo{ -1, -1, -1 })},
+    // LCMXO2-7000, LCMXO3-6900
+    {make_pair(27, 40), make_pair(SpineInfo{ 13, 12, 0 }, SpineInfo{ 20, 6, 6 })},
+    // LCMXO3-9400
+    {make_pair(31, 48), make_pair(SpineInfo{ 8, 7, 7 }, SpineInfo{ 22, 6, 8 })},
+};
+
 RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std::string &db_name) {
     // Globals are given their nominal position, even if they span multiple
     // tiles, by the following rules (determined by a combination of regexes
     // on db_name and row/col):
     smatch m;
     pair<int, int> center = center_map[make_pair(max_row, max_col)];
+    pair<SpineInfo, SpineInfo> spines = spine_map[make_pair(max_row, max_col)];
     RoutingId curr_global;
 
     GlobalType strategy = get_global_type_from_name(db_name, m);
@@ -382,7 +405,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // global net in the center tile based upon the current tile position
     // (specifically column).
     } else if(strategy == GlobalType::LEFT_RIGHT) {
-        assert(row == center.first);
+        assert(row == spines.first.row || row == spines.second.row);
         // Prefixes only required in the center tile.
         assert(db_name[0] == 'G');
 
@@ -396,7 +419,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
 
         curr_global.id = ident(db_copy);
         curr_global.loc.x = center.second;
-        curr_global.loc.y = center.first;
+        curr_global.loc.y = row;
         return curr_global;
 
     // U/D wires get the nominal position of center row, current column.
@@ -414,8 +437,12 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
             return RoutingId();
 
         // Special case the center row, which will have both U/D wires.
-        if(row == center.first) {
+        if(row == spines.first.row || row == spines.second.row) {
             assert((db_name[0] == 'U') || (db_name[0] == 'D'));
+            curr_global.id = ident(db_copy);
+            curr_global.loc.x = col;
+            curr_global.loc.y = row;
+            return curr_global;
         } else {
             // Otherwise choose an U_/D_ wire at nominal position based on
             // the current tile's row.
@@ -424,16 +451,27 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
 
             // Center column tiles are considered above the center mux,
             // despite sharing the same tile.
-            if(row <= center.first)
+            int spine_row;
+            if(row <= spines.first.row) {
                 db_copy[0] = 'U';
-            else
-                db_copy[0] = 'D';
+                spine_row = spines.first.row;
+            } else {
+                if (spines.second.row == -1 && row <= (spines.first.row + spines.first.down)) {
+                    db_copy[0] = 'D';
+                    spine_row = spines.first.row;
+                } else {
+                    if(row <= spines.second.row)
+                        db_copy[0] = 'U';
+                    else
+                        db_copy[0] = 'D';
+                    spine_row = spines.second.row;
+                }
+            }
+            curr_global.id = ident(db_copy);
+            curr_global.loc.x = col;
+            curr_global.loc.y = spine_row;
+            return curr_global;
         }
-
-        curr_global.id = ident(db_copy);
-        curr_global.loc.x = col;
-        curr_global.loc.y = center.first;
-        return curr_global;
 
     // BRANCH wires get nominal position of the row/col where they connect
     // to U_/D_ routing. We need the global_data_machxo2 struct to figure

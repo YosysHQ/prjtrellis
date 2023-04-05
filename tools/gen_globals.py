@@ -6,38 +6,54 @@ import argparse
 
 # This mirrors center_map in libtrellis. Somehow expose center_map.
 center_map = {
-    # 256HC
+    # LCMXO2-256
     (7, 9): (3, 4),
-    # 640HC
+    # LCMXO2-640
     (8, 17): (3, 7),
-    # 1200HC
+    # LCMXO2-1200, LCMXO3-1300
     (12, 21): (6, 12),
-    # 2000HC
+    # LCMXO2-2000, LCMXO3-2100
     (15, 25): (8, 13),
-    # 4000HC
+    # LCMXO2-4000, LCMXO3-4300
     (22, 31): (11, 15),
-    # 7000HC
-    (26, 40): (13, 18),
+    # LCMXO2-7000, LCMXO3-6900
+    (27, 40): (13, 18),
+    # LCMXO3-9400
+    (31, 48): (15, 24),
 }
 
 row_spans = {
-    # 1200HC
+    # LCMXO2-256
+    (7, 9): (0, 0),
+    # LCMXO2-640
+    (8, 17): (0, 0),
+    # LCMXO2-1200, LCMXO3-1300
     (12, 21): (5, 5),
+    # LCMXO2-2000, LCMXO3-2100
+    (15, 25): (0, 0),
+    # LCMXO2-4000, LCMXO3-4300
+    (22, 31): (0, 0),
+    # LCMXO2-7000, LCMXO3-6900
+    (27, 40): (0, 0),
+    # LCMXO3-9400
+    (31, 48): (0, 0),
 }
 
 start_stride = {
-    # 256HC
+    # LCMXO2-256
     (7, 9): (0, 4),
-    # 640HC
+    # LCMXO2-640
     (8, 17): (1, 5),
-    # 1200HC
+    # LCMXO2-1200, LCMXO3-1300
     (12, 21): (0, 4),
-    # 2000HC
+    # LCMXO2-2000, LCMXO3-2100
     (15, 25): (3, 7),
-    # 4000HC
+    # LCMXO2-4000, LCMXO3-4300
     (22, 31): (1, 5),
-    # 7000HC
-    (26, 40): (2, 6),
+    # LCMXO2-7000, LCMXO3-6900
+    (27, 40): (2, 6),
+    # LCMXO3-9400
+    (31, 48): (0, 4),
 }
 
 # There are 8 global nets. For a given column, globals are routed in pairs.
@@ -150,6 +166,7 @@ def branch_spans(num_cols, col_1=(0, 4)):
 # 2000: 25, (3, 7), L: 2, 6 has DCCs R: 3, 7 has DCCs
 # 4000: 31, (1, 5), L: 0, 4 has DCCs R: 3, 7 has DCCs
 # 7000: 40, (2, 6), L: 1, 5 has DCCs R: 1, 5 has DCCs (both top and bottom)
+# use fuzzer 024-glb-branch on column 2 (CIB_RxC2:CIB_EBR1)
 def main(args):
     pytrellis.load_database(database.get_db_root())
     ci = pytrellis.get_chip_info(pytrellis.find_device_by_name(args.device))
