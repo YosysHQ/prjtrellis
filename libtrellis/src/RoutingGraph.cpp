@@ -348,26 +348,27 @@ void RoutingGraph::add_bel_output(RoutingBel &bel, ident_t pin, int wire_x, int 
 
 struct SpineInfo {
     int row;
-    int up;
     int down;
 };
 
-// Rows of additional EBR_SPs, only 9400 have two spines
-static map<pair<int, int>, pair<SpineInfo, SpineInfo>> spine_map = {
+// Spines are locations of DCCs, note that on 256 and 640 those are actually in bootom CIB line.
+// LCMXO2-7000 and LCMXO3-6900 top spine goes just up.
+// -1 represent dont care
+static map<pair<int, int>, pair<SpineInfo, int>> spine_map = {
     // LCMXO2-256
-    {make_pair(7, 9),  make_pair(SpineInfo{ 3, 2, 3 }, SpineInfo{ -1, -1, -1 })},
+    {make_pair(7, 9),   make_pair(SpineInfo{  6, -1 }, -1)},
     // LCMXO2-640
-    {make_pair(8, 17), make_pair(SpineInfo{ 3, 2, 4 }, SpineInfo{ -1, -1, -1 })},
+    {make_pair(8, 17),  make_pair(SpineInfo{  7, -1 }, -1)},
     // LCMXO2-1200, LCMXO3-1300
-    {make_pair(12, 21), make_pair(SpineInfo{ 6, 5, 5 }, SpineInfo{ -1, -1, -1 })},
+    {make_pair(12, 21), make_pair(SpineInfo{  6, -1 }, -1)},
     // LCMXO2-2000, LCMXO3-2100
-    {make_pair(15, 25), make_pair(SpineInfo{ 8, 7, 6 }, SpineInfo{ -1, -1, -1 })},
+    {make_pair(15, 25), make_pair(SpineInfo{  8, -1 }, -1)},
     // LCMXO2-4000, LCMXO3-4300
-    {make_pair(22, 31), make_pair(SpineInfo{ 11, 10, 10 }, SpineInfo{ -1, -1, -1 })},
+    {make_pair(22, 31), make_pair(SpineInfo{ 11, -1 }, -1)},
     // LCMXO2-7000, LCMXO3-6900
-    {make_pair(27, 40), make_pair(SpineInfo{ 13, 12, 0 }, SpineInfo{ 20, 6, 6 })},
+    {make_pair(27, 40), make_pair(SpineInfo{ 13,  0 }, 20)},
     // LCMXO3-9400
-    {make_pair(31, 48), make_pair(SpineInfo{ 8, 7, 7 }, SpineInfo{ 22, 6, 8 })},
+    {make_pair(31, 48), make_pair(SpineInfo{  8,  7 }, 22)},
 };
 
 RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std::string &db_name) {
@@ -376,7 +377,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // on db_name and row/col):
     smatch m;
     pair<int, int> center = center_map[make_pair(max_row, max_col)];
-    pair<SpineInfo, SpineInfo> spines = spine_map[make_pair(max_row, max_col)];
+    pair<SpineInfo, int> spines = spine_map[make_pair(max_row, max_col)];
     RoutingId curr_global;
 
     GlobalType strategy = get_global_type_from_name(db_name, m);
@@ -405,7 +406,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // global net in the center tile based upon the current tile position
     // (specifically column).
     } else if(strategy == GlobalType::LEFT_RIGHT) {
-        assert(row == spines.first.row || row == spines.second.row);
+        assert(row == spines.first.row || row == spines.second);
         // Prefixes only required in the center tile.
         assert(db_name[0] == 'G');
 
@@ -437,7 +438,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
             return RoutingId();
 
         // Special case the center row, which will have both U/D wires.
-        if(row == spines.first.row || row == spines.second.row) {
+        if(row == spines.first.row || row == spines.second) {
             assert((db_name[0] == 'U') || (db_name[0] == 'D'));
             curr_global.id = ident(db_copy);
             curr_global.loc.x = col;
@@ -456,15 +457,15 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
                 db_copy[0] = 'U';
                 spine_row = spines.first.row;
             } else {
-                if (spines.second.row == -1 && row <= (spines.first.row + spines.first.down)) {
+                if (spines.second == -1 || row <= (spines.first.row + spines.first.down)) {
                     db_copy[0] = 'D';
                     spine_row = spines.first.row;
                 } else {
-                    if(row <= spines.second.row)
+                    if(row <= spines.second)
                         db_copy[0] = 'U';
                     else
                         db_copy[0] = 'D';
-                    spine_row = spines.second.row;
+                    spine_row = spines.second;
                 }
             }
             curr_global.id = ident(db_copy);

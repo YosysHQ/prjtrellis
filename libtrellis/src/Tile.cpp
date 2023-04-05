@@ -27,13 +27,13 @@ static const regex tile_clk_dummy_t_re(R"(CLK_DUMMY_PICT)");
 // Given the zero-indexed max chip_size, return the zero-indexed
 // center. Mainly for MachXO2, it is based on the location of the entry
 // to global routing (CENTER_EBR). LCMXO2-256/640 do not have CENTER_EBR
-// in that case we take location of internal DCCs row.
+// in that case we take location of internal DCCs row (at bottom CIB).
 // TODO: Make const.
 map<pair<int, int>, pair<int, int>> center_map = {
     // LCMXO2-256
-    {make_pair(7, 9), make_pair(3, 4)},
+    {make_pair(7, 9), make_pair(6, 4)},
     // LCMXO2-640
-    {make_pair(8, 17), make_pair(3, 7)},
+    {make_pair(8, 17), make_pair(7, 7)},
     // LCMXO2-1200, LCMXO3-1300
     {make_pair(12, 21), make_pair(6, 12)},
     // LCMXO2-2000, LCMXO3-2100
