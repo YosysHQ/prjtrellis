@@ -542,8 +542,14 @@ MachXO2GlobalsInfo Chip::generate_global_info_machxo2()
 {
     MachXO2GlobalsInfo data;
     int stride = start_stride[make_pair(info.max_row, info.max_col)];
-    // At column zero, always 6 wires, that do not
-    // match those in column 1
+    // Find which globals in column 0 will be routed, given which globals
+    // are routed in column 1.
+    //
+    // Column "0" in prjtrellis ("1" in Lattice numbering) always has six of
+    // the globals routed. The explanation for the final column applies here,
+    // except we are missing the four globals that would span from the right
+    // side of the U/D routing connection (and thus approach column 0 from the
+    // left).
     std::vector<int> items_col_0;
     for (int i=0;i<4;i++) {
         if (i!=stride) {
@@ -563,7 +569,14 @@ MachXO2GlobalsInfo Chip::generate_global_info_machxo2()
         data.ud_conns.push_back(items);
     }
 
-    // Last one have 4 wires
+    // The final column will have 4 globals routed- the two expected globals
+    // for the column as well as the next two globals in the stride. This is
+    // because BRANCH wires that connect globals to CIBs span two columns to the
+    // right and one column to the left from where they connect to U/D routing.
+    // Since we are at the right bound of the chip, the globals we would expect
+    // to span from the left side of the U/D routing (and thus approach the
+    // final column from the right) don't physically exist! So we take care
+    // of them here.
     std::vector<int> items_col_last;
     items_col_last.push_back(stride);
     items_col_last.push_back(stride + 4);

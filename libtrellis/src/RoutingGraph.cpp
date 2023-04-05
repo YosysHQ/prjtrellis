@@ -480,6 +480,14 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     } else if(strategy == GlobalType::BRANCH) {
         std::vector<int> candidate_cols;
 
+        // At the second-to-last row of the chip, the branch, which spans two
+        // columns to the right, will be truncated by the chip's edge.
+        // At the last row of the chip, BRANCHES connecting to U/D routing (which
+        // which normally span two column to the right) will be truncated by the
+        // chip's edge.
+        // The remaining two globals should come from BRANCHES from the right.
+        // But since we run into the chip's edge, we route them to the current
+        // column (and only the current column!) here.
         if(col > 1)
             candidate_cols.push_back(col - 2);
         if(col > 0)
