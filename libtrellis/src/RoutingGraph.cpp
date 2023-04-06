@@ -346,38 +346,14 @@ void RoutingGraph::add_bel_output(RoutingBel &bel, ident_t pin, int wire_x, int 
     tiles[wireId.loc].wires[wireId.id].belsUphill.push_back(make_pair(belId, pin));
 }
 
-struct SpineInfo {
-    int row;
-    int down;
-};
-
-// Spines are locations of DCCs, note that on 256 and 640 those are actually in bootom CIB line.
-// LCMXO2-7000 and LCMXO3-6900 top spine goes just up.
-// -1 represent dont care
-static map<pair<int, int>, pair<SpineInfo, int>> spine_map = {
-    // LCMXO2-256
-    {make_pair(7, 9),   make_pair(SpineInfo{  6, -1 }, -1)},
-    // LCMXO2-640
-    {make_pair(8, 17),  make_pair(SpineInfo{  7, -1 }, -1)},
-    // LCMXO2-1200, LCMXO3-1300
-    {make_pair(12, 21), make_pair(SpineInfo{  6, -1 }, -1)},
-    // LCMXO2-2000, LCMXO3-2100
-    {make_pair(15, 25), make_pair(SpineInfo{  8, -1 }, -1)},
-    // LCMXO2-4000, LCMXO3-4300
-    {make_pair(22, 31), make_pair(SpineInfo{ 11, -1 }, -1)},
-    // LCMXO2-7000, LCMXO3-6900
-    {make_pair(27, 40), make_pair(SpineInfo{ 13,  0 }, 20)},
-    // LCMXO3-9400
-    {make_pair(31, 48), make_pair(SpineInfo{  8,  7 }, 22)},
-};
-
 RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std::string &db_name) {
     // Globals are given their nominal position, even if they span multiple
     // tiles, by the following rules (determined by a combination of regexes
     // on db_name and row/col):
     smatch m;
     pair<int, int> center = center_map[make_pair(max_row, max_col)];
-    pair<SpineInfo, int> spines = spine_map[make_pair(max_row, max_col)];
+    SpineInfo spine_1 = global_data_machxo2->spines[0];
+    SpineInfo spine_2 = (global_data_machxo2->spines.size() > 1) ? global_data_machxo2->spines[1] : SpineInfo{-1,-1};
     RoutingId curr_global;
 
     GlobalType strategy = get_global_type_from_name(db_name, m);
@@ -406,7 +382,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // global net in the center tile based upon the current tile position
     // (specifically column).
     } else if(strategy == GlobalType::LEFT_RIGHT) {
-        assert(row == spines.first.row || row == spines.second);
+        assert(row == spine_1.row || row == spine_2.row);
         // Prefixes only required in the center tile.
         assert(db_name[0] == 'G');
 
@@ -438,7 +414,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
             return RoutingId();
 
         // Special case the center row, which will have both U/D wires.
-        if(row == spines.first.row || row == spines.second) {
+        if(row == spine_1.row || row == spine_2.row) {
             assert((db_name[0] == 'U') || (db_name[0] == 'D'));
             curr_global.id = ident(db_copy);
             curr_global.loc.x = col;
@@ -452,20 +428,18 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
 
             // Center column tiles are considered above the center mux,
             // despite sharing the same tile.
-            int spine_row;
-            if(row <= spines.first.row) {
+            int spine_row = spine_1.row;
+            if(row <= spine_1.row) {
                 db_copy[0] = 'U';
-                spine_row = spines.first.row;
             } else {
-                if (spines.second == -1 || row <= (spines.first.row + spines.first.down)) {
+                if (spine_2.row == -1 || row <= (spine_1.row + spine_1.down)) {
                     db_copy[0] = 'D';
-                    spine_row = spines.first.row;
                 } else {
-                    if(row <= spines.second)
+                    if(row <= spine_2.row)
                         db_copy[0] = 'U';
                     else
                         db_copy[0] = 'D';
-                    spine_row = spines.second;
+                    spine_row = spine_2.row;
                 }
             }
             curr_global.id = ident(db_copy);

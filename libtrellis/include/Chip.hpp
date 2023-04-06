@@ -90,37 +90,16 @@ struct Ecp5GlobalsInfo
     pair<int, int> get_spine_driver(std::string quadrant, int col);
 };
 
-struct LeftRightConn
-{
-    string name;
+
+struct SpineInfo {
     int row;
-    std::pair<int, int> row_span;
+    int down;
 };
-
-inline bool operator==(const LeftRightConn &a, const LeftRightConn &b)
-{
-    return (a.name == b.name) && (a.row == b.row) && (a.row_span == b.row_span);
-}
-
-
-// Some columns contain global routing which EPIC shows as missing DCCA
-// primitives between L/R and U/D connections. None of the DCCs between these
-// connections appear to physically exist on-chip. However, the bitstream
-// does appear to treat them specially, so keep this info around.
-struct MissingDccs
-{
-    int row;
-    std::vector<int> missing;
-};
-
-inline bool operator==(const MissingDccs &a, const MissingDccs &b)
-{
-    return (a.row == b.row) && (a.missing == b.missing);
-}
 
 struct MachXO2GlobalsInfo
 {
     std::vector<std::vector<int>> ud_conns;
+    std::vector<SpineInfo> spines;
 };
 
 class Tile;

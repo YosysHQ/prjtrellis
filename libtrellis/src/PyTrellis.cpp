@@ -140,29 +140,19 @@ PYBIND11_MODULE (pytrellis, m)
             .def("get_tap_driver", &Ecp5GlobalsInfo::get_tap_driver)
             .def("get_spine_driver", &Ecp5GlobalsInfo::get_spine_driver);
 
-    class_<LeftRightConn>(m, "LeftRightConn")
-            .def_readwrite("name", &LeftRightConn::name)
-            .def_readwrite("row", &LeftRightConn::row)
-            .def_readwrite("row_span", &LeftRightConn::row_span);
+    class_<SpineInfo>(m, "SpineInfo")
+            .def_readwrite("row", &SpineInfo::row)
+            .def_readwrite("down", &SpineInfo::down);
 
-    class_<MissingDccs>(m, "MissingDccs")
-            .def_readwrite("row", &MissingDccs::row)
-            .def_readwrite("missing", &MissingDccs::missing);
-
-    py::bind_vector<vector<LeftRightConn>>(m, "LeftRightConnVector");
-
-    py::bind_vector<vector<vector<int>>>(m, "UpDownConnVector");
-
-    py::bind_vector<vector<vector<std::pair<int, int>>>>(m, "BranchSpanVector");
-
-    py::bind_vector<vector<MissingDccs>>(m, "MissingDccsVector");
+    py::bind_vector<vector<SpineInfo>>(m, "SpineInfoVector");
 
     py::bind_vector<vector<int>>(m, "IntVector");
 
     py::bind_vector<vector<std::pair<int, int>>>(m, "IntPairVector");
 
     class_<MachXO2GlobalsInfo>(m, "MachXO2GlobalsInfo")
-            .def_readwrite("ud_conns", &MachXO2GlobalsInfo::ud_conns);
+            .def_readwrite("ud_conns", &MachXO2GlobalsInfo::ud_conns)
+            .def_readwrite("spines", &MachXO2GlobalsInfo::spines);
 
     class_<Chip>(m, "Chip")
             .def(init<string>())

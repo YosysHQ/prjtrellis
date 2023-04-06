@@ -538,6 +538,26 @@ map<pair<int, int>, int> start_stride = {
     {make_pair(31, 48), 0}, // (0, 4)
 };
 
+// Spines are locations of DCCs, note that on 256 and 640 those are actually in bootom CIB line.
+// LCMXO2-7000 and LCMXO3-6900 top spine goes just up.
+// -1 represent dont care
+static map<pair<int, int>, std::vector<SpineInfo>> spine_map = {
+    // LCMXO2-256
+    {make_pair(7, 9),   {SpineInfo{  6, -1}}},
+    // LCMXO2-640
+    {make_pair(8, 17),  {SpineInfo{  7, -1}}},
+    // LCMXO2-1200, LCMXO3-1300
+    {make_pair(12, 21), {SpineInfo{  6, -1}}},
+    // LCMXO2-2000, LCMXO3-2100
+    {make_pair(15, 25), {SpineInfo{  8, -1}}},
+    // LCMXO2-4000, LCMXO3-4300
+    {make_pair(22, 31), {SpineInfo{ 11, -1}}},
+    // LCMXO2-7000, LCMXO3-6900
+    {make_pair(27, 40), {SpineInfo{ 13,  0}, SpineInfo{ 20, -1}}},
+    // LCMXO3-9400
+    {make_pair(31, 48), {SpineInfo{  8,  7}, SpineInfo{ 22, -1}}},
+};
+
 MachXO2GlobalsInfo Chip::generate_global_info_machxo2()
 {
     MachXO2GlobalsInfo data;
@@ -584,6 +604,7 @@ MachXO2GlobalsInfo Chip::generate_global_info_machxo2()
     items_col_last.push_back(stride);
     items_col_last.push_back(stride + 4);
     data.ud_conns.push_back(items_col_last);
+    data.spines = spine_map[make_pair(info.max_row, info.max_col)];
     return data;
 }
 
