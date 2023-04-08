@@ -47,6 +47,8 @@ def main():
         def get_muxval(sig, val):
             if val == sig:
                 return None
+            elif val in ("0", "1"):
+                return {sig: val}
             elif val == "INV":
                 return {sig: "#INV"}
             else:
@@ -85,7 +87,7 @@ def main():
         for p in ("A", "B"):
             for i in range(2 if p == "A" else 1):
                sig = "AD{}{}".format(p, i)
-               nonrouting.fuzz_enum_setting(cfg, "{}.{}MUX".format(ebr, sig), [sig, "INV"],
+               nonrouting.fuzz_enum_setting(cfg, "{}.{}MUX".format(ebr, sig), [sig, "INV", "0", "1"],
                                         lambda x: get_substs("DP8KC", {}, get_muxval(sig, x)), empty_bitfile)
     fuzzloops.parallel_foreach(jobs, per_job)
 
