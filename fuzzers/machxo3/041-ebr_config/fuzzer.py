@@ -48,10 +48,10 @@ def main():
         empty_bitfile = cfg.build_design(cfg.ncl, {})
         cfg.ncl = "ebr.ncl"
 
-        # in EBR0, for MODE just F1B8 needs to be left
+        # in EBR0, for MODE just F1B8 needs to be left, in EBR1 remove F0B25
         nonrouting.fuzz_enum_setting(cfg, "{}.MODE".format(ebr), ["PDPW8KC", "DP8KC", "FIFO8KB", "NONE"],
-                                     lambda x: get_substs(mode=x, settings={"GSR": "ENABLED"}), empty_bitfile, False)
-
+                                     lambda x: get_substs(mode=x, settings={"GSR": "ENABLED"}), empty_bitfile, False,
+                                     ignore_bits=([("EBR_R6C18:EBR1", 0, 25), ("EBR_R6C17:EBR0", 1, 2),("EBR_R6C17:EBR0", 1, 3),("EBR_R6C17:EBR0", 1, 4),("EBR_R6C17:EBR0", 1, 13) ]))
         nonrouting.fuzz_enum_setting(cfg, "{}.PDPW8KC.DATA_WIDTH_R".format(ebr), ["1", "2", "4", "9", "18"],
                                      lambda x: get_substs(mode="PDPW8KC", settings={"DATA_WIDTH_R": x}), empty_bitfile)
         nonrouting.fuzz_enum_setting(cfg, "{}.FIFO8KB.DATA_WIDTH_R".format(ebr), ["1", "2", "4", "9", "18"],
@@ -89,8 +89,17 @@ def main():
         def bitstr(x):
            return "0b" + "".join(["1" if z else "0" for z in x])
 
-        nonrouting.fuzz_word_setting(cfg, "{}.WID".format(ebr), 10, lambda x: get_substs(mode="DP8KC", settings={
-            "WID": bitstr(x)}), empty_bitfile)
+        def tobinstr(x):
+            return "0b" + "".join(reversed(["1" if x else "0" for x in  x]))
+        def tobinstr_zero(x):
+            return "0b0" + "".join(reversed(["1" if x else "0" for x in  x]))
+
+        # must be size 10, but leading zero
+        nonrouting.fuzz_word_setting(cfg, "{}.WID".format(ebr), 9, lambda x: get_substs(mode="DP8KC", settings={
+            "WID": tobinstr_zero(x)}), empty_bitfile)
+        #nonrouting.fuzz_word_setting(cfg, "{}.RID".format(ebr), 9, lambda x: get_substs(mode="DP8KC", settings={
+        #    "RID": tobinstr_zero(x)}), empty_bitfile)
+
 
         nonrouting.fuzz_word_setting(cfg, "{}.CSDECODE_A".format(ebr), 3, lambda x: get_substs(mode="DP8KC", settings={
             "CSDECODE_A": bitstr(x)}), empty_bitfile)
@@ -102,17 +111,17 @@ def main():
             "CSDECODE_R": bitstr(x)}), empty_bitfile)
 
         nonrouting.fuzz_word_setting(cfg, "{}.FIFO8KB.AEPOINTER".format(ebr), 14, lambda x: get_substs(mode="FIFO8KB", settings={
-            "AEPOINTER": bitstr(x)}), empty_bitfile)
+            "AEPOINTER": tobinstr(x)}), empty_bitfile)
         nonrouting.fuzz_word_setting(cfg, "{}.FIFO8KB.AEPOINTER1".format(ebr), 14, lambda x: get_substs(mode="FIFO8KB", settings={
-            "AEPOINTER1": bitstr(x)}), empty_bitfile)
+            "AEPOINTER1": tobinstr(x)}), empty_bitfile)
         nonrouting.fuzz_word_setting(cfg, "{}.FIFO8KB.AFPOINTER".format(ebr), 14, lambda x: get_substs(mode="FIFO8KB", settings={
-            "AFPOINTER": bitstr(x)}), empty_bitfile)
+            "AFPOINTER": tobinstr(x)}), empty_bitfile)
         nonrouting.fuzz_word_setting(cfg, "{}.FIFO8KB.AFPOINTER1".format(ebr), 14, lambda x: get_substs(mode="FIFO8KB", settings={
-            "AFPOINTER1": bitstr(x)}), empty_bitfile)
+            "AFPOINTER1": tobinstr(x)}), empty_bitfile)
         nonrouting.fuzz_word_setting(cfg, "{}.FIFO8KB.FULLPOINTER".format(ebr), 14, lambda x: get_substs(mode="FIFO8KB", settings={
-            "FULLPOINTER": bitstr(x)}), empty_bitfile)
+            "FULLPOINTER": tobinstr(x)}), empty_bitfile)
         nonrouting.fuzz_word_setting(cfg, "{}.FIFO8KB.FULLPOINTER1".format(ebr), 14, lambda x: get_substs(mode="FIFO8KB", settings={
-            "FULLPOINTER1": bitstr(x)}), empty_bitfile)
+            "FULLPOINTER1": tobinstr(x)}), empty_bitfile)
 
     fuzzloops.parallel_foreach(jobs, per_job)
 
