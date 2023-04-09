@@ -4,8 +4,8 @@ design top
    device
    {
       architecture xo3c00f;
-      device LCMXO3LF-6900C;
-      package CABGA400;
+      device LCMXO3LF-9400C;
+      package CABGA484;
       performance "6";
    }
 
@@ -15,7 +15,7 @@ design top
          cellmodel-name PLL;
          program "MODE:EHXPLLJ ";
       }
-      site LPLL;
+      site RPLL;
    }
 
     signal q_c

@@ -15,7 +15,7 @@ design top
          cellmodel-name PLL;
          program "MODE:EHXPLLJ ";
       }
-      site LPLL;
+      site RPLL;
    }
 
     signal q_c
