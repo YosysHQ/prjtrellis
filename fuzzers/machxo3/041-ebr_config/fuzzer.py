@@ -4,20 +4,22 @@ import pytrellis
 import fuzzloops
 
 jobs = [
-    ("R6C17", "EBR0", FuzzConfig(job="EBROUTE0", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
-                                 tiles=["EBR_R6C17:EBR0", "EBR_R6C18:EBR1", "EBR_R6C19:EBR2"])),
+    ("R6C17", "EBR", FuzzConfig(job="EBROUTE0", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
+                                tiles=["EBR_R6C17:EBR0", "EBR_R6C18:EBR1", "EBR_R6C19:EBR2"])),
+    ("R6C1", "EBR", FuzzConfig(job="EBROUTE0", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
+                                tiles=["EBR_R6C1:EBR0_END"])),
 ]
 
 
 def main():
     pytrellis.load_database("../../../database")
 
-    def per_job(job):
+    for job in jobs:
         def get_substs(mode, settings):
             ebrloc = loc
             if mode == "NONE":
                 # easier to move EBR out the way than remove it
-                ebrloc = "R6C20"
+                ebrloc = "R6C10"
                 mode = "PDPW8KC"
             if mode == "PDPW8KC" and "DATA_WIDTH_R" not in settings:
                 settings["DATA_WIDTH_R"] = "9"
@@ -51,7 +53,9 @@ def main():
         # in EBR0, for MODE just F1B8 needs to be left, in EBR1 remove F0B25
         nonrouting.fuzz_enum_setting(cfg, "{}.MODE".format(ebr), ["PDPW8KC", "DP8KC", "FIFO8KB", "NONE"],
                                      lambda x: get_substs(mode=x, settings={"GSR": "ENABLED"}), empty_bitfile, False,
-                                     ignore_bits=([("EBR_R6C18:EBR1", 0, 25), ("EBR_R6C17:EBR0", 1, 2),("EBR_R6C17:EBR0", 1, 3),("EBR_R6C17:EBR0", 1, 4),("EBR_R6C17:EBR0", 1, 13) ]))
+                                     ignore_bits=([("EBR_R6C18:EBR1", 0, 25), 
+                                     ("EBR_R6C17:EBR0", 1, 2),("EBR_R6C17:EBR0", 1, 3),("EBR_R6C17:EBR0", 1, 4),("EBR_R6C17:EBR0", 1, 13),
+                                     ("EBR_R6C1:EBR0_END", 1, 13),("EBR_R6C1:EBR0_END", 1, 14),("EBR_R6C1:EBR0_END", 1, 15),("EBR_R6C1:EBR0_END", 1, 24) ]))
         nonrouting.fuzz_enum_setting(cfg, "{}.PDPW8KC.DATA_WIDTH_R".format(ebr), ["1", "2", "4", "9", "18"],
                                      lambda x: get_substs(mode="PDPW8KC", settings={"DATA_WIDTH_R": x}), empty_bitfile)
         nonrouting.fuzz_enum_setting(cfg, "{}.FIFO8KB.DATA_WIDTH_R".format(ebr), ["1", "2", "4", "9", "18"],
@@ -122,9 +126,6 @@ def main():
             "FULLPOINTER": tobinstr(x)}), empty_bitfile)
         nonrouting.fuzz_word_setting(cfg, "{}.FIFO8KB.FULLPOINTER1".format(ebr), 14, lambda x: get_substs(mode="FIFO8KB", settings={
             "FULLPOINTER1": tobinstr(x)}), empty_bitfile)
-
-    fuzzloops.parallel_foreach(jobs, per_job)
-
 
 if __name__ == "__main__":
     main()

@@ -4,8 +4,8 @@ import pytrellis
 import fuzzloops
 
 jobs = [
-    ("R6C17", "EBR0", FuzzConfig(job="EBROUTE0", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
-                                 tiles=["EBR_R6C17:EBR0", "EBR_R6C18:EBR1", "EBR_R6C19:EBR2"])),
+    ("R6C17", "EBR", FuzzConfig(job="EBROUTE0", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
+                                tiles=["EBR_R6C17:EBR0", "EBR_R6C18:EBR1", "EBR_R6C19:EBR2"])),
 ]
 
 
