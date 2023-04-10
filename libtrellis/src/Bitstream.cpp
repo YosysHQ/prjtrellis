@@ -706,7 +706,7 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                 uint32_t data = rd.get_uint32();
                 current_ebr = (data >> 11) & 0x3FF;
                 addr_in_ebr = data & 0x7FF;
-                chip->bram_data[current_ebr].resize(2048);
+                chip->bram_data[current_ebr].resize(chip->bram_data_size);
             }
                 break;
             case BitstreamCommand::LSC_EBR_WRITE: {
@@ -717,10 +717,10 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
 
                 while (frames_read < frame_count) {
 
-                    if (addr_in_ebr >= 2048) {
+                    if (addr_in_ebr >= chip->bram_data_size) {
                         addr_in_ebr = 0;
                         current_ebr++;
-                        chip->bram_data[current_ebr].resize(2048);
+                        chip->bram_data[current_ebr].resize(chip->bram_data_size);
                     }
 
                     auto &ebr = chip->bram_data[current_ebr];
@@ -959,12 +959,16 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
         // Write EBR data
         wr.write_byte(uint8_t(BitstreamCommand::LSC_EBR_WRITE));
         wr.write_byte(0xD0); // Dummy/CRC config
-        wr.write_byte(0x01); // 0x0100 = 256x 72-bit frames
-        wr.write_byte(0x00);
+
+        uint16_t bram_frames = chip.bram_data_size >> 3;
+        wr.write_byte(uint8_t((bram_frames >> 8) & 0xFF));
+        wr.write_byte(uint8_t(bram_frames & 0xFF));
+        // for ECP5 0x0100 = 256x 72-bit frames
+        // for MachXO2 0x0080 = 128x 72-bit frames
 
         uint8_t frame[9];
         const auto &data = ebr.second;
-        for (int addr_in_ebr = 0; addr_in_ebr < 2048; addr_in_ebr+=8) {
+        for (int addr_in_ebr = 0; addr_in_ebr < chip.bram_data_size; addr_in_ebr+=8) {
             frame[0] = data.at(addr_in_ebr+0) >> 1;
             frame[1] = (data.at(addr_in_ebr+0) & 0x01) << 7 | (data.at(addr_in_ebr+1) >> 2);
             frame[2] = (data.at(addr_in_ebr+1) & 0x03) << 6 | (data.at(addr_in_ebr+2) >> 3);

@@ -38,12 +38,15 @@ Chip::Chip(const Trellis::ChipInfo &info) : info(info), cram(info.num_frames, in
         tiles_at_location.at(row).at(col).push_back(make_pair(tile.name, tile.type));
     }
 
-    if(info.family == "ECP5")
+    if(info.family == "ECP5") {
+        bram_data_size = 2048;
         global_data_ecp5 = get_global_info_ecp5(DeviceLocator{info.family, info.name, info.variant});
-    else if(info.family == "MachXO") {} // No global routing
-    else if (info.family == "MachXO2" || info.family == "MachXO3" || info.family == "MachXO3D")
+    } else if(info.family == "MachXO") {
+        bram_data_size = 1024;
+    } else if (info.family == "MachXO2" || info.family == "MachXO3" || info.family == "MachXO3D") {
         global_data_machxo2 = generate_global_info_machxo2();
-    else
+        bram_data_size = 1024;
+    } else
         throw runtime_error("Unknown chip family " + info.family);
 }
 

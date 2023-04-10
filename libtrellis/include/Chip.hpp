@@ -168,6 +168,8 @@ public:
 
     // Block RAM initialisation (WIP)
     map<uint16_t, vector<uint16_t>> bram_data;
+    // BRAM block data size
+    int bram_data_size;
 
     // Globals data- Should be a variant, but I couldn't get boost::python
     // to behave with boost::variant.
