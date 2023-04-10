@@ -907,32 +907,45 @@ namespace MachXO2Bels {
             graph.add_bel_output(bel, graph.ident(pin), x, y, graph.ident(fmt("J" << pin << "_PLL")));
         };
 
-        add_input("REFCLK");
-        add_input("RST");
-        add_input("STDBY");
-
-        add_input("PHASEDIR");
-        add_input("LOADREG");
-        add_input("PHASESEL0");
-        add_input("PHASESEL1");
-        add_input("PHASESTEP");
-        add_input("PLLWAKESYNC");
-
-        add_input("ENCLKOP");
-        add_input("ENCLKOS2");
-        add_input("ENCLKOS3");
-        add_input("ENCLKOS");
-
         graph.add_bel_input(bel, graph.ident("CLKI"), x, y, graph.ident("CLKI_PLL"));
         graph.add_bel_input(bel, graph.ident("CLKFB"), x, y, graph.ident("CLKFB_PLL"));
-        graph.add_bel_output(bel, graph.ident("CLKINTFB"), x, y, graph.ident("CLKINTFB_PLL"));
+        add_input("PHASESEL0");
+        add_input("PHASESEL1");
+        add_input("PHASEDIR");
+        add_input("PHASESTEP");
+        add_input("LOADREG");
+        add_input("STDBY");
+        add_input("PLLWAKESYNC");
+        add_input("RST");
+        add_input("RESETM");
+        add_input("RESETC");
+        add_input("RESETD");
+        add_input("ENCLKOP");
+        add_input("ENCLKOS");
+        add_input("ENCLKOS2");
+        add_input("ENCLKOS3");
+        add_input("PLLCLK");
+        add_input("PLLRST");
+        add_input("PLLSTB");
+        add_input("PLLWE");
+        for (int i=0;i<8;i++)
+            graph.add_bel_input(bel, graph.ident(fmt("PLLDATI" << i)), x, y, graph.ident(fmt("JPLLDATI" << i << "_PLL")));
+        for (int i=0;i<5;i++)
+            graph.add_bel_input(bel, graph.ident(fmt("PLLADDR" << i)), x, y, graph.ident(fmt("JPLLADDR" << i << "_PLL")));
 
-        add_output("LOCK");
-        add_output("INTLOCK");
         add_output("CLKOP");
         add_output("CLKOS");
         add_output("CLKOS2");
         add_output("CLKOS3");
+        add_output("LOCK");
+        add_output("INTLOCK");
+        add_output("REFCLK");
+        graph.add_bel_output(bel, graph.ident("CLKINTFB"), x, y, graph.ident("CLKINTFB_PLL"));
+        add_output("DPHSRC");
+        for (int i=0;i<8;i++)
+            graph.add_bel_output(bel, graph.ident(fmt("PLLDATO" << i )), x, y, graph.ident(fmt("JPLLDATI" << i << "_PLL")));
+        add_output("PLLACK");
+
 
         graph.add_bel(bel);
     }
