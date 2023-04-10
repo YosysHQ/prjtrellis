@@ -77,6 +77,8 @@ struct pll_params{
   float fout;
   float fvco;
 
+  bool xo2;
+
   pll_params() :mode(pll_mode::SIMPLE) {
     for(int i=0;i<3;i++){
       secondary[i].enabled = false;
@@ -117,6 +119,7 @@ int main(int argc, char** argv){
   options.add_options()("feedback_clkout", po::value<string>(), "Use Nth Output as feedback signal");
   options.add_options()("internal_feedback", "Use internal feedback (instead of external)");
   options.add_options()("internal_feedback_wake", "Wake internal feedback");
+  options.add_options()("xo2", "Generate MachXO2/3 PLL");
 
   po::variables_map vm;
   po::parsed_options parsed = po::command_line_parser(argc, argv).options(options).run();
@@ -204,6 +207,9 @@ int main(int argc, char** argv){
     }
   }
 
+  params.xo2 = false;
+  if(vm.count("xo2"))
+    params.xo2 = true;
   params.dynamic = 0;
   if(vm.count("dynamic"))
     params.dynamic = 1;
@@ -409,15 +415,22 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
   if(params.secondary[2].enabled)
     file << "(* FREQUENCY_PIN_CLKOS3=\"" << params.secondary[2].freq << "\" *)\n";
   file << "(* ICP_CURRENT=\"12\" *) (* LPF_RESISTOR=\"8\" *) (* MFG_ENABLE_FILTEROPAMP=\"1\" *) (* MFG_GMCREF_SEL=\"2\" *)\n";
-  file << "EHXPLLL #(\n";
+  file << (params.xo2 ? "EHXPLLJ" :"EHXPLLL")  << " #(\n";
   file << "        .PLLRST_ENA(\"" << (params.reset ? "EN" :"DIS") << "ABLED\"),\n";
   file << "        .INTFB_WAKE(\"" << (params.internal_feedback_wake ? "EN" :"DIS") << "ABLED\"),\n";
   file << "        .STDBY_ENABLE(\"" << (params.standby ? "EN" :"DIS") << "ABLED\"),\n";
   file << "        .DPHASE_SOURCE(\"" << (params.dynamic ? "EN" :"DIS") << "ABLED\"),\n";
-  file << "        .OUTDIVIDER_MUXA(\"DIVA\"),\n";
-  file << "        .OUTDIVIDER_MUXB(\"DIVB\"),\n";
-  file << "        .OUTDIVIDER_MUXC(\"DIVC\"),\n";
-  file << "        .OUTDIVIDER_MUXD(\"DIVD\"),\n";
+  if(params.xo2) {
+    file << "        .OUTDIVIDER_MUXA2(\"DIVA\"),\n";
+    file << "        .OUTDIVIDER_MUXB2(\"DIVB\"),\n";
+    file << "        .OUTDIVIDER_MUXC2(\"DIVC\"),\n";
+    file << "        .OUTDIVIDER_MUXD2(\"DIVD\"),\n";
+  } else {
+    file << "        .OUTDIVIDER_MUXA(\"DIVA\"),\n";
+    file << "        .OUTDIVIDER_MUXB(\"DIVB\"),\n";
+    file << "        .OUTDIVIDER_MUXC(\"DIVC\"),\n";
+    file << "        .OUTDIVIDER_MUXD(\"DIVD\"),\n";
+  }
   file << "        .CLKI_DIV(" << params.refclk_div <<"),\n";
   file << "        .CLKOP_ENABLE(\"ENABLED\"),\n";
   file << "        .CLKOP_DIV(" << params.output_div << "),\n";
@@ -491,7 +504,10 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
     file << "        .PHASESEL1(phasesel_hw[1]),\n";
     file << "        .PHASEDIR(phasedir),\n";
     file << "        .PHASESTEP(phasestep),\n";
-    file << "        .PHASELOADREG(phaseloadreg),\n";
+    if (params.xo2)
+      file << "        .LOADREG(phaseloadreg),\n";
+    else 
+      file << "        .PHASELOADREG(phaseloadreg),\n";
   }
   else
   {
@@ -499,7 +515,10 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
     file << "        .PHASESEL1(1'b0),\n";
     file << "        .PHASEDIR(1'b1),\n";
     file << "        .PHASESTEP(1'b1),\n";
-    file << "        .PHASELOADREG(1'b1),\n";
+    if (params.xo2)
+      file << "        .LOADREG(1'b1),\n";
+    else
+      file << "        .PHASELOADREG(1'b1),\n";
   }
   file << "        .PLLWAKESYNC(1'b0),\n";
   file << "        .ENCLKOP(1'b0),\n";
