@@ -842,5 +842,100 @@ namespace MachXO2Bels {
 
         graph.add_bel(bel);
     }
+
+    void add_bram(RoutingGraph &graph, int x, int y) {
+        string name = "EBR";
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("DP8KC");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = 0;
+
+        for (int i = 0; i < 13; i++) {
+            graph.add_bel_input(bel, graph.ident(fmt("ADA" << i)), x, y, graph.ident(fmt("JADA" << i << "_EBR")));
+            graph.add_bel_input(bel, graph.ident(fmt("ADB" << i)), x, y, graph.ident(fmt("JADB" << i << "_EBR")));
+        }
+
+        graph.add_bel_input(bel, graph.ident("CEA"), x, y, graph.ident("JCEA_EBR"));
+        graph.add_bel_input(bel, graph.ident("CEB"), x, y, graph.ident("JCEB_EBR"));
+        graph.add_bel_input(bel, graph.ident("CLKA"), x, y, graph.ident("JCLKA_EBR"));
+        graph.add_bel_input(bel, graph.ident("CLKB"), x, y, graph.ident("JCLKB_EBR"));
+        graph.add_bel_input(bel, graph.ident("CSA0"), x, y, graph.ident("JCSA0_EBR"));
+        graph.add_bel_input(bel, graph.ident("CSA1"), x, y, graph.ident("JCSA1_EBR"));
+        graph.add_bel_input(bel, graph.ident("CSA2"), x, y, graph.ident("JCSA2_EBR"));
+        graph.add_bel_input(bel, graph.ident("CSB0"), x, y, graph.ident("JCSB0_EBR"));
+        graph.add_bel_input(bel, graph.ident("CSB1"), x, y, graph.ident("JCSB1_EBR"));
+        graph.add_bel_input(bel, graph.ident("CSB2"), x, y, graph.ident("JCSB2_EBR"));
+
+        for (int i = 0; i < 9; i++) {
+            graph.add_bel_input(bel, graph.ident(fmt("DIA" << i)), x, y, graph.ident(fmt("JDIA" << i << "_EBR")));
+            graph.add_bel_input(bel, graph.ident(fmt("DIB" << i)), x, y, graph.ident(fmt("JDIB" << i << "_EBR")));
+            graph.add_bel_output(bel, graph.ident(fmt("DOA" << i)), x, y, graph.ident(fmt("JDOA" << i << "_EBR")));
+            graph.add_bel_output(bel, graph.ident(fmt("DOB" << i)), x, y, graph.ident(fmt("JDOB" << i << "_EBR")));
+        }
+
+
+        graph.add_bel_input(bel, graph.ident("OCEA"), x, y, graph.ident("JOCEA_EBR"));
+        graph.add_bel_input(bel, graph.ident("OCEB"), x, y, graph.ident("JOCEB_EBR"));
+        graph.add_bel_input(bel, graph.ident("RSTA"), x, y, graph.ident("JRSTA_EBR"));
+        graph.add_bel_input(bel, graph.ident("RSTB"), x, y, graph.ident("JRSTB_EBR"));
+        graph.add_bel_input(bel, graph.ident("WEA"), x, y, graph.ident("JWEA_EBR"));
+        graph.add_bel_input(bel, graph.ident("WEB"), x, y, graph.ident("JWEB_EBR"));
+
+        graph.add_bel_input(bel, graph.ident("AE"), x, y, graph.ident("JAE_EBR"));
+        graph.add_bel_input(bel, graph.ident("AF"), x, y, graph.ident("JAF_EBR"));
+        graph.add_bel_input(bel, graph.ident("EF"), x, y, graph.ident("JEF_EBR"));
+        graph.add_bel_input(bel, graph.ident("FF"), x, y, graph.ident("JFF_EBR"));
+
+        graph.add_bel(bel);
+
+    }
+
+    void add_pll(RoutingGraph &graph, std::string side, int x, int y) {
+        string name = string("EHXPLL_") + (side);
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("EHXPLLJ");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = 0;
+        auto add_input = [&](const std::string &pin) {
+            graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt("J" << pin << "_PLL")));
+        };
+        auto add_output = [&](const std::string &pin) {
+            graph.add_bel_output(bel, graph.ident(pin), x, y, graph.ident(fmt("J" << pin << "_PLL")));
+        };
+
+        add_input("REFCLK");
+        add_input("RST");
+        add_input("STDBY");
+
+        add_input("PHASEDIR");
+        add_input("LOADREG");
+        add_input("PHASESEL0");
+        add_input("PHASESEL1");
+        add_input("PHASESTEP");
+        add_input("PLLWAKESYNC");
+
+        add_input("ENCLKOP");
+        add_input("ENCLKOS2");
+        add_input("ENCLKOS3");
+        add_input("ENCLKOS");
+
+        graph.add_bel_input(bel, graph.ident("CLKI"), x, y, graph.ident("CLKI_PLL"));
+        graph.add_bel_input(bel, graph.ident("CLKFB"), x, y, graph.ident("CLKFB_PLL"));
+        graph.add_bel_output(bel, graph.ident("CLKINTFB"), x, y, graph.ident("CLKINTFB_PLL"));
+
+        add_output("LOCK");
+        add_output("INTLOCK");
+        add_output("CLKOP");
+        add_output("CLKOS");
+        add_output("CLKOS2");
+        add_output("CLKOS3");
+
+        graph.add_bel(bel);
+    }
+
 }
 }

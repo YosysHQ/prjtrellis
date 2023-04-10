@@ -38,6 +38,8 @@ namespace MachXO2Bels {
 void add_dcc(RoutingGraph &graph, int x, int y, /* const std::string &name, */ int z);
 void add_dcm(RoutingGraph &graph, int x, int y, int n, int z);
 void add_osch(RoutingGraph &graph, int x, int y, int z);
+void add_bram(RoutingGraph &graph, int x, int y);
+void add_pll(RoutingGraph &graph, std::string side, int x, int y);
 
 }
 

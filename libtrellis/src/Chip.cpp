@@ -393,7 +393,17 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool include_lutperm_pi
               // Start at z = 8, but names start at 6.
               MachXO2Bels::add_dcm(*rg, x, y, z, z + 2);
         }
-
+        // RAM Bels
+        if (tile->info.type == "EBR0" || tile->info.type == "EBR0_END" ||
+            tile->info.type == "EBR0_10K" || tile->info.type == "EBR0_END_10K") {
+            MachXO2Bels::add_bram(*rg, x, y);
+        }   
+        // PLL Bels
+        if (tile->info.type == "GPLL_L0")
+            MachXO2Bels::add_pll(*rg, "L", x+1, y+1);
+        if (tile->info.type == "GPLL_R0")
+            MachXO2Bels::add_pll(*rg, "R", x-1, y+1);
+        // Config/system Bels
         if (tile->info.type.find("CIB_CFG0") != string::npos) {
             MachXO2Bels::add_osch(*rg, x, y, 0);
         }
