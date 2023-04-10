@@ -19,6 +19,7 @@ def ebr_conns(tile):
         netlist.append(("R{}C{}_JCLK{}_EBR".format(tile[0], tile[1], x), "sink"))
         netlist.append(("R{}C{}_JRST{}_EBR".format(tile[0], tile[1], x), "sink"))
         netlist.append(("R{}C{}_JWE{}_EBR".format(tile[0], tile[1], x), "sink"))
+        netlist.append(("R{}C{}_JOCE{}_EBR".format(tile[0], tile[1], x), "sink"))
 
     netlist.append(("R{}C{}_JAE_EBR".format(tile[0], tile[1]), "sink"))
     netlist.append(("R{}C{}_JAF_EBR".format(tile[0], tile[1]), "sink"))

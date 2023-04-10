@@ -7,10 +7,10 @@ def pll_nets(tile):
         netlist.append(("R{}C{}_JPLLDATI{}_PLL".format(tile[0], tile[1], n), "sink"))
         netlist.append(("R{}C{}_JPLLDATO{}_PLL".format(tile[0], tile[1], n), "driver"))
         if n not in (1,2):
-            netlist.append(("R{}C{}_JREFCLK{}_PLL".format(tile[0], tile[1], n), "sink"))
+            netlist.append(("R{}C{}_JREFCLK{}".format(tile[0], tile[1], n), "sink"))
         else:
-            netlist.append(("R{}C{}_JREFCLK{}_0_PLL".format(tile[0], tile[1], n), "sink"))
-            netlist.append(("R{}C{}_JREFCLK{}_1_PLL".format(tile[0], tile[1], n), "sink"))
+            netlist.append(("R{}C{}_JREFCLK{}_0".format(tile[0], tile[1], n), "sink"))
+            netlist.append(("R{}C{}_JREFCLK{}_1".format(tile[0], tile[1], n), "sink"))
 
     for n in range(2):
         netlist.append(("R{}C{}_CLK{}_PLLREFCS".format(tile[0], tile[1], n), "sink"))
