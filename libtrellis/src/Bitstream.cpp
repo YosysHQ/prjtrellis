@@ -713,6 +713,7 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                 uint8_t params[3];
                 rd.get_bytes(params, 3);
                 int frame_count = (params[1] << 8U) | params[2];
+                bool check_crc = params[0] & 0x80U;
                 int frames_read = 0;
 
                 while (frames_read < frame_count) {
@@ -738,7 +739,8 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                     addr_in_ebr += 8;
 
                 }
-                rd.check_crc16();
+                if (check_crc)
+                    rd.check_crc16();
             }
                 break;
             case BitstreamCommand::SPI_MODE: {
