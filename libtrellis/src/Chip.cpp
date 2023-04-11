@@ -389,7 +389,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool include_lutperm_pi
         }
 
         // DCC/DCM Bels
-        if (tile->info.type.find("CENTER_EBR_CIB") != string::npos) {
+        if (tile->info.type == "CENTER_EBR_CIB" || tile->info.type == "CENTER_EBR_CIB_4K" || tile->info.type == "CENTER_EBR_CIB_10K") {
           for (int z = 0; z < 8; z++)
               MachXO2Bels::add_dcc(*rg, x, y, z);
           for (int z = 6; z < 8; z++)
