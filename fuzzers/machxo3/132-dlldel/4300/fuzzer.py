@@ -12,9 +12,9 @@ jobs = [
 
         (FuzzConfig(job="LDLLDEL", family="MachXO3", device="LCMXO3LF-4300C", ncl="empty.ncl",
                     tiles=["CIB_R11C1:CIB_EBR0_END1"]), [("LDLLDEL0", "R11C0"), ("LDLLDEL1", "R11C0"), ("LDLLDEL2", "R11C0")]),
-        # This one is strange since it does not go E1 but it is on same
-        (FuzzConfig(job="RDLLDEL", family="MachXO3", device="LCMXO3LF-4300C", ncl="empty.ncl",
-                    tiles=["CIB_R11C32:CIB_EBR2_END1"]), [("RDLLDEL0", "R11C33")]),
+        # This one is strange since it does not go E1 but it is on location
+        #(FuzzConfig(job="RDLLDEL", family="MachXO3", device="LCMXO3LF-4300C", ncl="empty.ncl",
+        #            tiles=["CIB_R11C32:CIB_EBR2_END1"]), [("RDLLDEL0", "R11C33")]),
        ]
 
 
