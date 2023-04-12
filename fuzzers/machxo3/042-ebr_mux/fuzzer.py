@@ -5,7 +5,12 @@ import fuzzloops
 
 jobs = [
     ("R6C17", "EBR", FuzzConfig(job="EBROUTE0", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
-                                tiles=["EBR_R6C17:EBR0", "EBR_R6C18:EBR1", "EBR_R6C19:EBR2"])),
+                                tiles=["EBR_R6C17:EBR0", "EBR_R6C18:EBR1", "EBR_R6C19:EBR2",
+                                       "CIB_R6C17:CIB_EBR0", "CIB_R6C18:CIB_EBR1", "CIB_R6C19:CIB_EBR2" ])),
+    ("R6C1", "EBR", FuzzConfig(job="EBROUTE0", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
+                                tiles=["EBR_R6C1:EBR0_END", "CIB_R6C1:CIB_EBR0_END0"])),
+    ("R6C20", "EBR", FuzzConfig(job="EBROUTE0", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
+                                tiles=["CIB_R6C22:CIB_EBR2_END0"])),
 ]
 
 
@@ -58,27 +63,27 @@ def main():
         empty_bitfile = cfg.build_design(cfg.ncl, {})
         cfg.ncl = "ebr.ncl"
 
-#        nonrouting.fuzz_enum_setting(cfg, "{}.CLKAMUX".format(ebr), ["CLKA", "INV"],
-#                                     lambda x: get_substs("DP8KC", {}, get_muxval("CLKA", x)), empty_bitfile)
-#        nonrouting.fuzz_enum_setting(cfg, "{}.CLKBMUX".format(ebr), ["CLKB", "INV"],
-#                                     lambda x: get_substs("DP8KC", {}, get_muxval("CLKB", x)), empty_bitfile)
+        nonrouting.fuzz_enum_setting(cfg, "{}.CLKAMUX".format(ebr), ["CLKA", "INV"],
+                                     lambda x: get_substs("DP8KC", {}, get_muxval("CLKA", x)), empty_bitfile)
+        nonrouting.fuzz_enum_setting(cfg, "{}.CLKBMUX".format(ebr), ["CLKB", "INV"],
+                                     lambda x: get_substs("DP8KC", {}, get_muxval("CLKB", x)), empty_bitfile)
         nonrouting.fuzz_enum_setting(cfg, "{}.RSTAMUX".format(ebr), ["RSTA", "INV"],
                                      lambda x: get_substs("DP8KC", {}, get_muxval("RSTA", x)), empty_bitfile)
         nonrouting.fuzz_enum_setting(cfg, "{}.RSTBMUX".format(ebr), ["RSTB", "INV"],
                                      lambda x: get_substs("DP8KC", {}, get_muxval("RSTB", x)), empty_bitfile)
-#        nonrouting.fuzz_enum_setting(cfg, "{}.OCEAMUX".format(ebr), ["OCEA", "INV"],
-#                                     lambda x: get_substs("DP8KC", {}, get_muxval("OCEA", x)), empty_bitfile)
-#        nonrouting.fuzz_enum_setting(cfg, "{}.OCEBMUX".format(ebr), ["OCEB", "INV"],
-#                                     lambda x: get_substs("DP8KC", {}, get_muxval("OCEB", x)), empty_bitfile)
+        nonrouting.fuzz_enum_setting(cfg, "{}.OCEAMUX".format(ebr), ["OCEA", "INV"],
+                                     lambda x: get_substs("DP8KC", {}, get_muxval("OCEA", x)), empty_bitfile)
+        nonrouting.fuzz_enum_setting(cfg, "{}.OCEBMUX".format(ebr), ["OCEB", "INV"],
+                                     lambda x: get_substs("DP8KC", {}, get_muxval("OCEB", x)), empty_bitfile)
         nonrouting.fuzz_enum_setting(cfg, "{}.WEAMUX".format(ebr), ["WEA", "INV"],
                                      lambda x: get_substs("DP8KC", {}, get_muxval("WEA", x)), empty_bitfile)
         nonrouting.fuzz_enum_setting(cfg, "{}.WEBMUX".format(ebr), ["WEB", "INV"],
                                      lambda x: get_substs("DP8KC", {}, get_muxval("WEB", x)), empty_bitfile)
-#        nonrouting.fuzz_enum_setting(cfg, "{}.CEAMUX".format(ebr), ["CEA", "INV"],
-#                                     lambda x: get_substs("DP8KC", {}, get_muxval("CEA", x)), empty_bitfile)
-#        nonrouting.fuzz_enum_setting(cfg, "{}.CEBMUX".format(ebr), ["CEB", "INV"],
-#                                     lambda x: get_substs("DP8KC", {}, get_muxval("CEB", x)), empty_bitfile)
-#
+        nonrouting.fuzz_enum_setting(cfg, "{}.CEAMUX".format(ebr), ["CEA", "INV"],
+                                     lambda x: get_substs("DP8KC", {}, get_muxval("CEA", x)), empty_bitfile)
+        nonrouting.fuzz_enum_setting(cfg, "{}.CEBMUX".format(ebr), ["CEB", "INV"],
+                                     lambda x: get_substs("DP8KC", {}, get_muxval("CEB", x)), empty_bitfile)
+
         nonrouting.fuzz_enum_setting(cfg, "{}.FIFO8KB.FULLIMUX".format(ebr), ["FULLI", "INV"],
                                      lambda x: get_substs("FIFO8KB", {}, get_muxval("FULLI", x)), empty_bitfile)
         nonrouting.fuzz_enum_setting(cfg, "{}.FIFO8KB.EMPTYIMUX".format(ebr), ["EMPTYI", "INV"],
