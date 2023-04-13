@@ -763,6 +763,13 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                 /* TODO: Parse address and SPI Flash read speed */
                 rd.skip_bytes(4);
                 break;
+            case BitstreamCommand::LSC_PROG_SED_CRC: {
+                rd.skip_bytes(3);
+                uint32_t cfg = rd.get_uint32();
+                chip->sed = cfg;
+                BITSTREAM_DEBUG("set sed crc to 0x" << hex << setw(8) << setfill('0') << cfg);
+            }
+                break;
             case BitstreamCommand::DUMMY:
                 break;
             default: BITSTREAM_FATAL("unsupported command 0x" << hex << setw(2) << setfill('0') << int(cmd),
