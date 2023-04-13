@@ -5,7 +5,7 @@ import fuzzloops
 import interconnect
 import os
 
-cfg = FuzzConfig(job="BITARGS", family="MachXO3", device="LCMXO3-1300E", ncl="empty.ncl",
+cfg = FuzzConfig(job="BITARGS", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
                  tiles=["PT4:CFG0"])
 
 
