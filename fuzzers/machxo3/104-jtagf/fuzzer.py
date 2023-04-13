@@ -3,7 +3,7 @@ import nonrouting
 import pytrellis
 import interconnect
 
-cfg = FuzzConfig(job="JTAGF", family="MachXO3", device="LCMXO3-2100E", ncl="empty.ncl", tiles=["PT4:CFG0"])
+cfg = FuzzConfig(job="JTAGF", family="MachXO3", device="LCMXO3LF-2100E", ncl="empty.ncl", tiles=["PT4:CFG0"])
 
 jobs = [
         (FuzzConfig(job="JTAGF", family="MachXO3", device="LCMXO3LF-1300E", ncl="routing_1300.ncl",

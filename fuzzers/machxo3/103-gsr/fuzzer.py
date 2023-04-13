@@ -4,7 +4,7 @@ import nonrouting
 import pytrellis
 import interconnect
 
-job = (FuzzConfig(job="GSR", family="MachXO3", device="LCMXO3-1300E", ncl="empty.ncl",
+job = (FuzzConfig(job="GSR", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
                   tiles=["PT4:CFG0"]), "R1C4")
 
 def get_substs(gsrmode="ACTIVE_LOW", syncmode="NONE"):

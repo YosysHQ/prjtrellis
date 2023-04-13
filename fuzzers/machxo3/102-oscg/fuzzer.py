@@ -5,14 +5,14 @@ import fuzzloops
 import interconnect
 import argparse
 
-cfg = FuzzConfig(job="OSCH", family="MachXO3", device="LCMXO3-1300E", ncl="empty.ncl",
+cfg = FuzzConfig(job="OSCH", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
                                           tiles=["PT8:PIC_T_DUMMY_OSC",
                                                 "PT4:CFG0", "PT5:CFG1",
                                                 "PT6:CFG2", "PT7:CFG3",
                                                 "CIB_R1C4:CIB_CFG0",
                                                 "CIB_R1C5:CIB_CFG1"])
 
-cfg_r = FuzzConfig(job="OSCH_ROUTE", family="MachXO3", device="LCMXO3-1300E", ncl="osc_routing.ncl",
+cfg_r = FuzzConfig(job="OSCH_ROUTE", family="MachXO3", device="LCMXO3LF-1300E", ncl="osc_routing.ncl",
                                           tiles=["CIB_R1C4:CIB_CFG0"])
 
 
