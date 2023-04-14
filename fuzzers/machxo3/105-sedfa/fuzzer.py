@@ -6,6 +6,8 @@ import interconnect
 cfg = FuzzConfig(job="SED", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
                                           tiles=["PT7:CFG3"])
 
+cfg2 = FuzzConfig(job="SED", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
+                                          tiles=["PT6:CFG2", "PT7:CFG3"])
 
 def get_substs(exclk_used="NO", clk_freq="2.08", checkalways="DISABLED"):
     if clk_freq == "NONE":
@@ -72,8 +74,9 @@ def main():
         bidir=True,
         netdir_override=override_dict
     )
-    cfg.ncl = "sed_mode.ncl"
-    nonrouting.fuzz_enum_setting(cfg, "SED.MODE", ["SEDFA", "SEDFB", "NONE"],
+    cfg2.setup()
+    cfg2.ncl = "sed_mode.ncl"
+    nonrouting.fuzz_enum_setting(cfg2, "SED.MODE", ["SEDFA", "SEDFB", "NONE"],
                                  lambda x: get_substs_mode(mode=x), empty_bitfile, False)
 
 if __name__ == "__main__":
