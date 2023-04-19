@@ -389,26 +389,78 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool include_lutperm_pi
         }
 
         // DCC/DCM Bels
-        if (tile->info.type == "CENTER_EBR_CIB" || tile->info.type == "CENTER_EBR_CIB_4K" || tile->info.type == "CENTER_EBR_CIB_10K") {
-          for (int z = 0; z < 8; z++)
-              MachXO2Bels::add_dcc(*rg, x, y, z);
-          for (int z = 6; z < 8; z++)
-              // Start at z = 8, but names start at 6.
-              MachXO2Bels::add_dcm(*rg, x, y, z, z + 2);
+        if (tile->info.type == "CENTER_EBR_CIB" || tile->info.type == "CENTER_EBR_CIB_4K" ||
+            tile->info.type == "CENTER_EBR_CIB_10K") {
+            for (int z = 0; z < 8; z++)
+                MachXO2Bels::add_dcc(*rg, x, y, z);
+            for (int z = 6; z < 8; z++)
+                // Start at z = 8, but names start at 6.
+                MachXO2Bels::add_dcm(*rg, x, y, z, z + 2);
+            for (int i = 0; i < 2; i++)
+                MachXO2Bels::add_ioclk_bel(*rg, "ECLKBRIDGECS", "", x, y, i);           
         }
+
+        if (tile->info.type == "PIC_T_DUMMY_VIQ")
+            for (int i = 0; i < 2; i++) {
+                MachXO2Bels::add_ioclk_bel(*rg, "CLKDIVC", "T", x, y+1, i);
+                MachXO2Bels::add_ioclk_bel(*rg, "DLLDELC", "T", x, y, i);
+                MachXO2Bels::add_ioclk_bel(*rg, "ECLKSYNCA", "T", x, y, i);
+              
+            }
+        if (tile->info.type == "PIC_B_DUMMY_VIQ" || tile->info.type == "PIC_B_DUMMY_VIQ_VREF")
+            for (int i = 0; i < 2; i++) {
+                MachXO2Bels::add_ioclk_bel(*rg, "CLKDIVC", "B", x, y-1, i);
+                MachXO2Bels::add_ioclk_bel(*rg, "DLLDELC", "B", x, y, i);
+                MachXO2Bels::add_ioclk_bel(*rg, "ECLKSYNCA", "B", x, y, i);
+                MachXO2Bels::add_ioclk_bel(*rg, "CLKFBBUF", "B", x, y-1, i);
+            }
+        if (tile->info.type == "DQSDLL_R")
+            MachXO2Bels::add_ioclk_bel(*rg, "DQSDLLC", "T", x, y+1, 0);
+        if (tile->info.type == "DQSDLL_L")
+            MachXO2Bels::add_ioclk_bel(*rg, "DQSDLLC", "B", x, y-1, 0);
+
+        // DLLDEL
+        if (tile->info.type == "CIB_EBR0_END0" || tile->info.type == "CIB_EBR_DUMMY_END3" ||
+            tile->info.type == "CIB_EBR0_END1") {
+            for (int i = 0; i < 3; i++)
+                MachXO2Bels::add_ioclk_bel(*rg, "DLLDELC", "L", x, y, i);
+        }
+        if (tile->info.type == "CIB_EBR0_END2_DLL3" || tile->info.type == "CIB_EBR0_END0_DLL3")
+            MachXO2Bels::add_ioclk_bel(*rg, "DLLDELC", "L", x, y - 7, 0);
+        if (tile->info.type == "CIB_EBR0_END2_DLL45" || tile->info.type == "CIB_EBR0_END0_10K")
+            MachXO2Bels::add_ioclk_bel(*rg, "DLLDELC", "L", x, y, 1);
+        if (tile->info.type == "CIB_EBR0_END2_DLL45")
+            MachXO2Bels::add_ioclk_bel(*rg, "DLLDELC", "L", x, y, 2);
+        if (tile->info.type == "CIB_EBR0_END0_DLL5")
+            MachXO2Bels::add_ioclk_bel(*rg, "DLLDELC", "L", x, y + 7, 2);
+
+        if (tile->info.type == "CIB_EBR2_END0" || tile->info.type =="CIB_EBR2_END1")
+            MachXO2Bels::add_ioclk_bel(*rg, "DLLDELC", "R", x, y, 0);
+        
         // RAM Bels
         if (tile->info.type == "EBR0" || tile->info.type == "EBR0_END" ||
-            tile->info.type == "EBR0_10K" || tile->info.type == "EBR0_END_10K") {
+            tile->info.type == "EBR0_10K" || tile->info.type == "EBR0_END_10K")
             MachXO2Bels::add_bram(*rg, x, y);
-        }   
+
         // PLL Bels
-        if (tile->info.type == "GPLL_L0")
+        if (tile->info.type == "GPLL_L0") {
             MachXO2Bels::add_pll(*rg, "L", x+1, y+1);
-        if (tile->info.type == "GPLL_R0")
+            MachXO2Bels::add_pllrefrc(*rg, "L", x+1, y+1);
+        }
+        if (tile->info.type == "GPLL_R0") {
             MachXO2Bels::add_pll(*rg, "R", x-1, y+1);
+            MachXO2Bels::add_pllrefrc(*rg, "R", x-1, y+1);
+        }
         // Config/system Bels
-        if (tile->info.type.find("CIB_CFG0") != string::npos) {
-            MachXO2Bels::add_osch(*rg, x, y, 0);
+        if (tile->info.type == "CFG0") {
+            MachXO2Bels::add_misc(*rg, "EFB", x, y+1);
+            MachXO2Bels::add_misc(*rg, "GSR", x, y+1);
+            MachXO2Bels::add_misc(*rg, "JTAGF", x,y+1);
+            MachXO2Bels::add_misc(*rg, "OSCH", x, y+1);
+            MachXO2Bels::add_misc(*rg, "PCNTR", x, y+1);
+            MachXO2Bels::add_misc(*rg, "SEDFA", x, y+1);
+            MachXO2Bels::add_misc(*rg, "START", x, y+1);
+            MachXO2Bels::add_misc(*rg, "TSALL", x, y+1);
         }
     }
 
