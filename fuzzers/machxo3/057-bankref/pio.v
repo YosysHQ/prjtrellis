@@ -50,6 +50,7 @@ IB i_b(.I(pad), .O(dummyo));
 
 // Dummy load
 GSR gsr_i(.GSR(dummyo));
+BCINRD #(.BANKID("${bank}")) bc(.INRDENI(1'b1));
 
 `endif
 

@@ -13,15 +13,17 @@ jobs = [
         "cfg": FuzzConfig(job="PIC_T_DUMMY_VIQ", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty_1300.ncl",
                           tiles=["PT13:PIC_T_DUMMY_VIQ"]),
         "pin": "A7",
-        "side": "T"
+        "side": "T",
+        "bank": "0"
     },
 
     # Bank 1
     {
         "cfg": FuzzConfig(job="CIB_EBR2_END0", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty_1300.ncl",
                           tiles=["CIB_R6C22:CIB_EBR2_END0"]),
-        "pin": "B1",
-        "side": "R"
+        "pin": "C2",
+        "side": "R",
+        "bank": "1"
     },
     #{
     #    "cfg": FuzzConfig(job="CIB_EBR2_END1", family="MachXO3", device="LCMXO3LF-2100C", ncl="empty_2100.ncl",
@@ -40,7 +42,8 @@ jobs = [
         "cfg": FuzzConfig(job="PIC_B_DUMMY_VREF", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty_1300.ncl",
                           tiles=["PB10:PIC_B_DUMMY_VREF"]),
         "pin": "H9",
-        "side": "B"
+        "side": "B",
+        "bank": "2"
     },
     #{
     #    "cfg": FuzzConfig(job="PIC_B_DUMMY_VIQ_VREF", family="MachXO3", device="LCMXO3LF-2100C", ncl="empty_2100.ncl",
@@ -54,7 +57,8 @@ jobs = [
         "cfg": FuzzConfig(job="PIC_L0_VREF3", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty_1300.ncl",
                           tiles=["PL4:PIC_L0_VREF3"]),
         "pin": "D9",
-        "side": "L"
+        "side": "L",
+        "bank": "3"
     },
     #{
     #    "cfg": FuzzConfig(job="LLC0PIC_VREF3", family="MachXO3", device="LCMXO3LF-9400C", ncl="empty_9400.ncl",
@@ -145,7 +149,7 @@ def main(args):
         empty_bitfile = cfg.build_design(cfg.ncl, {})
         cfg.ncl = "pio.v"
 
-        def get_substs(iomode, extracfg=None):
+        def get_substs(iomode, extracfg=None, bank=None ):
             if iomode == "NONE":
                 iodir, type = "NONE", ""
             else:
@@ -155,9 +159,14 @@ def main(args):
                 "io_type": type,
                 "loc": pin,
                 "extra_attrs": "",
+                "bank": "",
             }
             if extracfg is not None:
                 substs["extra_attrs"] = '(* {}="{}" *)'.format(extracfg[0], extracfg[1])
+            if bank is not None:
+                substs["bank"] = bank
+            else:
+                substs["bank"] = job["bank"]
             return substs
 
         vcco_opts = {
@@ -169,19 +178,28 @@ def main(args):
             "NONE": "INPUT_LVCMOS33",
         }
 
+        nonrouting.fuzz_enum_setting(cfg, "BANK.INRD", ["OFF", "ON"],
+                                  lambda x: get_substs(
+                                       iomode="INPUT_LVCMOS33D", bank=job["bank"] if x=="ON" else (1 if job["bank"]=="0" else 0)),
+                                       empty_bitfile,
+                                       ignore_bits=([("CIB_R6C22:CIB_EBR2_END0", 13, 9), ("CIB_R6C22:CIB_EBR2_END0", 13, 12)]))
+ 
         nonrouting.fuzz_enum_setting(cfg, "BANK.VCCIO", list(sorted(vcco_opts.keys())),
                                      lambda x: get_substs(iomode=vcco_opts[x]),
                                      empty_bitfile)
 
         nonrouting.fuzz_enum_setting(cfg, "BANK.DIFF_REF", ["OFF", "ON"],
                                         lambda x: get_substs(
-                                            iomode="INPUT_LVCMOS33D" if x == "ON" else "INPUT_LVCMOS33"),
+                                            iomode="INPUT_LVCMOS33D" if x == "ON" else "INPUT_LVCMOS33",
+                                            bank=1 if job["bank"]=="0" else 0),
                                         empty_bitfile)
-        # For bottom side manual fix needed for now    
+ 
         nonrouting.fuzz_enum_setting(cfg, "BANK.VREF", ["OFF", "ON"],
                                         lambda x: get_substs(
-                                            iomode="INPUT_LVCMOS25R33" if x == "ON" else "INPUT_LVPECL33"),
-                                        empty_bitfile)
+                                            iomode="INPUT_LVCMOS25R33" if x == "ON" else "INPUT_LVPECL33",
+                                            bank=1 if job["bank"]=="0" else 0),                                            
+                                        empty_bitfile,
+                                        ignore_bits=([("PB10:PIC_B_DUMMY_VREF", 5, 14)]))
 
         if side in ('T'):
             nonrouting.fuzz_enum_setting(cfg, "BANK.LVDSO", ["OFF", "ON"],
