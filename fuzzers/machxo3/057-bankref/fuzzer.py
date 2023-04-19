@@ -166,7 +166,7 @@ def main(args):
             if bank is not None:
                 substs["bank"] = bank
             else:
-                substs["bank"] = job["bank"]
+                substs["bank"] = 1 if job["bank"]=="0" else 0
             return substs
 
         vcco_opts = {
@@ -190,14 +190,12 @@ def main(args):
 
         nonrouting.fuzz_enum_setting(cfg, "BANK.DIFF_REF", ["OFF", "ON"],
                                         lambda x: get_substs(
-                                            iomode="INPUT_LVCMOS33D" if x == "ON" else "INPUT_LVCMOS33",
-                                            bank=1 if job["bank"]=="0" else 0),
+                                            iomode="INPUT_LVCMOS33D" if x == "ON" else "INPUT_LVCMOS33"),
                                         empty_bitfile)
  
         nonrouting.fuzz_enum_setting(cfg, "BANK.VREF", ["OFF", "ON"],
                                         lambda x: get_substs(
-                                            iomode="INPUT_LVCMOS25R33" if x == "ON" else "INPUT_LVPECL33",
-                                            bank=1 if job["bank"]=="0" else 0),                                            
+                                            iomode="INPUT_LVCMOS25R33" if x == "ON" else "INPUT_LVPECL33"),                                            
                                         empty_bitfile,
                                         ignore_bits=([("PB10:PIC_B_DUMMY_VREF", 5, 14)]))
 
