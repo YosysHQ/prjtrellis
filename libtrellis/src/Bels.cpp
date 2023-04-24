@@ -976,10 +976,10 @@ namespace MachXO2Bels {
         graph.add_bel_input(bel, graph.ident("WEA"), x, y, graph.ident("JWEA_EBR"));
         graph.add_bel_input(bel, graph.ident("WEB"), x, y, graph.ident("JWEB_EBR"));
 
-        graph.add_bel_input(bel, graph.ident("AE"), x, y, graph.ident("JAE_EBR"));
-        graph.add_bel_input(bel, graph.ident("AF"), x, y, graph.ident("JAF_EBR"));
-        graph.add_bel_input(bel, graph.ident("EF"), x, y, graph.ident("JEF_EBR"));
-        graph.add_bel_input(bel, graph.ident("FF"), x, y, graph.ident("JFF_EBR"));
+        graph.add_bel_output(bel, graph.ident("AE"), x, y, graph.ident("JAE_EBR"));
+        graph.add_bel_output(bel, graph.ident("AF"), x, y, graph.ident("JAF_EBR"));
+        graph.add_bel_output(bel, graph.ident("EF"), x, y, graph.ident("JEF_EBR"));
+        graph.add_bel_output(bel, graph.ident("FF"), x, y, graph.ident("JFF_EBR"));
 
         graph.add_bel(bel);
 
