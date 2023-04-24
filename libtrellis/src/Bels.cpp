@@ -214,8 +214,12 @@ void add_ramw(RoutingGraph &graph, int x, int y) {
     graph.add_bel(bel);
 }
 
+}
+
+namespace Ecp5Bels {
+
 void add_pio(RoutingGraph &graph, int x, int y, int z) {
-    char l = "ABCDEF"[z];
+    char l = "ABCD"[z];
     string name = string("PIO") + l;
     RoutingBel bel;
     bel.name = graph.ident(name);
@@ -233,9 +237,6 @@ void add_pio(RoutingGraph &graph, int x, int y, int z) {
 
     graph.add_bel(bel);
 }
-}
-
-namespace Ecp5Bels {
 
 void add_dcc(RoutingGraph &graph, int x, int y, string side, string z) {
     string name = side + string("DCC") + z;
@@ -789,6 +790,114 @@ void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, i
 }
 
 namespace MachXO2Bels {
+    void add_pio(RoutingGraph &graph, int x, int y, int z, bool have_lvds) {
+        char l = "ABCD"[z];
+        string name = string("PIO") + l;
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("PIO");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = z;
+
+        graph.add_bel_input(bel, graph.ident("I"), x, y, graph.ident(fmt("PADDO" << l << "_PIO")));
+        graph.add_bel_input(bel, graph.ident("T"), x, y, graph.ident(fmt("PADDT" << l << "_PIO")));
+        graph.add_bel_output(bel, graph.ident("O"), x, y, graph.ident(fmt("JPADDI" << l << "_PIO")));
+
+        graph.add_bel_input(bel, graph.ident("IOLDO"), x, y, graph.ident(fmt("IOLDO" << l << "_PIO")));
+        graph.add_bel_input(bel, graph.ident("IOLTO"), x, y, graph.ident(fmt("IOLTO" << l << "_PIO")));
+
+        graph.add_bel_input(bel, graph.ident("PG"), x, y, graph.ident(fmt("PG" << l << "_PIO")));
+        graph.add_bel_input(bel, graph.ident("INRD"), x, y, graph.ident(fmt("INRD" << l << "_PIO")));
+        if (have_lvds)
+            graph.add_bel_input(bel, graph.ident("LVDS"), x, y, graph.ident(fmt("LVDS" << l << "_PIO")));
+
+        graph.add_bel(bel);
+    }
+
+    void add_iologic(RoutingGraph &graph, char side, int x, int y, int z, bool have_dqs, bool have_lvds) {
+        char l = "ABCD"[z];
+        string prefix = "";
+        if (!have_lvds) side = 'L'; // no prefix nor additional fields
+
+        if (side=='T' || side=='B') {
+            if (z == 0) prefix = side; // A
+            if (z == 2) prefix = fmt(side << "S"); // C
+        }
+        if (side=='R' && have_dqs) {
+            prefix = side;
+        }
+
+        string name = prefix + string("IOLOGIC") + l;
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident(prefix + "IOLOGIC");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = z + 4;
+
+        auto add_input = [&](const std::string &pin, bool j = true) {
+            graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << l << "_" << prefix << "IOLOGIC")));
+        };
+        auto add_output = [&](const std::string &pin, bool j = true) {
+            graph.add_bel_output(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << l << "_" << prefix << "IOLOGIC")));
+        };
+
+        add_output("IOLDO", false);
+        add_output("IOLTO", false);
+        add_input("PADDI", false);
+
+        add_output("INDD", false);
+        add_input("DI", false);
+
+        if (side=='T' && (z % 2 == 0)) { // A and C
+            int to = (z==0) ? 8 : 4;
+            for (int i = 0; i < to; i++)
+                add_input(fmt("TDX" << i));
+        }
+
+        if (side=='B' && (z % 2 == 0)) { // A and C
+            for (int i = 0; i < 5; i++)
+                add_input(fmt("DEL" << i));
+        }
+
+        add_input("ONEG");
+        add_input("OPOS");
+
+        add_input("TS");
+
+        add_input("CE");
+        add_input("LSR");
+        add_input("CLK");
+        if (side=='T' && (z % 2 == 0)) { // A and C
+            add_input("ECLK", false);
+        }
+        if (side=='B' && (z % 2 == 0)) { // A and C
+            add_input("ECLK", false);
+            add_input("SLIP");
+        }
+
+        if (side=='R' && have_dqs) {
+            add_input("DDRCLKPOL", false);
+            add_input("DQSR90", false);
+            add_input("DQSW90", false);
+        }
+
+        add_output("IN");
+        add_output("IP");
+
+        if (side=='B' && (z % 2 == 0)) { // A and C
+            for (int i = 0; i < 4; i++)
+                add_output(fmt("RXD" << i));
+        }
+        if (side=='B' && z==0) { // A
+            for (int i = 0; i < 8; i++)
+                add_output(fmt("RXDA" << i));
+        }
+
+        graph.add_bel(bel);
+    }
+
     void add_dcc(RoutingGraph &graph, int x, int y, /* const std::string &name, */ int z) {
         // TODO: All DCCs appear to be in center. Phantom DCCs line the columns
         // for global routing with names of the form DCC_RxCy_{0,1}{T,B}. Hence
@@ -1180,5 +1289,25 @@ namespace MachXO2Bels {
         graph.add_bel(bel);
     }
 
+}
+
+
+namespace MachXOBels {
+    void add_pio(RoutingGraph &graph, int x, int y, int z) {
+        char l = "ABCDEF"[z];
+        string name = string("PIO") + l;
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("PIO");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = z;
+
+        graph.add_bel_input(bel, graph.ident("I"), x, y, graph.ident(fmt("PADDO" << l << "_PIO")));
+        graph.add_bel_input(bel, graph.ident("T"), x, y, graph.ident(fmt("PADDT" << l << "_PIO")));
+        graph.add_bel_output(bel, graph.ident("O"), x, y, graph.ident(fmt("JPADDI" << l << "_PIO")));
+
+        graph.add_bel(bel);
+    }
 }
 }

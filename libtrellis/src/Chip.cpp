@@ -186,16 +186,16 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips,
         // PIO Bels
         if (tile->info.type.find("PICL0") != string::npos || tile->info.type.find("PICR0") != string::npos)
             for (int z = 0; z < 4; z++) {
-                CommonBels::add_pio(*rg, x, y, z);
+                Ecp5Bels::add_pio(*rg, x, y, z);
                 Ecp5Bels::add_iologic(*rg, x, y, z, false);
             }
         if (tile->info.type.find("PIOT0") != string::npos || (tile->info.type.find("PICB0") != string::npos && tile->info.type != "SPICB0"))
             for (int z = 0; z < 2; z++) {
-                CommonBels::add_pio(*rg, x, y, z);
+                Ecp5Bels::add_pio(*rg, x, y, z);
                 Ecp5Bels::add_iologic(*rg, x, y, z, true);
             }
         if (tile->info.type == "SPICB0") {
-            CommonBels::add_pio(*rg, x, y, 0);
+            Ecp5Bels::add_pio(*rg, x, y, 0);
             Ecp5Bels::add_iologic(*rg, x, y, 0, true);
         }
         // DCC Bels
@@ -324,6 +324,10 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips,
 shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool include_lutperm_pips, bool split_slice_mode)
 {
     shared_ptr<RoutingGraph> rg(new RoutingGraph(*this));
+    bool have_dqs = (info.family == "MachXO2") || (info.family == "MachXO3D");
+    bool have_lvds = true;
+    if (info.name.find("LCMXO2-256") != string::npos || info.name.find("LCMXO2-640") != string::npos)
+        have_lvds = false;
 
     for (auto tile_entry : tiles) {
         shared_ptr<Tile> tile = tile_entry.second;
@@ -375,16 +379,23 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool include_lutperm_pi
         // DUMMY and CIB tiles can have the below strings and can possibly
         // have BELs. But they will not have PIO BELs.
         if (tile->info.type.find("DUMMY") == string::npos && tile->info.type.find("CIB") == string::npos && tile->info.type.find("PIC") != string::npos) {
-            
+            char side = tile->info.type.at(4); // For those starting with PIC_
+            if (tile->info.type.find("PIC") != 0) {
+                side = tile->info.type.at(1); // For LLC, LRC, ULC and URC
+            }
             // Single I/O pair.
             if (tile->info.type.find("LS0") != string::npos || tile->info.type.find("RS0") != string::npos ||
                 tile->info.type.find("BS0") != string::npos || tile->info.type.find("TS0") != string::npos ||
                 tile->info.type.find("LLC0PIC") != string::npos) {
-                for (int z = 0; z < 2; z++)
-                    CommonBels::add_pio(*rg, x, y, z);
+                for (int z = 0; z < 2; z++) {
+                    MachXO2Bels::add_pio(*rg, x, y, z, have_lvds);
+                    MachXO2Bels::add_iologic(*rg, side, x, y, z, have_dqs, have_lvds);
+                }
             } else {
-                for (int z = 0; z < 4; z++)
-                    CommonBels::add_pio(*rg, x, y, z);
+                for (int z = 0; z < 4; z++) {
+                    MachXO2Bels::add_pio(*rg, x, y, z, have_lvds);
+                    MachXO2Bels::add_iologic(*rg, side, x, y, z, have_dqs, have_lvds);
+                }
             }
         }
 
@@ -521,15 +532,15 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo(bool include_lutperm_pip
         // PIO Bels
         if (tile->info.type.find("PIC2") != string::npos) {
             for (int z = 0; z < 2; z++)
-                CommonBels::add_pio(*rg, x, y, z);
+                MachXOBels::add_pio(*rg, x, y, z);
         } else if (tile->info.type.find("PIC4") != string::npos ||
                    tile->info.type.find("PIC_L") != string::npos ||
                    tile->info.type.find("PIC_R") != string::npos) {
             for (int z = 0; z < 4; z++)
-                CommonBels::add_pio(*rg, x, y, z);
+                MachXOBels::add_pio(*rg, x, y, z);
         } else if (tile->info.type.find("PIC6") != string::npos) {
             for (int z = 0; z < 6; z++)
-                CommonBels::add_pio(*rg, x, y, z);
+                MachXOBels::add_pio(*rg, x, y, z);
         }
     }
     return rg;
