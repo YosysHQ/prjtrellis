@@ -1,7 +1,6 @@
 from fuzzconfig import FuzzConfig
 import nonrouting
 import pytrellis
-import fuzzloops
 
 jobs = [
     ("R6C17", "EBR", FuzzConfig(job="EBROUTE0", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
@@ -17,7 +16,7 @@ jobs = [
 def main():
     pytrellis.load_database("../../../database")
 
-    def per_job(job):
+    for job in jobs:
         def get_substs(mode, settings, muxes = None):
             ebrloc = loc
             if mode == "NONE":
@@ -94,8 +93,6 @@ def main():
                sig = "AD{}{}".format(p, i)
                nonrouting.fuzz_enum_setting(cfg, "{}.{}MUX".format(ebr, sig), [sig, "INV", "0", "1"],
                                         lambda x: get_substs("DP8KC", {}, get_muxval(sig, x)), empty_bitfile)
-    fuzzloops.parallel_foreach(jobs, per_job)
-
 
 if __name__ == "__main__":
     main()
