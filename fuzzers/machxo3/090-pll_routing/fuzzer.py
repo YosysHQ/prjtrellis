@@ -51,6 +51,12 @@ jobs_interconnect = [
     },
     # GPLL_R0
     {
+        "loc": (1, 31), 
+        "prefix" : "4300_",
+        "cfg": FuzzConfig(job="PLLROUTE0", family="MachXO3", device="LCMXO3LF-4300C", ncl="pllroute_4300R.ncl",
+                          tiles=["PT32:GPLL_R0"])
+    },
+    {
         "loc": (1, 40), 
         "prefix" : "6900_",
         "cfg": FuzzConfig(job="PLLROUTE0", family="MachXO3", device="LCMXO3LF-6900C", ncl="pllroute_6900R.ncl",
