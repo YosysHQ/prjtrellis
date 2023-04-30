@@ -37,6 +37,7 @@ def main(args):
         cfg, netnames = job
         cfg.setup()
         interconnect.fuzz_interconnect_with_netnames(config=cfg, netnames=netnames,
+                                                     bidir=True,
                                                      netname_filter_union=False)
 
 
