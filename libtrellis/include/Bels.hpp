@@ -7,7 +7,6 @@
 namespace Trellis {
 namespace CommonBels {
 void add_lc(RoutingGraph &graph, int x, int y, int z);
-void add_pio(RoutingGraph &graph, int x, int y, int z);
 
 // Split SLICE Bels
 void add_logic_comb(RoutingGraph &graph, int x, int y, int z);
@@ -18,6 +17,7 @@ void add_ramw(RoutingGraph &graph, int x, int y);
 
 namespace Ecp5Bels {
 
+void add_pio(RoutingGraph &graph, int x, int y, int z);
 void add_dcc(RoutingGraph &graph, int x, int y, string side, string z);
 void add_dcs(RoutingGraph &graph, int x, int y, int z);
 void add_bram(RoutingGraph &graph, int x, int y, int z);
@@ -35,12 +35,23 @@ void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, i
 
 namespace MachXO2Bels {
 
+void add_pio(RoutingGraph &graph, int x, int y, int z, bool have_dqs);
+void add_iologic(RoutingGraph &graph, char side, int x, int y, int z, bool have_dqs, bool have_lvds);
 void add_dcc(RoutingGraph &graph, int x, int y, /* const std::string &name, */ int z);
 void add_dcm(RoutingGraph &graph, int x, int y, int n, int z);
-void add_osch(RoutingGraph &graph, int x, int y, int z);
+void add_bram(RoutingGraph &graph, int x, int y);
+void add_pll(RoutingGraph &graph, std::string side, int x, int y);
+void add_pllrefrc(RoutingGraph &graph, std::string side, int x, int y);
+void add_misc(RoutingGraph &graph, const std::string &name, int x, int y);
+void add_ioclk_bel(RoutingGraph &graph, const std::string &name, const std::string &side, int x, int y, int i);
 
 }
 
+namespace MachXOBels {
+
+void add_pio(RoutingGraph &graph, int x, int y, int z);
+
+}
 
 }
 

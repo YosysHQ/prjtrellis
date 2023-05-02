@@ -49,11 +49,27 @@ RoutingGraph::RoutingGraph(const Chip &c) : chip_name(c.info.name), chip_family(
         chip_prefix = "4000_";
     else if (chip_name.find("LCMXO2-7000") != string::npos)
         chip_prefix = "7000_";
+    // MachXO3
+    else if (chip_name.find("LCMXO3-1300") != string::npos)
+        chip_prefix = "1300_";
+    else if (chip_name.find("LCMXO3-2100") != string::npos)
+        chip_prefix = "2100_";
+    else if (chip_name.find("LCMXO3-4300") != string::npos)
+        chip_prefix = "4300_";
+    else if (chip_name.find("LCMXO3-6900") != string::npos)
+        chip_prefix = "6900_";
+    else if (chip_name.find("LCMXO3-9400") != string::npos)
+        chip_prefix = "9400_";
+    // MachXO3D
+    else if (chip_name.find("LCMXO3D-4300") != string::npos)
+        chip_prefix = "4300D_";
+    else if (chip_name.find("LCMXO3D-9400") != string::npos)
+        chip_prefix = "9400D_";
     else
         assert(false);
 
-    if(c.info.family == "MachXO2")
-        global_data_machxo2 = get_global_info_machxo2(DeviceLocator{c.info.family, c.info.name, c.info.variant});
+    if(c.info.family == "MachXO2" || c.info.family == "MachXO3" || c.info.family == "MachXO3D")
+        global_data_machxo2 = &c.global_data_machxo2;
 }
 
 ident_t IdStore::ident(const std::string &str) const
@@ -86,7 +102,7 @@ RoutingId RoutingGraph::globalise_net(int row, int col, const std::string &db_na
         return globalise_net_ecp5(row, col, db_name);
     } else if(chip_family == "MachXO") {
         return RoutingId();
-    } else if(chip_family == "MachXO2") {
+    } else if(chip_family == "MachXO2" || chip_family == "MachXO3" || chip_family == "MachXO3D") {
         return globalise_net_machxo2(row, col, db_name);
     } else
         throw runtime_error("Unknown chip family: " + chip_family);
@@ -165,10 +181,19 @@ RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::strin
       }
   }
 
-  if (db_name.find("1200_") == 0 || db_name.find("2000_") == 0 ||
-      db_name.find("4000_") == 0 || db_name.find("7000_") == 0) {
+  if (db_name.find("1200_") == 0 || db_name.find("1300_") == 0 || db_name.find("2000_") == 0 ||
+      db_name.find("2100_") == 0 || db_name.find("4000_") == 0 || db_name.find("4300_") == 0 ||
+      db_name.find("6900_") == 0 || db_name.find("7000_") == 0 || db_name.find("9400_") == 0) {
       if (db_name.substr(0, 5) == chip_prefix) {
           stripped_name = db_name.substr(5);
+      } else {
+          return RoutingId();
+      }
+  }
+
+  if (db_name.find("4300D_") == 0 || db_name.find("9400D_") == 0) {
+      if (db_name.substr(0, 5) == chip_prefix) {
+          stripped_name = db_name.substr(6);
       } else {
           return RoutingId();
       }
@@ -179,9 +204,7 @@ RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::strin
         // Global prefix detected, use the prefix and row/col to map "logical"
         // globals on a tile basis to physical globals which are shared between
         // tiles.
-        if (chip_prefix == "1200_") // For now only working for LCMXO2-1200
-            return find_machxo2_global_position(row, col, stripped_name);
-        return RoutingId();
+        return find_machxo2_global_position(row, col, stripped_name);
   } else {
       RoutingId id;
       id.loc.x = int16_t(col);
@@ -329,6 +352,8 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // on db_name and row/col):
     smatch m;
     pair<int, int> center = center_map[make_pair(max_row, max_col)];
+    SpineInfo spine_1 = global_data_machxo2->spines[0];
+    SpineInfo spine_2 = (global_data_machxo2->spines.size() > 1) ? global_data_machxo2->spines[1] : SpineInfo{-1,-1};
     RoutingId curr_global;
 
     GlobalType strategy = get_global_type_from_name(db_name, m);
@@ -357,7 +382,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     // global net in the center tile based upon the current tile position
     // (specifically column).
     } else if(strategy == GlobalType::LEFT_RIGHT) {
-        assert(row == center.first);
+        assert(row == spine_1.row || row == spine_2.row);
         // Prefixes only required in the center tile.
         assert(db_name[0] == 'G');
 
@@ -371,14 +396,14 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
 
         curr_global.id = ident(db_copy);
         curr_global.loc.x = center.second;
-        curr_global.loc.y = center.first;
+        curr_global.loc.y = row;
         return curr_global;
 
     // U/D wires get the nominal position of center row, current column.
     // Both U_/D_ and G_ prefixes are handled here.
     } else if(strategy == GlobalType::UP_DOWN) {
         std::string db_copy = db_name;
-        std::vector<int> & ud_conns_in_col = global_data_machxo2.ud_conns[col];
+        const std::vector<int> & ud_conns_in_col = global_data_machxo2->ud_conns[col];
         auto conn_begin = ud_conns_in_col.begin();
         auto conn_end = ud_conns_in_col.end();
         int conn_no = std::stoi(m.str(1));
@@ -389,8 +414,12 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
             return RoutingId();
 
         // Special case the center row, which will have both U/D wires.
-        if(row == center.first) {
+        if(row == spine_1.row || row == spine_2.row) {
             assert((db_name[0] == 'U') || (db_name[0] == 'D'));
+            curr_global.id = ident(db_copy);
+            curr_global.loc.x = col;
+            curr_global.loc.y = row;
+            return curr_global;
         } else {
             // Otherwise choose an U_/D_ wire at nominal position based on
             // the current tile's row.
@@ -399,16 +428,25 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
 
             // Center column tiles are considered above the center mux,
             // despite sharing the same tile.
-            if(row <= center.first)
+            int spine_row = spine_1.row;
+            if(row <= spine_1.row) {
                 db_copy[0] = 'U';
-            else
-                db_copy[0] = 'D';
+            } else {
+                if (spine_2.row == -1 || row <= (spine_1.row + spine_1.down)) {
+                    db_copy[0] = 'D';
+                } else {
+                    if(row <= spine_2.row)
+                        db_copy[0] = 'U';
+                    else
+                        db_copy[0] = 'D';
+                    spine_row = spine_2.row;
+                }
+            }
+            curr_global.id = ident(db_copy);
+            curr_global.loc.x = col;
+            curr_global.loc.y = spine_row;
+            return curr_global;
         }
-
-        curr_global.id = ident(db_copy);
-        curr_global.loc.x = col;
-        curr_global.loc.y = center.first;
-        return curr_global;
 
     // BRANCH wires get nominal position of the row/col where they connect
     // to U_/D_ routing. We need the global_data_machxo2 struct to figure
@@ -416,6 +454,14 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
     } else if(strategy == GlobalType::BRANCH) {
         std::vector<int> candidate_cols;
 
+        // At the second-to-last row of the chip, the branch, which spans two
+        // columns to the right, will be truncated by the chip's edge.
+        // At the last row of the chip, BRANCHES connecting to U/D routing (which
+        // which normally span two column to the right) will be truncated by the
+        // chip's edge.
+        // The remaining two globals should come from BRANCHES from the right.
+        // But since we run into the chip's edge, we route them to the current
+        // column (and only the current column!) here.
         if(col > 1)
             candidate_cols.push_back(col - 2);
         if(col > 0)
@@ -425,7 +471,7 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
             candidate_cols.push_back(col + 1);
 
         for(auto curr_col : candidate_cols) {
-            std::vector<int> & ud_conns_in_col = global_data_machxo2.ud_conns[curr_col];
+            const std::vector<int> & ud_conns_in_col = global_data_machxo2->ud_conns[curr_col];
             auto conn_begin = ud_conns_in_col.begin();
             auto conn_end = ud_conns_in_col.end();
             int conn_no = std::stoi(m.str(1));

@@ -20,6 +20,7 @@ enum class BitstreamCommand : uint8_t {
     VERIFY_ID = 0b11100010,
     LSC_WRITE_COMP_DIC = 0b00000010,
     LSC_PROG_CNTRL0 = 0b00100010,
+    LSC_PROG_CNTRL1 = 0b00100011,
     LSC_INIT_ADDRESS = 0b01000110,
     LSC_WRITE_ADDRESS = 0b10110100,
     LSC_PROG_INCR_CMP = 0b10111000,
@@ -79,10 +80,12 @@ public:
     vector<uint8_t> data;
     // Lattice BIT file metadata
     vector<string> metadata;
+    // Lattice LSCC file preamble
+    bool have_lscc_preamble;
 private:
 
     // Private constructor
-    Bitstream(const vector<uint8_t> &data, const vector<string> &metadata);
+    Bitstream(const vector<uint8_t> &data, const vector<string> &metadata, bool have_lscc_preamble);
     // Serialization of MachXO bitstream
     static Bitstream serialise_chip_machxo(const Chip &chip, const map<string, string> options);
 };

@@ -56,7 +56,7 @@ def fuzz_word_setting(config, name, length, get_ncl_substs, empty_bitfile=None):
 
 
 def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile=None, include_zeros=True, ignore_cover=None,
-                      opt_pref=None):
+                      opt_pref=None, ignore_bits=None):
     """
     Fuzz a setting with multiple possible values
 
@@ -140,6 +140,8 @@ def fuzz_enum_setting(config, name, values, get_ncl_substs, empty_bitfile=None, 
                             none_chip is not None and not none_chip.tiles[tile].cram.bit(bframe, bbit)) \
                             and (
                             (btile, bframe, bbit) not in pref_exclusive or not pref_exclusive[(btile, bframe, bbit)]):
+                        continue
+                    if ignore_bits is not None and ignore_bits.count((btile, bframe, bbit)):
                         continue
                     cb = pytrellis.ConfigBit()
                     cb.frame = bframe

@@ -26,30 +26,35 @@ static const regex tile_clk_dummy_t_re(R"(CLK_DUMMY_PICT)");
 
 // Given the zero-indexed max chip_size, return the zero-indexed
 // center. Mainly for MachXO2, it is based on the location of the entry
-// to global routing.
+// to global routing (CENTER_EBR). LCMXO2-256/640 do not have CENTER_EBR
+// in that case we take location of internal DCCs row (at bottom CIB).
 // TODO: Make const.
 map<pair<int, int>, pair<int, int>> center_map = {
     // LCMXO2-256
-    {make_pair(7, 9), make_pair(3, 4)},
+    {make_pair(7, 9), make_pair(6, 4)},
     // LCMXO2-640
-    {make_pair(8, 17), make_pair(3, 7)},
-    // LCMXO2-1200
+    {make_pair(8, 17), make_pair(7, 7)},
+    // LCMXO2-1200, LCMXO3-1300
     {make_pair(12, 21), make_pair(6, 12)},
-    // LCMXO2-2000
+    // LCMXO2-2000, LCMXO3-2100
     {make_pair(15, 25), make_pair(8, 13)},
-    // LCMXO2-4000
+    // LCMXO2-4000, LCMXO3-4300
     {make_pair(22, 31), make_pair(11, 15)},
-    // LCMXO2-7000
+    // LCMXO2-7000, LCMXO3-6900
     {make_pair(27, 40), make_pair(13, 18)},
+    // LCMXO3-9400
+    {make_pair(31, 48), make_pair(15, 24)},
+};
 
+map<pair<int, int>, int> clk_col = {
     // LCMXO256
-    {make_pair(9, 5), make_pair(0, 2)},
+    {make_pair(9, 5), 2},
     // LCMXO640
-    {make_pair(11, 9), make_pair(0, 4)},
+    {make_pair(11, 9), 4},
     // LCMXO1200
-    {make_pair(16, 11), make_pair(0, 5)},
+    {make_pair(16, 11), 5},
     // LCMXO2280
-    {make_pair(20, 16), make_pair(0, 8)},
+    {make_pair(20, 16), 8},
 };
 
 // Universal function to get a zero-indexed row/column pair.
@@ -60,6 +65,10 @@ pair<int, int> get_row_col_pair_from_chipsize(string name, pair<int, int> chip_s
     // this position is a best-guess.
     if((name.find("CENTER30") != std::string::npos) && (chip_size == make_pair(27, 40))) {
         return make_pair(20, center_map[chip_size].second);
+    } else if(name.find("CENTER33") != std::string::npos) { // LCMXO3-9400
+        return make_pair(8, center_map[chip_size].second);
+    } else if(name.find("CENTER35") != std::string::npos) { // LCMXO3-9400
+        return make_pair(22, center_map[chip_size].second);
     } else if(regex_search(name, m, tile_clk_dummy_t_re)) {
         return make_pair(0, center_map[chip_size].second);
     } else if(regex_search(name, m, tile_clk_dummy_b_re)) {
@@ -67,13 +76,17 @@ pair<int, int> get_row_col_pair_from_chipsize(string name, pair<int, int> chip_s
     } else if(regex_search(name, m, tile_clk_dummy_re)) {
         return make_pair(stoi(m.str(1)) - row_bias, center_map[chip_size].second);
     } else if(name.find("CLK") == 0 && name.find("_2K") != std::string::npos) {
-        return make_pair(stoi(name.substr(7)) - row_bias, center_map[chip_size].second);
+        return make_pair(stoi(name.substr(7)) - row_bias, clk_col[chip_size]);
     } else if(name.find("CLK") == 0) {
-        return make_pair(stoi(name.substr(4)) - row_bias, center_map[chip_size].second);
+        return make_pair(stoi(name.substr(4)) - row_bias, clk_col[chip_size]);
     } else if(name.find("EBR") != std::string::npos && regex_search(name, m, tile_rxcx_re) && row_bias==1) {
         // MachXO only - EBR_RxxC0 should be on position 1
         return make_pair(stoi(m.str(1)) - row_bias, stoi(m.str(2)) - col_bias + 1);
     } else if(regex_search(name, m, tile_rxcx_re)) {
+        if (chip_size == make_pair(22, 31)) {
+            if ((stoi(m.str(2)) - col_bias) > 31) // FIX: LCMXO3D-4300
+                return make_pair(stoi(m.str(1)), stoi(m.str(2)) - col_bias - 1);
+        }
         return make_pair(stoi(m.str(1)) - row_bias, stoi(m.str(2)) - col_bias);
     } else if(regex_search(name, m, tile_centert_re)) {
         return make_pair(0, center_map[chip_size].second);

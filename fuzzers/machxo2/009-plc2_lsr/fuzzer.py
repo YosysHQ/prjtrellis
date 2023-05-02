@@ -27,7 +27,7 @@ def main():
             return dict(s=slices[lsrn], l=lsrn, lsrmux=lsrmux, srmode=srmode, lsronmux=lsronmux)
         nonrouting.fuzz_enum_setting(cfg, "LSR{}.LSRMUX".format(lsrn), ["LSR", "INV"],
                                      lambda x: get_substs(lsrmux=x),
-                                     empty_bitfile, True)
+                                     empty_bitfile,  include_zeros=False)
         nonrouting.fuzz_enum_setting(cfg, "LSR{}.SRMODE".format(lsrn), ["LSR_OVER_CE", "ASYNC"],
                                      lambda x: get_substs(srmode=x),
                                      empty_bitfile, True)

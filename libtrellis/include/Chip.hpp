@@ -90,40 +90,16 @@ struct Ecp5GlobalsInfo
     pair<int, int> get_spine_driver(std::string quadrant, int col);
 };
 
-struct LeftRightConn
-{
-    string name;
+
+struct SpineInfo {
     int row;
-    std::pair<int, int> row_span;
+    int down;
 };
-
-inline bool operator==(const LeftRightConn &a, const LeftRightConn &b)
-{
-    return (a.name == b.name) && (a.row == b.row) && (a.row_span == b.row_span);
-}
-
-
-// Some columns contain global routing which EPIC shows as missing DCCA
-// primitives between L/R and U/D connections. None of the DCCs between these
-// connections appear to physically exist on-chip. However, the bitstream
-// does appear to treat them specially, so keep this info around.
-struct MissingDccs
-{
-    int row;
-    std::vector<int> missing;
-};
-
-inline bool operator==(const MissingDccs &a, const MissingDccs &b)
-{
-    return (a.row == b.row) && (a.missing == b.missing);
-}
 
 struct MachXO2GlobalsInfo
 {
-    std::vector<LeftRightConn> lr_conns;
     std::vector<std::vector<int>> ud_conns;
-    std::vector<std::vector<pair<int, int>>> branch_spans;
-    std::vector<MissingDccs> missing_dccs;
+    std::vector<SpineInfo> spines;
 };
 
 class Tile;
@@ -174,6 +150,8 @@ public:
     // Miscellaneous information
     uint32_t usercode = 0x0;
     uint32_t ctrl0 = 0x40000000;
+    uint32_t ctrl1 = 0x45000000;
+    uint32_t sed   = 0xffffffff;
     vector<string> metadata;
 
     // Get max row and column
@@ -186,8 +164,13 @@ public:
 
     vector<vector<vector<pair<string, string>>>> tiles_at_location;
 
+    // Generate data needed for MachXO2/3 global routing
+    MachXO2GlobalsInfo generate_global_info_machxo2();
+
     // Block RAM initialisation (WIP)
     map<uint16_t, vector<uint16_t>> bram_data;
+    // BRAM block data size
+    int bram_data_size;
 
     // Globals data- Should be a variant, but I couldn't get boost::python
     // to behave with boost::variant.
@@ -197,8 +180,8 @@ public:
 private:
     // Factory functions
     shared_ptr<RoutingGraph> get_routing_graph_ecp5(bool include_lutperm_pips = false, bool split_slice_mode = false);
-    shared_ptr<RoutingGraph> get_routing_graph_machxo(bool split_slice_mode = false);
-    shared_ptr<RoutingGraph> get_routing_graph_machxo2(bool split_slice_mode = false);
+    shared_ptr<RoutingGraph> get_routing_graph_machxo(bool include_lutperm_pips = false, bool split_slice_mode = false);
+    shared_ptr<RoutingGraph> get_routing_graph_machxo2(bool include_lutperm_pips = false, bool split_slice_mode = false);
 };
 
 ChipDelta operator-(const Chip &a, const Chip &b);

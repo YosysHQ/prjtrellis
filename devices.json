@@ -487,6 +487,343 @@
                 }
             }
         }
+    },
+
+    "MachXO3": {
+        "devices": {
+            "LCMXO3-1300": {
+                "packages": ["WLCSP36", "CSFBGA121"],
+                "frames": 333,
+                "bits_per_frame": 1080,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 12,
+                "max_col" : 21,
+                "row_bias" : 0,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO3L-1300E": {
+                        "idcode": "0x412b2043",
+                        "packages": ["WLCSP36", "CSFBGA121"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3L-640E": {
+                        "idcode": "0xc12b2043",
+                        "packages": ["CSFBGA121"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3LF-1300E": {
+                        "idcode": "0x612b2043",
+                        "packages": ["WLCSP36", "CSFBGA121"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            },           
+            "LCMXO3-2100": {
+                "packages": ["WLCSP49", "CSFBGA121", "CABGA256", "CSFBGA256"],
+                "frames": 420,
+                "bits_per_frame": 1272,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 15,
+                "max_col" : 25,
+                "row_bias" : 0,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO3L-2100C": {
+                        "idcode": "0x412bb043",
+                        "packages": ["CABGA256"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3L-2100E": {
+                        "idcode": "0x412b3043",
+                        "packages": ["WLCSP49", "CSFBGA121", "CSFBGA256"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3L-1300C": {
+                        "idcode": "0xc12bb043",
+                        "packages": ["CABGA256"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3L-1300E": {
+                        "idcode": "0xc12b3043",
+                        "packages": ["CSFBGA256"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3LF-2100C": {
+                        "idcode": "0x612bb043",
+                        "packages": ["CABGA256"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3LF-2100E": {
+                        "idcode": "0x612b3043",
+                        "packages": ["WLCSP49", "CSFBGA121", "CSFBGA256"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3LF-1300C": {
+                        "idcode": "0xe12bb043",
+                        "packages": ["CABGA256"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3LF-1300E": {
+                        "idcode": "0xe12b3043",
+                        "packages": ["CSFBGA256"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            },
+            "LCMXO3-4300": {
+                "packages": ["WLCSP81", "CSFBGA121", "CABGA256", "CSFBGA256", "CABGA324", "CSFBGA324"],
+                "frames": 623,
+                "bits_per_frame": 1560,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 22,
+                "max_col" : 31,
+                "row_bias" : 0,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO3L-4300C": {
+                        "idcode": "0x412bc043",
+                        "packages": ["CABGA256", "CABGA324"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3L-4300E": {
+                        "idcode": "0x412b4043",
+                        "packages": ["WLCSP81", "CSFBGA121", "CSFBGA256", "CSFBGA324"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3L-2100C": {
+                        "idcode": "0xc12bc043",
+                        "packages": ["CABGA324"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3L-2100E": {
+                        "idcode": "0xc12b4043",
+                        "packages": ["CSFBGA324"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3LF-4300C": {
+                        "idcode": "0x612bc043",
+                        "packages": ["CABGA256", "CABGA324"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3LF-4300E": {
+                        "idcode": "0x612b4043",
+                        "packages": ["WLCSP81", "CSFBGA121", "CSFBGA256", "CSFBGA324"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3LF-2100C": {
+                        "idcode": "0xe12bc043",
+                        "packages": ["CABGA324"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3LF-2100E": {
+                        "idcode": "0xe12b4043",
+                        "packages": ["CSFBGA324"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            },
+            "LCMXO3-6900": {
+                "packages": ["CABGA256", "CSFBGA256", "CABGA324", "CSFBGA324", "CABGA400"],
+                "frames": 770,
+                "bits_per_frame": 1992,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 27,
+                "max_col" : 40,
+                "row_bias" : 0,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO3L-6900C": {
+                        "idcode": "0x412bd043",
+                        "packages": ["CABGA256", "CABGA324", "CABGA400"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3L-6900E": {
+                        "idcode": "0x412b5043",
+                        "packages": ["CSFBGA256", "CSFBGA324"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3L-4300C": {
+                        "idcode": "0xc12bd043",
+                        "packages": ["CABGA400"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3LF-6900C": {
+                        "idcode": "0x612bd043",
+                        "packages": ["CABGA256", "CABGA324", "CABGA400"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3LF-6900E": {
+                        "idcode": "0x612b5043",
+                        "packages": ["CSFBGA256", "CSFBGA324"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3LF-4300C": {
+                        "idcode": "0xe12bd043",
+                        "packages": ["CABGA400"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            },
+            "LCMXO3-9400": {
+                "packages": ["CABGA256", "CSFBGA256", "CABGA400", "CABGA484"],
+                "frames": 888,
+                "bits_per_frame": 2376,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 31,
+                "max_col" : 48,
+                "row_bias" : 0,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO3L-9400C": {
+                        "idcode": "0x412be043",
+                        "packages": ["CABGA256", "CABGA400", "CABGA484"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3L-9400E": {
+                        "idcode": "0x412b6043",
+                        "packages": ["CABGA256", "CSFBGA256", "CABGA400", "CABGA484"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3LF-9400C": {
+                        "idcode": "0x612be043",
+                        "packages": ["CABGA256", "CABGA400", "CABGA484"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3LF-9400E": {
+                        "idcode": "0x612b6043",
+                        "packages": ["CABGA256", "CSFBGA256", "CABGA400", "CABGA484"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            }
+        }
+    },
+
+    "MachXO3D": {
+        "devices": {
+            "LCMXO3D-4300": {
+                "packages": ["CABGA256"],
+                "frames": 623,
+                "bits_per_frame": 1560,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 22,
+                "max_col" : 31,
+                "row_bias" : 0,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO3D-4300HC": {
+                        "idcode": "0x012e2043",
+                        "packages": ["CABGA256"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3D-4300ZC": {
+                        "idcode": "0x012e2043",
+                        "packages": ["QFN72", "CABGA256"],
+                        "speeds": [ 2, 3 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LAMXO3D-4300HC": {
+                        "idcode": "0x012e2043",
+                        "packages": ["CABGA256"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "E" ]
+                    },
+                    "LAMXO3D-4300ZC": {
+                        "idcode": "0x012e2043",
+                        "packages": ["QFN72", "CABGA256"],
+                        "speeds": [ 2, 3 ],
+                        "suffixes": [ "E" ]
+                    }
+
+                }
+            },
+            "LCMXO3D-9400": {
+                "packages": ["QFN72", "CABGA256", "CABGA400", "CABGA484"],
+                "frames": 888,
+                "bits_per_frame": 2376,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 31,
+                "max_col" : 48,
+                "row_bias" : 0,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LCMXO3D-9400HC": {
+                        "idcode": "0x212e3043",
+                        "packages": ["QFN72", "CABGA256", "CABGA400", "CABGA484"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3D-9400HE": {
+                        "idcode": "0x212e1043",
+                        "packages": ["WLCSP69"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LCMXO3D-9400ZC": {
+                        "idcode": "0x212e3043",
+                        "packages": ["QFN72", "CABGA256", "CABGA400"],
+                        "speeds": [ 2, 3 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LAMXO3D-9400HE": {
+                        "idcode": "0x212e1043",
+                        "packages": ["WLCSP69"],
+                        "speeds": [ 5, 6 ],
+                        "suffixes": [ "E" ]
+                    },
+                    "LAMXO3D-9400ZC": {
+                        "idcode": "0x212e3043",
+                        "packages": ["QFN72", "CABGA256", "CABGA400"],
+                        "speeds": [ 2, 3 ],
+                        "suffixes": [ "E" ]
+                    }
+                }
+            }
+        }
     }
   }
 }

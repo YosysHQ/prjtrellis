@@ -214,8 +214,12 @@ void add_ramw(RoutingGraph &graph, int x, int y) {
     graph.add_bel(bel);
 }
 
+}
+
+namespace Ecp5Bels {
+
 void add_pio(RoutingGraph &graph, int x, int y, int z) {
-    char l = "ABCDEF"[z];
+    char l = "ABCD"[z];
     string name = string("PIO") + l;
     RoutingBel bel;
     bel.name = graph.ident(name);
@@ -233,9 +237,6 @@ void add_pio(RoutingGraph &graph, int x, int y, int z) {
 
     graph.add_bel(bel);
 }
-}
-
-namespace Ecp5Bels {
 
 void add_dcc(RoutingGraph &graph, int x, int y, string side, string z) {
     string name = side + string("DCC") + z;
@@ -789,6 +790,114 @@ void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, i
 }
 
 namespace MachXO2Bels {
+    void add_pio(RoutingGraph &graph, int x, int y, int z, bool have_lvds) {
+        char l = "ABCD"[z];
+        string name = string("PIO") + l;
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("PIO");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = z;
+
+        graph.add_bel_input(bel, graph.ident("I"), x, y, graph.ident(fmt("PADDO" << l << "_PIO")));
+        graph.add_bel_input(bel, graph.ident("T"), x, y, graph.ident(fmt("PADDT" << l << "_PIO")));
+        graph.add_bel_output(bel, graph.ident("O"), x, y, graph.ident(fmt("JPADDI" << l << "_PIO")));
+
+        graph.add_bel_input(bel, graph.ident("IOLDO"), x, y, graph.ident(fmt("IOLDO" << l << "_PIO")));
+        graph.add_bel_input(bel, graph.ident("IOLTO"), x, y, graph.ident(fmt("IOLTO" << l << "_PIO")));
+
+        graph.add_bel_input(bel, graph.ident("PG"), x, y, graph.ident(fmt("PG" << l << "_PIO")));
+        graph.add_bel_input(bel, graph.ident("INRD"), x, y, graph.ident(fmt("INRD" << l << "_PIO")));
+        if (have_lvds)
+            graph.add_bel_input(bel, graph.ident("LVDS"), x, y, graph.ident(fmt("LVDS" << l << "_PIO")));
+
+        graph.add_bel(bel);
+    }
+
+    void add_iologic(RoutingGraph &graph, char side, int x, int y, int z, bool have_dqs, bool have_lvds) {
+        char l = "ABCD"[z];
+        string prefix = "";
+        if (!have_lvds) side = 'L'; // no prefix nor additional fields
+
+        if (side=='T' || side=='B') {
+            if (z == 0) prefix = side; // A
+            if (z == 2) prefix = fmt(side << "S"); // C
+        }
+        if (side=='R' && have_dqs) {
+            prefix = side;
+        }
+
+        string name = prefix + string("IOLOGIC") + l;
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident(prefix + "IOLOGIC");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = z + 4;
+
+        auto add_input = [&](const std::string &pin, bool j = true) {
+            graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << l << "_" << prefix << "IOLOGIC")));
+        };
+        auto add_output = [&](const std::string &pin, bool j = true) {
+            graph.add_bel_output(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << l << "_" << prefix << "IOLOGIC")));
+        };
+
+        add_output("IOLDO", false);
+        add_output("IOLTO", false);
+        add_input("PADDI", false);
+
+        add_output("INDD", false);
+        add_input("DI", false);
+
+        if (side=='T' && (z % 2 == 0)) { // A and C
+            int to = (z==0) ? 8 : 4;
+            for (int i = 0; i < to; i++)
+                add_input(fmt("TDX" << i));
+        }
+
+        if (side=='B' && (z % 2 == 0)) { // A and C
+            for (int i = 0; i < 5; i++)
+                add_input(fmt("DEL" << i));
+        }
+
+        add_input("ONEG");
+        add_input("OPOS");
+
+        add_input("TS");
+
+        add_input("CE");
+        add_input("LSR");
+        add_input("CLK");
+        if (side=='T' && (z % 2 == 0)) { // A and C
+            add_input("ECLK", false);
+        }
+        if (side=='B' && (z % 2 == 0)) { // A and C
+            add_input("ECLK", false);
+            add_input("SLIP");
+        }
+
+        if (side=='R' && have_dqs) {
+            add_input("DDRCLKPOL", false);
+            add_input("DQSR90", false);
+            add_input("DQSW90", false);
+        }
+
+        add_output("IN");
+        add_output("IP");
+
+        if (side=='B' && (z % 2 == 0)) { // A and C
+            for (int i = 0; i < 4; i++)
+                add_output(fmt("RXD" << i));
+        }
+        if (side=='B' && z==0) { // A
+            for (int i = 0; i < 8; i++)
+                add_output(fmt("RXDA" << i));
+        }
+
+        graph.add_bel(bel);
+    }
+
     void add_dcc(RoutingGraph &graph, int x, int y, /* const std::string &name, */ int z) {
         // TODO: All DCCs appear to be in center. Phantom DCCs line the columns
         // for global routing with names of the form DCC_RxCy_{0,1}{T,B}. Hence
@@ -827,18 +936,376 @@ namespace MachXO2Bels {
         graph.add_bel(bel);
     }
 
-    void add_osch(RoutingGraph &graph, int x, int y, int z) {
-        string name = string("OSCH");
+    void add_bram(RoutingGraph &graph, int x, int y) {
+        string name = "EBR";
         RoutingBel bel;
         bel.name = graph.ident(name);
-        bel.type = graph.ident("OSCH");
+        bel.type = graph.ident("DP8KC");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = 0;
+
+        for (int i = 0; i < 13; i++) {
+            graph.add_bel_input(bel, graph.ident(fmt("ADA" << i)), x, y, graph.ident(fmt("JADA" << i << "_EBR")));
+            graph.add_bel_input(bel, graph.ident(fmt("ADB" << i)), x, y, graph.ident(fmt("JADB" << i << "_EBR")));
+        }
+
+        graph.add_bel_input(bel, graph.ident("CEA"), x, y, graph.ident("JCEA_EBR"));
+        graph.add_bel_input(bel, graph.ident("CEB"), x, y, graph.ident("JCEB_EBR"));
+        graph.add_bel_input(bel, graph.ident("CLKA"), x, y, graph.ident("JCLKA_EBR"));
+        graph.add_bel_input(bel, graph.ident("CLKB"), x, y, graph.ident("JCLKB_EBR"));
+        graph.add_bel_input(bel, graph.ident("CSA0"), x, y, graph.ident("JCSA0_EBR"));
+        graph.add_bel_input(bel, graph.ident("CSA1"), x, y, graph.ident("JCSA1_EBR"));
+        graph.add_bel_input(bel, graph.ident("CSA2"), x, y, graph.ident("JCSA2_EBR"));
+        graph.add_bel_input(bel, graph.ident("CSB0"), x, y, graph.ident("JCSB0_EBR"));
+        graph.add_bel_input(bel, graph.ident("CSB1"), x, y, graph.ident("JCSB1_EBR"));
+        graph.add_bel_input(bel, graph.ident("CSB2"), x, y, graph.ident("JCSB2_EBR"));
+
+        for (int i = 0; i < 9; i++) {
+            graph.add_bel_input(bel, graph.ident(fmt("DIA" << i)), x, y, graph.ident(fmt("JDIA" << i << "_EBR")));
+            graph.add_bel_input(bel, graph.ident(fmt("DIB" << i)), x, y, graph.ident(fmt("JDIB" << i << "_EBR")));
+            graph.add_bel_output(bel, graph.ident(fmt("DOA" << i)), x, y, graph.ident(fmt("JDOA" << i << "_EBR")));
+            graph.add_bel_output(bel, graph.ident(fmt("DOB" << i)), x, y, graph.ident(fmt("JDOB" << i << "_EBR")));
+        }
+
+
+        graph.add_bel_input(bel, graph.ident("OCEA"), x, y, graph.ident("JOCEA_EBR"));
+        graph.add_bel_input(bel, graph.ident("OCEB"), x, y, graph.ident("JOCEB_EBR"));
+        graph.add_bel_input(bel, graph.ident("RSTA"), x, y, graph.ident("JRSTA_EBR"));
+        graph.add_bel_input(bel, graph.ident("RSTB"), x, y, graph.ident("JRSTB_EBR"));
+        graph.add_bel_input(bel, graph.ident("WEA"), x, y, graph.ident("JWEA_EBR"));
+        graph.add_bel_input(bel, graph.ident("WEB"), x, y, graph.ident("JWEB_EBR"));
+
+        graph.add_bel_output(bel, graph.ident("AE"), x, y, graph.ident("JAE_EBR"));
+        graph.add_bel_output(bel, graph.ident("AF"), x, y, graph.ident("JAF_EBR"));
+        graph.add_bel_output(bel, graph.ident("EF"), x, y, graph.ident("JEF_EBR"));
+        graph.add_bel_output(bel, graph.ident("FF"), x, y, graph.ident("JFF_EBR"));
+
+        graph.add_bel(bel);
+
+    }
+
+    void add_pll(RoutingGraph &graph, std::string side, int x, int y) {
+        string name = side + "PLL";
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("EHXPLLJ");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = 0;
+        auto add_input = [&](const std::string &pin) {
+            graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt("J" << pin << "_PLL")));
+        };
+        auto add_output = [&](const std::string &pin) {
+            graph.add_bel_output(bel, graph.ident(pin), x, y, graph.ident(fmt("J" << pin << "_PLL")));
+        };
+
+        graph.add_bel_input(bel, graph.ident("CLKI"), x, y, graph.ident("CLKI_PLL"));
+        graph.add_bel_input(bel, graph.ident("CLKFB"), x, y, graph.ident("CLKFB_PLL"));
+        add_input("PHASESEL0");
+        add_input("PHASESEL1");
+        add_input("PHASEDIR");
+        add_input("PHASESTEP");
+        add_input("LOADREG");
+        add_input("STDBY");
+        add_input("PLLWAKESYNC");
+        add_input("RST");
+        add_input("RESETM");
+        add_input("RESETC");
+        add_input("RESETD");
+        add_input("ENCLKOP");
+        add_input("ENCLKOS");
+        add_input("ENCLKOS2");
+        add_input("ENCLKOS3");
+        add_input("PLLCLK");
+        add_input("PLLRST");
+        add_input("PLLSTB");
+        add_input("PLLWE");
+        for (int i=0;i<8;i++)
+            graph.add_bel_input(bel, graph.ident(fmt("PLLDATI" << i)), x, y, graph.ident(fmt("JPLLDATI" << i << "_PLL")));
+        for (int i=0;i<5;i++)
+            graph.add_bel_input(bel, graph.ident(fmt("PLLADDR" << i)), x, y, graph.ident(fmt("JPLLADDR" << i << "_PLL")));
+
+        add_output("CLKOP");
+        add_output("CLKOS");
+        add_output("CLKOS2");
+        add_output("CLKOS3");
+        add_output("LOCK");
+        add_output("INTLOCK");
+        add_output("REFCLK");
+        graph.add_bel_output(bel, graph.ident("CLKINTFB"), x, y, graph.ident("CLKINTFB_PLL"));
+        add_output("DPHSRC");
+        for (int i=0;i<8;i++)
+            graph.add_bel_output(bel, graph.ident(fmt("PLLDATO" << i )), x, y, graph.ident(fmt("JPLLDATI" << i << "_PLL")));
+        add_output("PLLACK");
+
+
+        graph.add_bel(bel);
+    }
+
+    void add_pllrefrc(RoutingGraph &graph, std::string side, int x, int y)
+    {
+        RoutingBel bel;
+        bel.name = graph.ident(side + string("PLLREFCS"));
+        bel.type = graph.ident("PLLREFCS");
+        bel.loc.x = x;
+        bel.loc.y = y;
+        bel.z = 1;
+        graph.add_bel_input(bel, graph.ident("CLK0"), x, y, graph.ident("CLK0_PLLREFCS"));
+        graph.add_bel_input(bel, graph.ident("CLK1"), x, y, graph.ident("CLK1_PLLREFCS"));
+        graph.add_bel_input(bel, graph.ident("SEL"), x, y, graph.ident("JSEL_PLLREFCS"));
+        graph.add_bel_output(bel, graph.ident("PLLCSOUT"), x, y, graph.ident("PLLCSOUT_PLLREFCS"));
+
+        graph.add_bel(bel);
+    }
+
+    void add_misc(RoutingGraph &graph, const std::string &name, int x, int y) {
+        std::string postfix;
+        RoutingBel bel;
+
+        auto add_input = [&](const std::string &pin, bool j = true) {
+            graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << "_" << postfix)));
+        };
+        auto add_output = [&](const std::string &pin, bool j = true) {
+            graph.add_bel_output(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << "_" << postfix)));
+        };
+        bel.name = graph.ident(name);
+        bel.type = graph.ident(name);
+        bel.loc.x = x;
+        bel.loc.y = y;
+
+        if (name == "EFB") {
+            postfix = "EFB";
+            bel.z = 0;
+            // Wishbone
+            add_output("WBCUFMIRQ");
+            add_output("WBACKO");
+            for (int i = 0; i < 8; i++) {
+                add_output(fmt("WBDATO" << i));
+                add_input(fmt("WBDATI" << i));
+                add_input(fmt("WBADRI" << i));
+            }
+                
+            add_input("WBWEI");
+            add_input("WBSTBI");
+            add_input("WBCYCI");
+            add_input("WBRSTI");
+            add_input("WBCLKI");
+
+            // PCNTR
+            add_output("CFGWAKE", false);
+            add_output("CFGSTDBY", false);
+
+            // UFM
+            add_input("UFMSN");
+
+            // PLL
+            for (int i = 0; i < 8; i++) 
+                add_output(fmt("PLLDATO"<< i));
+            for (int i = 0; i < 2; i++) {
+                add_input(fmt("PLL" << i << "ACKI"));
+                add_output(fmt("PLL" << i << "STBO"));
+                for (int n = 0; n < 8; n++)
+                    add_input(fmt("PLL" << i << "DATI" << n));
+            }
+            for (int i = 0; i < 5; i++)
+                add_output(fmt("PLLADRO" << i));
+            add_output("PLLWEO");
+            add_output("PLLRSTO");
+            add_output("PLLCLKO");
+            
+            // Timer/Counter
+            add_output("TCOC");
+            add_output("TCINT");
+            add_input("TCIC");
+            add_input("TCRSTN");
+            add_input("TCCLKI");
+
+            // SPI
+            add_output("SPIIRQO");
+            add_input("SPISCSN");
+            add_output("SPICSNEN");
+            add_output("SPIMOSIEN");
+            add_output("SPIMOSIO");
+            add_input("SPIMOSII");
+            add_output("SPIMISOEN");
+            add_output("SPIMISOO");
+            add_input("SPIMISOI");
+            add_output("SPISCKEN");
+            add_output("SPISCKO");
+            add_input("SPISCKI");
+            for (int i = 0; i < 8; i++)
+                add_output(fmt("SPIMCSN" << i));
+
+            // I2C primary
+            add_output("I2C1IRQO");
+            add_output("I2C1SDAOEN");
+            add_output("I2C1SDAO");
+            add_input("I2C1SDAI");
+            add_output("I2C1SCLOEN");
+            add_output("I2C1SCLO");
+            add_input("I2C1SCLI");
+            // I2C secondary
+            add_output("I2C2IRQO");
+            add_output("I2C2SDAOEN");
+            add_output("I2C2SDAO");
+            add_input("I2C2SDAI");
+            add_output("I2C2SCLOEN");
+            add_output("I2C2SCLO");
+            add_input("I2C2SCLI");
+        } else if (name == "GSR") {
+            postfix = "GSR";
+            bel.z = 1;
+            add_input("GSR");
+            add_input("CLK");
+        } else if (name == "JTAGF") {
+            postfix = "JTAG";
+            bel.z = 2;
+            add_input("TCK");
+            add_input("TMS");
+            add_input("TDI");
+            add_input("JTDO2");
+            add_input("JTDO1");
+            add_output("TDO");
+            add_output("JTDI");
+            add_output("JTCK");
+            add_output("JRTI2");
+            add_output("JRTI1");
+            add_output("JSHIFT");
+            add_output("JUPDATE");
+            add_output("JRSTN");
+            add_output("JCE2");
+            add_output("JCE1");
+        } else if (name == "OSCH") {
+            postfix = "OSC";
+            bel.z = 3;
+            add_input("STDBY");
+            graph.add_bel_output(bel, graph.ident("OSC"), x, y, graph.ident("G_JOSC_OSC"));
+            add_output("SEDSTDBY", false);
+        } else if (name == "PCNTR") {
+            postfix = "PCNTR";
+            bel.z = 4;
+            add_input("CLRFLAG");
+            add_input("USERSTDBY");
+            add_input("USERTIMEOUT");
+            add_input("CLK", false);
+            add_input("CFGWAKE", false);
+            add_input("CFGSTDBY", false);
+            add_output("SFLAG");
+            add_output("STDBY");
+            add_output("STOP");
+        } else if (name == "SEDFA") {
+            postfix = "SED";
+            bel.z = 5;
+            add_input("SEDSTDBY", false);
+            add_input("SEDENABLE");
+            add_input("SEDSTART");
+            add_input("SEDFRCERR");
+            add_input("SEDEXCLK");
+            add_output("SEDERR");
+            add_output("SEDDONE");
+            add_output("SEDINPROG");
+            add_output("AUTODONE");
+        } else if (name == "START") {
+            postfix = "START";
+            bel.z = 6;
+            add_input("STARTCLK");
+        } else if (name == "TSALL") {
+            postfix = "TSALL";
+            bel.z = 7;
+            add_input("TSALLI");
+        } else {
+            throw runtime_error("unknown Bel " + name);
+        }
+        graph.add_bel(bel);
+    }
+
+    void add_ioclk_bel(RoutingGraph &graph, const std::string &name, const std::string &side, int x, int y, int i) {
+        std::string postfix;
+        RoutingBel bel;
+
+        auto add_input = [&](const std::string &pin, bool j = true) {
+            graph.add_bel_input(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << postfix)));
+        };
+        auto add_output = [&](const std::string &pin, bool j = true) {
+            graph.add_bel_output(bel, graph.ident(pin), x, y, graph.ident(fmt((j ? "J" : "") << pin << postfix)));
+        };
+        bel.type = graph.ident(name);
+        bel.loc.x = x;
+        bel.loc.y = y;
+
+        if (name == "CLKDIVC") {
+            postfix = std::to_string(i) + "_CLKDIV";
+            bel.name = graph.ident(side + "CLKDIV" + std::to_string(i));
+            bel.z = i;
+            add_input("CLKI", false);
+            add_input("RST");
+            add_input("ALIGNWD");
+            add_output("CDIV1");
+            add_output("CDIVX");
+        } else if (name == "CLKFBBUF") {
+            postfix = std::to_string(i) + "_CLKFBBUF";
+            bel.name = graph.ident("CLKFBBUF" + std::to_string(i));
+            bel.z = 2 + i;
+            add_input("A");
+            add_output("Z", false);
+        } else if (name == "ECLKSYNCA") {
+            postfix = std::to_string(i) + "_ECLKSYNC";
+            bel.name = graph.ident(side + "ECLKSYNC" + std::to_string(i));
+            bel.z = i;
+            add_input("ECLKI", false);
+            add_input("STOP");
+            add_output("ECLKO");
+        } else if (name == "ECLKBRIDGECS") {
+            postfix = std::to_string(i) + "_ECLKBRIDGECS";
+            bel.name = graph.ident("ECLKBRIDGECS" + std::to_string(i));
+            bel.z = 10 + i;
+            add_input("CLK0");
+            add_input("CLK1");
+            add_input("SEL");
+            add_output("ECSOUT");
+        } else if (name == "DLLDELC") {
+            postfix = std::to_string(i) + "_DLLDEL";
+            bel.name = graph.ident(side + "DLLDEL" + std::to_string(i));
+            bel.z = 2 + i;
+            add_input("CLKI");
+            add_input("DQSDEL");
+            add_output("CLKO", false);
+        } else if (name == "DQSDLLC") {
+            postfix = "_DQSDLL";
+            bel.name = graph.ident(side + "DQSDLL");
+            bel.z = i;
+            add_input("CLK", false);
+            add_input("RST");
+            add_input("UDDCNTLN");
+            add_input("FREEZE");
+            add_output("LOCK");
+            add_output("DQSDEL");
+            //graph.add_bel_output(bel, graph.ident("DQSDLLCLK"), x, y, graph.ident("DQSDLLCLK"));
+            //graph.add_bel_output(bel, graph.ident("DQSDLLSCLK"), x, y, graph.ident("JDQSDLLSCLK"));
+        } else {
+            throw runtime_error("unknown Bel " + name);
+        }
+        graph.add_bel(bel);
+    }
+
+}
+
+
+namespace MachXOBels {
+    void add_pio(RoutingGraph &graph, int x, int y, int z) {
+        char l = "ABCDEF"[z];
+        string name = string("PIO") + l;
+        RoutingBel bel;
+        bel.name = graph.ident(name);
+        bel.type = graph.ident("PIO");
         bel.loc.x = x;
         bel.loc.y = y;
         bel.z = z;
 
-        graph.add_bel_input(bel, graph.ident("STDBY"), x, y, graph.ident(fmt("JSTDBY_OSC")));
-        graph.add_bel_output(bel, graph.ident("OSC"), x, y, graph.ident(fmt("G_JOSC_OSC")));
-        graph.add_bel_output(bel, graph.ident("SEDSTDBY"), x, y, graph.ident(fmt("SEDSTDBY_OSC")));
+        graph.add_bel_input(bel, graph.ident("I"), x, y, graph.ident(fmt("PADDO" << l << "_PIO")));
+        graph.add_bel_input(bel, graph.ident("T"), x, y, graph.ident(fmt("PADDT" << l << "_PIO")));
+        graph.add_bel_output(bel, graph.ident("O"), x, y, graph.ident(fmt("JPADDI" << l << "_PIO")));
 
         graph.add_bel(bel);
     }

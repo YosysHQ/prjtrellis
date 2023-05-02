@@ -14,9 +14,9 @@ OptimizedChipdb::OptimizedChipdb()
 OptimizedChipdb::OptimizedChipdb(const IdStore &base) : IdStore(base)
 {}
 
-shared_ptr<OptimizedChipdb> make_optimized_chipdb(Chip &chip, bool split_slice_mode)
+shared_ptr<OptimizedChipdb> make_optimized_chipdb(Chip &chip, bool include_lutperm_pips, bool split_slice_mode)
 {
-    shared_ptr<RoutingGraph> graph = chip.get_routing_graph(false, split_slice_mode);
+    shared_ptr<RoutingGraph> graph = chip.get_routing_graph(include_lutperm_pips, split_slice_mode);
     for (auto &loc : graph->tiles) {
         const auto &td = loc.second;
         // Index bels, wires and arcs
@@ -68,6 +68,7 @@ shared_ptr<OptimizedChipdb> make_optimized_chipdb(Chip &chip, bool split_slice_m
             ad.delay = 1;
             ad.sinkWire = OptId{ra.sink.loc, graph->tiles.at(ra.sink.loc).wires.at(ra.sink.id).cdb_id};
             ad.srcWire = OptId{ra.source.loc, graph->tiles.at(ra.source.loc).wires.at(ra.source.id).cdb_id};
+            ad.lutperm_flags = ra.lutperm_flags;
             ld.arcs.push_back(ad);
         }
 

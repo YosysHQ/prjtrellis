@@ -38,10 +38,12 @@ static const uint32_t background_flag = 0x2E000000;
 class BitstreamOptions {
 public:
     BitstreamOptions(const Chip &chip) {
-      if (chip.info.family == "MachXO2") {
+      if (chip.info.family == "MachXO2" || chip.info.family == "MachXO3" || chip.info.family == "MachXO3D") {
           // Write frames out in order 0 => max or reverse (max => 0).
           reversed_frames = false;
           dummy_bytes_after_preamble = 2;
+          if (chip.info.family == "MachXO3D")
+            dummy_bytes_after_preamble = 18;
           crc_meta = 0xE0; // CRC check (0x80), once at end (0x40), dummy bits
                            // in bitstream, no dummy bytes after each frame.
           // FIXME: Diamond seems to set include_dummy_bits for MachXO2
@@ -444,15 +446,27 @@ public:
     };
 };
 
-Bitstream::Bitstream(const vector<uint8_t> &data, const vector<string> &metadata) : data(data), metadata(metadata) {}
+Bitstream::Bitstream(const vector<uint8_t> &data, const vector<string> &metadata, bool have_lscc_preamble) : data(data), metadata(metadata), have_lscc_preamble(have_lscc_preamble) {}
 
 Bitstream Bitstream::read_bit(istream &in) {
     vector<uint8_t> bytes;
     vector<string> meta;
+    bool lscc = false;
     auto hdr1 = uint8_t(in.get());
     auto hdr2 = uint8_t(in.get());
+    if (hdr1 == 0x4C || hdr2 == 0x53) {
+        hdr1 = uint8_t(in.get());
+        hdr2 = uint8_t(in.get());
+        if (hdr1 != 0x43 || hdr2 != 0x43) {
+            throw BitstreamParseError("Lattice .BIT files must start with LSCC or 0xFF, 0x00", 0);
+        }
+        hdr1 = uint8_t(in.get());
+        hdr2 = uint8_t(in.get());
+        lscc = true;
+    }
+
     if (hdr1 != 0xFF || hdr2 != 0x00) {
-        throw BitstreamParseError("Lattice .BIT files must start with 0xFF, 0x00", 0);
+        throw BitstreamParseError("Lattice .BIT files must start with LSCC or 0xFF, 0x00", 0);
     }
     std::string temp;
     uint8_t c;
@@ -471,7 +485,7 @@ Bitstream Bitstream::read_bit(istream &in) {
     in.seekg(0, in.beg);
     bytes.resize(length);
     in.read(reinterpret_cast<char *>(&(bytes[0])), length);
-    return Bitstream(bytes, meta);
+    return Bitstream(bytes, meta, lscc);
 }
 
 // TODO: replace these macros with something more flexible
@@ -532,12 +546,18 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                 BITSTREAM_DEBUG("set control reg 0 to 0x" << hex << setw(8) << setfill('0') << cfg0);
             }
                 break;
-                
             case BitstreamCommand::LSC_PROG_CNTRL0: {
                 rd.skip_bytes(3);
                 uint32_t cfg = rd.get_uint32();
                 chip->ctrl0 = cfg;
                 BITSTREAM_DEBUG("set control reg 0 to 0x" << hex << setw(8) << setfill('0') << cfg);
+            }
+                break;
+            case BitstreamCommand::LSC_PROG_CNTRL1: {
+                rd.skip_bytes(3);
+                uint32_t cfg = rd.get_uint32();
+                chip->ctrl1 = cfg;
+                BITSTREAM_DEBUG("set control reg 1 to 0x" << hex << setw(8) << setfill('0') << cfg);
             }
                 break;
             case BitstreamCommand::ISC_PROGRAM_DONE_2:
@@ -686,21 +706,22 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                 uint32_t data = rd.get_uint32();
                 current_ebr = (data >> 11) & 0x3FF;
                 addr_in_ebr = data & 0x7FF;
-                chip->bram_data[current_ebr].resize(2048);
+                chip->bram_data[current_ebr].resize(chip->bram_data_size);
             }
                 break;
             case BitstreamCommand::LSC_EBR_WRITE: {
                 uint8_t params[3];
                 rd.get_bytes(params, 3);
                 int frame_count = (params[1] << 8U) | params[2];
+                bool check_crc = params[0] & 0x80U;
                 int frames_read = 0;
 
                 while (frames_read < frame_count) {
 
-                    if (addr_in_ebr >= 2048) {
+                    if (addr_in_ebr >= chip->bram_data_size) {
                         addr_in_ebr = 0;
                         current_ebr++;
-                        chip->bram_data[current_ebr].resize(2048);
+                        chip->bram_data[current_ebr].resize(chip->bram_data_size);
                     }
 
                     auto &ebr = chip->bram_data[current_ebr];
@@ -718,7 +739,8 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                     addr_in_ebr += 8;
 
                 }
-                rd.check_crc16();
+                if (check_crc)
+                    rd.check_crc16();
             }
                 break;
             case BitstreamCommand::SPI_MODE: {
@@ -740,6 +762,13 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                 BITSTREAM_DEBUG("Jump command");
                 /* TODO: Parse address and SPI Flash read speed */
                 rd.skip_bytes(4);
+                break;
+            case BitstreamCommand::LSC_PROG_SED_CRC: {
+                rd.skip_bytes(3);
+                uint32_t cfg = rd.get_uint32();
+                chip->sed = cfg;
+                BITSTREAM_DEBUG("set sed crc to 0x" << hex << setw(8) << setfill('0') << cfg);
+            }
                 break;
             case BitstreamCommand::DUMMY:
                 break;
@@ -781,7 +810,7 @@ Bitstream Bitstream::generate_jump(uint32_t address) {
 
     wr.insert_dummy(18);
 
-    return Bitstream(wr.get(), std::vector<string>());
+    return Bitstream(wr.get(), std::vector<string>(), false);
 }
 
 Bitstream Bitstream::serialise_chip_py(const Chip &chip) {
@@ -845,10 +874,19 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
         else
             ctrl0 &= ~background_flag;
     }
+    if (chip.info.family == "MachXO3D") {
+        ctrl0 = 0x00000000;
+    }
     wr.write_uint32(ctrl0);
 
+    if (chip.info.family == "MachXO3D") {
+        wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_CNTRL1));
+        wr.insert_zeros(3);
+        wr.write_uint32(0x45000000);
+        wr.insert_dummy(1);
+    }
     // Seems pretty consistent...
-    if (chip.info.family == "MachXO2") {
+    if (chip.info.family == "MachXO2" || chip.info.family == "MachXO3" || chip.info.family == "MachXO3D") {
         wr.insert_dummy(4);
     }
 
@@ -930,12 +968,16 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
         // Write EBR data
         wr.write_byte(uint8_t(BitstreamCommand::LSC_EBR_WRITE));
         wr.write_byte(0xD0); // Dummy/CRC config
-        wr.write_byte(0x01); // 0x0100 = 256x 72-bit frames
-        wr.write_byte(0x00);
+
+        uint16_t bram_frames = chip.bram_data_size >> 3;
+        wr.write_byte(uint8_t((bram_frames >> 8) & 0xFF));
+        wr.write_byte(uint8_t(bram_frames & 0xFF));
+        // for ECP5 0x0100 = 256x 72-bit frames
+        // for MachXO2 0x0080 = 128x 72-bit frames
 
         uint8_t frame[9];
         const auto &data = ebr.second;
-        for (int addr_in_ebr = 0; addr_in_ebr < 2048; addr_in_ebr+=8) {
+        for (int addr_in_ebr = 0; addr_in_ebr < chip.bram_data_size; addr_in_ebr+=8) {
             frame[0] = data.at(addr_in_ebr+0) >> 1;
             frame[1] = (data.at(addr_in_ebr+0) & 0x01) << 7 | (data.at(addr_in_ebr+1) >> 2);
             frame[2] = (data.at(addr_in_ebr+1) & 0x03) << 6 | (data.at(addr_in_ebr+2) >> 3);
@@ -951,10 +993,17 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
     }
 
     // MachXO2 indeed writes this info twice for some reason...
-    if (chip.info.family == "MachXO2") {
+    if (chip.info.family == "MachXO2" || chip.info.family == "MachXO3" || chip.info.family == "MachXO3D") {
         wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_CNTRL0));
         wr.insert_zeros(3);
         wr.write_uint32(ctrl0);
+    }
+    bool lscc = false;
+    if (chip.info.family == "MachXO3D") {
+        wr.write_byte(uint8_t(BitstreamCommand::LSC_PROG_CNTRL1));
+        wr.insert_zeros(3);
+        wr.write_uint32(0xc5000000);
+        lscc = true;
     }
 
     // Program DONE
@@ -962,7 +1011,7 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
     wr.insert_zeros(3);
     // Trailing padding
     wr.insert_dummy(4);
-    return Bitstream(wr.get(), chip.metadata);
+    return Bitstream(wr.get(), chip.metadata, lscc);
 }
 
 Bitstream Bitstream::serialise_chip_machxo(const Chip &chip, const map<string, string> ) {
@@ -1030,7 +1079,7 @@ Bitstream Bitstream::serialise_chip_machxo(const Chip &chip, const map<string, s
     wr.insert_crc16();
     // End Frame
     wr.insert_dummy(4);
-    return Bitstream(wr.get(), chip.metadata);
+    return Bitstream(wr.get(), chip.metadata, false);
 }
 
 Bitstream Bitstream::serialise_chip_delta_py(const Chip &chip1, const Chip &chip2)
@@ -1134,10 +1183,17 @@ Bitstream Bitstream::serialise_chip_partial(const Chip &chip, const vector<uint3
     wr.insert_zeros(3);
     // Trailing padding
     wr.insert_dummy(4);
-    return Bitstream(wr.get(), chip.metadata);
+    return Bitstream(wr.get(), chip.metadata, false);
 }
 
 void Bitstream::write_bit(ostream &out) {
+    // Write LSCC header if available
+    if (have_lscc_preamble) {
+        out.put(0x4C);
+        out.put(0x53);
+        out.put(0x43);
+        out.put(0x43);
+    }
     // Write metadata header
     out.put(char(0xFF));
     out.put(0x00);
@@ -1146,12 +1202,24 @@ void Bitstream::write_bit(ostream &out) {
         out.put(0x00);
     }
     out.put(char(0xFF));
+    if (have_lscc_preamble) {
+        out.put(char(0xFF));
+        out.put(char(0xFF));
+        out.put(char(0xFF));
+        out.put(char(0xFF));
+    }
     // Dump raw bitstream
     out.write(reinterpret_cast<const char *>(&(data[0])), data.size());
 }
 
 vector<uint8_t> Bitstream::get_bytes() {
     vector<uint8_t> bytes;
+    if (have_lscc_preamble) {
+        bytes.push_back(0x4C);
+        bytes.push_back(0x53);
+        bytes.push_back(0x43);
+        bytes.push_back(0x43);
+    }
     bytes.push_back(0xFF);
     bytes.push_back(0x00);
     for (const auto &str : metadata) {
@@ -1159,6 +1227,12 @@ vector<uint8_t> Bitstream::get_bytes() {
         bytes.push_back(0x00);
     }
     bytes.push_back(0xFF);
+    if (have_lscc_preamble) {
+        bytes.push_back(0xFF);
+        bytes.push_back(0xFF);
+        bytes.push_back(0xFF);
+        bytes.push_back(0xFF);
+    }
     copy(data.begin(), data.end(), back_inserter(bytes));
     return bytes;
 }

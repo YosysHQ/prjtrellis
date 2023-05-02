@@ -51,7 +51,7 @@ def dbcopy(family, device, source, dest, copy_muxes=True, copy_words=True, copy_
             dstdb.add_fixed_conn(conn)
 
 
-def copy_muxes_with_predicate(family, device, source, dest, predicate):
+def copy_muxes_with_predicate(family, device, source, dest, predicate, force_save = False):
     srcdb = pytrellis.get_tile_bitdata(
         pytrellis.TileLocator(family, device, source))
     dstdb = pytrellis.get_tile_bitdata(
@@ -63,9 +63,11 @@ def copy_muxes_with_predicate(family, device, source, dest, predicate):
         for src in mux.get_sources():
             if predicate((src, sink)):
                 dstdb.add_mux_arc(mux.arcs[src])
+    if force_save:
+        dstdb.save()
 
 
-def copy_conns_with_predicate(family, device, source, dest, predicate):
+def copy_conns_with_predicate(family, device, source, dest, predicate, force_save = False):
     srcdb = pytrellis.get_tile_bitdata(
         pytrellis.TileLocator(family, device, source))
     dstdb = pytrellis.get_tile_bitdata(
@@ -75,3 +77,19 @@ def copy_conns_with_predicate(family, device, source, dest, predicate):
     for conn in fcs:
         if predicate(conn):
             dstdb.add_fixed_conn(conn)
+    if force_save:
+        dstdb.save()
+
+def copy_enums_with_predicate(family, device, source, dest, predicate, force_save = False):
+    srcdb = pytrellis.get_tile_bitdata(
+        pytrellis.TileLocator(family, device, source))
+    dstdb = pytrellis.get_tile_bitdata(
+        pytrellis.TileLocator(family, device, dest))
+
+    cenums = srcdb.get_settings_enums()
+    for cenum in cenums:
+        ed = srcdb.get_data_for_enum(cenum)
+        if predicate(ed):
+            dstdb.add_setting_enum(ed)
+    if force_save:
+        dstdb.save()
