@@ -5,13 +5,13 @@ import fuzzloops
 
 jobs = [
         (FuzzConfig(job="TCLKDIV0", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
-                    tiles=["PT13:PIC_T_DUMMY_VIQ"]), "TCLKDIV0", "R1C13"),
+                    tiles=["PT13:PIC_T_DUMMY_VIQ"]), "TCLKDIV0"),
         (FuzzConfig(job="TCLKDIV1", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
-                    tiles=["PT13:PIC_T_DUMMY_VIQ"]), "TCLKDIV1", "R1C13"),
+                    tiles=["PT13:PIC_T_DUMMY_VIQ"]), "TCLKDIV1"),
         (FuzzConfig(job="BCLKDIV0", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
-                    tiles=["PB13:PIC_B_DUMMY_VIQ"]), "BCLKDIV0", "R11C13"),
+                    tiles=["PB13:PIC_B_DUMMY_VIQ"]), "BCLKDIV0"),
         (FuzzConfig(job="BCLKDIV1", family="MachXO3", device="LCMXO3LF-1300E", ncl="empty.ncl",
-                    tiles=["PB13:PIC_B_DUMMY_VIQ"]), "BCLKDIV1", "R11C13"),
+                    tiles=["PB13:PIC_B_DUMMY_VIQ"]), "BCLKDIV1"),
 ]
 
 
@@ -27,7 +27,7 @@ def main():
                 comment = ""
             return dict(site=loc, comment=comment, div=div, gsr=gsr)
 
-        cfg, loc, rc = job
+        cfg, loc = job
         cfg.setup()
         empty_bitfile = cfg.build_design(cfg.ncl, {})
         cfg.ncl = "clkdiv.ncl"
