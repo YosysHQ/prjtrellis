@@ -595,6 +595,12 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                   uint8_t pattern = rd.get_byte();
                   compression_dict.get()[i] = pattern;
                 }
+                //TODO: Check what is this data used for
+                if (chip->info.family == "MachXO3D") {
+                    for (int i = 7; i >= 0; i--) {
+                        rd.get_byte();
+                    }
+                }
                 BITSTREAM_DEBUG("write compression dictionary: " <<
                                 "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[0]) << " " <<
                                 "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[1]) << " " <<
