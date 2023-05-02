@@ -70,11 +70,11 @@ pair<int, int> get_row_col_pair_from_chipsize(string name, pair<int, int> chip_s
     } else if(name.find("CENTER35") != std::string::npos) { // LCMXO3-9400
         return make_pair(22, center_map[chip_size].second);
     } else if(regex_search(name, m, tile_clk_dummy_t_re)) {
-        return make_pair(0, center_map[chip_size].second);
+        return make_pair(0, clk_col[chip_size]);
     } else if(regex_search(name, m, tile_clk_dummy_b_re)) {
-        return make_pair(chip_size.first, center_map[chip_size].second);
+        return make_pair(chip_size.first, clk_col[chip_size]);
     } else if(regex_search(name, m, tile_clk_dummy_re)) {
-        return make_pair(stoi(m.str(1)) - row_bias, center_map[chip_size].second);
+        return make_pair(stoi(m.str(1)) - row_bias, clk_col[chip_size]);
     } else if(name.find("CLK") == 0 && name.find("_2K") != std::string::npos) {
         return make_pair(stoi(name.substr(7)) - row_bias, clk_col[chip_size]);
     } else if(name.find("CLK") == 0) {
