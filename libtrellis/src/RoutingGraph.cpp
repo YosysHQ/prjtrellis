@@ -378,6 +378,12 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
         curr_global.loc.y = center.first;
         return curr_global;
 
+    } else if(strategy == GlobalType::SPINE_LEFT_RIGHT) {
+        assert(row == spine_1.row || row == spine_2.row);
+        curr_global.id = ident(db_name);
+        curr_global.loc.x = center.second;
+        curr_global.loc.y = row;
+        return curr_global;
     // If we found a global emanating from the CENTER MUX, return a L_/R_
     // global net in the center tile based upon the current tile position
     // (specifically column).
@@ -582,11 +588,12 @@ RoutingGraph::GlobalType RoutingGraph::get_global_type_from_name(const std::stri
     // static const std::regex qsw90(R"(G_DQSW90)", std::regex::optimize);
 
     if(regex_match(db_name, match, global_entry) ||
-        regex_match(db_name, match, global_left_right) ||
         regex_match(db_name, match, center_mux_glb_out) ||
         regex_match(db_name, match, cib_out_to_glb) ||
         regex_match(db_name, match, dcm_sig)) {
         return GlobalType::CENTER;
+    } else if(regex_match(db_name, match, global_left_right)) {
+        return GlobalType::SPINE_LEFT_RIGHT;
     } else if(regex_match(db_name, match, global_left_right_g)) {
         return GlobalType::LEFT_RIGHT;
     } else if(regex_match(db_name, match, global_up_down) ||
