@@ -10,7 +10,7 @@ def mk_nets(tilepos, glb_ids):
 
     # Up/Down conns
     ud_nets.extend(net_product(
-        net_product(["R13C{}_VPTX0{{}}00", "R17C{}_VPTX0{{}}00"], [tilepos[1]]),
+        net_product(["R5C{}_VPTX0{{}}00", "R12C{}_VPTX0{{}}00", "R19C{}_VPTX0{{}}00", "R26C{}_VPTX0{{}}00"], [tilepos[1]]),
         glb_ids))
 
     # Phantom DCCs- First fill in "T"/"B", and then global id

@@ -10,7 +10,7 @@ def mk_nets(tilepos, glb_ids):
 
     # Up/Down conns
     ud_nets.extend(net_product(
-        net_product(["R11C{}_VPTX0{{}}00", "R15C{}_VPTX0{{}}00"], [tilepos[1]]),
+        net_product(["R7C{}_VPTX0{{}}00", "R17C{}_VPTX0{{}}00", "R23C{}_VPTX0{{}}00"], [tilepos[1]]),
         glb_ids))
 
     # Phantom DCCs- First fill in "T"/"B", and then global id
@@ -26,6 +26,7 @@ def flatten_nets(tilepos):
     return [nets for netpair in [(0, 4), (1, 5), (2, 6), (3, 7)] for nets in mk_nets(tilepos, netpair)]
 
 jobs = [
+    #0
     (FuzzConfig(job="GLB_UPDOWN26", family="MachXO3", device="LCMXO3LF-6900C", ncl="tap.ncl",
                       tiles=["CIB_R13C10:CIB_EBR0"]), mk_nets((13, 10), (2, 6))),
     
@@ -38,11 +39,11 @@ jobs = [
     (FuzzConfig(job="GLB_UPDOWN37", family="MachXO3", device="LCMXO3LF-6900C", ncl="tap.ncl",
                       tiles=["CIB_R13C7:CIB_EBR0"]),  mk_nets((13, 7),  (3, 7))),
 
+    #4
     (FuzzConfig(job="CIB_EBR0_END2_DLL45_UPDOWN", family="MachXO3", device="LCMXO3LF-6900C", ncl="tap.ncl",
                       tiles=["CIB_R13C1:CIB_EBR0_END2_DLL45"]), flatten_nets((13,1))),
     (FuzzConfig(job="CIB_EBR2_END1_UPDOWN", family="MachXO3", device="LCMXO3LF-6900C", ncl="tap.ncl",
                       tiles=["CIB_R13C41:CIB_EBR2_END1"]), flatten_nets((13,41))),
-
     (FuzzConfig(job="CIB_EBR0_END2_DLL3_UPDOWN", family="MachXO3", device="LCMXO3LF-6900C", ncl="tap.ncl",
                       tiles=["CIB_R20C1:CIB_EBR0_END2_DLL3"]), flatten_nets((20,1))),
     (FuzzConfig(job="CIB_EBR2_END1_SP_UPDOWN", family="MachXO3", device="LCMXO3LF-6900C", ncl="tap.ncl",
