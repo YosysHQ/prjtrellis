@@ -178,6 +178,7 @@ private:
     const MachXO2GlobalsInfo *global_data_machxo2;
     enum GlobalType {
         CENTER,
+        SPINE_LEFT_RIGHT,
         LEFT_RIGHT,
         UP_DOWN,
         BRANCH,

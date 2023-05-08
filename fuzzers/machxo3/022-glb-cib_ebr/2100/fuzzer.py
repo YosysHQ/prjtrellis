@@ -10,7 +10,7 @@ def mk_nets(tilepos, glb_ids):
 
     # Up/Down conns
     ud_nets.extend(net_product(
-        net_product(["R6C{}_VPTX0{{}}00", "R11C{}_VPTX0{{}}00"], [tilepos[1]]),
+        net_product(["R5C{}_VPTX0{{}}00", "R11C{}_VPTX0{{}}00"], [tilepos[1]]),
         glb_ids))
 
     # Phantom DCCs- First fill in "T"/"B", and then global id
@@ -28,6 +28,8 @@ def flatten_nets(tilepos):
 jobs = [
     (FuzzConfig(job="CIB0_EBR0_END0_UPDOWN", family="MachXO3", device="LCMXO3LF-2100C", ncl="tap.ncl",
                       tiles=["CIB_R8C1:CIB_EBR_DUMMY_END3"]), flatten_nets((8,1))),
+    (FuzzConfig(job="CIB0_EBR2_END1_UPDOWN", family="MachXO3", device="LCMXO3LF-2100C", ncl="tap.ncl",
+                      tiles=["CIB_R8C26:CIB_EBR2_END0"]), flatten_nets((8,26)))
 ]
 
 def main(args):

@@ -72,8 +72,8 @@ jobs = [
         # Thanks to fc_filter_dcc, make sure to manually connect DCC outputs to
         # entrance to global network!
         {
-            "netnames" : ["R13C19_VPRX0000", "R13C19_VPRX0100", "R13C19_VPRX0200", "R13C19_VPRX0300",
-                          "R13C19_VPRX0400", "R13C19_VPRX0500", "R13C19_VPRX0600", "R13C19_VPRX0700"],
+            "netnames" : ["R17C19_VPRX0000", "R17C19_VPRX0100", "R17C19_VPRX0200", "R17C19_VPRX0300",
+                          "R17C19_VPRX0400", "R17C19_VPRX0500", "R17C19_VPRX0600", "R17C19_VPRX0700"],
             "cfg" : FuzzConfig(job="GLOBAL_DCC_OUT", family="MachXO3", device="LCMXO3LF-6900C", ncl="center-mux.ncl",
                       tiles=["CENTER13:CENTER_EBR_CIB_4K", "CENTER_EBR29:CENTER_EBR",
                              "CENTER16:CENTER8", "CENTER15:CENTER7", "CENTER14:CENTER6",

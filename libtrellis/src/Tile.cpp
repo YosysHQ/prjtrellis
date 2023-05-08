@@ -41,7 +41,7 @@ map<pair<int, int>, pair<int, int>> center_map = {
     // LCMXO2-4000, LCMXO3-4300
     {make_pair(22, 31), make_pair(11, 15)},
     // LCMXO2-7000, LCMXO3-6900
-    {make_pair(27, 40), make_pair(13, 18)},
+    {make_pair(27, 40), make_pair(17, 18)},
     // LCMXO3-9400
     {make_pair(31, 48), make_pair(15, 24)},
 };
