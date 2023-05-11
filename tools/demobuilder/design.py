@@ -35,7 +35,7 @@ class Design:
             tinf = tile.info
             tname = tinf.name
             chip_size = (self.chip.get_max_row(), self.chip.get_max_col())
-            pos = tiles.pos_from_name(tname, chip_size, self.row_bias, self.col_bias)
+            pos = tiles.pos_from_name(tname, self.chip.info.family, chip_size, self.row_bias, self.col_bias)
             if tinf.type == "PLC2":
                 for loc in ("A", "B", "C", "D"):
                     bel = "R{}C{}{}".format(pos[0], pos[1], loc)
@@ -64,7 +64,7 @@ class Design:
         beltype, belloc = self.bels[bel]
         tile, loc = belloc
         chip_size = (self.chip.get_max_row(), self.chip.get_max_col())
-        pos = tiles.pos_from_name(tile, chip_size, self.row_bias, self.col_bias)
+        pos = tiles.pos_from_name(tile, self.chip.info.family, chip_size, self.row_bias, self.col_bias)
         net_prefix = "R{}C{}".format(pos[0], pos[1])
         slice_index = "ABCD".index(loc)
         lc0 = 2 * slice_index

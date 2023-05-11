@@ -41,6 +41,10 @@ Chip::Chip(const Trellis::ChipInfo &info) : info(info), cram(info.num_frames, in
     if(info.family == "ECP5") {
         bram_data_size = 2048;
         global_data_ecp5 = get_global_info_ecp5(DeviceLocator{info.family, info.name, info.variant});
+    } else if(info.family=="LatticeECP2" || info.family=="LatticeECP2M" || info.family=="LatticeECP3") {
+        bram_data_size = 2048;
+    } else if(info.family == "LatticeXP2") {
+        bram_data_size = 1024;
     } else if(info.family == "MachXO") {
         bram_data_size = 1024;
     } else if (info.family == "MachXO2" || info.family == "MachXO3" || info.family == "MachXO3D") {

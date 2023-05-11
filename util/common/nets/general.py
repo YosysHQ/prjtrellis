@@ -184,8 +184,8 @@ def normalise_name(chip_size, tile, wire, family):
 
     upos = wire.index("_")
     prefix = wire[:upos]
-    prefix_pos = tiles.pos_from_name(prefix, chip_size, row_bias, col_bias)
-    tile_pos = tiles.pos_from_name(tile, chip_size, row_bias, col_bias)
+    prefix_pos = tiles.pos_from_name(prefix, family, chip_size, row_bias, col_bias)
+    tile_pos = tiles.pos_from_name(tile, family, chip_size, row_bias, col_bias)
     netname = wire[upos+1:]
 
     family_net = handle_family_net(tile, wire, prefix_pos, tile_pos, netname)
@@ -210,7 +210,7 @@ def normalise_name(chip_size, tile, wire, family):
 
 rel_netname_re = re.compile(r'^([NS]\d+)?([EW]\d+)?_.*')
 
-def canonicalise_name(chip_size, tile, wire, row_bias, col_bias):
+def canonicalise_name(family, chip_size, tile, wire, row_bias, col_bias):
     """
     Convert a normalised name in a given tile back to a canonical global name
     :param chip_size: chip size as tuple (max_row, max_col)
@@ -221,7 +221,7 @@ def canonicalise_name(chip_size, tile, wire, row_bias, col_bias):
     if wire.startswith("G_"):
         return wire
     m = rel_netname_re.match(wire)
-    tile_pos = tiles.pos_from_name(tile, chip_size, row_bias, col_bias)
+    tile_pos = tiles.pos_from_name(tile, family, chip_size, row_bias, col_bias)
     wire_pos = tile_pos
     if m:
         assert len(m.groups()) >= 1

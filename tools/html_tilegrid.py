@@ -60,7 +60,7 @@ def main(argv):
 
     for identifier, data in sorted(tilegrid.items()):
         name = identifier.split(":")[0]
-        row, col = tilelib.pos_from_name(name, (max_row, max_col), row_bias, col_bias)
+        row, col = tilelib.pos_from_name(name, args.family, (max_row, max_col), row_bias, col_bias)
         colour = get_colour(data["type"])
         tiles[row][col].append((name, data["type"], colour))
 

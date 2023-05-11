@@ -25,16 +25,17 @@ def main():
     chip_size = (c.get_max_row(), c.get_max_col())
     row_bias = c.info.row_bias
     col_bias = c.info.col_bias
+    family = c.info.family
 
     # Get fan-in to a net
     # Returns (source, configurable, loc)
     def get_fanin(net):
         drivers = []
-        npos = tiles.pos_from_name(net, chip_size, row_bias, col_bias)
+        npos = tiles.pos_from_name(net, family, chip_size, row_bias, col_bias)
         for tile in c.get_all_tiles():
             tinf = tile.info
             tname = tinf.name
-            pos = tiles.pos_from_name(tname, chip_size, row_bias, col_bias)
+            pos = tiles.pos_from_name(tname, family, chip_size, row_bias, col_bias)
             if abs(pos[0] - npos[0]) >= 10 or abs(pos[1] - npos[1]) >= 10:
                 continue
             if net.startswith("G_"):
@@ -45,23 +46,23 @@ def main():
             try:
                 mux = tdb.get_mux_data_for_sink(tnet)
                 for src in mux.get_sources():
-                    drivers.append((nets.canonicalise_name(chip_size, tname, src, row_bias, col_bias), True, tname))
+                    drivers.append((nets.canonicalise_name(family, chip_size, tname, src, row_bias, col_bias), True, tname))
             except IndexError:
                 pass
             for fc in tdb.get_fixed_conns():
                 if fc.sink == tnet:
-                    drivers.append((nets.canonicalise_name(chip_size, tname, fc.source, row_bias, col_bias), False, tname))
+                    drivers.append((nets.canonicalise_name(family, chip_size, tname, fc.source, row_bias, col_bias), False, tname))
         return drivers
 
     # Get fan-out of a net
     # Returns (dest, configurable, loc)
     def get_fanout(net):
         drivers = []
-        npos = tiles.pos_from_name(net, chip_size, row_bias, col_bias)
+        npos = tiles.pos_from_name(net, family, chip_size, row_bias, col_bias)
         for tile in c.get_all_tiles():
             tinf = tile.info
             tname = tinf.name
-            pos = tiles.pos_from_name(tname, chip_size, row_bias, col_bias)
+            pos = tiles.pos_from_name(tname, family, chip_size, row_bias, col_bias)
             if abs(pos[0] - npos[0]) >= 12 or abs(pos[1] - npos[1]) >= 12:
                 continue
             if net.startswith("G_"):
@@ -72,10 +73,10 @@ def main():
             for sink in tdb.get_sinks():
                 mux = tdb.get_mux_data_for_sink(sink)
                 if tnet in mux.arcs:
-                    drivers.append((nets.canonicalise_name(chip_size, tname, sink, row_bias, col_bias), True, tname))
+                    drivers.append((nets.canonicalise_name(family, chip_size, tname, sink, row_bias, col_bias), True, tname))
             for fc in tdb.get_fixed_conns():
                 if fc.source == tnet:
-                    drivers.append((nets.canonicalise_name(chip_size, tname, fc.sink, row_bias, col_bias), False, tname))
+                    drivers.append((nets.canonicalise_name(family, chip_size, tname, fc.sink, row_bias, col_bias), False, tname))
         return drivers
 
 
@@ -111,7 +112,7 @@ def main():
     def completer(str, idx):
         if not tile_net_re.match(str):
             return None
-        loc = tiles.pos_from_name(str, chip_size, row_bias, col_bias)
+        loc = tiles.pos_from_name(str, family, chip_size, row_bias, col_bias)
         nets = get_nets_at(loc)
         for n in nets:
             if n.startswith(str):
