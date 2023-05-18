@@ -1358,6 +1358,675 @@
                 }
             }
         }
+    },
+
+    "LIFMD" : {
+        "devices" : {
+            "LIF-MD6000": {
+                "packages": ["WLCSP36", "UCFBGA64", "CKFBGA80", "CSFBGA81"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 18,
+                "max_col" : 52,
+                "row_bias" : 0,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LIF-MD6000": {
+                        "idcode": "0x012C0043",
+                        "packages": ["WLCSP36", "UCFBGA64", "CKFBGA80", "CSFBGA81"],
+                        "speeds": [ 6 ],
+                        "suffixes": [ "I" ]
+                    },
+                    "LIA-MD6000": {
+                        "idcode": "0x012C0043",
+                        "packages": ["CKFBGA80", "CSFBGA81"],
+                        "speeds": [ 6 ],
+                        "suffixes": [ "E" ]
+                    }
+                }
+            }
+        }
+    },
+
+    "LIFMDF" : {
+        "devices" : {
+            "LIF-MDF6000": {
+                "packages": ["UCFBGA64", "CKFBGA80"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 18,
+                "max_col" : 52,
+                "row_bias" : 0,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LIF-MDF6000": {
+                        "idcode": "0x012F0043",
+                        "packages": ["UCFBGA64", "CKFBGA80"],
+                        "speeds": [ 6 ],
+                        "suffixes": [ "I" ]
+                    },
+                    "LIA-MDF6000": {
+                        "idcode": "0x012F0043",
+                        "packages": ["CKFBGA80"],
+                        "speeds": [ 6 ],
+                        "suffixes": [ "E" ]
+                    }
+                }
+            }
+        }
+    },
+
+    "LatticeEC" : {
+        "devices" : {
+            "LFEC1E": {
+                "packages": ["TQFP100", "TQFP144", "PQFP208"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 14,
+                "max_col" : 17,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFEC1E": {
+                        "idcode": "0x11240043",
+                        "packages": ["TQFP100", "TQFP144", "PQFP208"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            },
+            "LFEC3E": {
+                "packages": ["TQFP100", "TQFP144", "PQFP208", "FPBGA256"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 18,
+                "max_col" : 25,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFEC3E": {
+                        "idcode": "0x11241043",
+                        "packages": ["TQFP100", "TQFP144", "PQFP208", "FPBGA256"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            },
+            "LFEC6E": {
+                "packages": ["TQFP144", "PQFP208", "FPBGA256", "FPBGA484"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 27,
+                "max_col" : 33,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFEC6E": {
+                        "idcode": "0x11242043",
+                        "packages": ["TQFP144", "PQFP208", "FPBGA256", "FPBGA484"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            },
+            "LFEC10E": {
+                "packages": ["PQFP208", "FPBGA256", "FPBGA484"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 36,
+                "max_col" : 41,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFEC10E": {
+                        "idcode": "0x11243043",
+                        "packages": ["PQFP208", "FPBGA256", "FPBGA484"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            },
+            "LFEC15E": {
+                "packages": ["FPBGA256", "FPBGA484"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 44,
+                "max_col" : 49,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFEC15E": {
+                        "idcode": "0x11244043",
+                        "packages": ["FPBGA256", "FPBGA484"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            },
+            "LFEC20E": {
+                "packages": ["FPBGA484","FPBGA672"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 48,
+                "max_col" : 57,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFEC20E": {
+                        "idcode": "0x11245043",
+                        "packages": ["FPBGA484","FPBGA672"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            },
+            "LFEC33E": {
+                "packages": ["FPBGA484","FPBGA672"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 68,
+                "max_col" : 65,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFEC33E": {
+                        "idcode": "0x11246043",
+                        "packages": ["FPBGA484","FPBGA672"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            }
+        }
+    },
+
+    "LatticeECP" : {
+        "devices" : {
+            "LFECP6E": {
+                "packages": ["TQFP144", "PQFP208", "FPBGA256", "FPBGA484"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 27,
+                "max_col" : 33,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFECP6E": {
+                        "idcode": "0x11242043",
+                        "packages": ["TQFP144", "PQFP208", "FPBGA256", "FPBGA484"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            },
+            "LFECP10E": {
+                "packages": ["PQFP208", "FPBGA256", "FPBGA484"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 36,
+                "max_col" : 41,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFECP10E": {
+                        "idcode": "0x11243043",
+                        "packages": ["PQFP208", "FPBGA256", "FPBGA484"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            },
+            "LFECP15E": {
+                "packages": ["FPBGA256", "FPBGA484"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 44,
+                "max_col" : 49,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFECP15E": {
+                        "idcode": "0x11244043",
+                        "packages": ["FPBGA256", "FPBGA484"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            },
+            "LFECP20E": {
+                "packages": ["FPBGA484", "FPBGA672"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 48,
+                "max_col" : 57,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFECP20E": {
+                        "idcode": "0x11245043",
+                        "packages": ["FPBGA484", "FPBGA672"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            },
+            "LFECP33E": {
+                "packages": ["FPBGA484", "FPBGA672"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 68,
+                "max_col" : 65,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFECP33E": {
+                        "idcode": "0x11246043",
+                        "packages": ["FPBGA484", "FPBGA672"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            }
+        }
+    },
+
+    "LatticeXP" : {
+        "devices" : {
+            "LFXP3": {
+                "packages": ["TQFP100", "TQFP144", "PQFP208"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 18,
+                "max_col" : 25,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFXP3C": {
+                        "idcode": "0x01255043",
+                        "packages": ["TQFP100", "TQFP144", "PQFP208"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C" ]
+                    },
+                    "LFXP3E": {
+                        "idcode": "0x01254043",
+                        "packages": ["TQFP100", "TQFP144", "PQFP208"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C" ]
+                    }
+                }
+            },
+            "LFXP6": {
+                "packages": ["TQFP144", "PQFP208", "FPBGA256"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 26,
+                "max_col" : 31,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFXP6C": {
+                        "idcode": "0x01259043",
+                        "packages": ["TQFP144", "PQFP208", "FPBGA256"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C" ]
+                    },
+                    "LFXP6E": {
+                        "idcode": "0x01258043",
+                        "packages": ["TQFP144", "PQFP208", "FPBGA256"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C" ]
+                    }
+                }
+            },
+            "LFXP10": {
+                "packages": ["FPBGA256", "FPBGA388"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 35,
+                "max_col" : 39,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFXP10C": {
+                        "idcode": "0x1125D043",
+                        "packages": ["FPBGA256", "FPBGA388"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C" ]
+                    },
+                    "LFXP10E": {
+                        "idcode": "0x1125C043",
+                        "packages": ["FPBGA256", "FPBGA388"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C" ]
+                    }
+                }
+            },
+            "LFXP15": {
+                "packages": ["FPBGA256", "FPBGA388", "FPBGA484"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 43,
+                "max_col" : 49,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LFXP15C": {
+                        "idcode": "0x01261043",
+                        "packages": ["FPBGA256", "FPBGA388", "FPBGA484"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C" ]
+                    },
+                    "LFXP15E": {
+                        "idcode": "0x01260043",
+                        "packages": ["FPBGA256", "FPBGA388", "FPBGA484"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C" ]
+                    }
+                }
+            },
+            "LFXP20": {
+                "packages": ["FPBGA256", "FPBGA388", "FPBGA484"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 80,
+                "max_col" : 80,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 0,
+                "variants": {
+                    "LFXP20C": {
+                        "idcode": "0x01269043",
+                        "packages": ["FPBGA256", "FPBGA388", "FPBGA484"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C" ]
+                    },
+                    "LFXP20E": {
+                        "idcode": "0x01268043",
+                        "packages": ["FPBGA256", "FPBGA388", "FPBGA484"],
+                        "speeds": [ 3, 4, 5 ],
+                        "suffixes": [ "C" ]
+                    }
+                }
+            }
+        }
+    },
+
+    "PlatformManager" : {
+        "devices" : {
+            "LPTM10": {
+                "packages": ["TQFP128", "FTBGA208"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 12,
+                "max_col" : 12,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LPTM10-1247": {
+                        "idcode": "0x40144043",
+                        "packages": ["TQFP128"],
+                        "speeds": [ 3 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LPTM10-12107": {
+                        "idcode": "0x50144043",
+                        "packages": ["FTBGA208"],
+                        "speeds": [ 3 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            }
+        }
+    },
+
+    "PlatformManager2" : {
+        "devices" : {
+            "LPTM21": {
+                "packages": ["FTBGA237", "CABGA100"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 13,
+                "max_col" : 21,
+                "row_bias" : 1,
+                "col_bias" : 1,
+                "fuzz": 1,
+                "variants": {
+                    "LPTM21": {
+                        "idcode": "0x112BA043",
+                        "packages": ["FTBGA237"],
+                        "speeds": [ "1A" ],
+                        "suffixes": [ "I" ]
+                    },
+                    "LPTM21L": {
+                        "idcode": "0x112BA043",
+                        "packages": ["CABGA100"],
+                        "speeds": [ "1A" ],
+                        "suffixes": [ "I" ]
+                    }
+                }
+            }
+        }
+    },
+
+    "LatticeSC" : {
+        "devices" : {
+            "LFSC3GA15E": {
+              "packages": ["FPBGA256", "FPBGA900"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 49,
+                "max_col" : 53,
+                "row_bias" : 0,
+                "col_bias" : 0,
+                "fuzz": 1,
+                "variants": {
+                    "LFSC3GA15E": {
+                        "idcode": "0x0A82C157",
+                        "packages": ["FPBGA256", "FPBGA900"],
+                        "speeds": [ 5, 6, 7 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LFSCM3GA15EP1": {
+                      "idcode": "0x0A82C157",
+                      "packages": ["FPBGA256", "FPBGA900"],
+                      "speeds": [ 5, 6, 7 ],
+                      "suffixes": [ "C", "I" ]
+                  }
+                }
+            },
+            "LFSC3GA25E": {
+              "packages": ["FPBGA900", "FPBGA1020"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 180,
+                "max_col" : 180,
+                "row_bias" : 0,
+                "col_bias" : 0,
+                "fuzz": 1,
+                "variants": {
+                    "LFSC3GA25E": {
+                        "idcode": "0x0A812157",
+                        "packages": ["FPBGA900", "FPBGA1020"],
+                        "speeds": [ 5, 6, 7 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LFSCM3GA25EP1": {
+                      "idcode": "0x0A812157",
+                      "packages": ["FPBGA900", "FPBGA1020"],
+                      "speeds": [ 5, 6, 7 ],
+                      "suffixes": [ "C", "I" ]
+                    }
+              }
+            },
+            "LFSC3GA40E": {
+              "packages": ["FPBGA1020", "FCBGA1152"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 180,
+                "max_col" : 180,
+                "row_bias" : 0,
+                "col_bias" : 0,
+                "fuzz": 1,
+                "variants": {
+                    "LFSC3GA40E": {
+                        "idcode": "0x0A81A157",
+                        "packages": ["FPBGA1020", "FCBGA1152"],
+                        "speeds": [ 5, 6, 7 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LFSCM3GA40EP1": {
+                      "idcode": "0x0A81A157",
+                      "packages": ["FPBGA1020", "FCBGA1152"],
+                      "speeds": [ 5, 6, 7 ],
+                      "suffixes": [ "C", "I" ]
+                    }
+              }
+            },
+            "LFSC3GA80E": {
+              "packages": ["FCBGA1152", "FCBGA1704"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 180,
+                "max_col" : 180,
+                "row_bias" : 0,
+                "col_bias" : 0,
+                "fuzz": 1,
+                "variants": {
+                    "LFSC3GA80E": {
+                        "idcode": "0x0A801157",
+                        "packages": ["FCBGA1152", "FCBGA1704"],
+                        "speeds": [ 5, 6, 7 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LFSCM3GA80EP1": {
+                      "idcode": "0x0A801157",
+                      "packages": ["FCBGA1152", "FCBGA1704"],
+                      "speeds": [ 5, 6, 7 ],
+                      "suffixes": [ "C", "I" ]
+                    }
+              }
+            },
+            "LFSC3GA115E": {
+              "packages": ["FCBGA1152", "FCBGA1704"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 180,
+                "max_col" : 180,
+                "row_bias" : 0,
+                "col_bias" : 0,
+                "fuzz": 1,
+                "variants": {
+                    "LFSC3GA115E": {
+                        "idcode": "0x0A809157",
+                        "packages": ["FCBGA1152", "FCBGA1704"],
+                        "speeds": [ 5, 6, 7 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LFSCM3GA115EP1": {
+                      "idcode": "0x0A809157",
+                      "packages": ["FCBGA1152", "FCBGA1704"],
+                      "speeds": [ 5, 6, 7 ],
+                      "suffixes": [ "C", "I" ]
+                    }
+              }
+            }
+        }
+    },
+
+    "LFMNX" : {
+        "devices" : {
+            "LFMNX-50": {
+            "packages": ["FCBGA484"],
+                "frames": 0,
+                "bits_per_frame": 0,
+                "pad_bits_after_frame": 0,
+                "pad_bits_before_frame": 0,
+                "max_row" : 80,
+                "max_col" : 80,
+                "row_bias" : 0,
+                "col_bias" : 1,
+                "fuzz": 0,
+                "variants": {
+                    "LFMNX-50": {
+                        "idcode": "0x412E3043",
+                        "packages": ["FCBGA484"],
+                        "speeds": [ 5 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
+            }
+        }
     }
   }
 }

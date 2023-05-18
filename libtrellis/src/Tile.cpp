@@ -91,14 +91,14 @@ map<pair<int, int>, int> viq_col = {
 pair<int, int> get_row_col_pair_from_chipsize(string name, string family, pair<int, int> chip_size, int row_bias, int col_bias) {
     smatch m;
 
-    if (family=="ECP5") {
+    if (family=="ECP5" || family == "LIFMD" || family == "LIFMDF") {
         // All tiles have proper prefix, no bias used
         if(regex_search(name, m, tile_rxcx_re)) {
             return make_pair(stoi(m.str(1)) - row_bias, stoi(m.str(2)) - col_bias);
         } else {
             throw runtime_error(fmt("Could not extract position from " << name));
         }
-    } else if (family=="LatticeXP2") {
+    } else if (family=="LatticeXP2" || family == "LatticeXP") {
         if(regex_search(name, m, tile_rxcx_re)) {
             return make_pair(stoi(m.str(1)) - row_bias, stoi(m.str(2)) - col_bias);
         } else if(regex_search(name, m, viq_bot_re)) {
@@ -115,6 +115,14 @@ pair<int, int> get_row_col_pair_from_chipsize(string name, string family, pair<i
             return make_pair(stoi(m.str(1)) - row_bias, viq_col[chip_size]);
         } else if(regex_search(name, m, viq_re)) {
             return make_pair(stoi(m.str(1)) - row_bias, viq_col[chip_size]);
+        } else if(name.find("BDLL") == 0) {
+            return make_pair(0,0);
+        } else if(name.find("TDLL") == 0) {
+            return make_pair(0,0);
+        } else if(name.find("CLK") == 0) {
+            return make_pair(0,0);
+        } else if(name.find("CONFIG") == 0) {
+            return make_pair(0,0);
         } else if(regex_search(name, m, tile_t_re)) {
             return make_pair(0, stoi(m.str(1)) - col_bias);
         } else if(regex_search(name, m, tile_b_re)) {
@@ -141,8 +149,47 @@ pair<int, int> get_row_col_pair_from_chipsize(string name, string family, pair<i
             //throw runtime_error(fmt("Could not extract position from " << name));
             return make_pair(0,0);
         }
+    } else if (family=="LatticeECP" || family=="LatticeEC") {
+        if(regex_search(name, m, tile_rxcx_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, stoi(m.str(2)) - col_bias);
+        } else if(name.find("CLK_") == 0) {
+            return make_pair(0,0);
+        } else if(name.find("CLK") == 0) {
+            //return make_pair(stoi(name.substr(5)) - row_bias, 0);
+            return make_pair(0,0);
+        } else if(regex_search(name, m, viq_bot_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, viq_col[chip_size]);
+        } else if(regex_search(name, m, viq_top_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, viq_col[chip_size]);
+        } else if(regex_search(name, m, viq_dspplus_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, viq_col[chip_size]);
+        } else if(regex_search(name, m, viq_dsp_num_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, viq_col[chip_size]);
+        } else if(regex_search(name, m, viq_embplus_re)) {
+            //return make_pair(stoi(m.str(1)) - row_bias, viq_col[chip_size]);
+            return make_pair(0,0);
+        } else if(regex_search(name, m, viq_emb_num_re)) {
+            //return make_pair(stoi(m.str(1)) - row_bias, viq_col[chip_size]);
+            return make_pair(0,0);
+        } else if(regex_search(name, m, viq_picb_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, viq_col[chip_size]);
+        } else if(regex_search(name, m, viq_pict_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, viq_col[chip_size]);
+        } else if(regex_search(name, m, viq_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, viq_col[chip_size]);
+        } else if(regex_search(name, m, tile_t_re)) {
+            return make_pair(0, stoi(m.str(1)) - col_bias);
+        } else if(regex_search(name, m, tile_b_re)) {
+            return make_pair(chip_size.first, stoi(m.str(1)) - col_bias);
+        } else if(regex_search(name, m, tile_l_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, 0);
+        } else if(regex_search(name, m, tile_r_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, chip_size.second);
+        } else {
+            throw runtime_error(fmt("Could not extract position from " << name));
+            //return make_pair(0,0);
+        }
     } else if (family=="LatticeECP2") {
-        printf("%s %s\n",family.c_str(), name.c_str());
         if(regex_search(name, m, tile_rxcx_re)) {
             return make_pair(stoi(m.str(1)) - row_bias, stoi(m.str(2)) - col_bias);
         } else if(name.find("CLK_") == 0) {
@@ -181,7 +228,6 @@ pair<int, int> get_row_col_pair_from_chipsize(string name, string family, pair<i
             //return make_pair(0,0);
         }
     } else if (family=="LatticeECP2M") {
-        printf("%s %s\n",family.c_str(), name.c_str());
         if(regex_search(name, m, tile_rxcx_re)) {
             return make_pair(stoi(m.str(1)) - row_bias, stoi(m.str(2)) - col_bias);
         } else if(name.find("CLK") == 0) {
@@ -274,6 +320,37 @@ pair<int, int> get_row_col_pair_from_chipsize(string name, string family, pair<i
             return make_pair(stoi(m.str(1)) - row_bias, chip_size.second);
         } else {
             throw runtime_error(fmt("Could not extract position from " << name));
+        }
+    } else if(family == "LatticeSC") {
+        if(regex_search(name, m, tile_rxcx_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, stoi(m.str(2)) - col_bias);
+        } else if(name.find("HIQ") == 0) {
+            return make_pair(0,0);
+        } else if(regex_search(name, m, tile_t_re)) {
+            return make_pair(0, stoi(m.str(1)) - col_bias);
+        } else if(regex_search(name, m, tile_b_re)) {
+            return make_pair(chip_size.first, stoi(m.str(1)) - col_bias);
+        } else if(regex_search(name, m, tile_l_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, 0);
+        } else if(regex_search(name, m, tile_r_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, chip_size.second);
+        } else {
+            return make_pair(0,0);
+        }
+    } else if(family == "PlatformManager" || family == "PlatformManager2") {
+        if(regex_search(name, m, tile_rxcx_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, stoi(m.str(2)) - col_bias);
+        } else if(regex_search(name, m, tile_t_re)) {
+            return make_pair(0, stoi(m.str(1)) - col_bias);
+        } else if(regex_search(name, m, tile_b_re)) {
+            return make_pair(chip_size.first, stoi(m.str(1)) - col_bias);
+        } else if(regex_search(name, m, tile_l_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, 0);
+        } else if(regex_search(name, m, tile_r_re)) {
+            return make_pair(stoi(m.str(1)) - row_bias, chip_size.second);
+        } else {
+            //throw runtime_error(fmt("Could not extract position from " << name));
+            return make_pair(0,0);
         }
     } else {
         throw runtime_error(fmt("Unknown chip family: " + family));
