@@ -192,7 +192,7 @@ RoutingId RoutingGraph::globalise_net_machxo2(int row, int col, const std::strin
   }
 
   if (db_name.find("4300D_") == 0 || db_name.find("9400D_") == 0) {
-      if (db_name.substr(0, 5) == chip_prefix) {
+      if (db_name.substr(0, 6) == chip_prefix) {
           stripped_name = db_name.substr(6);
       } else {
           return RoutingId();
