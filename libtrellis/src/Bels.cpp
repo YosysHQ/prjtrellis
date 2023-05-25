@@ -790,7 +790,7 @@ void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, i
 }
 
 namespace MachXO2Bels {
-    void add_pio(RoutingGraph &graph, int x, int y, int z, bool have_lvds) {
+    void add_pio(RoutingGraph &graph, int x, int y, int z, bool have_lvds, bool is_xo3) {
         char l = "ABCD"[z];
         string name = string("PIO") + l;
         RoutingBel bel;
@@ -811,6 +811,12 @@ namespace MachXO2Bels {
         graph.add_bel_input(bel, graph.ident("INRD"), x, y, graph.ident(fmt("INRD" << l << "_PIO")));
         if (have_lvds)
             graph.add_bel_input(bel, graph.ident("LVDS"), x, y, graph.ident(fmt("LVDS" << l << "_PIO")));
+
+        if (is_xo3) {
+            graph.add_bel_input(bel, graph.ident("RESEN"), x, y, graph.ident(fmt("JRESEN" << l << "_PIO")));
+            graph.add_bel_input(bel, graph.ident("PULLUPEN"), x, y, graph.ident(fmt("JPULLUPEN" << l << "_PIO")));
+            graph.add_bel_input(bel, graph.ident("SLEWRATE"), x, y, graph.ident(fmt("JSLEWRATE" << l << "_PIO")));
+        }
 
         graph.add_bel(bel);
     }
@@ -1074,7 +1080,7 @@ namespace MachXO2Bels {
         bel.loc.x = x;
         bel.loc.y = y;
 
-        if (name == "EFB") {
+        if (name == "EFB" || name == "EFBB") {
             postfix = "EFB";
             bel.z = 0;
             // Wishbone
@@ -1153,6 +1159,17 @@ namespace MachXO2Bels {
             add_output("I2C2SCLOEN");
             add_output("I2C2SCLO");
             add_input("I2C2SCLI");
+
+            if (name == "EFBB") {
+                add_output("TAMPERDET");
+                add_output("TAMPERTYPE0");
+                add_output("TAMPERTYPE1");
+                add_output("TAMPERSRC0");
+                add_output("TAMPERSRC1");
+                add_input("TAMPERDETEN");
+                add_input("TAMPERLOCKSRC");
+                add_input("TAMPERDETCLK");
+            }
         } else if (name == "GSR") {
             postfix = "GSR";
             bel.z = 1;
