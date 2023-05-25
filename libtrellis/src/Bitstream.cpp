@@ -38,12 +38,15 @@ static const uint32_t background_flag = 0x2E000000;
 class BitstreamOptions {
 public:
     BitstreamOptions(const Chip &chip) {
+      one_hot_dictionary = false;
       if (chip.info.family == "MachXO2" || chip.info.family == "MachXO3" || chip.info.family == "MachXO3D") {
           // Write frames out in order 0 => max or reverse (max => 0).
           reversed_frames = false;
           dummy_bytes_after_preamble = 2;
-          if (chip.info.family == "MachXO3D")
+          if (chip.info.family == "MachXO3D") {
             dummy_bytes_after_preamble = 18;
+            one_hot_dictionary = true;
+          }
           crc_meta = 0xE0; // CRC check (0x80), once at end (0x40), dummy bits
                            // in bitstream, no dummy bytes after each frame.
           // FIXME: Diamond seems to set include_dummy_bits for MachXO2
@@ -77,6 +80,7 @@ public:
     bool crc_after_each_frame;
     size_t dummy_bytes_after_frame;
     size_t security_sed_space;
+    bool one_hot_dictionary;
 };
 
 // The BitstreamReadWriter class stores state (including CRC16) whilst reading
@@ -147,7 +151,7 @@ public:
 
     // Decompress and copy multiple bytes into an OutputIterator and update CRC
     template<typename T>
-    void get_compressed_bytes(T out, size_t count, array<uint8_t, 8> compression_dict) {
+    void get_compressed_bytes(T out, size_t count, array<uint8_t, 16> compression_dict) {
         // Here we store data already read by read_byte(), it may be more than 1 byte at times!!
         uint16_t read_data = 0;
         size_t remaining_bits = 0;
@@ -159,8 +163,8 @@ public:
         // Every byte can be encoded by on of 4 cases
         // It's a prefix-free code so we can identify each one just by looking at the first bits:
         // 0 -> Byte zero (0000 0000)
-        // 100 xxx -> Stored byte in compression_dict, xxx is the index (0-7)
-        // 101 xxx -> Byte with a single bit set, xxx is the index of the set bit (0 is lsb, 7 is msb)
+        // 100 xxx -> Byte with a single bit set, xxx is the index of the set bit (0 is lsb, 7 is msb)
+        // 101 xxx -> Stored byte in compression_dict, xxx is the index (0-7)
         // 11 xxxxxxxx -> Literal byte, xxxxxxxx is the encoded byte
         //
         for (size_t i = 0; i < count; i++) {
@@ -197,19 +201,9 @@ public:
                     // Starts with 10, it could be a stored literal or a single-bit-set byte
                     // 10 ? xxx: In both cases we need the index xxx, so extract it now
                     // We already have all the bits we need buffered
-                    next_bit = bool(read_data >> (remaining_bits-1) & 1);
-                    remaining_bits--;
-                    size_t idx = (size_t) ((read_data >> (remaining_bits-3)) & 0x7);
-                    remaining_bits -= 3;
-                    if (next_bit) {
-                        // 101 xxx: Stored byte.  Just use xxx as index in the dictionary,
-                        // we consumed 6 bits
-                        udata = compression_dict[idx];
-                    } else {
-                        // 100 xxx: Single-bit-set byte, xxx is the index of the set bit
-                        // we consumed 6 bits
-                        udata = uint8_t(1 << idx);
-                    }
+                    size_t idx = (size_t) ((read_data >> (remaining_bits-4)) & 0xf);
+                    remaining_bits -= 4;
+                    udata = compression_dict[idx];
                 }
             } else {
                 // 0: the uncompressed byte is zero
@@ -268,6 +262,10 @@ public:
         insert_zeros(3);
         for (int i = 7; i >= 0; i--)
             write_byte(dict_entries[i]);
+        if (ops.one_hot_dictionary)    
+            for (int i = 7; i >= 0; i--)
+                write_byte(uint8_t(1<<i));
+
         // Write data
         write_byte(uint8_t(BitstreamCommand::LSC_PROG_INCR_CMP));
         write_byte(ops.crc_meta); //CRC check, 1 dummy byte
@@ -504,7 +502,7 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
     BitstreamReadWriter rd(data);
     boost::optional<Chip> chip;
     bool found_preamble = rd.find_preamble(preamble);
-    boost::optional<array<uint8_t, 8>> compression_dict;
+    boost::optional<array<uint8_t, 16>> compression_dict;
 
     if (!found_preamble)
         throw BitstreamParseError("preamble not found in bitstream");
@@ -589,27 +587,43 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
             case BitstreamCommand::LSC_WRITE_COMP_DIC: {
                 bool check_crc = (rd.get_byte() & 0x80) != 0;
                 rd.skip_bytes(2);
-                compression_dict = boost::make_optional(array<uint8_t, 8>());
+                compression_dict = boost::make_optional(array<uint8_t, 16>());
                 // patterns are stored in the bitstream in reverse order: pattern7 to pattern0
-                for (int i = 7; i >= 0; i--) {
-                  uint8_t pattern = rd.get_byte();
-                  compression_dict.get()[i] = pattern;
-                }
-                //TODO: Check what is this data used for
-                if (chip->info.family == "MachXO3D") {
+                if (!chip)
+                    throw BitstreamParseError("start of bitstream data before chip was identified", rd.get_offset());
+
+                BitstreamOptions ops(chip.get());
+                if (ops.one_hot_dictionary) {
+                    for (int i = 15; i >= 0; i--) {
+                        uint8_t pattern = rd.get_byte();
+                        compression_dict.get()[i] = pattern;
+                    }
+                } else {
                     for (int i = 7; i >= 0; i--) {
-                        rd.get_byte();
+                        compression_dict.get()[i] = uint8_t(1 << i);
+                        uint8_t pattern = rd.get_byte();
+                        compression_dict.get()[8 + i] = pattern;
                     }
                 }
                 BITSTREAM_DEBUG("write compression dictionary: " <<
-                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[0]) << " " <<
-                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[1]) << " " <<
-                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[2]) << " " <<
-                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[3]) << " " <<
-                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[4]) << " " <<
-                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[5]) << " " <<
-                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[6]) << " " <<
-                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[7]));;
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[8]) << " " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[9]) << " " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[10]) << " " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[11]) << " " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[12]) << " " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[13]) << " " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[14]) << " " <<
+                                "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[15]));;
+                if (ops.one_hot_dictionary)
+                    BITSTREAM_DEBUG("write compression one-hot: " <<
+                                    "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[0]) << " " <<
+                                    "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[1]) << " " <<
+                                    "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[2]) << " " <<
+                                    "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[3]) << " " <<
+                                    "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[4]) << " " <<
+                                    "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[5]) << " " <<
+                                    "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[6]) << " " <<
+                                    "0x" << hex << setw(2) << setfill('0') << int(compression_dict.get()[7]));;
                 if (check_crc)
                   rd.check_crc16();
             }
