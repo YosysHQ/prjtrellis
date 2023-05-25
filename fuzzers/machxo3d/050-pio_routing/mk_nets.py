@@ -32,7 +32,7 @@ def io_conns(tile, bank, ab_only=False):
         ("LVDS{}_PIO", "sink"),
         ("JPULLUPEN{}_PIO", "sink"),
         ("JRESEN{}_PIO", "sink"),
-        ("JSLEWRATE{}_PIO", "sink")
+#        ("JSLEWRATE{}_PIO", "sink") # it is depending of position
     ]
 
     right = [
