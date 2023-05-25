@@ -1,15 +1,12 @@
 from collections import defaultdict
 
 from fuzzconfig import FuzzConfig
-import interconnect
-import nets
 import pytrellis
 import re
 import argparse
 import fuzzloops
 import nonrouting
 import os
-import sys
 
 jobs = [
         {
@@ -189,7 +186,7 @@ def main(args):
                 modes += [iodir + "_" + _ for _ in get_io_types(iodir, pio, side, i3c)]
 
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.BASE_TYPE".format(pio), modes,
-                                         lambda x: get_substs(iomode=x),
+                                         lambda x: get_substs(iomode=x, extracfg=("SLEWRATE", "SLOW")),
                                          empty_bitfile, False)
 
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.PULLMODE".format(pio), ["I3C", "UP", "DOWN", "NONE", "KEEPER"],
