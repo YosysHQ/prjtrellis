@@ -1181,7 +1181,14 @@ namespace MachXO2Bels {
             bel.z = 3;
             add_input("STDBY");
             graph.add_bel_output(bel, graph.ident("OSC"), x, y, graph.ident("G_JOSC_OSC"));
+            add_output("SEDSTDBY", false);            
+        } else if (name == "OSCJ") {
+            postfix = "OSC";
+            bel.z = 3;
+            add_input("STDBY");
+            graph.add_bel_output(bel, graph.ident("OSC"), x, y, graph.ident("G_JOSC_OSC"));
             add_output("SEDSTDBY", false);
+            graph.add_bel_output(bel, graph.ident("OSCESB"), x, y, graph.ident("G_JOSCESB_OSC"));
         } else if (name == "PCNTR") {
             postfix = "PCNTR";
             bel.z = 4;

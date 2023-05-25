@@ -324,6 +324,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips,
 shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool include_lutperm_pips, bool split_slice_mode)
 {
     shared_ptr<RoutingGraph> rg(new RoutingGraph(*this));
+    bool is_xo3 = info.family == "MachXO3D";
     bool have_dqs = (info.family == "MachXO2") || (info.family == "MachXO3D");
     bool have_lvds = true;
     if (info.name.find("LCMXO2-256") != string::npos || info.name.find("LCMXO2-640") != string::npos)
@@ -467,7 +468,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool include_lutperm_pi
             MachXO2Bels::add_misc(*rg, "EFB", x, y+1);
             MachXO2Bels::add_misc(*rg, "GSR", x, y+1);
             MachXO2Bels::add_misc(*rg, "JTAGF", x,y+1);
-            MachXO2Bels::add_misc(*rg, "OSCH", x, y+1);
+            MachXO2Bels::add_misc(*rg, is_xo3 ? "OSCJ" : "OSCH", x, y+1);
             MachXO2Bels::add_misc(*rg, "PCNTR", x, y+1);
             MachXO2Bels::add_misc(*rg, "SEDFA", x, y+1);
             MachXO2Bels::add_misc(*rg, "START", x, y+1);
