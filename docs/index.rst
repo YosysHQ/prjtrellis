@@ -28,7 +28,7 @@ to develop a free and open Verilog to bitstream toolchain for these devices.
 
 .. toctree::
    :maxdepth: 1
-   :caption: libtrellis Documenation
+   :caption: libtrellis Documentation
 
    libtrellis/overview
    libtrellis/textconfig
