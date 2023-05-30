@@ -2,22 +2,8 @@
   "families": {
     "ECP5": {
       "devices": {
-            "LFE5U-12F": {
-                "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
-                "idcode": "0x21111043",
-                "frames": 7562,
-                "bits_per_frame": 592,
-                "pad_bits_after_frame": 0,
-                "pad_bits_before_frame": 0,
-                "max_row" : 50,
-                "max_col" : 72,
-                "row_bias" : 0,
-                "col_bias" : 0,
-                "fuzz": 1
-            },
             "LFE5U-25F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
-                "idcode": "0x41111043",
                 "frames": 7562,
                 "bits_per_frame": 592,
                 "pad_bits_after_frame": 0,
@@ -26,11 +12,30 @@
                 "max_col" : 72,
                 "row_bias" : 0,
                 "col_bias" : 0,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LFE5U-25F": {
+                        "idcode": "0x41111043",
+                        "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
+                        "speeds": [ 6, 7, 8 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LFE5U-12F": {
+                        "idcode": "0x21111043",
+                        "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
+                        "speeds": [ 6, 7, 8 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LAE5U-12F": {
+                        "idcode": "0x21111043",
+                        "packages": ["caBGA381"],
+                        "speeds": [ 6, 7 ],
+                        "suffixes": [ "E" ]
+                    }
+                }
             },
             "LFE5U-45F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
-                "idcode": "0x41112043",
                 "frames": 9470,
                 "bits_per_frame": 846,
                 "pad_bits_after_frame": 0,
@@ -39,11 +44,18 @@
                 "max_col" : 90,
                 "row_bias" : 0,
                 "col_bias" : 0,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LFE5U-45F": {
+                        "idcode": "0x41112043",
+                        "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
+                        "speeds": [ 6, 7, 8 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
             },
             "LFE5U-85F": {
                 "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
-                "idcode": "0x41113043",
                 "frames": 13294,
                 "bits_per_frame": 1136,
                 "pad_bits_after_frame": 0,
@@ -52,11 +64,18 @@
                 "max_col" : 126,
                 "row_bias" : 0,
                 "col_bias" : 0,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LFE5U-85F": {
+                        "idcode": "0x41113043",
+                        "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
+                        "speeds": [ 6, 7, 8 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
             },
             "LFE5UM-25F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
-                "idcode": "0x01111043",
                 "frames": 7562,
                 "bits_per_frame": 592,
                 "pad_bits_after_frame": 0,
@@ -65,11 +84,30 @@
                 "max_col" : 72,
                 "row_bias" : 0,
                 "col_bias" : 0,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LFE5UM-25F": {
+                        "idcode": "0x01111043",
+                        "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
+                        "speeds": [ 6, 7, 8 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LAE5UM-25F": {
+                        "idcode": "0x01111043",
+                        "packages": ["csfBGA285", "caBGA381"],
+                        "speeds": [ 6, 7 ],
+                        "suffixes": [ "E" ]
+                    },
+                    "LFE5UM5G-25F": {
+                        "idcode": "0x81111043",
+                        "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
+                        "speeds": [ 8 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
             },
             "LFE5UM-45F": {
                 "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
-                "idcode": "0x01112043",
                 "frames": 9470,
                 "bits_per_frame": 846,
                 "pad_bits_after_frame": 0,
@@ -78,11 +116,30 @@
                 "max_col" : 90,
                 "row_bias" : 0,
                 "col_bias" : 0,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LFE5UM-45F": {
+                        "idcode": "0x01112043",
+                        "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
+                        "speeds": [ 6, 7, 8 ],
+                        "suffixes": [ "C", "I" ]
+                    },
+                    "LAE5UM-45F": {
+                        "idcode": "0x01112043",
+                        "packages": ["csfBGA285", "caBGA381"],
+                        "speeds": [ 6, 7 ],
+                        "suffixes": [ "E" ]
+                    },
+                    "LFE5UM5G-45F": {
+                        "idcode": "0x81112043",
+                        "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
+                        "speeds": [ 8 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
             },
             "LFE5UM-85F": {
                 "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
-                "idcode": "0x01113043",
                 "frames": 13294,
                 "bits_per_frame": 1136,
                 "pad_bits_after_frame": 0,
@@ -91,46 +148,27 @@
                 "max_col" : 126,
                 "row_bias" : 0,
                 "col_bias" : 0,
-                "fuzz": 1
-            },
-            "LFE5UM5G-25F": {
-                "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
-                "idcode": "0x81111043",
-                "frames": 7562,
-                "bits_per_frame": 592,
-                "pad_bits_after_frame": 0,
-                "pad_bits_before_frame": 0,
-                "max_row" : 50,
-                "max_col" : 72,
-                "row_bias" : 0,
-                "col_bias" : 0,
-                "fuzz": 1
-            },
-            "LFE5UM5G-45F": {
-                "packages": ["csfBGA285", "caBGA256", "caBGA381", "caBGA554", "caBGA756"],
-                "idcode": "0x81112043",
-                "frames": 9470,
-                "bits_per_frame": 846,
-                "pad_bits_after_frame": 0,
-                "pad_bits_before_frame": 2,
-                "max_row" : 71,
-                "max_col" : 90,
-                "row_bias" : 0,
-                "col_bias" : 0,
-                "fuzz": 1
-            },
-            "LFE5UM5G-85F": {
-                "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
-                "idcode": "0x81113043",
-                "frames": 13294,
-                "bits_per_frame": 1136,
-                "pad_bits_after_frame": 0,
-                "pad_bits_before_frame": 0,
-                "max_row" : 95,
-                "max_col" : 126,
-                "row_bias" : 0,
-                "col_bias" : 0,
-                "fuzz": 1
+                "fuzz": 1,
+                "variants": {
+                    "LFE5UM-85F": {
+                        "idcode": "0x01113043",
+                        "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
+                        "speeds": [ 6, 7, 8 ],
+                        "suffixes": [ "C", "I"]
+                    },
+                    "LAE5UM-85F": {
+                        "idcode": "0x01113043",
+                        "packages": ["caBGA756"],
+                        "speeds": [ 6, 7 ],
+                        "suffixes": [ "E" ]
+                    },
+                    "LFE5UM5G-85F": {
+                        "idcode": "0x81113043",
+                        "packages": ["csfBGA285", "caBGA381", "caBGA554", "caBGA756"],
+                        "speeds": [ 8 ],
+                        "suffixes": [ "C", "I" ]
+                    }
+                }
             }
         }
     },

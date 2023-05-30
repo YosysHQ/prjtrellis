@@ -156,6 +156,7 @@ PYBIND11_MODULE (pytrellis, m)
 
     class_<Chip>(m, "Chip")
             .def(init<string>())
+            .def(init<string,string>())
             .def(init<uint32_t>())
             .def(init<const ChipInfo &>())
             .def("get_tile_by_name", &Chip::get_tile_by_name)
