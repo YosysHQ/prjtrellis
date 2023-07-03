@@ -22,7 +22,7 @@ def rewrite_pin(name, celltype, pin):
 
 
 def main():
-    cell_fuzzers.build_and_add(["pio.v"], inc_cell=include_cell, rw_cell_func=rewrite_cell, rw_pin_func=rewrite_pin)
+    cell_fuzzers.build_and_add(["pio.v"], inc_cell=include_cell, rw_cell_func=rewrite_cell, rw_pin_func=rewrite_pin, density="6900", family="MachXO3")
 
 
 if __name__ == "__main__":

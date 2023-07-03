@@ -111,11 +111,16 @@ def main(argv):
                 )
         docs_toc += "</ul>"
 
+        speed_grades = {
+            "ECP5": ["6", "7", "8", "8_5G"],
+            "MachXO3": ["5", "6"],
+        }
+
         # No timing stuff for MachXO2 yet.
-        if fam in ["ECP5"]:
+        if fam in ["ECP5", "MachXO3"]:
             docs_toc += "<h4>Cell Timing Documentation</h4>"
             docs_toc += "<ul>"
-            for spgrade in ["6", "7", "8", "8_5G"]:
+            for spgrade in speed_grades[fam]:
                 tdir = path.join(fdir, "timing")
                 if not path.exists(tdir):
                     os.mkdir(tdir)
@@ -128,7 +133,9 @@ def main(argv):
             docs_toc += "</ul>"
             docs_toc += "<h4>Interconnect Timing Documentation</h4>"
             docs_toc += "<ul>"
-            for spgrade in ["6", "7", "8", "8_5G"]:
+            for spgrade in speed_grades[fam]:
+                if fam == "MachXO3":
+                    continue
                 tdir = path.join(fdir, "timing")
                 if not path.exists(tdir):
                     os.mkdir(tdir)
