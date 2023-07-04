@@ -63,9 +63,21 @@ DeviceLocator find_device_by_name(string name) {
     return *found;
 }
 
+static string device_legacy_mapping(string variant)
+{
+    if (variant == "LFE5U-12F") return "LFE5U-25F";
+    if (variant == "LFE5UM5G-25F") return "LFE5UM-25F";
+    if (variant == "LFE5UM5G-45F") return "LFE5UM-45F";
+    if (variant == "LFE5UM5G-85F") return "LFE5UM-85F";
+    return variant;
+}
+
 DeviceLocator find_device_by_name_and_variant(string name, string variant) {
-    if (variant.empty())
-        return find_device_by_name(name);
+    if (variant.empty()) {
+        fprintf(stderr, "warning: using old nexpnr with new trellis tools.\n");
+        variant = name;
+        name = device_legacy_mapping(variant);
+    }
     auto found = find_device_generic([variant](const string &n, const pt::ptree &p) -> bool {
         UNUSED(p);
         return n == variant;

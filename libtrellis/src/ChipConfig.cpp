@@ -12,8 +12,7 @@ string ChipConfig::to_string() const
 {
     stringstream ss;
     ss << ".device " << chip_name << endl << endl;
-    if (!chip_variant.empty())
-        ss << ".variant " << chip_variant << endl << endl;
+    ss << ".variant " << chip_variant << endl << endl;
     for (const auto &meta : metadata)
         ss << ".comment " << meta << endl;
     for (const auto &sc : sysconfig)
