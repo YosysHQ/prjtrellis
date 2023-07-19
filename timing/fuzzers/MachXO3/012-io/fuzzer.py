@@ -2,7 +2,7 @@ import cell_fuzzers
 
 
 def include_cell(name, type):
-    return type.startswith("io_")
+    return name.startswith("io_")
 
 
 def rewrite_cell(name, type, family):
