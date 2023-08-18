@@ -324,6 +324,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips,
 shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool include_lutperm_pips, bool split_slice_mode)
 {
     shared_ptr<RoutingGraph> rg(new RoutingGraph(*this));
+    bool is_xo3 = info.family == "MachXO3D";
     bool have_dqs = (info.family == "MachXO2") || (info.family == "MachXO3D");
     bool have_lvds = true;
     if (info.name.find("LCMXO2-256") != string::npos || info.name.find("LCMXO2-640") != string::npos)
@@ -388,12 +389,12 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool include_lutperm_pi
                 tile->info.type.find("BS0") != string::npos || tile->info.type.find("TS0") != string::npos ||
                 tile->info.type.find("LLC0PIC") != string::npos) {
                 for (int z = 0; z < 2; z++) {
-                    MachXO2Bels::add_pio(*rg, x, y, z, have_lvds);
+                    MachXO2Bels::add_pio(*rg, x, y, z, have_lvds, is_xo3);
                     MachXO2Bels::add_iologic(*rg, side, x, y, z, have_dqs, have_lvds);
                 }
             } else {
                 for (int z = 0; z < 4; z++) {
-                    MachXO2Bels::add_pio(*rg, x, y, z, have_lvds);
+                    MachXO2Bels::add_pio(*rg, x, y, z, have_lvds, is_xo3);
                     MachXO2Bels::add_iologic(*rg, side, x, y, z, have_dqs, have_lvds);
                 }
             }
@@ -464,10 +465,10 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool include_lutperm_pi
         }
         // Config/system Bels
         if (tile->info.type == "CFG0") {
-            MachXO2Bels::add_misc(*rg, "EFB", x, y+1);
+            MachXO2Bels::add_misc(*rg, is_xo3 ? "EFBB" : "EFB", x, y+1);
             MachXO2Bels::add_misc(*rg, "GSR", x, y+1);
             MachXO2Bels::add_misc(*rg, "JTAGF", x,y+1);
-            MachXO2Bels::add_misc(*rg, "OSCH", x, y+1);
+            MachXO2Bels::add_misc(*rg, is_xo3 ? "OSCJ" : "OSCH", x, y+1);
             MachXO2Bels::add_misc(*rg, "PCNTR", x, y+1);
             MachXO2Bels::add_misc(*rg, "SEDFA", x, y+1);
             MachXO2Bels::add_misc(*rg, "START", x, y+1);

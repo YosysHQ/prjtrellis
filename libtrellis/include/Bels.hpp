@@ -35,7 +35,7 @@ void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, i
 
 namespace MachXO2Bels {
 
-void add_pio(RoutingGraph &graph, int x, int y, int z, bool have_dqs);
+void add_pio(RoutingGraph &graph, int x, int y, int z, bool have_dqs, bool is_xo3);
 void add_iologic(RoutingGraph &graph, char side, int x, int y, int z, bool have_dqs, bool have_lvds);
 void add_dcc(RoutingGraph &graph, int x, int y, /* const std::string &name, */ int z);
 void add_dcm(RoutingGraph &graph, int x, int y, int n, int z);
