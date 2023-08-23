@@ -1,12 +1,11 @@
 import dbfixup
 import pytrellis
 
-device = "LCMXO2-1200HC"
+devices = [ "LCMXO2-256", "LCMXO2-640", "LCMXO2-1200", "LCMXO2-2000", "LCMXO2-4000", "LCMXO2-7000" ]
 
 
-def main():
-    pytrellis.load_database("../../../database")
-    chip = pytrellis.Chip("LCMXO2-1200HC")
+def fix_device(device):
+    chip = pytrellis.Chip(device)
     tiletypes = set()
     for tile in chip.get_all_tiles():
         tiletypes.add(tile.info.type)
@@ -14,6 +13,11 @@ def main():
     for tiletype in sorted(tiletypes):
         dbfixup.dbfixup("MachXO2", device, tiletype)
 
+
+def main():
+    pytrellis.load_database("../../../database")
+    for dev in devices:
+        fix_device(dev)
 
 if __name__ == "__main__":
     main()
