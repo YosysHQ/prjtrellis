@@ -23,11 +23,11 @@ jobs = [
         # *
         {
             "netnames" : eclk_out + eclk_cib + eclk_div,
-            "cfg" : FuzzConfig(job="GLOBAL_ECLK", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
-                      tiles=["CENTER6:CENTER_EBR_CIB", "CENTER_EBR14:CENTER_EBR",
-                             "CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER7:CENTER6",
-                             "CENTER5:CENTER5", "CENTER4:CENTER4"]),
-            "prefix" : "1200_",
+            "cfg" : FuzzConfig(job="GLOBAL_ECLK", family="MachXO2", device="LCMXO2-2000HC", ncl="center-mux.ncl",
+                      tiles=["CENTER8:CENTER_EBR_CIB", "CENTER_EBR17:CENTER_EBR",
+                             "CENTER11:CENTER8", "CENTER10:CENTER7", "CENTER9:CENTER6",
+                             "CENTER7:CENTER5", "CENTER6:CENTER4"]),
+            "prefix" : "2000_",
             "overrides" : defaultdict(lambda : str("sink")),
             "fc_filter" : fc_filter_all
         },
@@ -35,36 +35,36 @@ jobs = [
         # *
         {
             "netnames" : eclkbridge,
-            "cfg" : FuzzConfig(job="GLOBAL_ECLKBRIDGE", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
-                      tiles=["CENTER6:CENTER_EBR_CIB", "CENTER_EBR14:CENTER_EBR",
-                             "CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER7:CENTER6",
-                             "CENTER5:CENTER5", "CENTER4:CENTER4"]),
-            "prefix" : "1200_",
-            "overrides" : { "R6C13_JECSOUT0_ECLKBRIDGECS" : "driver",
-                            "R6C13_JECSOUT1_ECLKBRIDGECS" : "driver",
-                            "R6C13_JSEL0_ECLKBRIDGECS" : "sink",
-                            "R6C13_JSEL1_ECLKBRIDGECS" : "sink" },
+            "cfg" : FuzzConfig(job="GLOBAL_ECLKBRIDGE", family="MachXO2", device="LCMXO2-2000HC", ncl="center-mux.ncl",
+                      tiles=["CENTER8:CENTER_EBR_CIB", "CENTER_EBR17:CENTER_EBR",
+                             "CENTER11:CENTER8", "CENTER10:CENTER7", "CENTER9:CENTER6",
+                             "CENTER7:CENTER5", "CENTER6:CENTER4"]),
+            "prefix" : "2000_",
+            "overrides" : { "R8C14_JECSOUT0_ECLKBRIDGECS" : "driver",
+                            "R8C14_JECSOUT1_ECLKBRIDGECS" : "driver",
+                            "R8C14_JSEL0_ECLKBRIDGECS" : "sink",
+                            "R8C14_JSEL1_ECLKBRIDGECS" : "sink" },
             "fc_filter" : fc_filter_all
         },
 
         {
             "netnames" : dcm + dcc,
-            "cfg" : FuzzConfig(job="GLOBAL_DCM_DCC", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
-                      tiles=["CENTER6:CENTER_EBR_CIB", "CENTER_EBR14:CENTER_EBR",
-                             "CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER7:CENTER6",
-                             "CENTER5:CENTER5", "CENTER4:CENTER4"]),
-            "prefix" : "1200_",
+            "cfg" : FuzzConfig(job="GLOBAL_DCM_DCC", family="MachXO2", device="LCMXO2-2000HC", ncl="center-mux.ncl",
+                      tiles=["CENTER8:CENTER_EBR_CIB", "CENTER_EBR17:CENTER_EBR",
+                             "CENTER11:CENTER8", "CENTER10:CENTER7", "CENTER9:CENTER6",
+                             "CENTER7:CENTER5", "CENTER6:CENTER4"]),
+            "prefix" : "2000_",
             "overrides" : defaultdict(lambda : str("sink")),
             "fc_filter" : fc_filter_dcc
         },
 
         {
             "netnames" : hfsn_cib + hfsn_out + global_cib + global_out + pll + clock_pin,
-            "cfg" : FuzzConfig(job="GLOBAL_HFSN", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
-                      tiles=["CENTER6:CENTER_EBR_CIB", "CENTER_EBR14:CENTER_EBR",
-                             "CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER7:CENTER6",
-                             "CENTER5:CENTER5", "CENTER4:CENTER4"]),
-            "prefix" : "1200_",
+            "cfg" : FuzzConfig(job="GLOBAL_HFSN", family="MachXO2", device="LCMXO2-2000HC", ncl="center-mux.ncl",
+                      tiles=["CENTER8:CENTER_EBR_CIB", "CENTER_EBR17:CENTER_EBR",
+                             "CENTER11:CENTER8", "CENTER10:CENTER7", "CENTER9:CENTER6",
+                             "CENTER7:CENTER5", "CENTER6:CENTER4"]),
+            "prefix" : "2000_",
             "overrides" : defaultdict(lambda : str("sink")),
             "fc_filter" : fc_filter_all
         },
@@ -72,13 +72,13 @@ jobs = [
         # Thanks to fc_filter_dcc, make sure to manually connect DCC outputs to
         # entrance to global network!
         {
-            "netnames" : ["R6C13_VPRX0000", "R6C13_VPRX0100", "R6C13_VPRX0200", "R6C13_VPRX0300",
-                          "R6C13_VPRX0400", "R6C13_VPRX0500", "R6C13_VPRX0600", "R6C13_VPRX0700"],
-            "cfg" : FuzzConfig(job="GLOBAL_DCC_OUT", family="MachXO2", device="LCMXO2-1200HC", ncl="center-mux.ncl",
-                      tiles=["CENTER6:CENTER_EBR_CIB", "CENTER_EBR14:CENTER_EBR",
-                             "CENTER9:CENTER8", "CENTER8:CENTER7", "CENTER7:CENTER6",
-                             "CENTER5:CENTER5", "CENTER4:CENTER4"]),
-            "prefix" : "1200_",
+            "netnames" : ["R8C14_VPRX0000", "R8C14_VPRX0100", "R8C14_VPRX0200", "R8C14_VPRX0300",
+                          "R8C14_VPRX0400", "R8C14_VPRX0500", "R8C14_VPRX0600", "R8C14_VPRX0700"],
+            "cfg" : FuzzConfig(job="GLOBAL_DCC_OUT", family="MachXO2", device="LCMXO2-2000HC", ncl="center-mux.ncl",
+                      tiles=["CENTER8:CENTER_EBR_CIB", "CENTER_EBR17:CENTER_EBR",
+                             "CENTER11:CENTER8", "CENTER10:CENTER7", "CENTER9:CENTER6",
+                             "CENTER7:CENTER5", "CENTER6:CENTER4"]),
+            "prefix" : "2000_",
             "overrides" : defaultdict(lambda : str("sink")),
             "fc_filter" : fc_filter_all
         },
@@ -86,7 +86,7 @@ jobs = [
 
 
 def main(args):
-    pytrellis.load_database("../../../database")
+    pytrellis.load_database("../../../../database")
 
     for job in [jobs[i] for i in args.ids]:
         cfg = job["cfg"]
@@ -97,15 +97,15 @@ def main(args):
                                                      nonlocal_prefix=job["prefix"],
                                                      fc_predicate=job["fc_filter"])
 
-    # TODO: R6C13_JA0 --> R6C13_JCE0_DCC. But TCL also claims
-    # R6C13_CLKI0_DCC --> R6C13_CLKO0_DCC (pseudo = 1). Contradiction?
+    # TODO: R8C14_JA0 --> R8C14_JCE0_DCC. But TCL also claims
+    # R8C14_CLKI0_DCC --> R8C14_CLKO0_DCC (pseudo = 1). Contradiction?
     # From talking to Dave: No it's not a contradiction. A
     # config bit controls whether JCE0 has any effect.
     # Might be fuzzed with something like:
-    # interconnect.fuzz_interconnect_with_netnames(config=cfg, netnames=["R6C13_CLKI0_DCC", "R6C13_CLKO0_DCC", "R6C13_JCE0_DCC"],
+    # interconnect.fuzz_interconnect_with_netnames(config=cfg, netnames=["R8C14_CLKI0_DCC", "R8C14_CLKO0_DCC", "R8C14_JCE0_DCC"],
     #                                              netname_filter_union=False,
     #                                              netdir_override = {
-    #                                                 "R6C13_JCE0_DCC" : "sink",
+    #                                                 "R8C14_JCE0_DCC" : "sink",
     #                                              })
 
 
