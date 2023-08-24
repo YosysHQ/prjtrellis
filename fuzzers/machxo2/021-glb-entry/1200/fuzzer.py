@@ -27,7 +27,7 @@ def main():
         else:
             return 17
 
-    pytrellis.load_database("../../../database")
+    pytrellis.load_database("../../../../database")
     for job in jobs:
         cfg = job["cfg"]
         cfg.setup()
