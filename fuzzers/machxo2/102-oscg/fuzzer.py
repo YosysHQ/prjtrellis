@@ -37,6 +37,7 @@ def get_substs(mode="OSCH", nom_freq="2.08", stdby="0"):
         using_default_freq = ""
 
     return dict(comment=comment,
+                program="MODE:OSCH",
                 nom_freq=nom_freq,
                 stdby=stdby,
                 stdby_0=stdby_0,
