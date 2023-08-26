@@ -24,7 +24,7 @@ design top
          primitive IOBUF PIO_pad;
          primitive PAD PIO;
       }
-      site "J7";
+      site "52";
    }
 
     signal q_c
