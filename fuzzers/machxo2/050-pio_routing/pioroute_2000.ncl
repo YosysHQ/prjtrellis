@@ -1,13 +1,13 @@
 ::FROM-WRITER;
 design top
 {
-    device
-    {
+   device
+   {
         architecture xo2c00;
-        device LCMXO2-1200HC;
-        package QFN32;
+        device LCMXO2-2000HC;
+        package CABGA256;
         performance "6";
-    }
+   }
 
    comp PIO
    {
@@ -24,7 +24,7 @@ design top
          primitive IOBUF PIO_pad;
          primitive PAD PIO;
       }
-      site "11";
+      site "T7";
    }
 
     signal q_c
