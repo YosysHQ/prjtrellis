@@ -9,6 +9,12 @@ jobs = [
         "left_net": "R13C{}_HPSX{:02d}00",
         "right_net": "R13C{}_HPSX{:02d}00"
     },
+    {
+        "cfg": FuzzConfig(job="GLB_ENTRY", family="MachXO2", device="LCMXO2-7000HC", ncl="tap.ncl",
+                          tiles=["CENTER20:CENTER_EBR_CIB_SP"]),
+        "left_net": "R20C{}_HPSX{:02d}00",
+        "right_net": "R20C{}_HPSX{:02d}00"
+    },
 ]
 
 
