@@ -29,6 +29,28 @@ uint32_t convert_hexstring(std::string value_str)
     return uint32_t(strtoul(value_str.c_str(), nullptr, 0));
 }
 
+uint16_t calc_checksum(std::string bytes)
+{
+    uint16_t checksum = 0;
+
+    for(auto &c: bytes)
+    {
+        checksum += c;
+    }
+
+    return checksum;
+}
+
+uint32_t get_num_config_fuses(Trellis::ChipInfo &ci) {
+    if(ci.name == "LCMXO2-4000") {
+        return (5758 + 767 + 1)*128; // UFM is 0 bytes after end of CFG, 1 dummy page at end.
+    } if(ci.name == "LCMXO2-7000") {
+        return (9211 + 1 + 2046 + 2)*128; // UFM is 16 bytes after end of CFG, 2 dummy pages at end.
+    } else {
+        throw runtime_error(fmt("Can not extract number of config fuses from FPGA family " << ci.name));
+    }
+}
+
 int main(int argc, char *argv[])
 {
     using namespace Trellis;
@@ -45,6 +67,7 @@ int main(int argc, char *argv[])
     options.add_options()("freq", po::value<std::string>(), "config frequency in MHz");
     options.add_options()("svf", po::value<std::string>(), "output SVF file");
     options.add_options()("svf-rowsize", po::value<int>(), "SVF row size in bits (default 8000)");
+    options.add_options()("jed", po::value<std::string>(), "output JED file");
     options.add_options()("compress", "compress bitstream to reduce size");
     options.add_options()("spimode", po::value<std::string>(), "SPI Mode to use (fast-read, dual-spi, qspi)");
     options.add_options()("background", "enable background reconfiguration in bitstream");
@@ -336,6 +359,96 @@ help:
             svf_file << "\t\t\tTDO  (00000100)" << endl;
             svf_file << "\t\t\tMASK (00002100);" << endl;
         }
+    }
+
+    if (vm.count("jed")) {
+        // Create JTAG bitstream without SPI flash related settings, as these
+        // seem to confuse the chip sometimes when configuring over JTAG
+        if (!bitopts.empty() && !(bitopts.size() == 1 && bitopts.count("compress"))) {
+            bitopts.erase("spimode");
+            bitopts.erase("freq");
+            b = Bitstream::serialise_chip(c, bitopts);
+        }
+
+        vector<uint8_t> bitstream = b.get_bytes();
+        ofstream jed_file(vm["jed"].as<string>(), ios_base::binary);
+        uint16_t checksum = 0;
+        uint16_t full_checksum = 0;
+
+        jed_file << "\x02*" << endl; // STX plus "design specification" (not filled in).
+        full_checksum += calc_checksum("\x02*\n");
+        // jed_file << "\x03" << hex << uppercase << setw(4) << full_checksum << endl;
+        // return 0;
+
+        ostringstream fusecnt_field;
+        uint32_t fusecnt;
+        try {
+            fusecnt = get_num_config_fuses(c.info);
+        } catch (runtime_error &e) {
+            cerr << "Failed to extract JED file size: " << e.what() << endl;
+            return 1;
+        }
+        
+        fusecnt_field << "QF" << fusecnt << '*' << endl;
+        full_checksum += calc_checksum(fusecnt_field.str());
+        jed_file << fusecnt_field.str();
+        
+        jed_file << "G0*" << endl; // Security fuse not supported yet.
+        full_checksum += calc_checksum("G0*\n");
+        jed_file << "F0*" << endl; // Default fuse value.
+        full_checksum += calc_checksum("F0*\n");
+        jed_file << "L0" << endl;
+        full_checksum += calc_checksum("L0\n");
+
+
+        size_t i = 0;
+        while(i < fusecnt/8) {
+            if(i < bitstream.size()) {
+                size_t len = min(size_t(16), bitstream.size() - i);
+
+                for (unsigned int j = 0; j < len; j++) {
+                    uint8_t byte = uint8_t(bitstream[j + i]);
+                    checksum += reverse_byte(byte);
+                    full_checksum += calc_checksum(std::bitset<8>{byte}.to_string());
+                    jed_file << std::bitset<8>{byte};
+                }
+
+                // Pad to 128 bits if at end of bitstream.
+                if(len < 16) {
+                    for(unsigned int k = 0; k < 16 - len; k++) {
+                        uint8_t byte = 0;
+                        checksum += reverse_byte(byte);
+                        full_checksum += calc_checksum(std::bitset<8>{byte}.to_string());
+                        jed_file << std::bitset<8>{byte};
+                    }
+                }
+                
+
+            } else {
+                // Fill in remaining 128-bit rows
+                for(unsigned int j = 0; j < 16; j++) {
+                    uint8_t byte = 0;
+                    checksum += reverse_byte(byte);
+                    full_checksum += calc_checksum(std::bitset<8>{byte}.to_string());
+                    jed_file << std::bitset<8>{byte};
+                }
+            }
+
+            jed_file << endl;
+            full_checksum += calc_checksum("\n");
+            i += 16;
+        }
+
+        jed_file << "*" << endl;
+        full_checksum += calc_checksum("*\n");
+
+        ostringstream oss;
+        oss << "C" << hex << uppercase << setfill('0') << setw(4) << checksum << '*' << endl;
+        full_checksum += calc_checksum(oss.str());
+        jed_file << oss.str();
+
+        full_checksum += calc_checksum("\x03");
+        jed_file << "\x03" << hex << uppercase << setw(4) << setfill('0') << full_checksum << endl;
     }
 
     return 0;
