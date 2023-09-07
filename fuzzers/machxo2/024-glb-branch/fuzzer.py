@@ -14,74 +14,205 @@ from nets import net_product
 
 jobs = [
     # PLC
-    (FuzzConfig(job="GLB_BRANCH37", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    (FuzzConfig(job="GLB_BRANCH37", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["R5C17:PLC"]), ["R5C18_HPBX0300", "R5C18_HPBX0700"]),
-    (FuzzConfig(job="GLB_BRANCH26", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    (FuzzConfig(job="GLB_BRANCH26", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["R5C16:PLC"]), ["R5C17_HPBX0200", "R5C17_HPBX0600"]),
-    (FuzzConfig(job="GLB_BRANCH15", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    (FuzzConfig(job="GLB_BRANCH15", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["R5C15:PLC"]), ["R5C16_HPBX0100", "R5C16_HPBX0500"]),
-    (FuzzConfig(job="GLB_BRANCH04", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    (FuzzConfig(job="GLB_BRANCH04", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["R5C14:PLC"]), ["R5C15_HPBX0000", "R5C15_HPBX0400"]),
 
+    #4
     # CIB_EBR
-    (FuzzConfig(job="CIB_EBR_BRANCH26", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    (FuzzConfig(job="CIB_EBR_BRANCH26", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["CIB_R6C4:CIB_EBR0"]), ["R6C5_HPBX0200", "R6C5_HPBX0600"]),
-    (FuzzConfig(job="CIB_EBR_BRANCH15", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    (FuzzConfig(job="CIB_EBR_BRANCH15", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["CIB_R6C7:CIB_EBR0"]), ["R6C8_HPBX0100", "R6C8_HPBX0500"]),
-    (FuzzConfig(job="CIB_EBR_BRANCH04", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    (FuzzConfig(job="CIB_EBR_BRANCH04", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["CIB_R6C10:CIB_EBR0"]), ["R6C11_HPBX0000", "R6C11_HPBX0400"]),
-    (FuzzConfig(job="CIB_EBR_BRANCH37", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    (FuzzConfig(job="CIB_EBR_BRANCH37", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["CIB_R6C17:CIB_EBR0"]), ["R6C18_HPBX0300", "R6C18_HPBX0700"]),
 
-    # CIB_PIC_T0.
-    (FuzzConfig(job="CIB_PIC_T0_BRANCH37", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    #8
+    # CIB_PIC_T0
+    (FuzzConfig(job="CIB_PIC_T0_BRANCH37", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["CIB_R1C9:CIB_PIC_T0"]), ["R1C10_HPBX0300", "R1C10_HPBX0700"]),
-    (FuzzConfig(job="CIB_PIC_T0_BRANCH04", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    (FuzzConfig(job="CIB_PIC_T0_BRANCH04", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["CIB_R1C10:CIB_PIC_T0"]), ["R1C11_HPBX0000", "R1C11_HPBX0400"]),
-    (FuzzConfig(job="CIB_PIC_T0_BRANCH15", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    (FuzzConfig(job="CIB_PIC_T0_BRANCH15", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["CIB_R1C11:CIB_PIC_T0"]), ["R1C12_HPBX0100", "R1C12_HPBX0500"]),
-    (FuzzConfig(job="CIB_PIC_T0_BRANCH26", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    (FuzzConfig(job="CIB_PIC_T0_BRANCH26", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["CIB_R1C12:CIB_PIC_T0"]), ["R1C13_HPBX0200", "R1C13_HPBX0600"]),
 
-    # CIB_EBR0_END0
-    (FuzzConfig(job="CIB_EBR0_END0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    #12
+    # CIB_EBR0_END0 - L - 1200
+    (FuzzConfig(job="CIB_EBR0_END0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["CIB_R6C1:CIB_EBR0_END0"]), ["R6C1_HPBX0100", "R6C2_HPBX0200", "R6C2_HPBX0300",
                                                           "R6C1_HPBX0500", "R6C2_HPBX0600", "R6C2_HPBX0700"]),
+    # CIB_EBR2_END0 - R - 1200
+    (FuzzConfig(job="CIB_EBR2_END0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
+                      tiles=["CIB_R6C22:CIB_EBR2_END0"]), ["R6C22_HPBX0000", "R6C22_HPBX0100",
+                                                           "R6C22_HPBX0400", "R6C22_HPBX0500"]),
+    # CIB_EBR0_END2_DLL45 - L - 7000
+    (FuzzConfig(job="CIB_EBR0_END2_DLL45_BRANCH", family="MachXO2", device="LCMXO2-7000HC", ncl="tap_7000.ncl",
+                      tiles=["CIB_R13C1:CIB_EBR0_END2_DLL45"]), ["R13C2_HPBX0000", "R13C2_HPBX0100", "R13C1_HPBX0300",
+                                                                 "R13C2_HPBX0400", "R13C2_HPBX0500", "R13C1_HPBX0700"]),
+    # CIB_EBR2_END1 - R - 2000, 4000 (same as 2000), 7000
+    (FuzzConfig(job="CIB_EBR2_END1_BRANCH", family="MachXO2", device="LCMXO2-7000HC", ncl="tap_7000.ncl",
+                      tiles=["CIB_R13C41:CIB_EBR2_END1"]), ["R13C41_HPBX0100", "R13C41_HPBX0200",
+                                                            "R13C41_HPBX0500", "R13C41_HPBX0600",]),
+    #16
+    (FuzzConfig(job="CIB_EBR2_END1_2100_BRANCH", family="MachXO2", device="LCMXO2-2000HC", ncl="tap_2000.ncl",
+                      tiles=["CIB_R8C26:CIB_EBR2_END1"]), ["R8C26_HPBX0000", "R8C26_HPBX0300",
+                                                           "R8C26_HPBX0400", "R8C26_HPBX0700"]),
+    # CIB_EBR0_END2_DLL3 - L - 7000
+    (FuzzConfig(job="CIB_EBR0_END2_DLL3_BRANCH", family="MachXO2", device="LCMXO2-7000HC", ncl="tap_7000.ncl",
+                      tiles=["CIB_R20C1:CIB_EBR0_END2_DLL3"]), ["R20C2_HPBX0000", "R20C2_HPBX0100", "R20C1_HPBX0300",
+                                                                "R20C2_HPBX0400", "R20C2_HPBX0500", "R20C1_HPBX0700"]),
 
+    # CIB_EBR2_END1_SP - R - 7000
+    (FuzzConfig(job="CIB_EBR2_END1_SP_BRANCH", family="MachXO2", device="LCMXO2-7000HC", ncl="tap_7000.ncl",
+                      tiles=["CIB_R20C41:CIB_EBR2_END1_SP"]), ["R20C41_HPBX0100", "R20C41_HPBX0200",
+                                                               "R20C41_HPBX0500", "R20C41_HPBX0600",]),
+    # CIB_EBR_DUMMY_END3 - L - 2000
+    (FuzzConfig(job="CIB_EBR_DUMMY_END3_BRANCH", family="MachXO2", device="LCMXO2-2000HC", ncl="tap_2000.ncl",
+                      tiles=["CIB_R8C1:CIB_EBR_DUMMY_END3"]), ["R8C1_HPBX0000", "R8C2_HPBX0100", "R8C2_HPBX0200",
+                                                               "R8C1_HPBX0400", "R8C2_HPBX0500", "R8C2_HPBX0600"]),
+    #20
+    # CIB_EBR0_END1 - L - 4000 
+    (FuzzConfig(job="CIB_EBR0_END1_BRANCH", family="MachXO2", device="LCMXO2-4000HC", ncl="tap_4000.ncl",
+                      tiles=["CIB_R11C1:CIB_EBR0_END1"]), ["R11C2_HPBX0000", "R11C1_HPBX0200", "R11C2_HPBX0300",
+                                                           "R11C2_HPBX0400", "R11C1_HPBX0600", "R11C2_HPBX0700"]),
     # PIC_L0
-    (FuzzConfig(job="PIC_L0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    (FuzzConfig(job="PIC_L0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["PL5:PIC_L0"]), ["R5C1_HPBX0100", "R5C2_HPBX0200", "R5C2_HPBX0300",
                                               "R5C1_HPBX0500", "R5C2_HPBX0600", "R5C2_HPBX0700"]),
 
-    # CIB_EBR2_END0- This appears to be a noop after other fuzzers run.
-    (FuzzConfig(job="CIB_EBR2_END0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
-                      tiles=["CIB_R6C22:CIB_EBR2_END0"]), ["R6C22_HPBX0000", "R6C22_HPBX0100",
-                                                          "R6C22_HPBX0400", "R6C22_HPBX0500"]),
-
-    # PIC_R0- This also appears to be a noop after other fuzzers run.
-    (FuzzConfig(job="PIC_R0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    # PIC_R0
+    (FuzzConfig(job="PIC_R0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["PR5:PIC_R0"]), ["R5C22_HPBX0000", "R5C22_HPBX0100",
                                               "R5C22_HPBX0400", "R5C22_HPBX0500"]),
 
-    # URC0- This also appears to be a noop after other fuzzers run.
-    (FuzzConfig(job="URC0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    # URC0
+    (FuzzConfig(job="URC0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["PR1:URC0"]), ["R1C22_HPBX0000", "R1C22_HPBX0100",
-                                              "R1C22_HPBX0400", "R1C22_HPBX0500"]),
+                                            "R1C22_HPBX0400", "R1C22_HPBX0500"]),
 
-    # LRC0- This also appears to be a noop after other fuzzers run.
-    (FuzzConfig(job="LRC0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    #24
+    # LRC0
+    (FuzzConfig(job="LRC0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["PR11:LRC0"]), ["R11C22_HPBX0000", "R11C22_HPBX0100",
-                                              "R11C22_HPBX0400", "R11C22_HPBX0500"]),
+                                             "R11C22_HPBX0400", "R11C22_HPBX0500"]),
 
     # ULC0
-    (FuzzConfig(job="ULC0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    (FuzzConfig(job="ULC0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["PL1:ULC0"]), ["R1C1_HPBX0100", "R1C2_HPBX0200", "R1C2_HPBX0300",
-                                              "R1C1_HPBX0500", "R1C2_HPBX0600", "R1C2_HPBX0700"]),
+                                            "R1C1_HPBX0500", "R1C2_HPBX0600", "R1C2_HPBX0700"]),
 
     # LLC0
-    (FuzzConfig(job="LLC0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap.ncl",
+    (FuzzConfig(job="LLC0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
                       tiles=["PL11:LLC0"]), ["R11C1_HPBX0100", "R11C2_HPBX0200", "R11C2_HPBX0300",
-                                              "R11C1_HPBX0500", "R11C2_HPBX0600", "R11C2_HPBX0700"]),
+                                             "R11C1_HPBX0500", "R11C2_HPBX0600", "R11C2_HPBX0700"]),
+
+    # PIC_LS0
+    (FuzzConfig(job="PIC_LS0_BRANCH", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
+                      tiles=["PL9:PIC_LS0"]), ["R9C1_HPBX0100", "R9C2_HPBX0200", "R9C2_HPBX0300",
+                                               "R9C1_HPBX0500", "R9C2_HPBX0600", "R9C2_HPBX0700"]),
+
+    #28
+    # PIC_RS0
+    (FuzzConfig(job="PIC_RS0_BRANCH", family="MachXO2", device="LCMXO3LF-4300E", ncl="tap_1200.ncl",
+                      tiles=["PR3:PIC_RS0"]), ["R3C22_HPBX0000", "R3C22_HPBX0100",
+                                               "R3C22_HPBX0400", "R3C22_HPBX0500"]),
+
+    # PIC_L1
+    (FuzzConfig(job="PIC_L1_BRANCH", family="MachXO2", device="LCMXO3LF-4300E", ncl="tap_4000.ncl",
+                      tiles=["PL5:PIC_L1"]), ["R5C2_HPBX0000", "R5C1_HPBX0200", "R5C2_HPBX0300",
+                                              "R5C2_HPBX0400", "R5C1_HPBX0600", "R5C2_HPBX0700"]),
+
+    # PIC_R1
+    (FuzzConfig(job="PIC_R1_BRANCH", family="MachXO2", device="LCMXO2-4000HC", ncl="tap_4000.ncl",
+                      tiles=["PR5:PIC_R1"]), ["R5C32_HPBX0000", "R5C32_HPBX0300",
+                                              "R5C32_HPBX0400", "R5C32_HPBX0700"]),
+    (FuzzConfig(job="PIC_R1_BRANCH", family="MachXO2", device="LCMXO2-7000HC", ncl="tap_7000.ncl",
+                      tiles=["PR5:PIC_R1"]), ["R5C41_HPBX0100", "R5C41_HPBX0200",
+                                              "R5C41_HPBX0500", "R5C41_HPBX0600"]),
+
+    #32
+    # PIC_L2
+    (FuzzConfig(job="PIC_L2_BRANCH", family="MachXO2", device="LCMXO2-7000HC", ncl="tap_7000.ncl",
+                      tiles=["PL5:PIC_L2"]), ["R5C2_HPBX0000", "R5C2_HPBX0100", "R5C1_HPBX0300",
+                                              "R5C2_HPBX0400", "R5C2_HPBX0500", "R5C1_HPBX0700"]),
+
+    # PIC_L3
+    (FuzzConfig(job="PIC_L3_BRANCH", family="MachXO2", device="LCMXO2-2000HC", ncl="tap_2000.ncl",
+                      tiles=["PL4:PIC_L3"]), ["R4C1_HPBX0000", "R4C2_HPBX0100", "R4C2_HPBX0200",
+                                              "R4C1_HPBX0400", "R4C2_HPBX0500", "R4C2_HPBX0600"]),
+    # LLC1
+    (FuzzConfig(job="LLC1_BRANCH", family="MachXO2", device="LCMXO2-4000HC", ncl="tap_4000.ncl",
+                      tiles=["PL21:LLC1"]), ["R21C2_HPBX0000", "R21C1_HPBX0200", "R21C2_HPBX0300",
+                                             "R21C2_HPBX0400", "R21C1_HPBX0600", "R21C2_HPBX0700"]),
+    # LLC2
+    (FuzzConfig(job="LLC2_BRANCH", family="MachXO2", device="LCMXO2-7000HC", ncl="tap_7000.ncl",
+                      tiles=["PL26:LLC2"]), ["R26C2_HPBX0000", "R26C2_HPBX0100", "R26C1_HPBX0300",
+                                             "R26C2_HPBX0400", "R26C2_HPBX0500", "R26C1_HPBX0700"]),
+
+    #36
+    # LLC3PIC_VREF3
+    (FuzzConfig(job="LLC3PIC_VREF3_BRANCH", family="MachXO2", device="LCMXO2-2000HC", ncl="tap_2000.ncl",
+                      tiles=["PL14:LLC3PIC_VREF3"]), ["R14C1_HPBX0000", "R14C2_HPBX0100", "R14C2_HPBX0200",
+                                                      "R14C1_HPBX0400", "R14C2_HPBX0500", "R14C2_HPBX0600"]),
+
+    # ULC1
+    (FuzzConfig(job="ULC1_BRANCH", family="MachXO2", device="LCMXO2-4000HC", ncl="tap_4000.ncl",
+                      tiles=["PL1:ULC1"]), ["R1C2_HPBX0000", "R1C1_HPBX0200", "R1C2_HPBX0300",
+                                            "R1C2_HPBX0400", "R1C1_HPBX0600", "R1C2_HPBX0700"]),
+    # ULC2
+    (FuzzConfig(job="ULC2_BRANCH", family="MachXO2", device="LCMXO2-7000HC", ncl="tap_7000.ncl",
+                      tiles=["PL1:ULC2"]), ["R1C2_HPBX0000", "R1C2_HPBX0100", "R1C1_HPBX0300",
+                                            "R1C2_HPBX0400", "R1C2_HPBX0500", "R1C1_HPBX0700"]),
+    # ULC3PIC
+    (FuzzConfig(job="ULC3PIC_BRANCH", family="MachXO2", device="LCMXO2-2000HC", ncl="tap_2000.ncl",
+                      tiles=["PL1:ULC3PIC"]), ["R1C1_HPBX0000", "R1C2_HPBX0100", "R1C2_HPBX0200",
+                                               "R1C1_HPBX0400", "R1C2_HPBX0500", "R1C2_HPBX0600"]),
+
+    #40
+    # LRC1
+    (FuzzConfig(job="LRC1_BRANCH", family="MachXO2", device="LCMXO2-4000HC", ncl="tap_4000.ncl",
+                      tiles=["PR21:LRC1"]), ["R21C32_HPBX0000", "R21C32_HPBX0300",
+                                             "R21C32_HPBX0400", "R21C32_HPBX0700"]),
+
+    (FuzzConfig(job="LRC1_BRANCH", family="MachXO2", device="LCMXO2-7000HC", ncl="tap_7000.ncl",
+                      tiles=["PR26:LRC1"]), ["R26C41_HPBX0100", "R26C41_HPBX0200",
+                                             "R26C41_HPBX0500", "R26C41_HPBX0600"]),
+    # LRC1PIC2 same for 2000
+    (FuzzConfig(job="LRC1PIC2_BRANCH", family="MachXO2", device="LCMXO2-2000HC", ncl="tap_2000.ncl",
+                      tiles=["PR14:LRC1PIC2"]), ["R14C26_HPBX0000", "R14C26_HPBX0300",
+                                                 "R14C26_HPBX0400", "R14C26_HPBX0700"]),
+
+    # URC1 same for 4000 and 7000
+    (FuzzConfig(job="URC1_BRANCH", family="MachXO2", device="LCMXO2-4000HC", ncl="tap_4000.ncl",
+                      tiles=["PR1:URC1"]), ["R1C32_HPBX0000", "R1C32_HPBX0300",
+                                            "R1C32_HPBX0400", "R1C32_HPBX0700"]),
+
+    #44
+    # URC1PIC
+    (FuzzConfig(job="URC1PIC_BRANCH", family="MachXO2", device="LCMXO2-2000HC", ncl="tap_2000.ncl",
+                      tiles=["PR1:URC1PIC"]), ["R1C26_HPBX0000", "R1C26_HPBX0300",
+                                               "R1C26_HPBX0400", "R1C26_HPBX0700"]),
+
+    #45
+    # CIB_PIC_B0
+    (FuzzConfig(job="CIB_PIC_B0_BRANCH26", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
+                      tiles=["CIB_R11C4:CIB_PIC_B0"]), ["R11C5_HPBX0200", "R11C5_HPBX0600"]),
+    (FuzzConfig(job="CIB_PIC_B0_BRANCH04", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
+                      tiles=["CIB_R11C6:CIB_PIC_B0"]), ["R11C7_HPBX0000", "R11C7_HPBX0400"]),
+    (FuzzConfig(job="CIB_PIC_B0_BRANCH37", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
+                      tiles=["CIB_R11C9:CIB_PIC_B0"]), ["R11C10_HPBX0300", "R11C10_HPBX0700"]),
+    (FuzzConfig(job="CIB_PIC_B0_BRANCH15", family="MachXO2", device="LCMXO2-1200HC", ncl="tap_1200.ncl",
+                      tiles=["CIB_R11C11:CIB_PIC_B0"]), ["R11C12_HPBX0100", "R11C12_HPBX0500"]),
+
 ]
 
 def main(args):

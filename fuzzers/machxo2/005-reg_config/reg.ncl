@@ -19,8 +19,6 @@ design top
                  "Q${r}:Q "
                  "GSR:${gsr} "
                  "REGMODE:${regmode} "
-                 "CLKMUX:${clkmode} "
-                 "CEMUX:1 "
                  "LSRMUX:LSR "
                  "SRMODE:LSR_OVER_CE "
                  "M0MUX:M0 ";

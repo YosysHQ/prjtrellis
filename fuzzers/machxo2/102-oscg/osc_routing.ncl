@@ -23,13 +23,13 @@ design top
       site R2C2A;
    }
 
-    signal q_c
+    signal clk_c
    {
       signal-pins
          // drivers
          (SLICE_0, F0),
          // loads
-         (SLICE_0, A0);
+         (SLICE_0, CLK);
       ${route}
    }
 }

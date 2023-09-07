@@ -10,21 +10,61 @@ import argparse
 jobs = [
         {
             "cfg": FuzzConfig(job="CIBEBR0ROUTE", family="MachXO2", device="LCMXO2-1200HC",
-                        ncl="cibroute.ncl", tiles=["CIB_R6C10:CIB_EBR0"]),
+                        ncl="cibroute_1200.ncl", tiles=["CIB_R6C10:CIB_EBR0"]),
             "location": (6, 10),
             "nn_filter_extra": []
         },
         {
             "cfg": FuzzConfig(job="CIBEBR0END0ROUTE", family="MachXO2", device="LCMXO2-1200HC",
-                        ncl="cibroute.ncl", tiles=["CIB_R6C1:CIB_EBR0_END0"]),
+                        ncl="cibroute_1200.ncl", tiles=["CIB_R6C1:CIB_EBR0_END0"]),
             "location": (6, 1),
             "nn_filter_extra": ["G_HPBX0100", "G_HPBX0500"]
         },
         {
             "cfg": FuzzConfig(job="CIBEBR2END0ROUTE", family="MachXO2", device="LCMXO2-1200HC",
-                        ncl="cibroute.ncl", tiles=["CIB_R6C22:CIB_EBR2_END0"]),
+                        ncl="cibroute_1200.ncl", tiles=["CIB_R6C22:CIB_EBR2_END0"]),
             "location": (6, 22),
             "nn_filter_extra": []
+        },
+        # CIB_EBR0_END2_DLL3 and CIB_EBR0_END2_DLL45 identical
+        {
+            "cfg": FuzzConfig(job="CIB_EBR0_END2_DLL3ROUTE", family="MachXO2", device="LCMXO2-7000HC",
+                        ncl="cibroute_7000.ncl", tiles=["CIB_R20C1:CIB_EBR0_END2_DLL3"]),
+            "location": (20, 1),
+            "nn_filter_extra": ["G_HPBX0100", "G_HPBX0500"]
+        },
+        {
+            "cfg": FuzzConfig(job="CIB_EBR0_END2_DLL45ROUTE", family="MachXO2", device="LCMXO2-7000HC",
+                        ncl="cibroute_7000.ncl", tiles=["CIB_R13C1:CIB_EBR0_END2_DLL45"]),
+            "location": (13, 1),
+            "nn_filter_extra": ["G_HPBX0100", "G_HPBX0500"]
+        },
+
+        {
+            "cfg": FuzzConfig(job="CIB_EBR2_END1ROUTE", family="MachXO2", device="LCMXO2-7000HC",
+                        ncl="cibroute_7000.ncl", tiles=["CIB_R13C41:CIB_EBR2_END1"]),
+            "location": (13, 41),
+            "nn_filter_extra": []
+        },
+        {
+            "cfg": FuzzConfig(job="CIB_EBR2_END1_SPROUTE", family="MachXO2", device="LCMXO2-7000HC",
+                        ncl="cibroute_7000.ncl", tiles=["CIB_R20C41:CIB_EBR2_END1_SP"]),
+            "location": (20, 41),
+            "nn_filter_extra": []
+        },
+
+        {
+            "cfg": FuzzConfig(job="CIB_EBR0_END1ROUTE", family="MachXO2", device="LCMXO2-4000HC",
+                        ncl="cibroute_4000.ncl", tiles=["CIB_R11C1:CIB_EBR0_END1"]),
+            "location": (11, 1),
+            "nn_filter_extra": ["G_HPBX0100", "G_HPBX0500"]
+        },
+
+        {
+            "cfg": FuzzConfig(job="CIB_EBR_DUMMY_END3ROUTE", family="MachXO2", device="LCMXO2-2000HC",
+                        ncl="cibroute_2000.ncl", tiles=["CIB_R8C1:CIB_EBR_DUMMY_END3"]),
+            "location": (8, 1),
+            "nn_filter_extra": ["G_HPBX0100", "G_HPBX0500"]
         },
 ]
 
