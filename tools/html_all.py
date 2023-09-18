@@ -134,8 +134,6 @@ def main(argv):
             docs_toc += "<h4>Interconnect Timing Documentation</h4>"
             docs_toc += "<ul>"
             for spgrade in speed_grades[fam]:
-                if fam == "MachXO3":
-                    continue
                 tdir = path.join(fdir, "timing")
                 if not path.exists(tdir):
                     os.mkdir(tdir)
