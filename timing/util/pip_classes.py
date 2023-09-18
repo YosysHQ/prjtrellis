@@ -2,7 +2,7 @@ import re
 import tiles
 import json
 lc_input_re = re.compile(r'(J?[ABCDM]|CLK|LSR|CE)\d')
-lc_output_re = re.compile(r'J?[FQ]\d')
+lc_output_re = re.compile(r'J?[FQ]|CLK\d')
 
 def get_span(wire):
     if (wire.startswith("H") or wire.startswith("V")) and wire[1:3].isdigit():
