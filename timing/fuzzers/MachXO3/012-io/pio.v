@@ -9,10 +9,10 @@ module top(
 (* IO_TYPE="LVCMOS12" *) inout io_LVCMOS12,
 
 (* IO_TYPE="LVDS" *) inout io_LVDS,
-(* IO_TYPE="SSTL18_I" *) inout io_SSTL18_I,
-(* IO_TYPE="SSTL18_II" *) inout io_SSTL18_II,
-(* IO_TYPE="SSTL15_I" *) inout io_SSTL15_I,
-(* IO_TYPE="SSTL15_II" *) inout io_SSTL15_II
+(* IO_TYPE="LVDS25" *) inout io_LVDS25,
+(* IO_TYPE="LVPECL33" *) inout io_LVPECL33,
+(* IO_TYPE="MIPI" *) inout io_MIPI,
+(* IO_TYPE="LVTTL33" *) inout io_LVTTL33
 
 );
 
@@ -34,16 +34,16 @@ module top(
     assign io_LVDS = ignore_t ? 1'bz : ignore_i;
     assign ignore_o[5] = io_LVDS;
 
-    assign io_SSTL18_I = ignore_t ? 1'bz : ignore_i;
-    assign ignore_o[6] = io_SSTL18_I;
+    assign io_LVDS25 = ignore_t ? 1'bz : ignore_i;
+    assign ignore_o[6] = io_LVDS25;
 
-    assign io_SSTL18_II = ignore_t ? 1'bz : ignore_i;
-    assign ignore_o[7] = io_SSTL18_II;
+    assign io_LVPECL33 = ignore_t ? 1'bz : ignore_i;
+    assign ignore_o[7] = io_LVPECL33;
 
-    assign io_SSTL15_I = ignore_t ? 1'bz : ignore_i;
-    assign ignore_o[8] = io_SSTL15_I;
+    assign io_MIPI = ignore_t ? 1'bz : ignore_i;
+    assign ignore_o[8] = io_MIPI;
 
-    assign io_SSTL15_II = ignore_t ? 1'bz : ignore_i;
-    assign ignore_o[9] = io_SSTL15_II;
+    assign io_LVTTL33 = ignore_t ? 1'bz : ignore_i;
+    assign ignore_o[9] = io_LVTTL33;
 
 endmodule
