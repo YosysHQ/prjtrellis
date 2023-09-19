@@ -17,10 +17,26 @@ def timing_configs(job, design, density="45", family="ECP5"):
             ("8", FuzzConfig(job + "_8", "ECP5", "LFE5U-{}F".format(density), [], design, "-s 8")),
             ("8_5G", FuzzConfig(job + "_8_5G", "ECP5", "LFE5UM5G-{}F".format(density), [], design, "-s 8"))
         ]
+    elif family == "MachXO2":
+        return [
+            ("1", FuzzConfig(job + "_1", "MachXO2", "LCMXO2-{}ZE".format(density), [], design, "-s 1")),
+            ("2", FuzzConfig(job + "_2", "MachXO2", "LCMXO2-{}ZE".format(density), [], design, "-s 2")),
+            ("3", FuzzConfig(job + "_3", "MachXO2", "LCMXO2-{}ZE".format(density), [], design, "-s 3")),
+            ("4", FuzzConfig(job + "_4", "MachXO2", "LCMXO2-{}HE".format(density), [], design, "-s 4")),
+            ("5", FuzzConfig(job + "_5", "MachXO2", "LCMXO2-{}HE".format(density), [], design, "-s 5")),
+            ("6", FuzzConfig(job + "_6", "MachXO2", "LCMXO2-{}HE".format(density), [], design, "-s 6")),
+        ]
     elif family == "MachXO3":
         return [
             ("5", FuzzConfig(job + "_5", "MachXO3", "LCMXO3LF-{}C".format(density), [], design, "-s 5")),
             ("6", FuzzConfig(job + "_6", "MachXO3", "LCMXO3LF-{}C".format(density), [], design, "-s 6")),
+        ]
+    elif family == "MachXO3D":
+        return [
+            ("2", FuzzConfig(job + "_2", "MachXO3D", "LCMXO3D-{}ZC".format(density), [], design, "-s 2")),
+            ("3", FuzzConfig(job + "_3", "MachXO3D", "LCMXO3D-{}ZC".format(density), [], design, "-s 3")),
+            ("5", FuzzConfig(job + "_5", "MachXO3D", "LCMXO3D-{}HC".format(density), [], design, "-s 5")),
+            ("6", FuzzConfig(job + "_6", "MachXO3D", "LCMXO3D-{}HC".format(density), [], design, "-s 6")),
         ]
     assert False
 

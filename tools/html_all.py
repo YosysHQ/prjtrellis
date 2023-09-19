@@ -113,11 +113,12 @@ def main(argv):
 
         speed_grades = {
             "ECP5": ["6", "7", "8", "8_5G"],
+            "MachXO2": ["1", "2", "3", "4", "5", "6"],
             "MachXO3": ["5", "6"],
+            "MachXO3D": ["2", "3", "5", "6"],
         }
 
-        # No timing stuff for MachXO2 yet.
-        if fam in ["ECP5", "MachXO3"]:
+        if fam in ["ECP5", "MachXO2", "MachXO3", "MachXO3D"]:
             docs_toc += "<h4>Cell Timing Documentation</h4>"
             docs_toc += "<ul>"
             for spgrade in speed_grades[fam]:
