@@ -2,11 +2,11 @@ import cell_fuzzers
 
 
 def include_cell(name, type):
-    print("{} = {}".format(name, name is not None and name.startswith("pin_") and name.endswith("_MGIOL")))
-    return name is not None and name.startswith("pin_") and name.endswith("_MGIOL")
+    print("{} = {}".format(name, name.startswith("pin_") and name.endswith("_MGIOL")))
+    return name.startswith("pin_") and name.endswith("_MGIOL")
 
 
-def rewrite_cell(name, type, family):
+def rewrite_cell(name, type):
     if type.startswith("pin_"):
         return "IOLOGIC:MODE={}".format("".join(type.split("_")[1:-1]))
     else:

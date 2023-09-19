@@ -9,9 +9,7 @@ def include_cell(name, type):
     return type.isupper() and "_" not in type
 
 
-def rewrite_celltype(name, type, family="ECP5"):
-    if family == "MachXO3":
-        return type.split('/')[-1].split("_")[0]
+def rewrite_celltype(name, type):
     return type
 
 
@@ -68,13 +66,13 @@ def delay_tuple(delay):
 
 
 def add_sdf_to_database(dbfile, sdffile, include_cell_predicate=include_cell, rewrite_cell_func=rewrite_celltype,
-                        rewrite_pin_func=rewrite_pin, family="ECP5"):
+                        rewrite_pin_func=rewrite_pin):
     db = load_database(dbfile)
     sdf = parse_sdf.parse_sdf_file(sdffile)
     for instname, cell in sdf.cells.items():
-        celltype = rewrite_cell_func(cell.inst, cell.type, family)
-        if not include_cell_predicate(cell.inst, celltype):
+        if not include_cell_predicate(cell.inst, cell.type):
             continue
+        celltype = rewrite_cell_func(cell.inst, cell.type)
         if celltype not in db:
             db[celltype] = set()
         for entry in cell.entries:

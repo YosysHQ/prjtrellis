@@ -5,13 +5,13 @@ def include_cell(name, type):
     return name.startswith("ebr_")
 
 
-def rewrite_cell_regmode(name, type, family):
+def rewrite_cell_regmode(name, type):
     if type.startswith("ebr_"):
         return "DP8KC:REGMODE_A={},REGMODE_B={}".format(type.split("_", 2)[1], type.split("_", 2)[2])
     else:
         return type
 
-def rewrite_cell_wrmode(name, type, family):
+def rewrite_cell_wrmode(name, type):
     if type.startswith("ebr_"):
         return "DP8KC:WRITEMODE_A={},WRITEMODE_B={}".format(type.split("_", 2)[1], type.split("_", 2)[2])
     else:

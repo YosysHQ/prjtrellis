@@ -5,7 +5,7 @@ def include_cell(name, type):
     return name.startswith("io_")
 
 
-def rewrite_cell(name, type, family):
+def rewrite_cell(name, type):
     if type.startswith("io_"):
         return "PIO:IOTYPE={}".format(type.split("_", 1)[1])
     else:

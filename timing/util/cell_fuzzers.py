@@ -47,4 +47,4 @@ def build_and_add(designs, density="45", family="ECP5", inc_cell=cell_timings.in
         db = timing_dbs.cells_db_path(family, grade)
         for sdf in sdfs[grade]:
             cell_timings.add_sdf_to_database(db, sdf, include_cell_predicate=inc_cell, rewrite_cell_func=rw_cell_func,
-                                             rewrite_pin_func=rw_pin_func, family=family)
+                                             rewrite_pin_func=rw_pin_func)

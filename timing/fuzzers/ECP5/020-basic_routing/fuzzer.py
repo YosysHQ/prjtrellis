@@ -7,7 +7,7 @@ import fuzzloops
 
 def main():
     jobs = []
-    jobs += cell_fuzzers.timing_configs("picorv32", "../../resource/picorv32_x20.v", "85")
+    jobs += cell_fuzzers.timing_configs("picorv32", "../../../resource/picorv32_x20.v", "85")
 
     def per_job(job):
         grade, cfg = job
