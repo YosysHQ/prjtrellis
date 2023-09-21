@@ -27,6 +27,7 @@ module top_large (
 		.BARREL_SHIFTER(1),
 		.ENABLE_PCPI(1),
 		.ENABLE_MUL(1),
+		.ENABLE_DIV(1),
 		.ENABLE_IRQ(1)
 	) picorv32 (
 		.clk            (clk            ),
