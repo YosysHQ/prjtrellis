@@ -4,7 +4,9 @@ module top
   input  rx,
   output tx,
   input  rx2,
-  output tx2
+  output tx2,
+  input  rx3,
+  output tx3
 );
 
   reg [5:0] reset_cnt = 0;
@@ -16,6 +18,7 @@ module top
 
   altair machine0(.clk(clk),.reset(~resetn),.rx(rx),.tx(tx));
   altair machine1(.clk(clk),.reset(~resetn),.rx(rx2),.tx(tx2));
+  altair machine2(.clk(~clk),.reset(~resetn),.rx(rx3),.tx(tx3));
 
 endmodule
 
