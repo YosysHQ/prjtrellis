@@ -2,7 +2,7 @@ import re
 import tiles
 import json
 lc_input_re = re.compile(r'(J?[ABCDM]|CLK|LSR|CE)\d')
-lc_output_re = re.compile(r'J?[FQ]\d')
+lc_output_re = re.compile(r'J?[FQ]|CLK\d')
 
 def get_span(wire):
     if (wire.startswith("H") or wire.startswith("V")) and wire[1:3].isdigit():
@@ -73,6 +73,8 @@ def get_pip_class(source, sink):
         elif "HPBX" in source_base:
             return "global_to_" + get_span(sink_base)
         elif "BOUNCE" in source_base:
+            return None
+        elif "KEEP" in source_base:
             return None
         else:
             assert False, (source, sink)

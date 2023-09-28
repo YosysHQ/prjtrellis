@@ -7,7 +7,7 @@ import fuzzloops
 
 def main():
     jobs = []
-    jobs += cell_fuzzers.timing_configs("picorv32", "../../../resource/picorv32_x20.v", "85")
+    jobs += cell_fuzzers.timing_configs("picorv32", "../../../resource/picorv32_large.v", density="7000", family="MachXO2")
 
     def per_job(job):
         grade, cfg = job
@@ -16,7 +16,7 @@ def main():
         ncl = bitf.replace(".bit", "_out.ncl")
         sdf = bitf.replace(".bit", ".sdf")
         data = timing_solver.solve_pip_delays(ncl, sdf)
-        db = timing_dbs.interconnect_db_path("ECP5", grade)
+        db = timing_dbs.interconnect_db_path("MachXO2", grade)
         with open(db, "w") as f:
             json.dump(data, f, indent=4, sort_keys=True)
 

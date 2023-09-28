@@ -27,7 +27,6 @@ module top_large (
 		.BARREL_SHIFTER(1),
 		.ENABLE_PCPI(1),
 		.ENABLE_MUL(1),
-		.ENABLE_DIV(1),
 		.ENABLE_IRQ(1)
 	) picorv32 (
 		.clk            (clk            ),
@@ -236,6 +235,7 @@ module picorv32 #(
 	reg [31:0] timer;
 
 `ifndef PICORV32_REGS
+  (* syn_ramstyle="block_ram" *)
 	reg [31:0] cpuregs [0:regfile_size-1];
 
 	integer i;
