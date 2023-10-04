@@ -39,6 +39,16 @@ string ChipConfig::to_string() const
         ss.flags(f);
         ss << endl;
     }
+    for (const auto &pcs : pcs_data) {
+        ss << ".pcs " << setw(2) << setfill('0') << hex << int(pcs.first) << endl;
+        ios_base::fmtflags f( ss.flags() );
+        for (size_t i = 0; i < pcs.second.size(); i++) {
+            ss << setw(2) << setfill('0') << hex << int(pcs.second.at(i));
+            ss << " ";
+        }
+        ss.flags(f);
+        ss << endl;
+    }
     for (const auto &tg : tilegroups) {
         ss << ".tile_group";
         for (const auto &tile : tg.tiles) {
@@ -87,6 +97,16 @@ ChipConfig ChipConfig::from_string(const string &config)
                 cc.bram_data[bram].push_back(value);
             }
             ss.flags(f);
+        } else if (verb == ".pcs") {
+            int pcs;
+            ss >> hex >> pcs;
+            ios_base::fmtflags f(ss.flags());
+            while (!skip_check_eor(ss)) {
+                int value;
+                ss >> hex >> value;
+                cc.pcs_data[pcs].push_back(uint8_t(value));
+            }
+            ss.flags(f);
         } else if (verb == ".tile_group") {
             TileGroup tg;
             std::string line;
@@ -112,6 +132,7 @@ Chip ChipConfig::to_chip() const
     Chip c(chip_name, chip_variant);
     c.metadata = metadata;
     c.bram_data = bram_data;
+    c.pcs_data = pcs_data;
     set<string> processed_tiles;
     for (auto tile_entry : c.tiles) {
         auto tile_db = get_tile_bitdata(TileLocator{c.info.family, c.info.name, tile_entry.second->info.type});
@@ -154,6 +175,7 @@ ChipConfig ChipConfig::from_chip(const Chip &chip)
     cc.chip_variant = chip.info.variant;
     cc.metadata = chip.metadata;
     cc.bram_data = chip.bram_data;
+    cc.pcs_data = chip.pcs_data;
     for (auto tile : chip.tiles) {
         auto tile_db = get_tile_bitdata(TileLocator{chip.info.family, chip.info.name, tile.second->info.type});
         cc.tiles[tile.first] = tile_db->tile_cram_to_config(tile.second->cram);

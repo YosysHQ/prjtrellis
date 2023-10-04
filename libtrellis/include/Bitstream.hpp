@@ -35,6 +35,7 @@ enum class BitstreamCommand : uint8_t {
     ISC_PROGRAM_USERCODE_2 = 0b11000011,
     ISC_PROGRAM_DONE_2 = 0b01111010,
     WRITE_INC_FRAME = 0b01000001,
+    LSC_WRITE_PCS = 0b01110010,
     DUMMY = 0b11111111,
 };
 

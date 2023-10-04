@@ -790,6 +790,42 @@ Chip Bitstream::deserialise_chip(boost::optional<uint32_t> idcode) {
                 BITSTREAM_DEBUG("set sed crc to 0x" << hex << setw(8) << setfill('0') << cfg);
             }
                 break;
+            case BitstreamCommand::LSC_WRITE_PCS: {
+                uint8_t id = rd.get_byte();
+                if (id != 0x10) {
+                    BITSTREAM_FATAL("unsupported LSC_WRITE_PCS with unknown id " << hex << setw(2) << id,rd.get_offset());
+                }
+                uint8_t addr = rd.get_byte();
+                uint8_t size = rd.get_byte();
+                switch (addr)
+                {
+                case 0x40: // I2C Primary
+                    if (size != 0x05)
+                        BITSTREAM_FATAL("unsupported LSC_WRITE_PCS for I2C with size " << hex << setw(2) << size,rd.get_offset());
+                    break;
+                case 0x4A: // I2C Secondary
+                    if (size != 0x05)
+                        BITSTREAM_FATAL("unsupported LSC_WRITE_PCS for I2C with size " << hex << setw(2) << size,rd.get_offset());
+                    break;
+                case 0x54: // SPI
+                    if (size != 0x0A)
+                        BITSTREAM_FATAL("unsupported LSC_WRITE_PCS for SPI with size " << hex << setw(2) << size,rd.get_offset());
+                    break;
+                case 0x5E: // Timer/Counter
+                    if (size != 0x12)
+                        BITSTREAM_FATAL("unsupported LSC_WRITE_PCS for TC with size " << hex << setw(2) << size,rd.get_offset());
+                    break;
+                default:
+                    BITSTREAM_FATAL("unsupported LSC_WRITE_PCS with address " << hex << setw(2) << addr,rd.get_offset());
+                    break;
+                }
+                chip->pcs_data[addr].resize(size);
+                for(uint8_t i=0;i<size;i++) {
+                    chip->pcs_data[addr][i] = rd.get_byte();
+                }
+                BITSTREAM_DEBUG("pcs frame");
+            }
+                break;
             case BitstreamCommand::DUMMY:
                 break;
             default: BITSTREAM_FATAL("unsupported command 0x" << hex << setw(2) << setfill('0') << int(cmd),
@@ -970,6 +1006,16 @@ Bitstream Bitstream::serialise_chip(const Chip &chip, const map<string, string> 
 
     // Post-bitstream space for SECURITY and SED (not used here)
     wr.insert_dummy(ops.security_sed_space);
+
+    for (const auto &pcs : chip.pcs_data) {
+        wr.write_byte(uint8_t(BitstreamCommand::LSC_WRITE_PCS));
+        wr.write_byte(0x10);
+        wr.write_byte(uint8_t(pcs.first));
+        wr.write_byte(uint8_t(pcs.second.size()));
+        for (size_t i = 0; i < pcs.second.size(); i++) {
+            wr.write_byte(pcs.second[i]);
+        }
+    }
 
     // Program Usercode
     wr.write_byte(uint8_t(BitstreamCommand::ISC_PROGRAM_USERCODE));

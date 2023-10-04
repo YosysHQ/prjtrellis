@@ -34,6 +34,8 @@ public:
     // Block RAM initialisation (WIP)
     map<uint16_t, vector<uint16_t>> bram_data;
 
+    map<uint8_t, vector<uint8_t>> pcs_data;
+
     string to_string() const;
     static ChipConfig from_string(const string &config);
     Chip to_chip() const;

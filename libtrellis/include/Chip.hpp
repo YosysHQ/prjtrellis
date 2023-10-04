@@ -172,6 +172,9 @@ public:
     // BRAM block data size
     int bram_data_size;
 
+    // PCS data
+    map<uint8_t, vector<uint8_t>> pcs_data;
+
     // Globals data- Should be a variant, but I couldn't get boost::python
     // to behave with boost::variant.
     Ecp5GlobalsInfo global_data_ecp5;
