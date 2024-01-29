@@ -3,7 +3,6 @@
 _prj=trellis
 _pkgname=prj$_prj
 pkgname=$_pkgname-git
-_commit=%COMMIT%
 pkgver=dummy
 pkgrel=1
 pkgdesc='Documentation and definitions for the Lattice ECP5 bit-stream format'
@@ -15,7 +14,7 @@ makedepends=('git' 'cmake' 'boost' 'python-sphinx' 'python-sphinx_rtd_theme' 'py
 optdepends=('python: Python support')
 provides=("$_pkgname")
 conflicts=("$_pkgname")
-source=("git+$url.git#commit=$_commit")
+source=("git+$url.git")
 sha512sums=('SKIP')
 
 pkgver() {
