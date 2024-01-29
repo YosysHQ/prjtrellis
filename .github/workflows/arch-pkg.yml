@@ -4,16 +4,12 @@ on: [push, pull_request]
 jobs:
   arch-pkg:
     runs-on: ubuntu-latest
-    container:
-      image: archlinux
-      options: --privileged
-      volumes:
-        - /sys/fs/cgroup:/sys/fs/cgroup
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build Arch Linux package
-        uses: FFY00/build-arch-package@v1
+        uses: 2m/arch-pkgbuild-builder@v1.21
         with:
-          PKGBUILD: $GITHUB_WORKSPACE/.github/archlinux/PKGBUILD
+          target: 'pkgbuild'
+          pkgname: '.github/archlinux'
 
 
