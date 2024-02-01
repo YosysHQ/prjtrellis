@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
         po::notify(vm);
     }
     catch (po::required_option &e) {
-        cerr << "Error: input file is mandatory." << endl << endl;
+        cerr << "Error: Option " << e.get_option_name() << " is mandatory." << endl << endl;
         goto help;
     }
     catch (std::exception &e) {
