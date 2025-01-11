@@ -54,10 +54,11 @@ else()
 endif()
 set(Boost_NO_BOOST_CMAKE ON)
 
-find_package(Python3 3.5 REQUIRED COMPONENTS Interpreter)
 if (BUILD_PYTHON)
-    find_package(Python3 3.5 REQUIRED COMPONENTS Development)
+    find_package(Python3 3.5 REQUIRED COMPONENTS Interpreter Development.Module)
     set(PythonInstallTarget "pytrellis")
+else()
+    find_package(Python3 3.5 REQUIRED COMPONENTS Interpreter)
 endif()
 
 find_package(Boost REQUIRED COMPONENTS ${boost_libs})
