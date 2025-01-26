@@ -118,20 +118,22 @@ endfunction()
 # Avoid perturbing build if git version hasn't changed
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/generated")
 set(LAST_GIT_VERSION "")
+
+# Get version string in following order of priority:
+#  1) Externally defined -DCURRENT_GIT_VERSION
+#  2) git-archive export-subst trick from .gitversion
+#  3) Call git describe (if available)
 if (NOT DEFINED CURRENT_GIT_VERSION)
-    execute_process(COMMAND git describe --tags --always OUTPUT_VARIABLE CURRENT_GIT_VERSION WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+  file(READ "${CMAKE_SOURCE_DIR}/.gitversion" CURRENT_GIT_VERSION)
+  if ("${CURRENT_GIT_VERSION}" STREQUAL "$Format:%cs-%h$") # if not substituted we're in a git checkout
+    if (GIT_EXECUTABLE)
+      execute_process(COMMAND ${GIT_EXECUTABLE} describe --tags --always OUTPUT_VARIABLE CURRENT_GIT_VERSION WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+      string(STRIP "${CURRENT_GIT_VERSION}" CURRENT_GIT_VERSION)
+    endif()
+  else() # we're in a git-archive tarball
+    file(READ "${CMAKE_SOURCE_DIR}/.gitversion" CURRENT_GIT_VERSION)
+  endif()
 endif()
-string(STRIP "${CURRENT_GIT_VERSION}" CURRENT_GIT_VERSION)
-if (EXISTS "${CMAKE_BINARY_DIR}/generated/last_git_version")
-    file(READ "${CMAKE_BINARY_DIR}/generated/last_git_version" LAST_GIT_VERSION)
-endif()
-if (NOT ("${LAST_GIT_VERSION}" STREQUAL "${CURRENT_GIT_VERSION}") OR NOT GIT_EXECUTABLE)
-    configure_file(
-      ${CMAKE_SOURCE_DIR}/tools/version.cpp.in
-      ${CMAKE_BINARY_DIR}/generated/version.cpp
-    )
-endif()
-file(WRITE "${CMAKE_BINARY_DIR}/generated/last_git_version" CURRENT_GIT_VERSION)
 
 if (BUILD_ECPBRAM)
     add_executable(${PROGRAM_PREFIX}ecpbram ${INCLUDE_FILES} tools/ecpbram.cpp "${CMAKE_BINARY_DIR}/generated/version.cpp")
