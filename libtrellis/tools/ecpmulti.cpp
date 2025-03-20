@@ -58,7 +58,9 @@ int main(int argc, char *argv[])
     options.add_options()("verbose,v", "verbose output");
     options.add_options()("db", po::value<std::string>(), "Trellis database folder location");
     options.add_options()("input", po::value<std::vector<std::string>>()->required(), "input bitstream file 0..N");
-    options.add_options()("address", po::value<std::vector<std::string>>()->required(), "address to place next bitstream at [1..N]");
+    options.add_options()("address", po::value<std::vector<std::string>>(), "address to place next bitstream at [1..N]");
+    options.add_options()("golden", po::value<std::string>(), "golden bitstream file");
+    options.add_options()("goldenaddr", po::value<std::string>(), "address to place golden bitstream");
     options.add_options()("flashsize", po::value<std::uint32_t>()->required(), "Flash size in Mbits, e.g. 2, 4, 8, ..., 128");
     options.add_options()("input-idcode", po::value<std::string>(), "IDCODE override for input file");
     options.add_options()("output-idcode", po::value<std::string>(), "IDCODE override in output bitstreams");
@@ -99,6 +101,23 @@ int main(int argc, char *argv[])
 
     auto inputs = vm.at("input").as<std::vector<std::string>>();
     auto addresses = vm.at("address").as<std::vector<std::string>>();
+
+    /* Golden/Golden Addr */
+    if (vm.count("golden") || vm.count("goldenaddr")) {
+        /* golden and goldenaddr must be both provided */
+        if (!(vm.count("golden") && vm.count("goldenaddr"))) {
+            cerr << "--golden and --goldenaddr must be both specified" << endl;
+            return 1;
+        }
+
+        /* Insert golden bitstream after primary bitstream */
+        std::string golden = vm["golden"].as<std::string>();
+        inputs.insert(inputs.begin() + 1, golden);
+
+        /* Insert golden bitstream address in front of addresses list */
+        std::string goldenaddr_str = vm["goldenaddr"].as<std::string>();
+        addresses.insert(addresses.begin(), goldenaddr_str);
+    }
 
     if (inputs.size() != (addresses.size() + 1)) {
         cerr << "Inputs " << inputs.size() << " offsets " << addresses.size() << endl;
@@ -204,12 +223,24 @@ int main(int argc, char *argv[])
         bs.write_bit(out_file);
     }
 
+    /* Jump table */
+    if (vm.count("golden")) {
+        uint32_t jump_addr = (flash_size_bytes - 1) & ~0x00ff;
+        uint32_t fill_size = jump_addr - out_file.tellp();
 
-    /* TODO: Support golden image
-     * 1) Inject golden image into right area of final bitfile
-     * 2) Use Bitstream::generate_jump(golden_addr) to generate a Bitstream
-     * 3) At end of file, (flash_size - 0xFF) write jump bitstream
-     */
+        while(fill_size > 0) {
+            uint32_t batch_size = std::min(fill_size, (uint32_t)4096);
+            out_file.write(fillpattern.data(), batch_size);
+            fill_size -= batch_size;
+        }
+
+        /* Convert goldenaddr (string) to goldenaddr uint32_t */
+        std::string goldenaddr_str = vm["goldenaddr"].as<std::string>();
+        boost::optional<uint32_t> goldenaddr_val = convert_hexstring(goldenaddr_str);
+
+        Bitstream bs = Bitstream::generate_jump(*goldenaddr_val);
+        bs.write_bin(out_file);
+    }
 
     out_file.flush();
     out_file.close();
