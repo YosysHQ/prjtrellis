@@ -480,12 +480,18 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
       file << "        .CLKOS(" << params.clkout0_name << "),\n";
     else
       file << "        .CLKOS(" << params.secondary[0].name << "),\n";
+  } else {
+      file << "        .CLKOS(),\n";
   }
   if(params.secondary[1].enabled){
     file << "        .CLKOS2(" << params.secondary[1].name << "),\n";
+  } else {
+    file << "        .CLKOS2(),\n";
   }
   if(params.secondary[2].enabled){
     file << "        .CLKOS3(" << params.secondary[2].name << "),\n";
+  } else {
+    file << "        .CLKOS3(),\n";
   }
 
   if(params.internal_feedback || params.mode == pll_mode::HIGHRES)
@@ -522,7 +528,12 @@ void write_pll_config(const pll_params & params, const string &name, ofstream& f
   }
   file << "        .PLLWAKESYNC(1'b0),\n";
   file << "        .ENCLKOP(1'b0),\n";
-  file << "        .LOCK(locked)\n";
+  file << "        .LOCK(locked),\n";
+  file << "        .ENCLKOS(),\n";
+  file << "        .ENCLKOS2(),\n";
+  file << "        .ENCLKOS3(),\n";
+  file << "        .INTLOCK(),\n";
+  file << "        .REFCLK()\n";
   file << "	);\n";
   file << "endmodule\n";
 }
