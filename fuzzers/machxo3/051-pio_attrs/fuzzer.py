@@ -306,6 +306,8 @@ def main(args):
                 }
                 if extracfg is not None:
                     substs["extra_attrs"] = '(* {}="{}" *)'.format(extracfg[0], extracfg[1])
+                else:
+                    substs["extra_attrs"] = '(* CLAMP="OFF", PULLMODE="FAILSAFE", OPENDRAIN="OFF" *)'
                 if side == "B":
                     substs["cfg_vio"] = get_cfg_vccio(type)
                 return substs
@@ -325,17 +327,14 @@ def main(args):
                                          lambda x: get_substs(iomode="OUTPUT_LVCMOS33", extracfg=("SLEWRATE", x)),
                                          empty_bitfile)
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.DRIVE".format(pio), ["2", "4", "6", "8", "12", "16"],
-                                         lambda x: get_substs(iomode="OUTPUT_LVCMOS12" if x in ["2", "6"] else "OUTPUT_LVCMOS33", extracfg=("DRIVE", x)),
-                                         empty_bitfile)
+                                         lambda x: get_substs(iomode="OUTPUT_LVCMOS12" if x in ["2", "6"] else "OUTPUT_LVCMOS33", extracfg=("DRIVE", x)))
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.HYSTERESIS".format(pio), ["SMALL", "LARGE"],
                                          lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("HYSTERESIS", x)),
                                          empty_bitfile)
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.OPENDRAIN".format(pio), ["ON", "OFF"],
-                                         lambda x: get_substs(iomode="OUTPUT_LVCMOS33", extracfg=("OPENDRAIN", x)),
-                                         empty_bitfile)
+                                         lambda x: get_substs(iomode="OUTPUT_LVCMOS33", extracfg=("OPENDRAIN", x)))
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.CLAMP".format(pio), ["ON", "OFF"],
-                                            lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("CLAMP", x)),
-                                            empty_bitfile)
+                                            lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("CLAMP", x)))
             if side in "B":
                 nonrouting.fuzz_enum_setting(cfg, "PIO{}.DIFFRESISTOR".format(pio), ["OFF", "100"],
                                             lambda x: get_substs(iomode="INPUT_LVDS25", extracfg=("DIFFRESISTOR", x)),
