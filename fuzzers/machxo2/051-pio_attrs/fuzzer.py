@@ -197,7 +197,7 @@ def main(args):
                 if extracfg is not None:
                     substs["extra_attrs"] = '(* {}="{}" *)'.format(extracfg[0], extracfg[1])
                 else:
-                    substs["extra_attrs"] = '(* CLAMP="OFF", PULLMODE="FAILSAFE", OPENDRAIN="OFF" *)'
+                    substs["extra_attrs"] = '(* CLAMP="OFF", PULLMODE="DOWN", OPENDRAIN="OFF" *)'
                 if side == "B":
                     substs["cfg_vio"] = get_cfg_vccio(type)
                 return substs
@@ -211,8 +211,7 @@ def main(args):
                                          empty_bitfile, False)
 
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.PULLMODE".format(pio), ["UP", "DOWN", "NONE", "KEEPER", "FAILSAFE"],
-                                         lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("PULLMODE", x)),
-                                         empty_bitfile)
+                                         lambda x: get_substs(iomode="INPUT_LVCMOS33", extracfg=("PULLMODE", x)))
             nonrouting.fuzz_enum_setting(cfg, "PIO{}.SLEWRATE".format(pio), ["FAST", "SLOW"],
                                          lambda x: get_substs(iomode="OUTPUT_LVCMOS33", extracfg=("SLEWRATE", x)),
                                          empty_bitfile)
