@@ -197,7 +197,11 @@ def main(args):
                 if extracfg is not None:
                     substs["extra_attrs"] = '(* {}="{}" *)'.format(extracfg[0], extracfg[1])
                 else:
-                    substs["extra_attrs"] = '(* CLAMP="OFF", PULLMODE="DOWN", OPENDRAIN="OFF" *)'
+                    if (iomode[-1] == "D") or ("MIPI" in iomode):
+                        pull = ''
+                    else:
+                        pull = ', PULLMODE="DOWN"'
+                    substs["extra_attrs"] = f'(* CLAMP="OFF", OPENDRAIN="OFF" {pull} *)'
                 if side == "B":
                     substs["cfg_vio"] = get_cfg_vccio(type)
                 return substs
