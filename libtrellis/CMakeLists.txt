@@ -46,7 +46,7 @@ if (WASI)
     endif()
 endif()
 
-set(boost_libs filesystem program_options system)
+set(boost_libs filesystem program_options)
 if (Threads_FOUND)
     list(APPEND boost_libs thread)
 else()
@@ -62,6 +62,7 @@ else()
 endif()
 
 find_package(Boost REQUIRED COMPONENTS ${boost_libs})
+
 
 find_package(Git)
 
