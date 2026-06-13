@@ -1,7 +1,7 @@
 {
   "name": "prjtrellis",
   "image": "mcr.microsoft.com/devcontainers/base:trixie",
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y --no-install-recommends yosys nextpnr-ecp5 fpga-trellis openocd make && sudo rm -rf /var/lib/apt/lists/*",
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y --no-install-recommends yosys nextpnr-ecp5 fpga-trellis openocd make && sudo rm -rf /var/lib/apt/lists/* && git config --global --add safe.directory '*'",
   "customizations": {
     "vscode": {
       "extensions": ["mshr-h.veriloghdl"]
