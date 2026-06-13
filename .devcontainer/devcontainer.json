@@ -2,6 +2,11 @@
   "name": "prjtrellis",
   "image": "mcr.microsoft.com/devcontainers/base:trixie",
   "postCreateCommand": "sudo apt-get update && sudo apt-get install -y --no-install-recommends yosys nextpnr-ecp5 fpga-trellis openocd make && sudo rm -rf /var/lib/apt/lists/*",
+  "customizations": {
+    "vscode": {
+      "extensions": ["mshr-h.veriloghdl"]
+    }
+  },
   "containerEnv": {
     "TRELLIS": "${containerWorkspaceFolder}"
   }
