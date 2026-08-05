@@ -4,28 +4,12 @@
 #include <boost/version.hpp>
 #include <boost/filesystem.hpp>
 
-#if BOOST_VERSION >= 106100
-
 #if defined(__wasm)
 
 std::string get_database_path()
 {
     return "/share/trellis/database";
 }
-
-#else
-
-#include <boost/dll/runtime_symbol_info.hpp>
-
-std::string get_database_path()
-{
-    boost::filesystem::path executable_path = boost::dll::program_location().parent_path();
-    boost::filesystem::path database_datadir_relative(TRELLIS_RPATH_DATADIR "/" TRELLIS_PROGRAM_PREFIX "trellis/database");
-    std::string database_folder = (executable_path /= database_datadir_relative).string();
-    return database_folder;
-}
-
-#endif
 
 #else
 
@@ -54,6 +38,9 @@ std::string get_database_path()
 #include <cstring>
 
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#define NOGDI
 #  include <windows.h>
 #  include <io.h>
 #elif defined(__APPLE__)
@@ -122,30 +109,15 @@ std::string proc_self_dirname()
 #elif defined(_WIN32)
 std::string proc_self_dirname()
 {
-    int i = 0;
-#  ifdef __MINGW32__
-    char longpath[MAX_PATH + 1];
-    char shortpath[MAX_PATH + 1];
-#  else
-    WCHAR longpath[MAX_PATH + 1];
-    TCHAR shortpath[MAX_PATH + 1];
-#  endif
-    if (!GetModuleFileName(0, longpath, MAX_PATH+1)) {
-        fprintf(stderr, "fatal error: GetModuleFileName() failed.\n");
-        exit(EXIT_FAILURE);
-    }
-    if (!GetShortPathName(longpath, shortpath, MAX_PATH+1)) {
-        fprintf(stderr, "fatal error: GetShortPathName() failed.\n");
-        exit(EXIT_FAILURE);
-    }
-    while (shortpath[i] != 0)
-        i++;
-    while (i > 0 && shortpath[i-1] != '/' && shortpath[i-1] != '\\')
-        shortpath[--i] = 0;
-    std::string path;
-    for (i = 0; shortpath[i]; i++)
-        path += char(shortpath[i]);
-    return path;
+    std::wstring wbinpath(4096, L'\0');
+    if (!GetModuleFileNameW(0, &wbinpath[0], wbinpath.size()))
+        fprintf(stderr, "GetModuleFileNameW() failed.\n");
+    wbinpath.resize(wbinpath.rfind(L'\\') + 1); // remove filename
+    std::string ubinpath;
+    ubinpath.resize(WideCharToMultiByte(CP_UTF8, 0, wbinpath.data(), wbinpath.size(), NULL, 0, NULL, NULL));
+    if (WideCharToMultiByte(CP_UTF8, 0, wbinpath.data(), wbinpath.size(), &ubinpath[0], ubinpath.size(), NULL, NULL) == 0)
+        fprintf(stderr, "WideCharToMultiByte() failed.\n");
+    return ubinpath;
 }
 #elif defined(EMSCRIPTEN)
 std::string proc_self_dirname()
@@ -156,6 +128,8 @@ std::string proc_self_dirname()
     #error Dont know how to determine process executable base path!
 #endif
 
+#endif
+
 std::string get_database_path()
 {
     boost::filesystem::path executable_path = boost::filesystem::path(proc_self_dirname()).parent_path();
@@ -163,7 +137,5 @@ std::string get_database_path()
     std::string database_folder = (executable_path /= database_datadir_relative).string();
     return database_folder;
 }
-
-#endif
 
 #endif //LIBTRELLIS_DATABASEPATH_HPP

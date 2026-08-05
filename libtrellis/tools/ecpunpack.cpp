@@ -3,6 +3,7 @@
 #include "Chip.hpp"
 #include "Database.hpp"
 #include "DatabasePath.hpp"
+#include "Util.hpp"
 #include "version.hpp"
 #include <iostream>
 #include <boost/optional.hpp>
@@ -15,6 +16,8 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+    Trellis::use_utf8(&argc, &argv);
+
     using namespace Trellis;
     namespace po = boost::program_options;
     boost::optional<uint32_t> idcode;

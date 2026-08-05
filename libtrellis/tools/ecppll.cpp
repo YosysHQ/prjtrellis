@@ -36,6 +36,7 @@ f_out = f_vco / output
 #include <fstream>
 #include <string>
 #include <boost/program_options.hpp>
+#include "Util.hpp"
 #include "version.hpp"
 using namespace std;
 
@@ -92,6 +93,8 @@ void generate_secondary_output(pll_params &params, int channel, string name, flo
 void write_pll_config(const pll_params & params, const string &name, ofstream& file);
 
 int main(int argc, char** argv){
+  Trellis::use_utf8(&argc, &argv);
+
   namespace po = boost::program_options;
   po::options_description options("Allowed options");
 

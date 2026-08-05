@@ -5,6 +5,7 @@
 #include "DatabasePath.hpp"
 #include "Tile.hpp"
 #include "BitDatabase.hpp"
+#include "Util.hpp"
 #include "version.hpp"
 #include <iostream>
 #include <boost/program_options.hpp>
@@ -30,6 +31,8 @@ uint32_t convert_hexstring(std::string value_str)
 
 int main(int argc, char *argv[])
 {
+    Trellis::use_utf8(&argc, &argv);
+
     using namespace Trellis;
     namespace po = boost::program_options;
 

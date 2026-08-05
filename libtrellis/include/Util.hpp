@@ -11,6 +11,10 @@
 using namespace std;
 
 namespace Trellis {
+
+// Must be called as the *very first* thing in `main()`.
+void use_utf8(int *argcp, char ***argvp);
+
 enum class VerbosityLevel {
     ERROR,
     NOTE,
