@@ -21,9 +21,10 @@
 #include <assert.h>
 #include <stdint.h>
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
+#define NOGDI
 #include "windows.h"
-#undef NOMINMAX
 #else
 #include <unistd.h>
 #include <sys/time.h>
@@ -41,6 +42,7 @@
 #include "Chip.hpp"
 #include "Database.hpp"
 #include "DatabasePath.hpp"
+#include "Util.hpp"
 
 using std::map;
 using std::pair;
@@ -123,6 +125,8 @@ error:
 
 int main(int argc, char **argv)
 {
+    Trellis::use_utf8(&argc, &argv);
+
     bool verbose = false;
     namespace po = boost::program_options;
 
