@@ -128,8 +128,6 @@ std::string proc_self_dirname()
     #error Dont know how to determine process executable base path!
 #endif
 
-#endif
-
 std::string get_database_path()
 {
     boost::filesystem::path executable_path = boost::filesystem::path(proc_self_dirname()).parent_path();
@@ -137,5 +135,7 @@ std::string get_database_path()
     std::string database_folder = (executable_path /= database_datadir_relative).string();
     return database_folder;
 }
+
+#endif
 
 #endif //LIBTRELLIS_DATABASEPATH_HPP
