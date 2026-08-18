@@ -10,8 +10,8 @@ outputs of the routing inside tiles are:
 
  - The outputs are named **F0** to **F7** (LUT outputs) and **Q0** to **Q7** (FF outputs).
 
- - CIB tiles have an identical routing configuration to logic tiles, regardless of what they connect to  - effectively,
-   the logic slices are replaced by the special function - however, all the netnames aboved are prefixed with **J**.
+ - CIB tiles have an identical routing configuration to logic tiles, regardless of what they connect to - effectively,
+   the logic slices are replaced by the special function - however, all the netnames above are prefixed with **J**.
    Fixed arcs connect the CIB signals to the signals inside the special function tile.
 
 Four types of routing resource are available:

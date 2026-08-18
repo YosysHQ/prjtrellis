@@ -615,7 +615,7 @@ map<pair<int, int>, int> start_stride = {
     {make_pair(31, 48), 0}, // (0, 4)
 };
 
-// Spines are locations of DCCs, note that on 256 and 640 those are actually in bootom CIB line.
+// Spines are locations of DCCs, note that on 256 and 640 those are actually in bottom CIB line.
 // LCMXO2-7000 and LCMXO3-6900 top spine goes just up.
 // -1 represent dont care
 static map<pair<int, int>, std::vector<SpineInfo>> spine_map = {

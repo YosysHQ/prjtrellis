@@ -40,7 +40,7 @@ def main(args):
 
     metadata = dict()
     package_data = dict()
-    package_indicies = None
+    package_indices = None
     found_header = False
     with args.infile as csvf:
         for line in csvf:
@@ -53,8 +53,8 @@ def main(args):
             if splitline[0] == "PAD":
                 # is header
                 found_header = True
-                package_indicies = splitline[pkg_index_start:]
-                for pkg in package_indicies:
+                package_indices = splitline[pkg_index_start:]
+                for pkg in package_indices:
                     package_data[pkg] = {}
             elif found_header:
                 if splitline[1][0] != "P" or splitline[1].startswith("PROGRAM"):
@@ -68,10 +68,10 @@ def main(args):
                     metadata[bel] = bank, function, dqs, io_grouping
                 else:
                     metadata[bel] = bank, function, dqs
-                for i in range(len(package_indicies)):
+                for i in range(len(package_indices)):
                     if splitline[pkg_index_start+i] == "-":
                         continue
-                    package_data[package_indicies[i]][splitline[pkg_index_start+i]] = bel
+                    package_data[package_indices[i]][splitline[pkg_index_start+i]] = bel
     json_data = {"packages": {}, "pio_metadata": []}
     for pkg, pins in package_data.items():
         json_data["packages"][pkg] = {}
