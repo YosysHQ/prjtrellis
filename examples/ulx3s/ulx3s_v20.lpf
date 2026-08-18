@@ -204,7 +204,7 @@ IOBUF PORT "usb_fpga_pu_dn" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=16;
 
 ## JTAG ESP-32 "usb" sheet
 # connected to FT231X and ESP-32
-# commented out because those are dedicated pins, not directly useable as GPIO
+# commented out because those are dedicated pins, not directly usable as GPIO
 # but could be used by some vendor-specific JTAG bridging (boundary scan) module
 #LOCATE COMP "jtag_tdi" SITE "R5"; # FTDI_nRI   FPGA receives
 #LOCATE COMP "jtag_tdo" SITE "V4"; # FTDI_nCTS  FPGA transmits
@@ -327,7 +327,7 @@ IOBUF PORT "gpdi_scl" PULLMODE=UP IO_TYPE=LVCMOS33 DRIVE=4;
 # Physical connector pins:
 # *** when FEMALE ANGLED (90 deg PMOD) soldered ***
 # Jm_n- = Jm_n, Jm_n+ = Jm_n+1
-# example: J1_5- is J1_5 phsyical, J1_5+ is J1_6 physical
+# example: J1_5- is J1_5 physical, J1_5+ is J1_6 physical
 # *** when MALE VERTICAL soldered ***
 # Jm_n+ = Jm_n, Jm_n- = Jm_n+1
 # example: J1_5+ is J1_5 physical, J1_5- is J1_6 physical

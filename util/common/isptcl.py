@@ -113,7 +113,7 @@ def get_arcs_on_wires(desfiles, wires, drivers_only=False, dir_override=dict()):
     desfiles: a tuple (ncdfile, prffile)
     wires: list of canonical names of the wire
     drivers_only: only include arcs driving the wire in the output
-    dir_override: Dictionary that specificies whether a net queried by ispTcl
+    dir_override: Dictionary that specifies whether a net queried by ispTcl
     is a "sink" or "driver" when ispTcl returns "---" (since ISPTcl always puts
     the queried net on the RHS of an an arc). dir_override is only consulted if
     ispTcl returns "---" for the direction of a given net, and will

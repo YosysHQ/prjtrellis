@@ -712,7 +712,7 @@ module PPU(input clk, input ce, input reset,   // input clock  21.48 MHz / 4. 1 
     color_intensity = 0;
   end
   
-  reg nmi_occured;         // True if NMI has occured but not cleared.
+  reg nmi_occurred;         // True if NMI has occurred but not cleared.
   reg [7:0] vram_latch;
   // Clock generator
   wire is_in_vblank;        // True if we're in VBLANK
@@ -868,17 +868,17 @@ module PPU(input clk, input ce, input reset,   // input clock  21.48 MHz / 4. 1 
      
     // Reset frame specific counters upon exiting vblank
     if (exiting_vblank)
-      nmi_occured <= 0;
+      nmi_occurred <= 0;
     // Set the 
     if (entering_vblank)
-      nmi_occured <= 1;
+      nmi_occurred <= 1;
     // Reset NMI register when reading from Status
     if (read && ain == 2)
-      nmi_occured <= 0;
+      nmi_occurred <= 0;
   end
   
   // If we're triggering a VBLANK NMI 
-  assign nmi = nmi_occured && vbl_enable;
+  assign nmi = nmi_occurred && vbl_enable;
 
   // One cycle after vram_r was asserted, the value
   // is available on the bus.
@@ -895,7 +895,7 @@ module PPU(input clk, input ce, input reset,   // input clock  21.48 MHz / 4. 1 
   reg [7:0] latched_dout;
   always @* begin
     case (ain)
-    2: latched_dout = {nmi_occured,
+    2: latched_dout = {nmi_occurred,
                sprite0_hit_bg,
                sprite_overflow,
                5'b00000};
@@ -5821,7 +5821,7 @@ module MMC5(input clk, input ce, input reset,
                         (chr_ain[11:10] == 2) ? mirroring[5:4] : 
                                                 mirroring[7:6];
 
-  // Compute the new overriden nametable/attr address the split will read from instead
+  // Compute the new overridden nametable/attr address the split will read from instead
   // when the VSplit is active.
   // Cycle 0, 1 = nametable
   // Cycle 2, 3 = attribute
