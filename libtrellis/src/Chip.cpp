@@ -387,7 +387,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_machxo2(bool include_lutperm_pi
             // Single I/O pair.
             if (tile->info.type.find("LS0") != string::npos || tile->info.type.find("RS0") != string::npos ||
                 tile->info.type.find("BS0") != string::npos || tile->info.type.find("TS0") != string::npos ||
-                tile->info.type.find("LLC0PIC") != string::npos) {
+                (tile->info.type.find("LLC0PIC") != string::npos && (tile->info.type.find("LLC0PIC_I3C_VREF")) == string::npos)) {
                 for (int z = 0; z < 2; z++) {
                     MachXO2Bels::add_pio(*rg, x, y, z, have_lvds, is_xo3);
                     MachXO2Bels::add_iologic(*rg, side, x, y, z, have_dqs, have_lvds);
