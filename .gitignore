@@ -21,3 +21,5 @@ work_*/
 .*.swn
 .*.swm
 *.log
+/libtrellis/out/build/x64-Debug
+/.vs
