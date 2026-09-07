@@ -468,11 +468,17 @@ RoutingId RoutingGraph::find_machxo2_global_position(int row, int col, const std
         // The remaining two globals should come from BRANCHES from the right.
         // But since we run into the chip's edge, we route them to the current
         // column (and only the current column!) here.
-        if(col > 1)
-            candidate_cols.push_back(col - 2);
+        // Prefer the tile's own column first. Column 0 advertises six globals
+        // (see generate_global_info_machxo2), which overlap the pairs owned by
+        // columns 2..4; searching col-2 first therefore attributed column 2's
+        // U/D->BRANCH arcs to column 0, leaving column 2's BRANCH wires with no
+        // uphill pips and making two globals unroutable into columns 2-4
+        // (2000: globals 0/4, 1200: globals 1/5). Own column, then left, then right.
+        candidate_cols.push_back(col);
         if(col > 0)
             candidate_cols.push_back(col - 1);
-        candidate_cols.push_back(col);
+        if(col > 1)
+            candidate_cols.push_back(col - 2);
         if(col < max_col)
             candidate_cols.push_back(col + 1);
 
