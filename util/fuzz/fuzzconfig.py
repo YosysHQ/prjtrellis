@@ -43,10 +43,10 @@ class FuzzConfig:
     def build_design(self, des_template, substitutions, prefix="", no_trce=True, backanno=False, substitute=True):
         """
         Run Diamond on a given design template, applying a map of substitutions, plus some standard substitutions
-        if not overriden.
+        if not overridden.
 
         :param des_template: path to template NCL/Verilog file
-        :param substitutions: dictionary containing template subsitutions to apply to NCL/Verilog file
+        :param substitutions: dictionary containing template substitutions to apply to NCL/Verilog file
         :param prefix: prefix to append to filename, for running concurrent jobs without collisions
 
         Returns the path to the output bitstream

@@ -20,7 +20,7 @@ are wrapped by the script ``diamond.sh`` included in Project Trellis, that allow
 
 In the planned fuzzing flow, we will first create a Verilog design for what we want to fuzz by hand, and convert it to
 an NCL file. Then we will manually create a template NCL file containing only the mux/config to be fuzzed. The Python
-fuzzer script will then subsitute this template file for each fuzz possibility.
+fuzzer script will then substitute this template file for each fuzz possibility.
 
 A template file for LUT initialisation is shown as an example:
 

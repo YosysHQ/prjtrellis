@@ -242,7 +242,7 @@ def gen_config_graph(chip: pytrellis.Chip, rgraph: pytrellis.RoutingGraph, tiles
 
     def _filter_data_pin(node: Node) -> bool:
         # IOLOGIC[AC].[RT]XDATA[456] are mutually exclusive with IOLOGIC[BD].[RT]XDATA[0123],
-        # depending on whether 7:1 gearing is used, becacuse 7:1 gearing occupies two adjacent
+        # depending on whether 7:1 gearing is used, because 7:1 gearing occupies two adjacent
         # IOLOGIC units (A+B or C+D). Because they're mutually exclusive, some of the pins are
         # hardwired together (e.g. 4A and 0B). To avoid a multi-root situation and spurious
         # inputs/outputs, we need to pick which set to include based on the IO configuration.

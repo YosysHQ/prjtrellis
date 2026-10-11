@@ -1,7 +1,7 @@
 DSP Support
 ====================
 
-Verilog configurations for the DSP tiles can be generated in Lattice Daimond using Clarity Designer. Unfortunately, those designs cannot currently be compiled by Yosys without some modification. See `NextPnr Issue 208 <https://github.com/YosysHQ/nextpnr/issues/208>`_.
+Verilog configurations for the DSP tiles can be generated in Lattice Diamond using Clarity Designer. Unfortunately, those designs cannot currently be compiled by Yosys without some modification. See `NextPnr Issue 208 <https://github.com/YosysHQ/nextpnr/issues/208>`_.
 
 Structure
 ---------
@@ -20,4 +20,4 @@ It should be possible to synthesize an adder - but no working example has been p
 
 Macs
 ----
-Multiply accumalates should be possible to synthesize, but no working examples with pre-adders has yet been produced within the yosy-NextPnr flow.
+Multiply accumulates should be possible to synthesize, but no working examples with pre-adders has yet been produced within the yosys-NextPnr flow.

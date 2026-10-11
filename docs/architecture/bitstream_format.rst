@@ -13,7 +13,7 @@ The ECP5 is primarily byte oriented and always byte aligned. Multi-byte words ar
 
 Before the start of the bitstream itself is a comment section, which starts with FF 00 and 00 FF.
 Inside it are several null-terminated strings used as metadata by Lattice. The start of the bitstream
-is demarcated by a preamable, 0xFFFFBDB3. This is then followed by a 0xFFFFFFFF dummy section and then the
+is demarcated by a preamble, 0xFFFFBDB3. This is then followed by a 0xFFFFFFFF dummy section and then the
 start of functional commands.
 
 At minimum, a bitstream command is an 8 bit command type field, then 24 bits of command information.

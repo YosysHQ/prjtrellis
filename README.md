@@ -47,7 +47,7 @@ The following features are currently working in the Yosys/nextpnr/Trellis flow.
  are not yet supported.
  - Global networks (automatically promoted and routed in nextpnr)
  - PLLs
- - Transcievers (DCUs)
+ - Transceivers (DCUs)
 
 ### Development Boards
 Project Trellis supports all ECP5 devices and should work with any development board. The following
@@ -122,7 +122,7 @@ This follows the same process as
 
 #### [Minitests](minitests)
 
-There are also "minitests" which are small tests of features used to build fuzers.
+There are also "minitests" which are small tests of features used to build fuzzers.
 
 #### [Fuzzers](fuzzers)
 
@@ -158,7 +158,7 @@ Then, running all fuzzers in order will produce a database which
 documents the bitstream format in the database directory.
 
 UMG and UM5G devices may be stripped from [devices.json](devices.json)
-to ceate the database only for non-SERDES chip variants.
+to create the database only for non-SERDES chip variants.
 Obviously, SERDES related fuzzers are not able to run in this case.
 
     source environment.sh

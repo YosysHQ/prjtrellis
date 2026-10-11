@@ -792,7 +792,7 @@ assign eoc_cnt = &cnt4;
 initial begin
     cnt4   = 2'd0;
     divby_l= 0;
-    decdiv = 6'd3; // bad start numbers to show the auto allignment feature
+    decdiv = 6'd3; // bad start numbers to show the auto alignment feature
     //ctldiv = 6'd7;
 end
 `endif

@@ -13,7 +13,7 @@ This document is a work in progress! Some information is still incomplete and su
 Mid Muxes
 ----------
 The mid muxes are located in the middle of each edge of the device, and take clock inputs from a range of sources
-(clock input pins, PLL ouputs, CLKDIV outputs, etc) and feed them into the centre clock muxes.
+(clock input pins, PLL outputs, CLKDIV outputs, etc) and feed them into the centre clock muxes.
 
 Depending on the location, mid muxes have between 12 and 16 outputs to the centre muxes.
 

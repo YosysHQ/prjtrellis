@@ -386,7 +386,7 @@ void TileBitDatabase::config_to_tile_cram(const TileConfig &cfg, CRAMView &tile,
     for (auto unk : cfg.cunknowns) {
         tile.bit(unk.frame, unk.bit) = 1;
     }
-    // Apply default values if not overriden in cfg
+    // Apply default values if not overridden in cfg
     if (!is_tilegroup) {
         for (auto w : words)
             if (found_words.find(w.first) == found_words.end())

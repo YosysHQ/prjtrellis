@@ -75,7 +75,7 @@ Glossary
     given set of inputs.
 
   MUX
-    A multiplexer (MUX) is a multi-input, single-output switch controled by
+    A multiplexer (MUX) is a multi-input, single-output switch controlled by
     logic.
 
   Node

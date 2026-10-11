@@ -145,7 +145,7 @@ def fuzz_interconnect_with_netnames(
         # Then filter using the arc predicate
         fuzz_arcs = list(filter(lambda x: arc_predicate(x, netnames), assoc_arcs))
 
-        # Ful fullmux mode only
+        # Full mux mode only
         changed_bits = set()
         arc_tiles = {}
         tiles_changed = set()
