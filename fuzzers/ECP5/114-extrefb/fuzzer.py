@@ -9,6 +9,11 @@ cfg = FuzzConfig(job="EXTREF", family="ECP5", device="LFE5UM5G-45F", ncl="empty.
                         "MIB_R71C46:DCU4", "MIB_R71C47:DCU5", "MIB_R71C48:DCU6", "MIB_R71C49:DCU7",
                         "MIB_R71C50:DCU8"])
 
+rcfg_85k = FuzzConfig(job="EXTREF", family="ECP5", device="LFE5UM5G-85F", ncl="extref_routing_85k.ncl",
+                 tiles=["MIB_R95C46:DCU0", "MIB_R95C47:DCU1", "MIB_R95C48:DCU2", "MIB_R95C49:DCU3",
+                        "MIB_R95C50:DCU4", "MIB_R95C51:DCU5", "MIB_R95C52:DCU6", "MIB_R95C53:DCU7",
+                        "MIB_R95C54:DCU8"])
+
 
 def get_substs(mode="EXTREFB", program=None):
     if mode == "NONE":
@@ -65,6 +70,13 @@ def main():
          "R71C42_RXREFCLK0",
          "R71C42_RXREFCLK1",
          "R71C42_JTXREFCLK"],
+        bidir=True
+    )
+
+    rcfg_85k.setup()
+    interconnect.fuzz_interconnect_with_netnames(
+        rcfg_85k,
+        ["R95C46_JREFCLKO_EXTREF"],
         bidir=True
     )
 
