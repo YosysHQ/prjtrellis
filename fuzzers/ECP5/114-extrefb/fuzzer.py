@@ -4,16 +4,14 @@ import pytrellis
 import fuzzloops
 import interconnect
 
+def dcu_tiles(r, c):
+    return [f"MIB_R{r:02}C{c+i:02}:DCU{i}" for i in range(9)]
+
 cfg = FuzzConfig(job="EXTREF", family="ECP5", device="LFE5UM5G-45F", ncl="empty.ncl",
-                 tiles=["MIB_R71C42:DCU0", "MIB_R71C43:DCU1", "MIB_R71C44:DCU2", "MIB_R71C45:DCU3",
-                        "MIB_R71C46:DCU4", "MIB_R71C47:DCU5", "MIB_R71C48:DCU6", "MIB_R71C49:DCU7",
-                        "MIB_R71C50:DCU8"])
+                 tiles=dcu_tiles(71, 42))
 
 rcfg_85k = FuzzConfig(job="EXTREF", family="ECP5", device="LFE5UM5G-85F", ncl="extref_routing_85k.ncl",
-                 tiles=["MIB_R95C46:DCU0", "MIB_R95C47:DCU1", "MIB_R95C48:DCU2", "MIB_R95C49:DCU3",
-                        "MIB_R95C50:DCU4", "MIB_R95C51:DCU5", "MIB_R95C52:DCU6", "MIB_R95C53:DCU7",
-                        "MIB_R95C54:DCU8"])
-
+                 tiles=dcu_tiles(95, 46))
 
 def get_substs(mode="EXTREFB", program=None):
     if mode == "NONE":
@@ -48,6 +46,7 @@ def main():
     nonrouting.fuzz_word_setting(cfg, "EXTREF.REFCK_DCBIAS_EN", 1,
                                  lambda x: get_substs(program={"REFCK_DCBIAS_EN": tobinstr(x, 1)}), empty_bitfile)
 
+    # 45k, EXTREF0
     cfg.ncl = "extref_routing.ncl"
     interconnect.fuzz_interconnect_with_netnames(
         cfg,
@@ -73,10 +72,27 @@ def main():
         bidir=True
     )
 
+    # 45k, EXTREF1
+    cfg.tiles = dcu_tiles(71, 69)
+    interconnect.fuzz_interconnect_with_netnames(
+        cfg,
+        ["R71C69_JREFCLKO_EXTREF"],
+        bidir=True
+    )
+
+    # 85k, EXTREF0
     rcfg_85k.setup()
     interconnect.fuzz_interconnect_with_netnames(
         rcfg_85k,
         ["R95C46_JREFCLKO_EXTREF"],
+        bidir=True
+    )
+
+    # 85k, EXTREF1
+    rcfg_85k.tiles = dcu_tiles(95, 71)
+    interconnect.fuzz_interconnect_with_netnames(
+        rcfg_85k,
+        ["R95C71_JREFCLKO_EXTREF"],
         bidir=True
     )
 
