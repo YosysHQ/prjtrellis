@@ -46,6 +46,7 @@ def main():
     nonrouting.fuzz_word_setting(cfg, "EXTREF.REFCK_DCBIAS_EN", 1,
                                  lambda x: get_substs(program={"REFCK_DCBIAS_EN": tobinstr(x, 1)}), empty_bitfile)
 
+    # 45k, EXTREF0
     cfg.ncl = "extref_routing.ncl"
     interconnect.fuzz_interconnect_with_netnames(
         cfg,
@@ -71,10 +72,27 @@ def main():
         bidir=True
     )
 
+    # 45k, EXTREF1
+    cfg.tiles = dcu_tiles(71, 69)
+    interconnect.fuzz_interconnect_with_netnames(
+        cfg,
+        ["R71C69_JREFCLKO_EXTREF"],
+        bidir=True
+    )
+
+    # 85k, EXTREF0
     rcfg_85k.setup()
     interconnect.fuzz_interconnect_with_netnames(
         rcfg_85k,
         ["R95C46_JREFCLKO_EXTREF"],
+        bidir=True
+    )
+
+    # 85k, EXTREF1
+    rcfg_85k.tiles = dcu_tiles(95, 71)
+    interconnect.fuzz_interconnect_with_netnames(
+        rcfg_85k,
+        ["R95C71_JREFCLKO_EXTREF"],
         bidir=True
     )
 
