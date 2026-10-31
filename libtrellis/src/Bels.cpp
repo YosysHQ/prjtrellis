@@ -786,6 +786,25 @@ void add_ioclk_bel(RoutingGraph &graph, const std::string &name, int x, int y, i
     graph.add_bel(bel);
 }
 
+void add_constants(RoutingGraph &graph, int x, int y) {
+    RoutingBel gnd;
+    gnd.name = graph.ident("GND");
+    gnd.type = graph.ident("GND");
+    gnd.loc.x = x;
+    gnd.loc.y = y;
+    gnd.z = 0;
+    graph.add_bel_output(gnd, graph.ident("F"), x, y, graph.ident("GND_WIRE"));
+    graph.add_bel(gnd);
+
+    RoutingBel vcc;
+    vcc.name = graph.ident("VCC");
+    vcc.type = graph.ident("VCC");
+    vcc.loc.x = x;
+    vcc.loc.y = y;
+    vcc.z = 1;
+    graph.add_bel_output(vcc, graph.ident("F"), x, y, graph.ident("VCC_WIRE"));
+    graph.add_bel(vcc);
+}
 
 }
 
