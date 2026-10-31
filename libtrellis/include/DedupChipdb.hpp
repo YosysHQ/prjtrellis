@@ -81,7 +81,7 @@ struct DdArcData
     ArcClass cls;
     int32_t delay;
     ident_t tiletype;
-    int16_t lutperm_flags;
+    uint16_t lutperm_flags;
 };
 
 inline bool operator==(const DdArcData &a, const DdArcData &b)
@@ -357,7 +357,7 @@ struct DedupChipdb : public IdStore
     LocationData get_cs_data(checksum_t id);
 };
 
-shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip, bool include_lutperm_pips = false, bool split_slice_mode = false);
+shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip, bool include_lutperm_pips = false, bool split_slice_mode = false, bool include_const_pips = false);
 
 /*
 An optimized chip database is a database with the following properties, intended to be used in place-and-route flows.

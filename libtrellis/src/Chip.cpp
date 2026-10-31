@@ -122,10 +122,10 @@ ChipDelta operator-(const Chip &a, const Chip &b)
     return delta;
 }
 
-shared_ptr<RoutingGraph> Chip::get_routing_graph(bool include_lutperm_pips, bool split_slice_mode)
+shared_ptr<RoutingGraph> Chip::get_routing_graph(bool include_lutperm_pips, bool split_slice_mode, bool include_const_pips)
 {
     if(info.family == "ECP5") {
-        return get_routing_graph_ecp5(include_lutperm_pips, split_slice_mode);
+        return get_routing_graph_ecp5(include_lutperm_pips, split_slice_mode, include_const_pips);
     } else if(info.family == "MachXO") {
         return get_routing_graph_machxo(include_lutperm_pips, split_slice_mode);
     } else if(info.family == "MachXO2" || info.family == "MachXO3" || info.family == "MachXO3D") {
@@ -134,7 +134,7 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph(bool include_lutperm_pips, bool
       throw runtime_error("Unknown chip family: " + info.family);
 }
 
-shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips, bool split_slice_mode)
+shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips, bool split_slice_mode, bool include_const_pips)
 {
     shared_ptr<RoutingGraph> rg(new RoutingGraph(*this));
     //cout << "Building routing graph" << endl;
@@ -178,6 +178,32 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips,
                             }
                         }
                     }
+                }
+                if (include_const_pips) {
+                    Location loc(x, y);
+
+                    RoutingId gnd_wire{loc, rg->ident("GND_WIRE")};
+                    RoutingId vcc_wire{loc, rg->ident("VCC_WIRE")};
+
+                    rg->add_wire(gnd_wire);
+                    rg->add_wire(vcc_wire);
+
+                    RoutingArc gnd_arc;
+                    gnd_arc.id = rg->ident("GND->F7");
+                    gnd_arc.source = gnd_wire;
+                    gnd_arc.sink = RoutingId{loc, rg->ident("F7")};
+                    gnd_arc.tiletype = rg->ident(tile->info.type);
+                    gnd_arc.lutperm_flags = (0x2000 | (7 << 4) | 0);
+                    rg->add_arc(loc, gnd_arc);
+
+                    RoutingArc vcc_arc;
+                    vcc_arc.id = rg->ident("VCC->F7");
+                    vcc_arc.source = vcc_wire;
+                    vcc_arc.sink = RoutingId{loc, rg->ident("F7")};
+                    vcc_arc.tiletype = rg->ident(tile->info.type);
+                    vcc_arc.lutperm_flags = (0x2000 | (7 << 4) | 1);
+                    rg->add_arc(loc, vcc_arc);
+
                 }
             }
             if (split_slice_mode)
@@ -316,6 +342,8 @@ shared_ptr<RoutingGraph> Chip::get_routing_graph_ecp5(bool include_lutperm_pips,
             Ecp5Bels::add_ioclk_bel(*rg, "DDRDLL", x+2, y+13, 0);
         if (tile->info.type == "PICL0_DQS2" || tile->info.type == "PICR0_DQS2")
             Ecp5Bels::add_ioclk_bel(*rg, "DQSBUFM", x, y, 0);
+        if (tile->info.type == "BANKREF0" && include_const_pips) // arbitrary once-per-device tile
+            Ecp5Bels::add_constants(*rg, x, y);
 
     }
     return rg;

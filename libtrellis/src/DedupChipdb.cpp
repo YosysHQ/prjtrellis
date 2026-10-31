@@ -34,9 +34,9 @@ DedupChipdb::DedupChipdb()
 DedupChipdb::DedupChipdb(const IdStore &base) : IdStore(base)
 {}
 
-shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip, bool include_lutperm_pips, bool split_slice_mode)
+shared_ptr<DedupChipdb> make_dedup_chipdb(Chip &chip, bool include_lutperm_pips, bool split_slice_mode, bool include_const_pips)
 {
-    shared_ptr<RoutingGraph> graph = chip.get_routing_graph(include_lutperm_pips, split_slice_mode);
+    shared_ptr<RoutingGraph> graph = chip.get_routing_graph(include_lutperm_pips, split_slice_mode, include_const_pips);
     for (auto &loc : graph->tiles) {
         const auto &td = loc.second;
         // Index bels, wires and arcs
